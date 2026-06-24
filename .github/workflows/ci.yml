@@ -23,6 +23,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      # npm 11 (bundled with Node 24) can crash `npm ci` with "Exit handler
+      # never called!"; pin to npm 10 for a reliable install.
+      - name: Pin npm to v10
+        run: npm i -g npm@10 --registry=https://registry.npmjs.org
       - run: npm ci
       # Generated custodian types are committed; regenerate and fail if they're
       # stale relative to the vendored specs.
@@ -49,6 +53,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - name: Pin npm to v10
+        run: npm i -g npm@10 --registry=https://registry.npmjs.org
       - run: npm ci
       - run: npm test
 
@@ -68,5 +74,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - name: Pin npm to v10
+        run: npm i -g npm@10 --registry=https://registry.npmjs.org
       - run: npm ci
       - run: npm run test:integration
