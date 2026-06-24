@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output (dual ESM+CJS)
+dist/
+
+# Test / coverage
+coverage/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# NOTE: src/generated/*.ts is intentionally NOT ignored. The OpenAPI-generated
+# custodian types are committed (custody.js convention, §7.1) so the repo is
+# self-contained and API drift shows up in PR diffs. Regenerate with
+# `npm run typegen` when bumping a vendored spec.
+
+# TypeDoc output
+docs/api/
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+*.iml
+
+# Logs
+npm-debug.log*
+
+# Local env / secrets — never commit credentials (§12.2)
+.env
+.env.*
+*.pem
