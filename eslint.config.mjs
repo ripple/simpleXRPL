@@ -71,6 +71,11 @@ export default [
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
+      // Tests legitimately generate keypairs synchronously in setup, pass
+      // deliberately-wrong types to assert validation, and own their fixtures.
+      'n/no-sync': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/parameter-properties': 'off',
     },
   },
 ]
