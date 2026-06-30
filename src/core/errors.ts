@@ -86,3 +86,21 @@ export class CustodyApiError extends SimpleXRPLError {
     this.raw = options?.raw
   }
 }
+
+/**
+ * Raised when an account cannot be resolved — an r-address or alias not present
+ * in a custodian's discovered account set (§5.2, §9.2).
+ */
+export class AccountNotFoundError extends SimpleXRPLError {
+  public readonly account: string
+
+  /**
+   * Construct an AccountNotFoundError.
+   *
+   * @param account - The unresolved address or alias.
+   */
+  public constructor(account: string) {
+    super(`No account found for '${account}'`)
+    this.account = account
+  }
+}
