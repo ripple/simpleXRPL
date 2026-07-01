@@ -101,4 +101,62 @@ describe('CustodyHttpClient', () => {
     expect((error as CustodyApiError).status).toBe(422)
     expect((error as CustodyApiError).hint).toBe('policy rejected')
   })
+
+  it('POSTs a JSON body with the JSON content type', async () => {
+    const { auth } = makeAuth()
+    const http = new FakeHttpPort(() => ok({ created: true }))
+    const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
+
+    const result = await client.post<{ created: boolean }>('/v1/orders', {
+      amount: '10',
+    })
+
+    expect(result).toEqual({ created: true })
+    const [request] = http.requests
+    expect(request.method).toBe('POST')
+    expect(request.headers['Content-Type']).toBe('application/json')
+    expect(request.body).toBe(JSON.stringify({ amount: '10' }))
+  })
+
+  it('returns undefined for an empty 2xx body', async () => {
+    const { auth } = makeAuth()
+    const http = new FakeHttpPort(() => ({ status: 200, body: '' }))
+    const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
+
+    await expect(client.get('/v1/void')).resolves.toBeUndefined()
+  })
+
+  it('maps a non-JSON error body to CustodyApiError with no hint but raw preserved', async () => {
+    const { auth } = makeAuth()
+    const http = new FakeHttpPort(() => ({
+      status: 500,
+      body: 'Internal Server Error',
+    }))
+    const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
+
+    let error: unknown
+    try {
+      await client.get('/v1/thing')
+    } catch (caught) {
+      error = caught
+    }
+    expect(error).toBeInstanceOf(CustodyApiError)
+    expect((error as CustodyApiError).status).toBe(500)
+    expect((error as CustodyApiError).hint).toBeUndefined()
+    expect((error as CustodyApiError).raw).toBe('Internal Server Error')
+  })
+
+  it('normalizes a trailing-slash gateway URL (no double slash)', async () => {
+    const { auth } = makeAuth()
+    const http = new FakeHttpPort(() => ok({}))
+    const client = new CustodyHttpClient({
+      gatewayUrl: 'https://custody.example.com/',
+      http,
+      auth,
+    })
+
+    await client.get('/v1/thing')
+
+    expect(http.requests[0]?.url).toBe('https://custody.example.com/v1/thing')
+  })
 })

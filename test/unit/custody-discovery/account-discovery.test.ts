@@ -108,4 +108,77 @@ describe('discoverXrplAccounts', () => {
 
     expect(accounts.map((account) => account.address)).toEqual(['rOne', 'rTwo'])
   })
+
+  it('returns an empty list for a domain with no accounts', async () => {
+    const client = makeClient((request) => {
+      if (request.url.includes('/v1/ledgers')) {
+        return ok(ledgersBody([{ id: 'xrpl-1', type: 'XRPL' }]))
+      }
+      return ok(accountsBody([]))
+    })
+
+    await expect(discoverXrplAccounts(client, DOMAIN)).resolves.toEqual([])
+  })
+
+  it('contributes nothing for an XRPL account with no external address', async () => {
+    const client = makeClient((request) => {
+      const { url } = request
+      if (url.includes('/v1/ledgers')) {
+        return ok(ledgersBody([{ id: 'xrpl-1', type: 'XRPL' }]))
+      }
+      if (url.includes('/addresses')) {
+        // Only an Internal (change) address — no external address to register.
+        return ok(
+          addressesBody([
+            {
+              address: 'rChange',
+              scope: 'Internal',
+              ledgerId: 'xrpl-1',
+              accountId: 'acc-1',
+            },
+          ]),
+        )
+      }
+      return ok(accountsBody([{ id: 'acc-1', ledgerId: 'xrpl-1' }]))
+    })
+
+    await expect(discoverXrplAccounts(client, DOMAIN)).resolves.toEqual([])
+  })
+
+  it('yields one Account per external address when an account has several', async () => {
+    const client = makeClient((request) => {
+      const { url } = request
+      if (url.includes('/v1/ledgers')) {
+        return ok(ledgersBody([{ id: 'xrpl-1', type: 'XRPL' }]))
+      }
+      if (url.includes('/addresses')) {
+        return ok(
+          addressesBody([
+            {
+              address: 'rA',
+              scope: 'External',
+              ledgerId: 'xrpl-1',
+              accountId: 'acc-1',
+            },
+            {
+              address: 'rB',
+              scope: 'External',
+              ledgerId: 'xrpl-1',
+              accountId: 'acc-1',
+            },
+          ]),
+        )
+      }
+      return ok(
+        accountsBody([{ id: 'acc-1', alias: 'multi', ledgerId: 'xrpl-1' }]),
+      )
+    })
+
+    const accounts = await discoverXrplAccounts(client, DOMAIN)
+
+    expect(accounts).toEqual([
+      { address: 'rA', alias: 'multi', custodianRef: 'acc-1' },
+      { address: 'rB', alias: 'multi', custodianRef: 'acc-1' },
+    ])
+  })
 })
