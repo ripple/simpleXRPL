@@ -2,7 +2,7 @@ import canonicalizeImport from 'canonicalize'
 
 import { CustodyAuthError } from '../../../core/errors.js'
 
-import type { KeypairService } from './keypair.service.js'
+import { KeypairService } from './keypair.service.js'
 
 // `canonicalize` ships as CJS `module.exports = fn`. A default import resolves
 // to that function at runtime in both the ESM and CJS builds, but its bundled
@@ -13,15 +13,15 @@ const canonicalize = canonicalizeImport as unknown as (
 ) => string | undefined
 
 /**
- * Signs Custody intent bodies (TDD §7.2).
+ * Signs Custody intent bodies.
  *
  * Every `v0_CreateTransactionOrder` / `v0_SignManifest` envelope carries a
  * `request` object and a detached `signature` over the *canonicalized* request.
  * Canonicalization (RFC 8785 / JCS) guarantees the SDK and the Custody server
  * agree on byte-for-byte JSON before signing, regardless of key order.
  *
- * This is the primitive DGE-7464 calls once it has built the envelope; it does
- * not construct the envelope itself.
+ * This is the signing primitive that envelope-building code calls once it has
+ * built the envelope; it does not construct the envelope itself.
  */
 export class IntentSigner {
   private readonly keypair: KeypairService
@@ -32,8 +32,16 @@ export class IntentSigner {
    *
    * @param keypair - The algorithm-bound signer for the intent-author key.
    * @param privateKey - The PEM-encoded intent-author private key.
+   * @throws {@link CustodyAuthError} if `privateKey`'s algorithm doesn't match
+   * the one `keypair` is bound to.
    */
   public constructor(keypair: KeypairService, privateKey: string) {
+    const detected = KeypairService.detectKeyType(privateKey)
+    if (detected !== 'unknown' && detected !== keypair.algorithm) {
+      throw new CustodyAuthError(
+        `Keypair is bound to ${keypair.algorithm}, but the supplied private key is a ${detected} key`,
+      )
+    }
     this.keypair = keypair
     this.privateKey = privateKey
   }

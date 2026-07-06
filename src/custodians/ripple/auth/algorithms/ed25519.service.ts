@@ -7,6 +7,10 @@ import type { KeypairStrategy } from '../keypairs.types.js'
 const HALF_SIGNATURE_HEX_LEN = 64
 /** Hex chars representing the full 64-byte raw Ed25519 signature. */
 const FULL_SIGNATURE_HEX_LEN = 128
+/** DER INTEGERs are two's-complement; this bit marks a value as negative. */
+const DER_INTEGER_SIGN_BIT = 0x80
+/** Base used to render byte values as hex. */
+const HEX_RADIX = 16
 
 /**
  * Does this string look like a serialized JSON object/array (an intent body)
@@ -29,10 +33,27 @@ function isStringifiedObject(value: string): boolean {
 }
 
 /**
+ * DER-encode a 32-byte unsigned big-endian integer half of the raw signature,
+ * prefixing the 0x00 pad byte ASN.1 requires whenever the high bit is set
+ * (otherwise the value is read back as negative).
+ *
+ * @param halfHex - 32-byte (64 hex char) unsigned integer, big-endian.
+ * @returns The DER INTEGER TLV (tag + length + content), as hex.
+ */
+function derEncodeInteger(halfHex: string): string {
+  const needsPad =
+    parseInt(halfHex.substring(0, 2), HEX_RADIX) >= DER_INTEGER_SIGN_BIT
+  const content = needsPad ? `00${halfHex}` : halfHex
+  const lengthHex = (content.length / 2).toString(HEX_RADIX).padStart(2, '0')
+  return `02${lengthHex}${content}`
+}
+
+/**
  * Ed25519 signer.
  *
  * This reproduces Ripple Custody's documented OpenSSL flow EXACTLY, including a
- * non-obvious DER step — do not "simplify" it without a contract test (DGE-7467):
+ * non-obvious DER step — do not "simplify" it without a contract test verifying
+ * the exact bytes Custody expects:
  *
  * 1. If the message is a serialized JSON object (an intent body), SHA-256 hash it
  *    first; if it is a bare token (challenge UUID / JWT), sign the bytes as-is.
@@ -82,7 +103,12 @@ export class Ed25519Service implements KeypairStrategy {
       HALF_SIGNATURE_HEX_LEN,
       FULL_SIGNATURE_HEX_LEN,
     )
-    const derHex = `30440220${rHex}0220${sHex}`
+    const rDer = derEncodeInteger(rHex)
+    const sDer = derEncodeInteger(sHex)
+    const sequenceLengthHex = ((rDer.length + sDer.length) / 2)
+      .toString(HEX_RADIX)
+      .padStart(2, '0')
+    const derHex = `30${sequenceLengthHex}${rDer}${sDer}`
 
     return Buffer.from(derHex, 'hex').toString('base64')
   }

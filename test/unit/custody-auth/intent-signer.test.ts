@@ -51,4 +51,12 @@ describe('IntentSigner', () => {
     const signer = makeSigner()
     expect(() => signer.signRequest(undefined)).toThrow(CustodyAuthError)
   })
+
+  it('throws when the keypair algorithm does not match the private key', () => {
+    const edPem = generateTestKey('ed25519')
+    const ecPem = generateTestKey('secp256k1')
+    expect(
+      () => new IntentSigner(KeypairService.fromPrivateKey(edPem), ecPem),
+    ).toThrow(/secp256k1/u)
+  })
 })

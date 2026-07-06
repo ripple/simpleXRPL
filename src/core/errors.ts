@@ -2,10 +2,9 @@
 /**
  * Error hierarchy for simpleXRPL.
  *
- * NOTE (DGE-7462): These classes are the subset of the DGE-7452 error model that
- * the Custody auth layer depends on, stubbed here so this ticket lands
- * independently. When DGE-7452 merges, fold these into the shared core error
- * module. Shapes intentionally match the Technical Design Document §11.
+ * NOTE: These classes are a subset of a larger planned error model, stubbed
+ * here so the Custody auth layer can land independently. They are intended
+ * to later be folded into the shared core error module.
  */
 
 /** Base class for every error simpleXRPL throws. */
@@ -28,7 +27,7 @@ export class SimpleXRPLError extends Error {
 /**
  * Raised when Custody authentication fails: the challenge/JWT exchange is
  * rejected, the single 401 refresh-and-retry still fails, or token acquisition
- * errors out. Carries no key material (see §12.2).
+ * errors out. Carries no key material.
  */
 export class CustodyAuthError extends SimpleXRPLError {
   public readonly status?: number
@@ -52,9 +51,9 @@ export class CustodyAuthError extends SimpleXRPLError {
 
 /**
  * Raised for non-auth Custody API failures. `hint` preserves Custody's
- * `processing.hint` verbatim (§11); `raw` carries the full response body.
+ * `processing.hint` verbatim; `raw` carries the full response body.
  * Defined here only so the auth layer can distinguish it from
- * {@link CustodyAuthError}; the full version lands in DGE-7452.
+ * {@link CustodyAuthError}; a fuller version is planned for later.
  */
 export class CustodyApiError extends SimpleXRPLError {
   public readonly status?: number

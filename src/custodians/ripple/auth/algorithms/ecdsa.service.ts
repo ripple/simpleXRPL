@@ -7,7 +7,7 @@ import type { KeypairStrategy } from '../keypairs.types.js'
 /**
  * Shared ECDSA signer for the two EC curves Custody supports. Signs the raw
  * message bytes and returns a base64 DER signature. Faithful port of custody.js
- * `Secp256k1Service` / `Secp256r1Service` (TDD §9.5 reference).
+ * `Secp256k1Service` / `Secp256r1Service`.
  */
 abstract class EcdsaService implements KeypairStrategy {
   /** OpenSSL curve name as Node reports it in `asymmetricKeyDetails.namedCurve`. */
@@ -44,11 +44,7 @@ abstract class EcdsaService implements KeypairStrategy {
    */
   private assertValidKey(privateKeyPem: string): void {
     const invalid = `Invalid private key: must be a PEM-encoded ${this.label} private key`
-    if (
-      typeof privateKeyPem !== 'string' ||
-      !privateKeyPem.includes('-----BEGIN EC PRIVATE KEY-----') ||
-      !privateKeyPem.includes('-----END EC PRIVATE KEY-----')
-    ) {
+    if (typeof privateKeyPem !== 'string') {
       throw new CustodyAuthError(invalid)
     }
 

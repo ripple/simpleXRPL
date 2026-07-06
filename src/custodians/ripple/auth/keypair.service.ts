@@ -9,28 +9,48 @@ import {
 import { Ed25519Service } from './algorithms/ed25519.service.js'
 import type { KeypairAlgorithm, KeypairStrategy } from './keypairs.types.js'
 
-// OID byte sequences (hex) embedded in a key's DER encoding, used to detect the
-// algorithm without the caller declaring it (TDD §3.3).
-// OID 1.3.101.112
-const OID_ED25519 = '2b6570'
-// OID 1.3.132.0.10
-const OID_SECP256K1 = '2b8104000a'
-// OID 1.2.840.10045.3.1.7
-const OID_SECP256R1 = '2a8648ce3d030107'
+/**
+ * Try to parse `privateKey` as a private key, for algorithm detection only.
+ * PEM strings self-describe their encoding; DER buffers don't, so both
+ * PKCS#8 and SEC1 are attempted (Ed25519 keys are always PKCS#8).
+ *
+ * @param privateKey - The private key (PEM string or DER buffer).
+ * @returns The parsed key, or `null` if it doesn't parse as any known encoding.
+ */
+function tryParsePrivateKey(
+  privateKey: string | Buffer,
+): ReturnType<typeof createPrivateKey> | null {
+  if (typeof privateKey === 'string') {
+    try {
+      return createPrivateKey(privateKey)
+    } catch {
+      return null
+    }
+  }
+  for (const type of ['pkcs8', 'sec1'] as const) {
+    try {
+      return createPrivateKey({ key: privateKey, format: 'der', type })
+    } catch {
+      // Try the next DER encoding.
+    }
+  }
+  return null
+}
 
 /**
  * Unified signing facade over the three Custody-supported algorithms. The
  * algorithm is auto-detected from the key (the caller never declares it).
  */
 export class KeypairService {
+  /** The algorithm this instance is bound to. */
+  public readonly algorithm: KeypairAlgorithm
+
   /** Signer strategy per supported algorithm. */
   private readonly strategies: Record<KeypairAlgorithm, KeypairStrategy> = {
     secp256k1: new Secp256k1Service(),
     secp256r1: new Secp256r1Service(),
     ed25519: new Ed25519Service(),
   }
-
-  private readonly algorithm: KeypairAlgorithm
 
   /**
    * Construct a KeypairService bound to a specific algorithm.
@@ -68,31 +88,28 @@ export class KeypairService {
   public static detectKeyType(
     privateKey: string | Buffer,
   ): KeypairAlgorithm | 'unknown' {
-    let hex: string
-    if (typeof privateKey === 'string') {
-      const base64 = privateKey
-        .replace(/-----(?:BEGIN|END)[\s\S]+?-----/gu, '')
-        .replace(/\s+/gu, '')
-      hex = Buffer.from(base64, 'base64').toString('hex')
-    } else {
-      hex = privateKey.toString('hex')
+    const key = tryParsePrivateKey(privateKey)
+    if (key === null) {
+      return 'unknown'
     }
-
-    if (hex.includes(OID_ED25519)) {
+    if (key.asymmetricKeyType === 'ed25519') {
       return 'ed25519'
     }
-    if (hex.includes(OID_SECP256K1)) {
-      return 'secp256k1'
-    }
-    if (hex.includes(OID_SECP256R1)) {
-      return 'secp256r1'
+    if (key.asymmetricKeyType === 'ec') {
+      const namedCurve = key.asymmetricKeyDetails?.namedCurve
+      if (namedCurve === 'secp256k1') {
+        return 'secp256k1'
+      }
+      if (namedCurve === 'prime256v1') {
+        return 'secp256r1'
+      }
     }
     return 'unknown'
   }
 
   /**
    * Derive the registered public key (base64 DER / SPKI) from the private key.
-   * Used when the caller omits `auth.publicKey` (TDD §3.3).
+   * Used when the caller omits `auth.publicKey`.
    *
    * @param privateKeyPem - PEM-encoded private key.
    * @returns The matching public key, base64-encoded SPKI DER.

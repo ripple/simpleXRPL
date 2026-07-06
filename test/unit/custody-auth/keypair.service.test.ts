@@ -57,14 +57,22 @@ describe('KeypairService signing', () => {
     const message = 'challenge-nonce-123'
 
     const der = Buffer.from(svc.sign(pem, message), 'base64')
-    // DER envelope: 0x30 0x44 0x02 0x20 <r:32> 0x02 0x20 <s:32> => 70 bytes.
-    expect(der.length).toBe(70)
-    expect(der.subarray(0, 4).toString('hex')).toBe('30440220')
+    expect(der[0]).toBe(0x30)
+    expect(der[1]).toBe(der.length - 2)
 
-    // Reconstruct the raw 64-byte signature and verify it.
-    const rBytes = der.subarray(4, 36)
-    const sBytes = der.subarray(38, 70)
+    // Reconstruct the raw 64-byte signature (stripping any DER pad bytes)
+    // and verify it.
+    expect(der[2]).toBe(0x02)
+    const rLen = der[3]
+    const rStart = 4
+    const rBytes = der.subarray(rStart + (rLen === 33 ? 1 : 0), rStart + rLen)
+    const sTag = rStart + rLen
+    expect(der[sTag]).toBe(0x02)
+    const sLen = der[sTag + 1]
+    const sStart = sTag + 2
+    const sBytes = der.subarray(sStart + (sLen === 33 ? 1 : 0), sStart + sLen)
     const raw = Buffer.concat([rBytes, sBytes])
+    expect(raw.length).toBe(64)
     expect(
       cryptoVerify(null, Buffer.from(message), createPublicKey(pem), raw),
     ).toBe(true)
