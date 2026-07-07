@@ -10,3 +10,11 @@
 // Relative imports use the NodeNext `.js` extension convention so the emitted
 // ESM build resolves at runtime; see CLAUDE.md.
 export { VERSION } from './version.js'
+
+// Error classes are part of the public contract.
+// NOTE: stubbed subset; a fuller error model is planned for later.
+export {
+  SimpleXRPLError,
+  CustodyAuthError,
+  CustodyApiError,
+} from './core/errors.js'
