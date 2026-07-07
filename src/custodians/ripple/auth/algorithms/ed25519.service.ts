@@ -1,6 +1,6 @@
 import { createHash, sign } from 'node:crypto'
 
-import { CustodyAuthError } from '../../../../core/errors.js'
+import { CustodyAuthError } from '../../../../errors.js'
 import type { KeypairStrategy } from '../keypairs.types.js'
 
 /** Hex chars representing the first 32-byte half (r) of the raw signature. */

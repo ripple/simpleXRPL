@@ -1,6 +1,6 @@
 import { createPrivateKey, createPublicKey } from 'node:crypto'
 
-import { CustodyAuthError } from '../../../core/errors.js'
+import { CustodyAuthError } from '../../../errors.js'
 
 import {
   Secp256k1Service,

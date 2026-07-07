@@ -11,10 +11,13 @@
 // ESM build resolves at runtime; see CLAUDE.md.
 export { VERSION } from './version.js'
 
-// Error classes are part of the public contract.
-// NOTE: stubbed subset; a fuller error model is planned for later.
-export {
-  SimpleXRPLError,
-  CustodyAuthError,
-  CustodyApiError,
-} from './core/errors.js'
+// Internal domain model: the Custodian seam, accounts, capabilities, and the
+// typed submission result.
+export * from './domain/index.js'
+
+// Typed error hierarchy (the single canonical error module; the Custody adapter
+// imports these too).
+export * from './errors.js'
+
+// Injected I/O ports (HTTP, ledger, clock, logger) — advanced / testing seams.
+export * from './ports/index.js'
