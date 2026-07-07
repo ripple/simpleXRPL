@@ -11,6 +11,9 @@
 // ESM build resolves at runtime; see CLAUDE.md.
 export { VERSION } from './version.js'
 
+// Entry point: `SimpleXRPL.init(...)` and the runtime client.
+export * from './client/index.js'
+
 // Internal domain model: the Custodian seam, accounts, capabilities, and the
 // typed submission result.
 export * from './domain/index.js'
