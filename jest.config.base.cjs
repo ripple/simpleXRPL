@@ -21,7 +21,25 @@ module.exports = {
         },
       },
     ],
+    // xrpl and ripple-* resolve to their TS source under Jest, pulling in
+    // ESM-only crypto deps (@noble/@scure). Transpile those JS files to CommonJS.
+    'node_modules/(@noble|@scure|@xrplf)/.+\\.js$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          module: 'CommonJS',
+          moduleResolution: 'Node10',
+          allowJs: true,
+          checkJs: false,
+        },
+      },
+    ],
   },
+  // node_modules are not transformed by default; un-ignore the ripple + crypto
+  // chain (loaded as TS/ESM source) so their non-CommonJS files are transpiled.
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@noble|@scure|@xrplf|xrpl|ripple-address-codec|ripple-binary-codec|ripple-keypairs)/)',
+  ],
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   collectCoverage: true,
   coverageReporters: [['text', { skipFull: true }], 'text-summary'],

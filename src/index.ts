@@ -14,6 +14,9 @@ export { VERSION } from './version.js'
 // Entry point: `SimpleXRPL.init(...)` and the runtime client.
 export * from './client/index.js'
 
+// Local signing backend (wallets held in-process).
+export * from './custodians/local/index.js'
+
 // Internal domain model: the Custodian seam, accounts, capabilities, and the
 // typed submission result.
 export * from './domain/index.js'
