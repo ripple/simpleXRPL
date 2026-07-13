@@ -1,0 +1,107 @@
+import { MPTokenIssuanceCreateFlags, OfferCreateFlags } from 'xrpl'
+import type { IssuedCurrencyAmount } from 'xrpl'
+
+import type { Amount } from '../amount/index.js'
+import { toLedgerAmount } from '../amount/index.js'
+import type { SubmissionResult } from '../domain/index.js'
+import { IntentValidationError } from '../errors.js'
+
+import type { MptIssueFlags, OfferFlags } from './token.types.js'
+
+/**
+ * Combine enabled flag bits into a single value.
+ *
+ * @param entries - `[enabled, bit]` pairs; a bit is set when `enabled` is true.
+ * @returns The combined flag number, or `undefined` when none are set.
+ */
+/* eslint-disable no-bitwise -- XRPL transaction flags are combined as a bitmask */
+function combineFlags(
+  entries: ReadonlyArray<readonly [boolean | undefined, number]>,
+): number | undefined {
+  let value = 0
+  for (const [enabled, bit] of entries) {
+    if (enabled ?? false) {
+      value |= bit
+    }
+  }
+  return value === 0 ? undefined : value
+}
+/* eslint-enable no-bitwise */
+
+/**
+ * Map issuance capability booleans to the combined flag value.
+ *
+ * @param flags - The capability flags, if any.
+ * @returns The combined flag number, or `undefined` when none are set.
+ */
+export function issueFlags(flags?: MptIssueFlags): number | undefined {
+  if (flags === undefined) {
+    return undefined
+  }
+  return combineFlags([
+    [flags.canLock, MPTokenIssuanceCreateFlags.tfMPTCanLock],
+    [flags.requireAuth, MPTokenIssuanceCreateFlags.tfMPTRequireAuth],
+    [flags.canEscrow, MPTokenIssuanceCreateFlags.tfMPTCanEscrow],
+    [flags.canTrade, MPTokenIssuanceCreateFlags.tfMPTCanTrade],
+    [flags.canTransfer, MPTokenIssuanceCreateFlags.tfMPTCanTransfer],
+    [flags.canClawback, MPTokenIssuanceCreateFlags.tfMPTCanClawback],
+  ])
+}
+
+/**
+ * Map offer flag booleans to the combined flag value.
+ *
+ * @param flags - The offer flags, if any.
+ * @returns The combined flag number, or `undefined` when none are set.
+ */
+export function offerFlags(flags?: OfferFlags): number | undefined {
+  if (flags === undefined) {
+    return undefined
+  }
+  return combineFlags([
+    [flags.passive, OfferCreateFlags.tfPassive],
+    [flags.immediateOrCancel, OfferCreateFlags.tfImmediateOrCancel],
+    [flags.fillOrKill, OfferCreateFlags.tfFillOrKill],
+    [flags.sell, OfferCreateFlags.tfSell],
+  ])
+}
+
+/**
+ * Convert an amount for a DEX offer, rejecting MPT (not DEX-tradeable).
+ *
+ * @param amount - The offer amount.
+ * @returns The ledger amount (XRP drops string or issued-currency amount).
+ * @throws {@link IntentValidationError} if the amount's asset is an MPT.
+ */
+export function toDexAmount(amount: Amount): IssuedCurrencyAmount | string {
+  if (amount.asset.kind === 'mpt') {
+    throw new IntentValidationError('Offers do not support MPT amounts')
+  }
+  const ledger = toLedgerAmount(amount)
+  if (typeof ledger !== 'string' && 'mpt_issuance_id' in ledger) {
+    throw new IntentValidationError('Offers do not support MPT amounts')
+  }
+  return ledger
+}
+
+/**
+ * Read the new MPT issuance id from a rippled submission result's metadata.
+ *
+ * @param result - The submission result.
+ * @returns The issuance id, or an empty string when unavailable.
+ */
+export function extractMptIssuanceId(result: SubmissionResult): string {
+  if (result.source !== 'rippled') {
+    return ''
+  }
+  const { meta } = result.response.result
+  if (
+    meta !== undefined &&
+    typeof meta !== 'string' &&
+    'mpt_issuance_id' in meta &&
+    typeof meta.mpt_issuance_id === 'string'
+  ) {
+    return meta.mpt_issuance_id
+  }
+  return ''
+}
