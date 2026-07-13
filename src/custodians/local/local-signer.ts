@@ -193,25 +193,36 @@ export class LocalSigner implements Custodian {
   }
 
   /**
-   * Submit and wait. Local submission is wired by the transaction pipeline.
+   * Sign the transaction locally, submit it through the shared ledger, and wait
+   * for a terminal result.
    *
-   * @returns Never; always rejects until the pipeline provides submission.
-   * @throws {@link SimpleXRPLError} always, at this layer.
+   * @param tx - The autofilled transaction to submit.
+   * @param ctx - The submission context (source account + shared ledger).
+   * @returns The rippled-sourced submission result.
    */
-  // eslint-disable-next-line class-methods-use-this -- Placeholder until the pipeline wires local submission.
-  public async submitAndWait<T = unknown>(): Promise<SubmissionResult<T>> {
-    throw new SimpleXRPLError('Local submission is provided by the pipeline')
+  public async submitAndWait(
+    tx: Transaction,
+    ctx: SubmissionContext,
+  ): Promise<SubmissionResult> {
+    const envelope = await this.sign(tx, ctx)
+    const response = await ctx.ledger.submitAndWait(envelope.txBlob)
+    return {
+      source: 'rippled',
+      response,
+      intent: undefined,
+      txHash: response.result.hash,
+    }
   }
 
   /**
-   * Submit asynchronously. Local submission is wired by the transaction pipeline.
+   * Submit asynchronously. The async handle model is provided by later work.
    *
-   * @returns Never; always rejects until the pipeline provides submission.
+   * @returns Never; rejects until async submission is wired.
    * @throws {@link SimpleXRPLError} always, at this layer.
    */
-  // eslint-disable-next-line class-methods-use-this -- Placeholder until the pipeline wires local submission.
+  // eslint-disable-next-line class-methods-use-this -- Placeholder until async submission is wired.
   public async submitAsync(): Promise<SubmissionHandle> {
-    throw new SimpleXRPLError('Local submission is provided by the pipeline')
+    throw new SimpleXRPLError('Async submission is not yet implemented')
   }
 
   private walletFor(address: string): Wallet {

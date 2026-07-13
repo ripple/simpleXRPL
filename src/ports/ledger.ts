@@ -27,4 +27,10 @@ export interface LedgerPort {
 
   /** Issue a raw ledger request and resolve with the typed response. */
   readonly request: <T>(req: LedgerRequest) => Promise<T>
+
+  /** Open the connection, if the implementation is connection-oriented. */
+  readonly connect?: () => Promise<void>
+
+  /** Close the connection, if the implementation is connection-oriented. */
+  readonly disconnect?: () => Promise<void>
 }

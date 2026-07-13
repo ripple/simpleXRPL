@@ -58,10 +58,10 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  # Live testnet tier. Gated to main / manual runs so PRs from forks don't
-  # depend on faucet availability; runs serially via --runInBand.
+  # Live testnet tier — required on every PR: proving the real ledger round-trip
+  # is worth more than the occasional faucet/testnet flake. Runs serially via
+  # --runInBand.
   integration:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:

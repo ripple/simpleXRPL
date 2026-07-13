@@ -1,5 +1,7 @@
 import type { Transaction, TxResponse } from 'xrpl'
 
+import type { LedgerPort } from '../ports/ledger.js'
+
 import type { SignerCapabilities } from './capabilities.js'
 
 /**
@@ -84,6 +86,9 @@ export interface FeeIntent {
 export interface SubmissionContext {
   /** The resolved source account the transaction acts on. */
   readonly account: Account
+
+  /** The shared ledger connection the custodian submits through. */
+  readonly ledger: LedgerPort
 
   /** Optional fee override; falls back to the custodian's configured default. */
   readonly fee?: FeeIntent
@@ -196,11 +201,15 @@ export interface Custodian {
     ctx: SubmissionContext,
   ) => Promise<SignedEnvelope>
 
-  /** Submit and block until the transaction reaches a terminal state. */
-  readonly submitAndWait: <T = unknown>(
+  /**
+   * Submit and block until the transaction reaches a terminal state. The
+   * custodian returns the transport result; the vertical attaches the typed
+   * `intent` output.
+   */
+  readonly submitAndWait: (
     tx: Transaction,
     ctx: SubmissionContext,
-  ) => Promise<SubmissionResult<T>>
+  ) => Promise<SubmissionResult>
 
   /** Submit and return a handle once the backend has accepted the intent. */
   readonly submitAsync: (

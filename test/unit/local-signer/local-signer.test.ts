@@ -161,11 +161,33 @@ describe('LocalSigner', () => {
   })
 
   describe('submission', () => {
-    it('defers submitAndWait and submitAsync to the pipeline', async () => {
-      const signer = LocalSigner.fromSeed(Wallet.generate().seed as string)
-      await expect(signer.submitAndWait()).rejects.toBeInstanceOf(
-        SimpleXRPLError,
+    it('signs and submits through the ledger, returning a rippled result', async () => {
+      const wallet = Wallet.generate()
+      const signer = LocalSigner.fromSeed(wallet.seed as string)
+      const tx = paymentFrom(
+        wallet.classicAddress,
+        Wallet.generate().classicAddress,
       )
+      const submitted: string[] = []
+      const ctx = {
+        account: { address: wallet.classicAddress, signer },
+        ledger: {
+          async submitAndWait(blob: string) {
+            submitted.push(blob)
+            return { result: { hash: 'LOCALHASH' } }
+          },
+        },
+      } as unknown as SubmissionContext
+
+      const result = await signer.submitAndWait(tx, ctx)
+      expect(result.source).toBe('rippled')
+      expect(result.txHash).toBe('LOCALHASH')
+      expect(submitted).toHaveLength(1)
+      expect(typeof submitted[0]).toBe('string')
+    })
+
+    it('does not yet implement submitAsync', async () => {
+      const signer = LocalSigner.fromSeed(Wallet.generate().seed as string)
       await expect(signer.submitAsync()).rejects.toBeInstanceOf(SimpleXRPLError)
     })
   })

@@ -1,4 +1,5 @@
 import type { Custodian } from '../domain/index.js'
+import type { LedgerPort } from '../ports/index.js'
 
 /**
  * Configuration for {@link SimpleXRPL.init}. Custodians are pre-constructed and
@@ -20,4 +21,10 @@ export interface SimpleXRPLConfig {
 
   /** The default signer for verbs called without an explicit account. Defaults to `signers[0]`. */
   readonly primarySigner?: Custodian
+
+  /**
+   * Ledger connection used for reads, autofill, and Local/raw submission.
+   * Defaults to an `XrplLedger` built from `rippledUrl`; inject a fake in tests.
+   */
+  readonly ledger?: LedgerPort
 }
