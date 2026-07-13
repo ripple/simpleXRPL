@@ -115,10 +115,13 @@ export class CustodyApiError extends SimpleXRPLError {
 export class PalisadeAuthError extends SimpleXRPLError {}
 
 /**
- * A Palisade API call returned an error. The full response body is preserved.
+ * A Palisade API call returned an error. The diagnostic `hint` (the
+ * `rpcStatus.message` Palisade's equivalent of Custody's `processing.hint`)
+ * and full response body are preserved for the caller to surface.
  */
 export class PalisadeApiError extends SimpleXRPLError {
   public readonly status: number
+  public readonly hint?: string
   public readonly raw: unknown
 
   /**
@@ -126,11 +129,13 @@ export class PalisadeApiError extends SimpleXRPLError {
    *
    * @param status - The HTTP status code.
    * @param raw - The full response body.
+   * @param hint - Palisade's `rpcStatus.message`, preserved verbatim.
    */
-  public constructor(status: number, raw: unknown) {
+  public constructor(status: number, raw: unknown, hint?: string) {
     super(`Palisade API error (${status})`)
     this.status = status
     this.raw = raw
+    this.hint = hint
   }
 }
 
