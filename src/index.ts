@@ -17,6 +17,15 @@ export * from './client/index.js'
 // Local signing backend (wallets held in-process).
 export * from './custodians/local/index.js'
 
+// Verticals (business-intent verbs), e.g. `client.xrp.transfer`.
+export * from './verticals/index.js'
+
+// Production ledger port.
+export * from './ledger/index.js'
+
+// Pipeline machinery (dispatch, submission host) — advanced / testing seams.
+export * from './pipeline/index.js'
+
 // Internal domain model: the Custodian seam, accounts, capabilities, and the
 // typed submission result.
 export * from './domain/index.js'

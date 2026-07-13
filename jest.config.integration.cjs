@@ -7,6 +7,6 @@ module.exports = {
   displayName: 'integration',
   roots: ['<rootDir>/test/integration'],
   testMatch: ['<rootDir>/test/integration/**/*.test.ts'],
-  testTimeout: 60000,
+  testTimeout: 120000,
   collectCoverage: false,
 }

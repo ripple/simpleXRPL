@@ -4,6 +4,10 @@ import {
   NoSignerError,
   SimpleXRPLError,
 } from '../errors.js'
+import { XrplLedger } from '../ledger/index.js'
+import type { SubmissionHost } from '../pipeline/index.js'
+import type { LedgerPort } from '../ports/index.js'
+import { XRP } from '../verticals/index.js'
 
 import { buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
@@ -26,7 +30,7 @@ export interface NetworkInfo {
  * A client with no signers is fully usable for reads; every write path resolves
  * its custodian through the acted-on account at call time.
  */
-export class SimpleXRPLClient {
+export class SimpleXRPLClient implements SubmissionHost {
   /** The network this client is bound to. */
   public readonly network: NetworkInfo
 
@@ -36,19 +40,28 @@ export class SimpleXRPLClient {
   /** The default signer, used when a verb is called without an explicit account. */
   public readonly primarySigner: Custodian | undefined
 
+  /** Native-XRP value transfers. */
+  public readonly xrp: XRP
+
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
+
+  /** Lazily created from `network.rippledUrl` when not injected. */
+  private ledgerInstance: LedgerPort | undefined
 
   private constructor(state: {
     network: NetworkInfo
     signers: readonly Custodian[]
     primarySigner: Custodian | undefined
     accountIndex: Map<string, Account>
+    ledger: LedgerPort | undefined
   }) {
     this.network = state.network
     this.signers = state.signers
     this.primarySigner = state.primarySigner
     this.accountIndex = state.accountIndex
+    this.ledgerInstance = state.ledger
+    this.xrp = new XRP(this)
   }
 
   /**
@@ -58,6 +71,17 @@ export class SimpleXRPLClient {
    */
   public get accounts(): ReadonlyMap<string, Account> {
     return this.accountIndex
+  }
+
+  /**
+   * The ledger connection for reads, autofill, and Local/raw submission.
+   * Created lazily from `network.rippledUrl` when none was injected.
+   *
+   * @returns The ledger port.
+   */
+  public get ledger(): LedgerPort {
+    this.ledgerInstance ??= new XrplLedger(this.network.rippledUrl)
+    return this.ledgerInstance
   }
 
   /**
@@ -82,6 +106,7 @@ export class SimpleXRPLClient {
       signers,
       primarySigner,
       accountIndex,
+      ledger: config.ledger,
     })
   }
 
@@ -161,6 +186,16 @@ export class SimpleXRPLClient {
       )
     }
     return this.primarySigner
+  }
+
+  /** Open the ledger connection (no-op for a ledger that manages its own). */
+  public async connect(): Promise<void> {
+    await this.ledger.connect?.()
+  }
+
+  /** Close the ledger connection (no-op for a ledger that manages its own). */
+  public async disconnect(): Promise<void> {
+    await this.ledger.disconnect?.()
   }
 
   /**
