@@ -1,9 +1,9 @@
-import { CustodyAuthError } from '../../../src/core/errors.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
 import type {
   CustodyAuthPort,
   TokenResponse,
 } from '../../../src/custodians/ripple/auth/ports.js'
+import { CustodyAuthError } from '../../../src/errors.js'
 
 import { FakeAuthPort, generateTestKey, makeJwt } from './test-utils.js'
 

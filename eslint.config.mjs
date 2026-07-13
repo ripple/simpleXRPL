@@ -67,14 +67,15 @@ export default [
       'import/no-extraneous-dependencies': 'off',
       'max-lines-per-function': 'off',
       'max-statements': 'off',
+      'max-nested-callbacks': 'off',
       '@typescript-eslint/no-magic-numbers': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
       // Tests legitimately generate keypairs synchronously in setup, pass
       // deliberately-wrong types to assert validation, and own their fixtures.
       'n/no-sync': 'off',
-      '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/parameter-properties': 'off',
     },
   },

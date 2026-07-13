@@ -1,6 +1,6 @@
-import { CustodyAuthError } from '../../../src/core/errors.js'
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
 import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
+import { CustodyAuthError } from '../../../src/errors.js'
 
 import { generateTestKey } from './test-utils.js'
 

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
-import { CustodyAuthError } from '../../../core/errors.js'
+import { CustodyAuthError } from '../../../errors.js'
 
 import { KeypairService } from './keypair.service.js'
 import type { CustodyAuthPort, SignedChallenge } from './ports.js'

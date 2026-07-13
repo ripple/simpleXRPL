@@ -1,11 +1,11 @@
 import { generateKeyPairSync, sign as nodeSign } from 'node:crypto'
 
-import { CustodyAuthError } from '../../../src/core/errors.js'
 import {
   Secp256k1Service,
   Secp256r1Service,
 } from '../../../src/custodians/ripple/auth/algorithms/ecdsa.service.js'
 import { Ed25519Service } from '../../../src/custodians/ripple/auth/algorithms/ed25519.service.js'
+import { CustodyAuthError } from '../../../src/errors.js'
 
 import { generateTestKey } from './test-utils.js'
 

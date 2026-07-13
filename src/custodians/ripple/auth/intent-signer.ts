@@ -1,6 +1,6 @@
 import canonicalizeImport from 'canonicalize'
 
-import { CustodyAuthError } from '../../../core/errors.js'
+import { CustodyAuthError } from '../../../errors.js'
 
 import { KeypairService } from './keypair.service.js'
 
