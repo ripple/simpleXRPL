@@ -1,85 +1,119 @@
 import type { Transaction } from 'xrpl'
 
 import { MultiStepFailureError, SimpleXRPLError } from '../../../src/index.js'
-import type { MultiStepPipelineStep } from '../../../src/orchestration/index.js'
 import { runMultiStep } from '../../../src/orchestration/index.js'
 
-import { fakeResult, makeStepCustodian } from './test-utils.js'
+import {
+  fakeResult,
+  makeFakeHost,
+  makeStepCustodian,
+  testAddress,
+} from './test-utils.js'
 
-const TX: Transaction = { TransactionType: 'AccountSet', Account: 'rAny' }
+/**
+ * A minimal, protocol-valid `AccountSet` for the given r-address.
+ *
+ * @param account - The r-address to set as the transaction's `Account`.
+ * @returns The `AccountSet` transaction.
+ */
+function accountSetTx(account: string): Transaction {
+  return { TransactionType: 'AccountSet', Account: account }
+}
 
 describe('runMultiStep', () => {
   it('returns an empty result list for zero steps', async () => {
-    await expect(runMultiStep([])).resolves.toEqual([])
+    const host = makeFakeHost([])
+    await expect(runMultiStep(host, [])).resolves.toEqual([])
   })
 
   it('runs every step and returns the results in order', async () => {
-    const first = makeStepCustodian('local', 'rFirst')
-    const second = makeStepCustodian('local', 'rSecond')
+    const first = makeStepCustodian('ripple-custody', testAddress())
+    const second = makeStepCustodian('ripple-custody', testAddress())
     first.queue(fakeResult('HASH1'))
     second.queue(fakeResult('HASH2'))
+    const host = makeFakeHost([first.account, second.account])
 
-    const steps: MultiStepPipelineStep[] = [
-      { tx: TX, account: first.account },
-      { tx: TX, account: second.account },
-    ]
-
-    const results = await runMultiStep(steps)
+    const results = await runMultiStep(host, [
+      {
+        transaction: accountSetTx(first.account.address),
+        account: first.account,
+      },
+      {
+        transaction: accountSetTx(second.account.address),
+        account: second.account,
+      },
+    ])
 
     expect(results.map((result) => result.txHash)).toEqual(['HASH1', 'HASH2'])
   })
 
-  it("dispatches through each step account's own custodian, merging ctx", async () => {
-    const custodian = makeStepCustodian('local', 'rAccount')
+  it("dispatches through each step account's own custodian and passes fee overrides", async () => {
+    const custodian = makeStepCustodian('ripple-custody', testAddress())
     custodian.queue(fakeResult('HASH1'))
+    const host = makeFakeHost([custodian.account])
 
-    await runMultiStep([
+    await runMultiStep(host, [
       {
-        tx: TX,
+        transaction: accountSetTx(custodian.account.address),
         account: custodian.account,
-        ctx: { fee: { priority: 'high' } },
+        fee: { priority: 'high' },
       },
     ])
 
     expect(custodian.calls).toHaveLength(1)
-    expect(custodian.calls[0]?.ctx).toEqual({
-      account: custodian.account,
-      fee: { priority: 'high' },
-    })
+    expect(custodian.calls[0]?.ctx.account).toBe(custodian.account)
+    expect(custodian.calls[0]?.ctx.fee).toEqual({ priority: 'high' })
   })
 
   it('stops at the failing step and never dispatches the remaining ones', async () => {
-    const first = makeStepCustodian('local', 'rFirst')
-    const second = makeStepCustodian('local', 'rSecond')
+    const first = makeStepCustodian('ripple-custody', testAddress())
+    const second = makeStepCustodian('ripple-custody', testAddress())
     first.queue(fakeResult('HASH1'))
     second.queue(new SimpleXRPLError('step 2 rejected'))
+    const host = makeFakeHost([first.account, second.account])
 
-    const steps: MultiStepPipelineStep[] = [
-      { tx: TX, account: first.account },
-      { tx: TX, account: second.account },
+    const steps = [
+      {
+        transaction: accountSetTx(first.account.address),
+        account: first.account,
+      },
+      {
+        transaction: accountSetTx(second.account.address),
+        account: second.account,
+      },
       // A third step whose custodian has nothing queued — if it were ever
       // called, makeStepCustodian would throw "no scripted outcome queued"
       // instead of the expected MultiStepFailureError.
-      { tx: TX, account: second.account },
+      {
+        transaction: accountSetTx(second.account.address),
+        account: second.account,
+      },
     ]
 
-    await expect(runMultiStep(steps)).rejects.toBeInstanceOf(
+    await expect(runMultiStep(host, steps)).rejects.toBeInstanceOf(
       MultiStepFailureError,
     )
   })
 
   it('carries the already-committed results and the failed step index', async () => {
-    const first = makeStepCustodian('local', 'rFirst')
-    const second = makeStepCustodian('local', 'rSecond')
+    const first = makeStepCustodian('ripple-custody', testAddress())
+    const second = makeStepCustodian('ripple-custody', testAddress())
     first.queue(fakeResult('HASH1'))
     const failure = new SimpleXRPLError('step 2 rejected')
     second.queue(failure)
+    const host = makeFakeHost([first.account, second.account])
 
     let error: unknown
     try {
-      await runMultiStep([
-        { tx: TX, account: first.account },
-        { tx: TX, account: second.account },
+      await runMultiStep(host, [
+        {
+          transaction: accountSetTx(first.account.address),
+          account: first.account,
+        },
+        {
+          transaction: accountSetTx(second.account.address),
+          account: second.account,
+        },
       ])
     } catch (caught) {
       error = caught
@@ -94,12 +128,18 @@ describe('runMultiStep', () => {
   })
 
   it('wraps a non-SimpleXRPLError thrown by a custodian', async () => {
-    const custodian = makeStepCustodian('local', 'rAccount')
+    const custodian = makeStepCustodian('ripple-custody', testAddress())
     custodian.queue(new Error('network blip'))
+    const host = makeFakeHost([custodian.account])
 
     let error: unknown
     try {
-      await runMultiStep([{ tx: TX, account: custodian.account }])
+      await runMultiStep(host, [
+        {
+          transaction: accountSetTx(custodian.account.address),
+          account: custodian.account,
+        },
+      ])
     } catch (caught) {
       error = caught
     }

@@ -6,15 +6,20 @@ import {
   SimpleXRPL,
   SimpleXRPLError,
 } from '../../../src/index.js'
-import { IOU } from '../../../src/verticals/index.js'
-import { fakeResult, makeStepCustodian } from '../orchestration/test-utils.js'
+import {
+  fakeResult,
+  makeStepCustodian,
+  testAddress,
+} from '../orchestration/test-utils.js'
 
 const RIPPLED = 'wss://example.invalid'
 
 describe('IOU.issue', () => {
   it('runs AccountSet, TrustSet, then Payment against the right accounts', async () => {
-    const issuer = makeStepCustodian('local', 'rIssuer')
-    const holder = makeStepCustodian('local', 'rHolder')
+    const issuerAddress = testAddress()
+    const holderAddress = testAddress()
+    const issuer = makeStepCustodian('ripple-custody', issuerAddress)
+    const holder = makeStepCustodian('ripple-custody', holderAddress)
     issuer.queue(fakeResult('ACCOUNTSET_HASH'), fakeResult('PAYMENT_HASH'))
     holder.queue(fakeResult('TRUSTSET_HASH'))
 
@@ -22,11 +27,10 @@ describe('IOU.issue', () => {
       rippledUrl: RIPPLED,
       signers: [issuer.account.signer, holder.account.signer],
     })
-    const iou = new IOU(client)
 
-    const results = await iou.issue({
-      issuer: 'rIssuer',
-      holder: 'rHolder',
+    const results = await client.iou.issue({
+      issuer: issuerAddress,
+      holder: holderAddress,
       currency: 'USD',
       value: '1000',
     })
@@ -41,34 +45,36 @@ describe('IOU.issue', () => {
     expect(issuer.calls).toHaveLength(2)
     expect(holder.calls).toHaveLength(1)
 
-    const accountSet = issuer.calls[0]?.tx as AccountSet
+    const accountSet = issuer.calls[0]?.transaction as AccountSet
     expect(accountSet.TransactionType).toBe('AccountSet')
-    expect(accountSet.Account).toBe('rIssuer')
+    expect(accountSet.Account).toBe(issuerAddress)
     expect(accountSet.SetFlag).toBe(AccountSetAsfFlags.asfDefaultRipple)
 
-    const trustSet = holder.calls[0]?.tx as TrustSet
+    const trustSet = holder.calls[0]?.transaction as TrustSet
     expect(trustSet.TransactionType).toBe('TrustSet')
-    expect(trustSet.Account).toBe('rHolder')
+    expect(trustSet.Account).toBe(holderAddress)
     expect(trustSet.LimitAmount).toEqual({
       currency: 'USD',
-      issuer: 'rIssuer',
+      issuer: issuerAddress,
       value: '1000',
     })
 
-    const payment = issuer.calls[1]?.tx as Payment
+    const payment = issuer.calls[1]?.transaction as Payment
     expect(payment.TransactionType).toBe('Payment')
-    expect(payment.Account).toBe('rIssuer')
-    expect(payment.Destination).toBe('rHolder')
+    expect(payment.Account).toBe(issuerAddress)
+    expect(payment.Destination).toBe(holderAddress)
     expect(payment.Amount).toEqual({
       currency: 'USD',
-      issuer: 'rIssuer',
+      issuer: issuerAddress,
       value: '1000',
     })
   })
 
   it('propagates MultiStepFailureError when the holder rejects the TrustSet', async () => {
-    const issuer = makeStepCustodian('local', 'rIssuer')
-    const holder = makeStepCustodian('local', 'rHolder')
+    const issuerAddress = testAddress()
+    const holderAddress = testAddress()
+    const issuer = makeStepCustodian('ripple-custody', issuerAddress)
+    const holder = makeStepCustodian('ripple-custody', holderAddress)
     issuer.queue(fakeResult('ACCOUNTSET_HASH'))
     holder.queue(new SimpleXRPLError('trust line rejected'))
 
@@ -76,13 +82,12 @@ describe('IOU.issue', () => {
       rippledUrl: RIPPLED,
       signers: [issuer.account.signer, holder.account.signer],
     })
-    const iou = new IOU(client)
 
     let error: unknown
     try {
-      await iou.issue({
-        issuer: 'rIssuer',
-        holder: 'rHolder',
+      await client.iou.issue({
+        issuer: issuerAddress,
+        holder: holderAddress,
         currency: 'USD',
         value: '1000',
       })
@@ -104,72 +109,83 @@ describe('IOU.issue', () => {
 
 describe('IOU.transfer', () => {
   it('sends a Payment from the resolved source to the destination', async () => {
-    const sender = makeStepCustodian('local', 'rSender')
+    const senderAddress = testAddress()
+    const destination = testAddress()
+    const issuerAddress = testAddress()
+    const sender = makeStepCustodian('ripple-custody', senderAddress)
     sender.queue(fakeResult('PAYMENT_HASH'))
 
     const client = await SimpleXRPL.init({
       rippledUrl: RIPPLED,
       signers: [sender.account.signer],
     })
-    const iou = new IOU(client)
 
-    const result = await iou.transfer({
-      to: 'rExternalHolder',
+    const result = await client.iou.transfer({
+      to: destination,
       currency: 'USD',
-      issuer: 'rIssuer',
+      issuer: issuerAddress,
       value: '50',
     })
 
     expect(result.txHash).toBe('PAYMENT_HASH')
+    expect(result.intent).toEqual({
+      to: destination,
+      currency: 'USD',
+      issuer: issuerAddress,
+      value: '50',
+    })
     expect(sender.calls).toHaveLength(1)
-    const payment = sender.calls[0]?.tx as Payment
+    const payment = sender.calls[0]?.transaction as Payment
     expect(payment).toMatchObject({
       TransactionType: 'Payment',
-      Account: 'rSender',
-      Destination: 'rExternalHolder',
-      Amount: { currency: 'USD', issuer: 'rIssuer', value: '50' },
+      Account: senderAddress,
+      Destination: destination,
+      Amount: { currency: 'USD', issuer: issuerAddress, value: '50' },
     })
   })
 
   it('defaults the source to the primary signer when `from` is omitted', async () => {
-    const primary = makeStepCustodian('local', 'rPrimary')
+    const primaryAddress = testAddress()
+    const primary = makeStepCustodian('ripple-custody', primaryAddress)
     primary.queue(fakeResult('PAYMENT_HASH'))
 
     const client = await SimpleXRPL.init({
       rippledUrl: RIPPLED,
       signers: [primary.account.signer],
     })
-    const iou = new IOU(client)
 
-    await iou.transfer({
-      to: 'rExternalHolder',
+    await client.iou.transfer({
+      to: testAddress(),
       currency: 'USD',
-      issuer: 'rIssuer',
+      issuer: testAddress(),
       value: '50',
     })
 
-    expect((primary.calls[0]?.tx as Payment).Account).toBe('rPrimary')
+    expect((primary.calls[0]?.transaction as Payment).Account).toBe(
+      primaryAddress,
+    )
   })
 
   it('honors an explicit `from` account', async () => {
-    const primary = makeStepCustodian('local', 'rPrimary')
-    const other = makeStepCustodian('local', 'rOther')
+    const primaryAddress = testAddress()
+    const otherAddress = testAddress()
+    const primary = makeStepCustodian('ripple-custody', primaryAddress)
+    const other = makeStepCustodian('ripple-custody', otherAddress)
     other.queue(fakeResult('PAYMENT_HASH'))
 
     const client = await SimpleXRPL.init({
       rippledUrl: RIPPLED,
       signers: [primary.account.signer, other.account.signer],
     })
-    const iou = new IOU(client)
 
-    await iou.transfer(
+    await client.iou.transfer(
       {
-        to: 'rExternalHolder',
+        to: testAddress(),
         currency: 'USD',
-        issuer: 'rIssuer',
+        issuer: testAddress(),
         value: '50',
       },
-      { from: 'rOther' },
+      { from: otherAddress },
     )
 
     expect(other.calls).toHaveLength(1)

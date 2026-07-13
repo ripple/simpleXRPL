@@ -1,10 +1,10 @@
 import { AccountSetAsfFlags } from 'xrpl'
 import type { AccountSet, IssuedCurrencyAmount, Payment, TrustSet } from 'xrpl'
 
-import type { SimpleXRPLClient } from '../client/index.js'
 import type { AccountSelector, SubmissionResult } from '../domain/index.js'
 import { runMultiStep } from '../orchestration/index.js'
-import type { MultiStepPipelineStep } from '../orchestration/index.js'
+import type { SubmissionHost, SubmitRequest } from '../pipeline/index.js'
+import { submitTransaction, withIntent } from '../pipeline/index.js'
 
 /** Parameters for {@link IOU.issue}. */
 export interface IOUIssueParams {
@@ -32,8 +32,8 @@ export interface IOUIssueParams {
 export interface IOUTransferParams {
   /**
    * The destination r-address. A bare address, not an {@link AccountSelector} —
-   * the recipient need not be a signer account on this client (TDD's `Token`
-   * vertical sketch uses the same `to: string` shape).
+   * the recipient need not be a signer account on this client (matches the
+   * `XRP.transfer` vertical's `to: string` shape).
    */
   readonly to: string
   /** The currency code (see {@link IOUIssueParams.currency}). */
@@ -41,6 +41,18 @@ export interface IOUTransferParams {
   /** The token's issuer r-address. */
   readonly issuer: string
   /** The amount to send, as a decimal string. */
+  readonly value: string
+}
+
+/** Output attached to an {@link IOU.transfer} result. */
+export interface IOUTransferIntent {
+  /** Destination r-address. */
+  readonly to: string
+  /** The currency code sent. */
+  readonly currency: string
+  /** The token's issuer r-address. */
+  readonly issuer: string
+  /** Amount sent, as a decimal string. */
   readonly value: string
 }
 
@@ -105,21 +117,22 @@ function buildIssuedPayment(
  * `issue` is the multi-step verb DGE-7459 introduces the orchestrator for
  * (TDD §9.4): it expands into an ordered `AccountSet` + `TrustSet` +
  * `Payment` sequence across the issuer and holder accounts, committing each
- * step before the next via {@link runMultiStep}. `transfer` is the matching
- * single-step verb a caller re-runs to finish a partially-committed `issue`
- * (TDD §8 — "the caller re-runs only the remaining step... not the whole
- * verb").
+ * step before the next via {@link runMultiStep} (which runs every step
+ * through the single-step pipeline, so each gets full protocol validation and
+ * dispatch). `transfer` is the matching single-step verb a caller re-runs to
+ * finish a partially-committed `issue` (TDD §8 — "the caller re-runs only the
+ * remaining step... not the whole verb").
  */
 export class IOU {
-  private readonly client: SimpleXRPLClient
+  private readonly host: SubmissionHost
 
   /**
    * Construct the IOU vertical.
    *
-   * @param client - The client whose registered accounts this vertical acts on.
+   * @param host - The client the pipeline runs against.
    */
-  public constructor(client: SimpleXRPLClient) {
-    this.client = client
+  public constructor(host: SubmissionHost) {
+    this.host = host
   }
 
   /**
@@ -134,23 +147,23 @@ export class IOU {
   public async issue(
     params: IOUIssueParams,
   ): Promise<readonly SubmissionResult[]> {
-    const issuer = this.client.resolveAccount(params.issuer)
-    const holder = this.client.resolveAccount(params.holder)
+    const issuer = this.host.resolveAccount(params.issuer)
+    const holder = this.host.resolveAccount(params.holder)
     const amount: IssuedCurrencyAmount = {
       currency: params.currency,
       issuer: issuer.address,
       value: params.value,
     }
 
-    const steps: MultiStepPipelineStep[] = [
-      { tx: buildAccountSet(issuer.address), account: issuer },
-      { tx: buildTrustSet(holder.address, amount), account: holder },
+    const steps: SubmitRequest[] = [
+      { transaction: buildAccountSet(issuer.address), account: issuer },
+      { transaction: buildTrustSet(holder.address, amount), account: holder },
       {
-        tx: buildIssuedPayment(issuer.address, holder.address, amount),
+        transaction: buildIssuedPayment(issuer.address, holder.address, amount),
         account: issuer,
       },
     ]
-    return runMultiStep(steps)
+    return runMultiStep(this.host, steps)
   }
 
   /**
@@ -161,19 +174,29 @@ export class IOU {
    * @param params - The destination, currency, issuer, and value.
    * @param opts - Optional settings.
    * @param opts.from - The source account (defaults to the primary signer).
-   * @returns The payment's submission result.
+   * @returns The submission result, with `{ to, currency, issuer, value }` as
+   * the intent output.
    */
   public async transfer(
     params: IOUTransferParams,
     opts?: { from?: AccountSelector },
-  ): Promise<SubmissionResult> {
-    const from = this.client.resolveAccount(opts?.from)
+  ): Promise<SubmissionResult<IOUTransferIntent>> {
+    const from = this.host.resolveAccount(opts?.from)
     const amount: IssuedCurrencyAmount = {
       currency: params.currency,
       issuer: params.issuer,
       value: params.value,
     }
-    const tx = buildIssuedPayment(from.address, params.to, amount)
-    return from.signer.submitAndWait(tx, { account: from })
+    const transaction = buildIssuedPayment(from.address, params.to, amount)
+    const result = await submitTransaction(this.host, {
+      transaction,
+      account: from,
+    })
+    return withIntent(result, {
+      to: params.to,
+      currency: params.currency,
+      issuer: params.issuer,
+      value: params.value,
+    })
   }
 }
