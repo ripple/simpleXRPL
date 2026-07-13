@@ -124,7 +124,9 @@ describe('discoverXrplAccounts', () => {
       return ok(accountsBody([]))
     })
 
-    await expect(discoverXrplAccounts(client, DOMAIN, SIGNER)).resolves.toEqual([])
+    await expect(discoverXrplAccounts(client, DOMAIN, SIGNER)).resolves.toEqual(
+      [],
+    )
   })
 
   it('contributes nothing for an XRPL account with no external address', async () => {
@@ -149,7 +151,9 @@ describe('discoverXrplAccounts', () => {
       return ok(accountsBody([{ id: 'acc-1', ledgerId: 'xrpl-1' }]))
     })
 
-    await expect(discoverXrplAccounts(client, DOMAIN, SIGNER)).resolves.toEqual([])
+    await expect(discoverXrplAccounts(client, DOMAIN, SIGNER)).resolves.toEqual(
+      [],
+    )
   })
 
   it('yields one Account per external address when an account has several', async () => {

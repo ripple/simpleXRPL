@@ -1,5 +1,5 @@
-import { CustodyAuthError } from '../../../src/errors.js'
 import { HttpCustodyAuthPort } from '../../../src/custodians/ripple/transport/http-custody-auth-port.js'
+import { CustodyAuthError } from '../../../src/errors.js'
 
 import { FakeHttpPort, ok, status } from './test-utils.js'
 

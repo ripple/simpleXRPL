@@ -1,6 +1,6 @@
+import { AccountContext } from '../../../src/custodians/ripple/discovery/account-context.js'
 import type { Account } from '../../../src/domain/index.js'
 import { AccountNotFoundError } from '../../../src/errors.js'
-import { AccountContext } from '../../../src/custodians/ripple/discovery/account-context.js'
 
 import { makeFakeSigner } from './test-utils.js'
 

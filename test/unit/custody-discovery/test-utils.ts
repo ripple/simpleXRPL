@@ -1,9 +1,9 @@
-import type { Custodian } from '../../../src/domain/index.js'
 import type {
   CustodyHttpPort,
   HttpRequest,
   HttpResponse,
 } from '../../../src/custodians/ripple/transport/http-port.js'
+import type { Custodian } from '../../../src/domain/index.js'
 
 /** A JSON-ish fixture body. */
 type JsonBody = Record<string, unknown>
