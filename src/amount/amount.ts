@@ -27,6 +27,9 @@ const MAX_IOU_SIGNIFICANT_DIGITS = 15
 /** Decimal places XRP is divisible to (1 XRP = 1,000,000 drops). */
 const XRP_SCALE = 6
 
+/** MPT amounts are unsigned 63-bit integers. */
+const MAX_MPT_AMOUNT = new BigNumber('9223372036854775807')
+
 /**
  * Convert a display amount to the on-ledger representation, applying decimal and
  * scale conversion and validating precision.
@@ -143,6 +146,11 @@ function toBaseUnits(value: string, scale: number): string {
   if (!scaled.isInteger()) {
     throw new IntentValidationError(
       `MPT value '${value}' has more precision than scale ${scale} allows`,
+    )
+  }
+  if (scaled.gt(MAX_MPT_AMOUNT)) {
+    throw new IntentValidationError(
+      `MPT amount exceeds the maximum of ${MAX_MPT_AMOUNT.toFixed(0)} base units: '${value}'`,
     )
   }
   return scaled.toFixed(0)

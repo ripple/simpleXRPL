@@ -30,6 +30,18 @@ describe('toLedgerAmount', () => {
         IntentValidationError,
       )
     })
+
+    it('handles zero, trailing zeros, and scientific notation', () => {
+      expect(toLedgerAmount({ asset: XRP_ASSET, value: '0' })).toBe('0')
+      expect(toLedgerAmount({ asset: XRP_ASSET, value: '0.0000010' })).toBe('1')
+      expect(toLedgerAmount({ asset: XRP_ASSET, value: '1e-6' })).toBe('1')
+    })
+
+    it('rejects an empty value', () => {
+      expect(() => toLedgerAmount({ asset: XRP_ASSET, value: '' })).toThrow(
+        IntentValidationError,
+      )
+    })
   })
 
   describe('IOU', () => {
@@ -51,6 +63,20 @@ describe('toLedgerAmount', () => {
           asset: iou('USD', 'rIssuer'),
           value: '1234567890.123456',
         }),
+      ).toThrow(IntentValidationError)
+    })
+
+    it('allows zero and rejects negative values', () => {
+      expect(
+        (
+          toLedgerAmount({
+            asset: iou('USD', 'rIssuer'),
+            value: '0',
+          }) as IssuedCurrencyAmount
+        ).value,
+      ).toBe('0')
+      expect(() =>
+        toLedgerAmount({ asset: iou('USD', 'rIssuer'), value: '-5' }),
       ).toThrow(IntentValidationError)
     })
   })
@@ -78,6 +104,25 @@ describe('toLedgerAmount', () => {
     it('rejects a value with more precision than the scale allows', () => {
       expect(() =>
         toLedgerAmount({ asset: mpt('ISSUANCE', 2), value: '10.555' }),
+      ).toThrow(IntentValidationError)
+    })
+
+    it('allows zero and rejects negative values', () => {
+      expect(
+        (toLedgerAmount({ asset: mpt('ISSUANCE', 2), value: '0' }) as MPTAmount)
+          .value,
+      ).toBe('0')
+      expect(() =>
+        toLedgerAmount({ asset: mpt('ISSUANCE', 2), value: '-5' }),
+      ).toThrow(IntentValidationError)
+    })
+
+    it('rejects an amount exceeding the 63-bit maximum', () => {
+      expect(() =>
+        toLedgerAmount({
+          asset: mpt('ISSUANCE'),
+          value: '99999999999999999999',
+        }),
       ).toThrow(IntentValidationError)
     })
   })
