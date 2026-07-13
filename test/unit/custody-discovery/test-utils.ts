@@ -1,3 +1,4 @@
+import type { Custodian } from '../../../src/domain/index.js'
 import type {
   CustodyHttpPort,
   HttpRequest,
@@ -6,6 +7,29 @@ import type {
 
 /** A JSON-ish fixture body. */
 type JsonBody = Record<string, unknown>
+
+const NOT_IMPLEMENTED = async (): Promise<never> => {
+  throw new Error('not implemented in tests')
+}
+
+/**
+ * A minimal fake `Custodian`, only ever used as an `Account.signer`
+ * back-reference in discovery/context tests — none of these tests dispatch
+ * through it, so every method beyond `kind`/`primary` just rejects.
+ *
+ * @returns A stub custodian satisfying the `Custodian` interface.
+ */
+export function makeFakeSigner(): Custodian {
+  return {
+    kind: 'ripple-custody',
+    primary: { address: 'rPrimary' },
+    listAccounts: async () => [],
+    capabilities: () => ({ nativeOps: new Set(), allowRaw: false }),
+    sign: NOT_IMPLEMENTED,
+    submitAndWait: NOT_IMPLEMENTED,
+    submitAsync: NOT_IMPLEMENTED,
+  }
+}
 
 const HTTP_OK = 200
 

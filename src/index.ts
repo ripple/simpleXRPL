@@ -11,20 +11,31 @@
 // ESM build resolves at runtime; see CLAUDE.md.
 export { VERSION } from './version.js'
 
-// Error classes are part of the public contract (TDD §11). NOTE (DGE-7462/7463):
-// stubbed subset; the full error model lands with DGE-7452.
-export {
-  SimpleXRPLError,
-  CustodyAuthError,
-  CustodyApiError,
-  AccountNotFoundError,
-} from './core/errors.js'
+// Entry point: `SimpleXRPL.init(...)` and the runtime client.
+export * from './client/index.js'
 
-// Core domain types (TDD §4). NOTE (DGE-7463): stubbed subset; the full domain
-// model lands with DGE-7452.
-export type { Account, AccountRef, CustodianRef } from './core/account.js'
-export type {
-  Custodian,
-  CustodianKind,
-  SignerCapabilities,
-} from './core/custodian.js'
+// Local signing backend (wallets held in-process).
+export * from './custodians/local/index.js'
+
+// Amount & asset model (XRP / IOU / MPT representation + decimal/scale conversion).
+export * from './amount/index.js'
+
+// Verticals (business-intent verbs), e.g. `client.xrp.transfer`.
+export * from './verticals/index.js'
+
+// Production ledger port.
+export * from './ledger/index.js'
+
+// Pipeline machinery (dispatch, submission host) — advanced / testing seams.
+export * from './pipeline/index.js'
+
+// Internal domain model: the Custodian seam, accounts, capabilities, and the
+// typed submission result.
+export * from './domain/index.js'
+
+// Typed error hierarchy (the single canonical error module; the Custody adapter
+// imports these too).
+export * from './errors.js'
+
+// Injected I/O ports (HTTP, ledger, clock, logger) — advanced / testing seams.
+export * from './ports/index.js'

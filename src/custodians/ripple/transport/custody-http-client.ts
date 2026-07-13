@@ -2,7 +2,7 @@ import {
   CustodyApiError,
   CustodyAuthError,
   SimpleXRPLError,
-} from '../../../core/errors.js'
+} from '../../../errors.js'
 import type { CustodyAuthService } from '../auth/custody-auth.service.js'
 
 import type { CustodyHttpPort, HttpResponse } from './http-port.js'
@@ -75,16 +75,12 @@ function toError(response: HttpResponse): SimpleXRPLError {
   if (response.status === HTTP_UNAUTHORIZED) {
     return new CustodyAuthError(
       'Custody API authentication failed after token refresh',
-      { status: response.status },
     )
   }
   return new CustodyApiError(
-    `Custody API request failed (status ${response.status})`,
-    {
-      status: response.status,
-      hint: extractHint(response.body),
-      raw: response.body,
-    },
+    response.status,
+    response.body,
+    extractHint(response.body),
   )
 }
 

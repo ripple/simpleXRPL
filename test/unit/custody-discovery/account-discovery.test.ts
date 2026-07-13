@@ -16,11 +16,13 @@ import {
   accountsBody,
   addressesBody,
   ledgersBody,
+  makeFakeSigner,
   ok,
 } from './test-utils.js'
 
 const KEY = generateTestKey('ed25519')
 const DOMAIN = 'dom-1'
+const SIGNER = makeFakeSigner()
 
 function makeClient(
   handler: (request: HttpRequest) => HttpResponse,
@@ -75,10 +77,15 @@ describe('discoverXrplAccounts', () => {
       )
     })
 
-    const accounts = await discoverXrplAccounts(client, DOMAIN)
+    const accounts = await discoverXrplAccounts(client, DOMAIN, SIGNER)
 
     expect(accounts).toEqual([
-      { address: 'rTreasury', alias: 'treasury', custodianRef: 'acc-1' },
+      {
+        address: 'rTreasury',
+        alias: 'treasury',
+        custodianRef: 'acc-1',
+        signer: SIGNER,
+      },
     ])
   })
 
@@ -104,7 +111,7 @@ describe('discoverXrplAccounts', () => {
       return ok(accountsBody([{ id: 'acc-1', ledgerId: 'xrpl-1' }], 'cursor-2'))
     })
 
-    const accounts = await discoverXrplAccounts(client, DOMAIN)
+    const accounts = await discoverXrplAccounts(client, DOMAIN, SIGNER)
 
     expect(accounts.map((account) => account.address)).toEqual(['rOne', 'rTwo'])
   })
@@ -117,7 +124,7 @@ describe('discoverXrplAccounts', () => {
       return ok(accountsBody([]))
     })
 
-    await expect(discoverXrplAccounts(client, DOMAIN)).resolves.toEqual([])
+    await expect(discoverXrplAccounts(client, DOMAIN, SIGNER)).resolves.toEqual([])
   })
 
   it('contributes nothing for an XRPL account with no external address', async () => {
@@ -142,7 +149,7 @@ describe('discoverXrplAccounts', () => {
       return ok(accountsBody([{ id: 'acc-1', ledgerId: 'xrpl-1' }]))
     })
 
-    await expect(discoverXrplAccounts(client, DOMAIN)).resolves.toEqual([])
+    await expect(discoverXrplAccounts(client, DOMAIN, SIGNER)).resolves.toEqual([])
   })
 
   it('yields one Account per external address when an account has several', async () => {
@@ -174,11 +181,11 @@ describe('discoverXrplAccounts', () => {
       )
     })
 
-    const accounts = await discoverXrplAccounts(client, DOMAIN)
+    const accounts = await discoverXrplAccounts(client, DOMAIN, SIGNER)
 
     expect(accounts).toEqual([
-      { address: 'rA', alias: 'multi', custodianRef: 'acc-1' },
-      { address: 'rB', alias: 'multi', custodianRef: 'acc-1' },
+      { address: 'rA', alias: 'multi', custodianRef: 'acc-1', signer: SIGNER },
+      { address: 'rB', alias: 'multi', custodianRef: 'acc-1', signer: SIGNER },
     ])
   })
 })

@@ -1,5 +1,13 @@
-import type { Account, AccountRef } from '../../../core/account.js'
-import { AccountNotFoundError } from '../../../core/errors.js'
+import type { Account } from '../../../domain/index.js'
+import { AccountNotFoundError } from '../../../errors.js'
+
+/**
+ * How a caller may refer to a discovered account when resolving Custody
+ * context: an r-address, an alias, or an explicit `{ address | alias }`.
+ * Distinct from the domain model's `AccountSelector` (client-level account
+ * resolution), which has no alias variant — this is Custody-adapter-internal.
+ */
+export type AccountLookup = string | { address?: string; alias?: string }
 
 /**
  * Resolved Custody context for an account — the fields an intent envelope needs
@@ -14,8 +22,8 @@ export interface CustodyAccountContext {
 
 /**
  * In-memory index over a custodian's discovered accounts. Resolves an
- * {@link AccountRef} (r-address or alias) to its Custody context, and validates
- * the configured primary at construction (TDD §3.3, §5.2).
+ * {@link AccountLookup} (r-address or alias) to its Custody context, and
+ * validates the configured primary at construction (TDD §3.3, §5.2).
  */
 export class AccountContext {
   private readonly byAddress = new Map<string, Account>()
@@ -64,7 +72,7 @@ export class AccountContext {
    * @throws {@link AccountNotFoundError} if it cannot be resolved, or the
    * account has no Custody id.
    */
-  public resolve(ref: AccountRef): CustodyAccountContext {
+  public resolve(ref: AccountLookup): CustodyAccountContext {
     const account = this.lookup(ref)
     if (account === undefined) {
       throw new AccountNotFoundError(describeRef(ref))
@@ -81,7 +89,7 @@ export class AccountContext {
    * @param ref - The account reference to look up.
    * @returns The matching account, or `undefined`.
    */
-  private lookup(ref: AccountRef): Account | undefined {
+  private lookup(ref: AccountLookup): Account | undefined {
     if (typeof ref === 'string') {
       return this.byAddress.get(ref) ?? this.byAlias.get(ref)
     }
@@ -101,7 +109,7 @@ export class AccountContext {
  * @param ref - The account reference.
  * @returns A human-readable string for the reference.
  */
-function describeRef(ref: AccountRef): string {
+function describeRef(ref: AccountLookup): string {
   if (typeof ref === 'string') {
     return ref
   }

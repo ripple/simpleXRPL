@@ -1,4 +1,4 @@
-import { CustodyAuthError } from '../../../core/errors.js'
+import { CustodyAuthError } from '../../../errors.js'
 import type {
   CustodyAuthPort,
   SignedChallenge,
@@ -70,7 +70,6 @@ export class HttpCustodyAuthPort implements CustodyAuthPort {
     if (response.status >= HTTP_ERROR_THRESHOLD) {
       throw new CustodyAuthError(
         `Custody token request failed (status ${response.status})`,
-        { status: response.status },
       )
     }
 

@@ -1,11 +1,60 @@
-import { CustodyAuthError } from '../../../src/core/errors.js'
+import { generateKeyPairSync, sign as nodeSign } from 'node:crypto'
+
 import {
   Secp256k1Service,
   Secp256r1Service,
 } from '../../../src/custodians/ripple/auth/algorithms/ecdsa.service.js'
 import { Ed25519Service } from '../../../src/custodians/ripple/auth/algorithms/ed25519.service.js'
+import { CustodyAuthError } from '../../../src/errors.js'
 
 import { generateTestKey } from './test-utils.js'
+
+const HIGH_BIT_TEST_ITERATIONS = 100
+
+/**
+ * Decode a DER `30 len 02 rLen <r> 02 sLen <s>` signature back to the raw
+ * 64-byte (r || s) signature, enforcing DER's leading-zero pad-byte rule.
+ *
+ * @param derBase64 - The base64-encoded DER signature.
+ * @returns The raw 64-byte signature.
+ * @throws {Error} if the input is not validly DER-encoded per that rule.
+ */
+function decodeDerToRaw(derBase64: string): Buffer {
+  const der = Buffer.from(derBase64, 'base64')
+  if (der[0] !== 0x30) {
+    throw new Error('not a DER SEQUENCE')
+  }
+  let offset = 2
+  const readInt = (): Buffer => {
+    if (der[offset] !== 0x02) {
+      throw new Error('expected INTEGER tag')
+    }
+    const len = der[offset + 1]
+    const start = offset + 2
+    const bytes = der.subarray(start, start + len)
+    offset = start + len
+    // Each half is exactly 32 raw bytes, optionally prefixed with one 0x00
+    // pad byte when the raw high bit is set — any other length is malformed.
+    if (len === 33) {
+      if (bytes[0] !== 0x00 || bytes[1] < 0x80) {
+        throw new Error('33-byte INTEGER missing a correct 0x00 pad byte')
+      }
+      return Buffer.from(bytes.subarray(1))
+    }
+    if (len === 32) {
+      if (bytes[0] >= 0x80) {
+        throw new Error('high-bit INTEGER missing required 0x00 pad')
+      }
+      return Buffer.from(bytes)
+    }
+    throw new Error(`unexpected INTEGER length ${len}`)
+  }
+  const rInt = readInt()
+  const sInt = readInt()
+  const pad32 = (buf: Buffer): Buffer =>
+    Buffer.concat([Buffer.alloc(32 - buf.length), buf])
+  return Buffer.concat([pad32(rInt), pad32(sInt)])
+}
 
 describe('ECDSA signer validation (secp256k1 / secp256r1)', () => {
   const cases = [
@@ -51,6 +100,19 @@ describe('ECDSA signer validation (secp256k1 / secp256r1)', () => {
       new Secp256r1Service().sign(generateTestKey('secp256k1'), 'msg'),
     ).toThrow(/secp256r1/u)
   })
+
+  it.each(cases)(
+    '$name accepts a PKCS#8-encoded key (not just SEC1)',
+    ({ svc, name }) => {
+      const namedCurve = name === 'secp256k1' ? 'secp256k1' : 'prime256v1'
+      const { privateKey } = generateKeyPairSync('ec', {
+        namedCurve,
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+        publicKeyEncoding: { type: 'spki', format: 'der' },
+      })
+      expect(() => svc.sign(privateKey, 'msg')).not.toThrow()
+    },
+  )
 })
 
 describe('Ed25519 signer', () => {
@@ -76,5 +138,18 @@ describe('Ed25519 signer', () => {
     const asObject = svc.sign(key, JSON.stringify({ num: 1 }))
     const asToken = svc.sign(key, '{"num":1} ')
     expect(asObject).not.toBe(asToken)
+  })
+
+  it('DER-wraps signatures whose r or s has a high first byte without corruption', () => {
+    for (
+      let iteration = 0;
+      iteration < HIGH_BIT_TEST_ITERATIONS;
+      iteration += 1
+    ) {
+      const message = `msg-${iteration}`
+      const decoded = decodeDerToRaw(svc.sign(key, message))
+      const raw = nodeSign(null, Buffer.from(message), key)
+      expect(decoded.equals(raw)).toBe(true)
+    }
   })
 })

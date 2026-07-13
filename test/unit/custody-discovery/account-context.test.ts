@@ -1,10 +1,19 @@
-import type { Account } from '../../../src/core/account.js'
-import { AccountNotFoundError } from '../../../src/core/errors.js'
+import type { Account } from '../../../src/domain/index.js'
+import { AccountNotFoundError } from '../../../src/errors.js'
 import { AccountContext } from '../../../src/custodians/ripple/discovery/account-context.js'
 
+import { makeFakeSigner } from './test-utils.js'
+
+const SIGNER = makeFakeSigner()
+
 const ACCOUNTS: Account[] = [
-  { address: 'rTreasury', alias: 'treasury', custodianRef: 'acc-1' },
-  { address: 'rOps', custodianRef: 'acc-2' },
+  {
+    address: 'rTreasury',
+    alias: 'treasury',
+    custodianRef: 'acc-1',
+    signer: SIGNER,
+  },
+  { address: 'rOps', custodianRef: 'acc-2', signer: SIGNER },
 ]
 
 describe('AccountContext', () => {
@@ -36,7 +45,7 @@ describe('AccountContext', () => {
   })
 
   it('throws when the matched account has no Custody id', () => {
-    const ctx = new AccountContext([{ address: 'rNoRef' }])
+    const ctx = new AccountContext([{ address: 'rNoRef', signer: SIGNER }])
     expect(() => ctx.resolve('rNoRef')).toThrow(AccountNotFoundError)
   })
 

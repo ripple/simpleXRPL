@@ -1,22 +1,26 @@
 import { randomUUID } from 'node:crypto'
 
-import { CustodyAuthError } from '../../../core/errors.js'
+import { CustodyAuthError } from '../../../errors.js'
 
 import { KeypairService } from './keypair.service.js'
 import type { CustodyAuthPort, SignedChallenge } from './ports.js'
 
 const MS_PER_SECOND = 1000
 const SECONDS_PER_MINUTE = 60
-const MINUTES_PER_HOUR = 60
 const SAFETY_BUFFER_MINUTES = 5
-const DEFAULT_VALIDITY_HOURS = 4
+const DEFAULT_VALIDITY_MINUTES = 10
 
 /** Treat the token as expired this long before its real exp (~5 min). */
 const EXPIRY_SAFETY_BUFFER_MS =
   SAFETY_BUFFER_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND
-/** Fallback validity when the JWT carries no parseable `exp` (~4h, §9.5). */
+/**
+ * Fallback validity when the JWT carries no parseable `exp`. Kept short and
+ * safety-first: an absent `exp` means the real lifetime is unknown, so it's
+ * better to refresh too often than to sit on a token that may already be
+ * dead server-side.
+ */
 const DEFAULT_TOKEN_VALIDITY_MS =
-  DEFAULT_VALIDITY_HOURS * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND
+  DEFAULT_VALIDITY_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND
 
 /** The index of the payload segment in a `header.payload.signature` JWT. */
 const JWT_PAYLOAD_INDEX = 1
@@ -53,12 +57,12 @@ export interface CustodyAuthServiceOptions {
   authPort: CustodyAuthPort
   /**
    * Intent-author private key (PEM). Held in memory only; never logged or
-   * persisted (§12.2).
+   * persisted.
    */
   privateKey: string
   /**
    * Registered public key (base64 DER / SPKI). Optional: derived from
-   * `privateKey` when omitted (§3.3).
+   * `privateKey` when omitted.
    */
   publicKey?: string
   /** Injectable clock for deterministic tests. Defaults to `Date.now`. */
@@ -66,12 +70,12 @@ export interface CustodyAuthServiceOptions {
 }
 
 /**
- * Owns the Custody JWT lifecycle (TDD §9.5):
+ * Owns the Custody JWT lifecycle:
  *
  * - obtains a token by challenge-response: sign a one-time nonce with the
  *   intent-author key, exchange it for a JWT;
- * - caches the JWT and refreshes before expiry (exp minus a ~5-min buffer, 4h
- *   fallback);
+ * - caches the JWT and refreshes before expiry (exp minus a ~5-min buffer,
+ *   ~10-min fallback if exp is missing);
  * - collapses concurrent refreshes into a single in-flight request;
  * - signs a FRESH challenge on every refresh (no nonce reuse);
  * - supports one forced refresh-and-retry driven by an upstream 401.
@@ -101,8 +105,18 @@ export class CustodyAuthService {
     this.privateKey = options.privateKey
     this.now = options.now ?? Date.now
     this.keypair = KeypairService.fromPrivateKey(this.privateKey)
-    this.publicKey =
-      options.publicKey ?? KeypairService.derivePublicKeyBase64(this.privateKey)
+    const derivedPublicKey = KeypairService.derivePublicKeyBase64(
+      this.privateKey,
+    )
+    if (
+      options.publicKey !== undefined &&
+      options.publicKey !== derivedPublicKey
+    ) {
+      throw new CustodyAuthError(
+        'Supplied publicKey does not match the derived public key for privateKey',
+      )
+    }
+    this.publicKey = options.publicKey ?? derivedPublicKey
   }
 
   /**
@@ -116,14 +130,17 @@ export class CustodyAuthService {
     if (!forceRefresh && this.accessToken !== null && !this.isTokenExpired()) {
       return this.accessToken
     }
-    if (this.refreshPromise !== null) {
+    if (!forceRefresh && this.refreshPromise !== null) {
       return this.refreshPromise
     }
 
-    this.refreshPromise = this.refresh().finally(() => {
-      this.refreshPromise = null
+    const refreshPromise = this.refresh().finally(() => {
+      if (this.refreshPromise === refreshPromise) {
+        this.refreshPromise = null
+      }
     })
-    return this.refreshPromise
+    this.refreshPromise = refreshPromise
+    return refreshPromise
   }
 
   /**
@@ -175,7 +192,7 @@ export class CustodyAuthService {
     }
 
     const token = response.access_token
-    if (token === '') {
+    if (!token) {
       throw new CustodyAuthError(
         'Custody token endpoint returned no access_token',
       )

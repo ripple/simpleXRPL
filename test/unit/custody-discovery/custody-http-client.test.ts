@@ -2,7 +2,7 @@ import {
   CustodyApiError,
   CustodyAuthError,
   SimpleXRPLError,
-} from '../../../src/core/errors.js'
+} from '../../../src/errors.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
 import { CustodyHttpClient } from '../../../src/custodians/ripple/transport/custody-http-client.js'
 import {

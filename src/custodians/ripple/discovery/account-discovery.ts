@@ -1,4 +1,4 @@
-import type { Account } from '../../../core/account.js'
+import type { Account, Custodian } from '../../../domain/index.js'
 import type { operations } from '../../../generated/custody.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
@@ -105,11 +105,15 @@ async function listExternalAddresses(lookup: AddressLookup): Promise<string[]> {
  *
  * @param client - The authenticated Custody client.
  * @param domainId - The Custody domain id to discover.
+ * @param signer - The custodian these accounts back-reference (TDD §4 —
+ * `Account.signer`). Callers pass the `Custodian` instance being constructed
+ * (e.g. `this` from a future `RippleCustody.listAccounts()`).
  * @returns One {@link Account} per discovered external XRPL r-address.
  */
 export async function discoverXrplAccounts(
   client: CustodyHttpClient,
   domainId: string,
+  signer: Custodian,
 ): Promise<Account[]> {
   const xrplLedgerIds = await resolveXrplLedgerIds(client)
 
@@ -137,7 +141,12 @@ export async function discoverXrplAccounts(
       xrplLedgerIds,
     })
     for (const address of addresses) {
-      accounts.push({ address, alias: account.alias, custodianRef: account.id })
+      accounts.push({
+        address,
+        alias: account.alias,
+        custodianRef: account.id,
+        signer,
+      })
     }
   }
   return accounts

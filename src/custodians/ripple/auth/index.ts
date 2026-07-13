@@ -1,5 +1,5 @@
 /**
- * Ripple Custody authentication & signing layer (DGE-7462).
+ * Ripple Custody authentication & signing layer.
  *
  * Internal to the RippleCustody adapter; not part of the public SDK surface
  * (the public error classes are re-exported from the package root instead).

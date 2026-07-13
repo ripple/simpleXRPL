@@ -1,5 +1,9 @@
-import { CustodyAuthError } from '../../../src/core/errors.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
+import type {
+  CustodyAuthPort,
+  TokenResponse,
+} from '../../../src/custodians/ripple/auth/ports.js'
+import { CustodyAuthError } from '../../../src/errors.js'
 
 import { FakeAuthPort, generateTestKey, makeJwt } from './test-utils.js'
 
@@ -49,6 +53,17 @@ describe('CustodyAuthService token lifecycle', () => {
           privateKey: KEY,
         }),
     ).not.toThrow()
+  })
+
+  it('rejects a supplied publicKey that does not match privateKey', () => {
+    expect(
+      () =>
+        new CustodyAuthService({
+          authPort: new FakeAuthPort('t'),
+          privateKey: KEY,
+          publicKey: 'not-the-derived-key',
+        }),
+    ).toThrow(/does not match/u)
   })
 
   it('fetches once then serves the cached token while valid', async () => {
@@ -125,7 +140,30 @@ describe('CustodyAuthService token lifecycle', () => {
     expect(port.calls[0]?.signature).not.toBe(port.calls[1]?.signature)
   })
 
-  it('falls back to ~4h validity when the JWT has no exp claim', async () => {
+  it('forceRefresh mints its own challenge even if a normal refresh is in-flight', async () => {
+    const clock = fakeClock(START_MS)
+    const port = new FakeAuthPort(jwtExpiringIn(clock.now(), TEN_MIN_S))
+    const auth = new CustodyAuthService({
+      authPort: port,
+      privateKey: KEY,
+      now: clock.now,
+    })
+
+    await auth.getToken()
+    // Enter the safety buffer so a plain getToken() call proactively refreshes.
+    clock.advance(6 * 60 * 1000)
+    port.queueTokens(
+      jwtExpiringIn(clock.now(), ONE_HOUR_S),
+      jwtExpiringIn(clock.now(), ONE_HOUR_S),
+    )
+
+    await Promise.all([auth.getToken(), auth.forceRefresh()])
+
+    // Initial fetch, the proactive refresh, and the forced refresh: 3 total.
+    expect(port.calls).toHaveLength(3)
+  })
+
+  it('falls back to a short default validity when the JWT has no exp claim', async () => {
     const clock = fakeClock(START_MS)
     const port = new FakeAuthPort(makeJwt({ sub: 'no-exp' }))
     const auth = new CustodyAuthService({
@@ -135,13 +173,13 @@ describe('CustodyAuthService token lifecycle', () => {
     })
 
     await auth.getToken()
-    // Just under 4h later it is still valid (no second fetch).
-    clock.advance(3 * 60 * 60 * 1000)
+    // Just under the fallback-minus-buffer window it is still valid.
+    clock.advance(4 * 60 * 1000)
     await auth.getToken()
     expect(port.calls).toHaveLength(1)
 
-    // Past the 4h-minus-buffer window it refreshes.
-    clock.advance(60 * 60 * 1000)
+    // Past the fallback-minus-buffer window it refreshes.
+    clock.advance(2 * 60 * 1000)
     port.queueTokens(makeJwt({ sub: 'again' }))
     await auth.getToken()
     expect(port.calls).toHaveLength(2)
@@ -165,6 +203,15 @@ describe('CustodyAuthService error mapping', () => {
 
   it('throws when the endpoint returns no access_token', async () => {
     const port = new FakeAuthPort('')
+    const auth = new CustodyAuthService({ authPort: port, privateKey: KEY })
+    await expect(auth.getToken()).rejects.toThrow(/no access_token/u)
+  })
+
+  it('throws when the endpoint response omits access_token entirely', async () => {
+    const port: CustodyAuthPort = {
+      fetchToken: async () =>
+        ({ access_token: undefined }) as unknown as TokenResponse,
+    }
     const auth = new CustodyAuthService({ authPort: port, privateKey: KEY })
     await expect(auth.getToken()).rejects.toThrow(/no access_token/u)
   })

@@ -1,6 +1,6 @@
-import { CustodyAuthError } from '../../../src/core/errors.js'
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
 import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
+import { CustodyAuthError } from '../../../src/errors.js'
 
 import { generateTestKey } from './test-utils.js'
 
@@ -50,5 +50,13 @@ describe('IntentSigner', () => {
   it('throws CustodyAuthError when the body cannot be canonicalized', () => {
     const signer = makeSigner()
     expect(() => signer.signRequest(undefined)).toThrow(CustodyAuthError)
+  })
+
+  it('throws when the keypair algorithm does not match the private key', () => {
+    const edPem = generateTestKey('ed25519')
+    const ecPem = generateTestKey('secp256k1')
+    expect(
+      () => new IntentSigner(KeypairService.fromPrivateKey(edPem), ecPem),
+    ).toThrow(/secp256k1/u)
   })
 })
