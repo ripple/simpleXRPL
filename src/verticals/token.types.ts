@@ -1,3 +1,5 @@
+import type { MPTokenMetadata } from 'xrpl'
+
 import type { Amount } from '../amount/index.js'
 import type { AccountSelector, FeeIntent } from '../domain/index.js'
 
@@ -34,8 +36,11 @@ export interface MptIssueParams {
   readonly maximumAmount?: string
   /** Transfer fee, in units of 1/100,000 (0–50,000). */
   readonly transferFee?: number
-  /** Arbitrary metadata (UTF-8; hex-encoded on the ledger). */
-  readonly metadata?: string
+  /**
+   * Token metadata: a structured object (encoded per the ecosystem standard) or
+   * a raw string (UTF-8 hex-encoded as-is).
+   */
+  readonly metadata?: MPTokenMetadata | string
   /** Capability flags. */
   readonly flags?: MptIssueFlags
 }

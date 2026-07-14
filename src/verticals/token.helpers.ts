@@ -1,5 +1,9 @@
-import { MPTokenIssuanceCreateFlags, OfferCreateFlags } from 'xrpl'
-import type { IssuedCurrencyAmount } from 'xrpl'
+import {
+  encodeMPTokenMetadata,
+  MPTokenIssuanceCreateFlags,
+  OfferCreateFlags,
+} from 'xrpl'
+import type { IssuedCurrencyAmount, MPTokenMetadata } from 'xrpl'
 
 import type { Amount } from '../amount/index.js'
 import { toLedgerAmount } from '../amount/index.js'
@@ -82,6 +86,25 @@ export function toDexAmount(amount: Amount): IssuedCurrencyAmount | string {
     throw new IntentValidationError('Offers do not support MPT amounts')
   }
   return ledger
+}
+
+/**
+ * Encode MPT metadata to the on-ledger hex string. A structured object follows
+ * the ecosystem metadata standard; a raw string is UTF-8 hex-encoded as-is.
+ *
+ * @param metadata - Structured metadata or a raw string.
+ * @returns The uppercase hex encoding.
+ * @throws {@link IntentValidationError} if structured metadata is invalid.
+ */
+export function encodeMetadata(metadata: MPTokenMetadata | string): string {
+  if (typeof metadata === 'string') {
+    return Buffer.from(metadata, 'utf8').toString('hex').toUpperCase()
+  }
+  try {
+    return encodeMPTokenMetadata(metadata)
+  } catch (error) {
+    throw new IntentValidationError('Invalid MPT metadata', { cause: error })
+  }
 }
 
 /**

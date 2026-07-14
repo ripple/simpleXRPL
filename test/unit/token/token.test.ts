@@ -4,6 +4,7 @@ import {
   MPTokenIssuanceSetFlags,
   OfferCreateFlags,
   Wallet,
+  encodeMPTokenMetadata,
   type MPTokenAuthorize,
   type MPTokenIssuanceCreate,
   type MPTokenIssuanceDestroy,
@@ -95,6 +96,33 @@ describe('Token vertical', () => {
       const { client, txs } = await tokenClient()
       await client.token.issue()
       expect((txs[0] as MPTokenIssuanceCreate).Flags).toBeUndefined()
+    })
+
+    it('encodes structured metadata via the ecosystem standard', async () => {
+      const { client, txs } = await tokenClient()
+      const metadata = {
+        ticker: 'TBILL',
+        name: 'T-Bill Token',
+        icon: 'example.org/icon.png',
+        asset_class: 'rwa',
+        issuer_name: 'Example Co.',
+      }
+      await client.token.issue({ metadata })
+      expect((txs[0] as MPTokenIssuanceCreate).MPTokenMetadata).toBe(
+        encodeMPTokenMetadata(metadata),
+      )
+    })
+
+    it('rejects invalid MaximumAmount and out-of-range TransferFee', async () => {
+      const bad = await tokenClient()
+      await expect(
+        bad.client.token.issue({ maximumAmount: 'abc' }),
+      ).rejects.toBeInstanceOf(IntentValidationError)
+
+      const fee = await tokenClient()
+      await expect(
+        fee.client.token.issue({ transferFee: 60000 }),
+      ).rejects.toBeInstanceOf(IntentValidationError)
     })
   })
 
