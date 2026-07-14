@@ -77,6 +77,8 @@ export default [
       // deliberately-wrong types to assert validation, and own their fixtures.
       'n/no-sync': 'off',
       '@typescript-eslint/parameter-properties': 'off',
+      // Tests inspect and combine XRPL flag bitmasks.
+      'no-bitwise': 'off',
     },
   },
 ]

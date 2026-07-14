@@ -1,0 +1,113 @@
+import type { Amount } from '../amount/index.js'
+import type { AccountSelector, FeeIntent } from '../domain/index.js'
+
+/** Per-call options shared by the token verbs. */
+export interface TokenWriteOptions {
+  /** Source account; defaults to the primary signer's primary account. */
+  readonly from?: AccountSelector
+
+  /** Fee override. */
+  readonly fee?: FeeIntent
+}
+
+/** Capability flags for an MPT issuance. */
+export interface MptIssueFlags {
+  /** The issuer can lock the token (globally or per-holder). */
+  readonly canLock?: boolean
+  /** Holders must be authorized before they can hold the token. */
+  readonly requireAuth?: boolean
+  /** The token can be used in escrows. */
+  readonly canEscrow?: boolean
+  /** The token can be traded on the DEX. */
+  readonly canTrade?: boolean
+  /** The token can be transferred between holders. */
+  readonly canTransfer?: boolean
+  /** The issuer can claw back the token. */
+  readonly canClawback?: boolean
+}
+
+/** Parameters for `Token.issue`. */
+export interface MptIssueParams {
+  /** Decimal places between display value and base units. */
+  readonly assetScale?: number
+  /** Maximum issuable amount, in base units. */
+  readonly maximumAmount?: string
+  /** Transfer fee, in units of 1/100,000 (0–50,000). */
+  readonly transferFee?: number
+  /** Arbitrary metadata (UTF-8; hex-encoded on the ledger). */
+  readonly metadata?: string
+  /** Capability flags. */
+  readonly flags?: MptIssueFlags
+}
+
+/** Parameters for `Token.authorize`. */
+export interface MptAuthorizeParams {
+  /** The MPT issuance id. */
+  readonly mptIssuanceId: string
+  /** The holder to authorize; omit when a holder authorizes itself. */
+  readonly holder?: string
+  /** Remove a previously granted authorization. */
+  readonly unauthorize?: boolean
+}
+
+/** Parameters for `Token.set`. */
+export interface MptSetParams {
+  /** The MPT issuance id. */
+  readonly mptIssuanceId: string
+  /** A specific holder to (un)lock; omit to affect the whole issuance. */
+  readonly holder?: string
+  /** `true` locks, `false` unlocks. */
+  readonly lock: boolean
+}
+
+/** Parameters for `Token.destroy`. */
+export interface MptDestroyParams {
+  /** The MPT issuance id. */
+  readonly mptIssuanceId: string
+}
+
+/** Parameters for `Token.transfer`. */
+export interface TokenTransferParams {
+  /** Destination r-address. */
+  readonly to: string
+  /** The MPT amount to send (its asset must be an MPT). */
+  readonly amount: Amount
+}
+
+/** Flags for `Token.createOffer`. */
+export interface OfferFlags {
+  /** Do not consume offers that exactly match. */
+  readonly passive?: boolean
+  /** Consume matching offers immediately; never place the remainder. */
+  readonly immediateOrCancel?: boolean
+  /** Consume the full amount or cancel entirely. */
+  readonly fillOrKill?: boolean
+  /** Interpret the offer as selling `TakerGets`. */
+  readonly sell?: boolean
+}
+
+/** Parameters for `Token.createOffer`. */
+export interface CreateOfferParams {
+  /** What the account gives (XRP or IOU — MPT is not DEX-tradeable). */
+  readonly takerGets: Amount
+  /** What the account wants (XRP or IOU). */
+  readonly takerPays: Amount
+  /** Offer expiration (seconds since the Ripple epoch). */
+  readonly expiration?: number
+  /** A prior offer sequence to replace. */
+  readonly offerSequence?: number
+  /** Offer flags. */
+  readonly flags?: OfferFlags
+}
+
+/** Parameters for `Token.cancelOffer`. */
+export interface CancelOfferParams {
+  /** The sequence number of the offer to cancel. */
+  readonly offerSequence: number
+}
+
+/** Output attached to a `Token.issue` result. */
+export interface MptIssueIntent {
+  /** The id of the newly created MPT issuance. */
+  readonly mptIssuanceId: string
+}
