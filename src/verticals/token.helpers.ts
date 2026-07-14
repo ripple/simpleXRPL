@@ -33,22 +33,36 @@ function combineFlags(
 /* eslint-enable no-bitwise */
 
 /**
- * Map issuance capability booleans to the combined flag value.
+ * The SDK's default issuance capabilities: a fully capable, transferable token
+ * out of the box. Each is overridable by passing the flag explicitly (e.g.
+ * `{ canClawback: false }`). Note MPT capability flags are permanent once the
+ * issuance is created.
+ */
+export const DEFAULT_ISSUE_FLAGS: Required<MptIssueFlags> = {
+  canLock: true,
+  requireAuth: false,
+  canEscrow: true,
+  canTrade: true,
+  canTransfer: true,
+  canClawback: true,
+}
+
+/**
+ * Map issuance capability booleans to the combined flag value, applying the
+ * SDK defaults for any flag the caller did not specify.
  *
- * @param flags - The capability flags, if any.
- * @returns The combined flag number, or `undefined` when none are set.
+ * @param flags - The caller's capability-flag overrides, if any.
+ * @returns The combined flag number, or `undefined` when none are enabled.
  */
 export function issueFlags(flags?: MptIssueFlags): number | undefined {
-  if (flags === undefined) {
-    return undefined
-  }
+  const merged = { ...DEFAULT_ISSUE_FLAGS, ...flags }
   return combineFlags([
-    [flags.canLock, MPTokenIssuanceCreateFlags.tfMPTCanLock],
-    [flags.requireAuth, MPTokenIssuanceCreateFlags.tfMPTRequireAuth],
-    [flags.canEscrow, MPTokenIssuanceCreateFlags.tfMPTCanEscrow],
-    [flags.canTrade, MPTokenIssuanceCreateFlags.tfMPTCanTrade],
-    [flags.canTransfer, MPTokenIssuanceCreateFlags.tfMPTCanTransfer],
-    [flags.canClawback, MPTokenIssuanceCreateFlags.tfMPTCanClawback],
+    [merged.canLock, MPTokenIssuanceCreateFlags.tfMPTCanLock],
+    [merged.requireAuth, MPTokenIssuanceCreateFlags.tfMPTRequireAuth],
+    [merged.canEscrow, MPTokenIssuanceCreateFlags.tfMPTCanEscrow],
+    [merged.canTrade, MPTokenIssuanceCreateFlags.tfMPTCanTrade],
+    [merged.canTransfer, MPTokenIssuanceCreateFlags.tfMPTCanTransfer],
+    [merged.canClawback, MPTokenIssuanceCreateFlags.tfMPTCanClawback],
   ])
 }
 

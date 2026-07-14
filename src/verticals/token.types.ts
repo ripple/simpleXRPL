@@ -34,7 +34,7 @@ export interface MptIssueParams {
   readonly assetScale?: number
   /** Maximum issuable amount, in base units. */
   readonly maximumAmount?: string
-  /** Transfer fee, in units of 1/100,000 (0–50,000). */
+  /** Transfer fee on secondary sales, as a percentage (0.5 = 0.5%, 0–50). */
   readonly transferFee?: number
   /**
    * Token metadata: a structured object (encoded per the ecosystem standard) or

@@ -23,6 +23,7 @@ import {
   LocalSigner,
   mpt,
   SimpleXRPL,
+  SimpleXRPLError,
   XRP_ASSET,
 } from '../../../src/index.js'
 import type { LedgerPort, SimpleXRPLClient } from '../../../src/index.js'
@@ -65,14 +66,20 @@ async function tokenClient(meta?: {
 
 describe('Token vertical', () => {
   describe('issue', () => {
-    it('builds MPTokenIssuanceCreate and returns the new issuance id', async () => {
+    // Every default capability flag (requireAuth is off by default).
+    const DEFAULT_FLAGS =
+      MPTokenIssuanceCreateFlags.tfMPTCanLock |
+      MPTokenIssuanceCreateFlags.tfMPTCanEscrow |
+      MPTokenIssuanceCreateFlags.tfMPTCanTrade |
+      MPTokenIssuanceCreateFlags.tfMPTCanTransfer |
+      MPTokenIssuanceCreateFlags.tfMPTCanClawback
+
+    it('applies SDK defaults (assetScale 2, full capabilities) and returns the id', async () => {
       const { client, txs } = await tokenClient({ mpt_issuance_id: 'MPT-1' })
       const result = await client.token.issue({
-        assetScale: 2,
         maximumAmount: '1000000',
-        transferFee: 100,
+        transferFee: 0.5,
         metadata: 'hello',
-        flags: { canTransfer: true, canLock: true },
       })
 
       expect(result.source).toBe('rippled')
@@ -82,19 +89,40 @@ describe('Token vertical', () => {
       expect(tx.TransactionType).toBe('MPTokenIssuanceCreate')
       expect(tx.AssetScale).toBe(2)
       expect(tx.MaximumAmount).toBe('1000000')
-      expect(tx.TransferFee).toBe(100)
+      // 0.5% → 500 units (0.001% increments)
+      expect(tx.TransferFee).toBe(500)
       // 'hello' hex-encoded, uppercase
       expect(tx.MPTokenMetadata).toBe('68656C6C6F')
-
-      const expectedFlags =
-        MPTokenIssuanceCreateFlags.tfMPTCanTransfer |
-        MPTokenIssuanceCreateFlags.tfMPTCanLock
-      expect(tx.Flags).toBe(expectedFlags)
+      expect(tx.Flags).toBe(DEFAULT_FLAGS)
     })
 
-    it('omits Flags when none are set', async () => {
+    it('honors explicit assetScale and flag overrides', async () => {
       const { client, txs } = await tokenClient()
-      await client.token.issue()
+      await client.token.issue({
+        assetScale: 0,
+        flags: { canClawback: false, canTransfer: false },
+      })
+      const tx = txs[0] as MPTokenIssuanceCreate
+      expect(tx.AssetScale).toBe(0)
+      // Defaults minus the two disabled capabilities.
+      expect(tx.Flags).toBe(
+        MPTokenIssuanceCreateFlags.tfMPTCanLock |
+          MPTokenIssuanceCreateFlags.tfMPTCanEscrow |
+          MPTokenIssuanceCreateFlags.tfMPTCanTrade,
+      )
+    })
+
+    it('omits Flags when every capability is disabled', async () => {
+      const { client, txs } = await tokenClient()
+      await client.token.issue({
+        flags: {
+          canLock: false,
+          canEscrow: false,
+          canTrade: false,
+          canTransfer: false,
+          canClawback: false,
+        },
+      })
       expect((txs[0] as MPTokenIssuanceCreate).Flags).toBeUndefined()
     })
 
@@ -119,10 +147,11 @@ describe('Token vertical', () => {
         bad.client.token.issue({ maximumAmount: 'abc' }),
       ).rejects.toBeInstanceOf(IntentValidationError)
 
+      // Percentage above the 50% MPT maximum is rejected before submission.
       const fee = await tokenClient()
       await expect(
-        fee.client.token.issue({ transferFee: 60000 }),
-      ).rejects.toBeInstanceOf(IntentValidationError)
+        fee.client.token.issue({ transferFee: 60 }),
+      ).rejects.toBeInstanceOf(SimpleXRPLError)
     })
   })
 

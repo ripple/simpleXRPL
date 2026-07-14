@@ -11,9 +11,10 @@ describe('Token MPT (live testnet)', () => {
       const { client, wallets } = await fundedClientWithSigners(2)
       const [issuer, holder] = wallets
       try {
-        // Issuer creates a transferable MPT issuance.
+        // Issuer creates a transferable MPT issuance with a 0.5% transfer fee.
         const issued = await client.token.issue({
           assetScale: 0,
+          transferFee: 0.5,
           flags: { canTransfer: true },
         })
         expect(issued.source).toBe('rippled')
@@ -28,9 +29,10 @@ describe('Token MPT (live testnet)', () => {
         )
         expect(authorized.source).toBe('rippled')
 
-        // The issuance object exists on the issuer's account.
+        // The issuance object exists on the issuer's account, and the 0.5%
+        // fee landed as its 0.001%-increment integer (500).
         const issuerObjects = await client.ledger.request<{
-          result: { account_objects: unknown[] }
+          result: { account_objects: Array<{ TransferFee?: number }> }
         }>({
           command: 'account_objects',
           account: issuer.classicAddress,
@@ -39,6 +41,7 @@ describe('Token MPT (live testnet)', () => {
         expect(
           issuerObjects.result.account_objects.length,
         ).toBeGreaterThanOrEqual(1)
+        expect(issuerObjects.result.account_objects[0].TransferFee).toBe(500)
 
         // Issuer sends 100 base units to the holder.
         const transferred = await client.token.transfer({

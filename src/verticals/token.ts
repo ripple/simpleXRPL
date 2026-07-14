@@ -15,6 +15,7 @@ import { IntentValidationError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
 
+import { percentToTransferFee } from './fee.js'
 import {
   encodeMetadata,
   extractMptIssuanceId,
@@ -34,6 +35,9 @@ import type {
   TokenWriteOptions,
 } from './token.types.js'
 
+/** Default decimal places for a new issuance when the caller omits `assetScale`. */
+const DEFAULT_ASSET_SCALE = 2
+
 /**
  * The Token vertical: the Multi-Purpose Token (MPT) family and DEX offers.
  */
@@ -52,7 +56,15 @@ export class Token {
   /**
    * Create a new MPT issuance.
    *
-   * @param params - Issuance settings and capability flags.
+   * Applies opinionated, overridable defaults so a bare `issue()` yields a
+   * usable token: `assetScale` defaults to `2`, and the capability flags
+   * default to a fully capable, transferable token — `canLock`, `canEscrow`,
+   * `canTrade`, `canTransfer`, and `canClawback` are all enabled, while
+   * `requireAuth` is off. Pass any flag explicitly to override it (e.g.
+   * `{ flags: { canClawback: false } }`). MPT capability flags are permanent
+   * once the issuance exists.
+   *
+   * @param params - Issuance settings and capability-flag overrides.
    * @param options - Source account and fee override.
    * @returns The result, with the new `mptIssuanceId` as its intent output.
    */
@@ -64,15 +76,13 @@ export class Token {
     const tx: MPTokenIssuanceCreate = {
       TransactionType: 'MPTokenIssuanceCreate',
       Account: account.address,
-    }
-    if (params.assetScale !== undefined) {
-      tx.AssetScale = params.assetScale
+      AssetScale: params.assetScale ?? DEFAULT_ASSET_SCALE,
     }
     if (params.maximumAmount !== undefined) {
       tx.MaximumAmount = params.maximumAmount
     }
     if (params.transferFee !== undefined) {
-      tx.TransferFee = params.transferFee
+      tx.TransferFee = percentToTransferFee(params.transferFee)
     }
     if (params.metadata !== undefined) {
       tx.MPTokenMetadata = encodeMetadata(params.metadata)
