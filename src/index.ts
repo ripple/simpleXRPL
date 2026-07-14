@@ -17,6 +17,9 @@ export * from './client/index.js'
 // Local signing backend (wallets held in-process).
 export * from './custodians/local/index.js'
 
+// Ripple Custody signing backend (native + raw-signing paths).
+export * from './custodians/ripple/index.js'
+
 // Amount & asset model (XRP / IOU / MPT representation + decimal/scale conversion).
 export * from './amount/index.js'
 
