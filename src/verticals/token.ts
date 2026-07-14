@@ -16,6 +16,7 @@ import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
 
 import {
+  encodeMetadata,
   extractMptIssuanceId,
   issueFlags,
   offerFlags,
@@ -74,9 +75,7 @@ export class Token {
       tx.TransferFee = params.transferFee
     }
     if (params.metadata !== undefined) {
-      tx.MPTokenMetadata = Buffer.from(params.metadata, 'utf8')
-        .toString('hex')
-        .toUpperCase()
+      tx.MPTokenMetadata = encodeMetadata(params.metadata)
     }
     const flags = issueFlags(params.flags)
     if (flags !== undefined) {
