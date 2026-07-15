@@ -7,7 +7,13 @@ import {
 import { XrplLedger } from '../ledger/index.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import type { LedgerPort } from '../ports/index.js'
-import { Token, XRP } from '../verticals/index.js'
+import {
+  AccountVertical,
+  Credential,
+  Domain,
+  Token,
+  XRP,
+} from '../verticals/index.js'
 
 import { buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
@@ -46,6 +52,15 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Multi-Purpose Token (MPT) family and DEX offers. */
   public readonly token: Token
 
+  /** On-ledger credentials (issue, accept, delete). */
+  public readonly credential: Credential
+
+  /** Permissioned domains (create, update, delete). */
+  public readonly domain: Domain
+
+  /** Account settings, regular key, and deposit preauthorization. */
+  public readonly account: AccountVertical
+
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
 
@@ -66,6 +81,9 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.ledgerInstance = state.ledger
     this.xrp = new XRP(this)
     this.token = new Token(this)
+    this.credential = new Credential(this)
+    this.domain = new Domain(this)
+    this.account = new AccountVertical(this)
   }
 
   /**

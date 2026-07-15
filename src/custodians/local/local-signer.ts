@@ -12,7 +12,11 @@ import type {
   SubmissionHandle,
   SubmissionResult,
 } from '../../domain/index.js'
-import { AccountNotFoundError, SimpleXRPLError } from '../../errors.js'
+import {
+  AccountNotFoundError,
+  RippledSubmitError,
+  SimpleXRPLError,
+} from '../../errors.js'
 
 /** Options for {@link LocalSigner.create}. */
 export interface LocalSignerCreateOptions {
@@ -199,6 +203,8 @@ export class LocalSigner implements Custodian {
    * @param tx - The autofilled transaction to submit.
    * @param ctx - The submission context (source account + shared ledger).
    * @returns The rippled-sourced submission result.
+   * @throws {@link RippledSubmitError} if the transaction reaches a terminal
+   *   failure (a non-`tesSUCCESS` engine result).
    */
   public async submitAndWait(
     tx: Transaction,
@@ -206,6 +212,14 @@ export class LocalSigner implements Custodian {
   ): Promise<SubmissionResult> {
     const envelope = await this.sign(tx, ctx)
     const response = await ctx.ledger.submitAndWait(envelope.txBlob)
+    const { meta } = response.result
+    const engineResult =
+      meta !== undefined && typeof meta !== 'string'
+        ? meta.TransactionResult
+        : undefined
+    if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
+      throw new RippledSubmitError(engineResult, response)
+    }
     return {
       source: 'rippled',
       response,

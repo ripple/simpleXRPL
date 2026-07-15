@@ -1,0 +1,44 @@
+import type { AccountSelector, FeeIntent } from '../domain/index.js'
+
+/** Per-call options shared by the domain verbs. */
+export interface DomainWriteOptions {
+  /** Source account; defaults to the primary signer's primary account. */
+  readonly from?: AccountSelector
+
+  /** Fee override. */
+  readonly fee?: FeeIntent
+}
+
+/** A credential accepted by a permissioned domain. */
+export interface AcceptedCredential {
+  /** The issuer r-address. */
+  readonly issuer: string
+  /** The credential type (plain string; hex-encoded on the ledger). */
+  readonly credType: string
+}
+
+/** Parameters for `Domain.create` (a new permissioned domain). */
+export interface DomainCreateParams {
+  /** The credentials the domain accepts (at least one). */
+  readonly credList: readonly AcceptedCredential[]
+}
+
+/** Parameters for `Domain.setCredentials` (update an existing domain). */
+export interface DomainSetCredentialsParams {
+  /** The domain to update. */
+  readonly domain: string
+  /** The credentials the domain accepts (at least one). */
+  readonly credList: readonly AcceptedCredential[]
+}
+
+/** Parameters for `Domain.delete`. */
+export interface DomainDeleteParams {
+  /** The domain to delete. */
+  readonly domain: string
+}
+
+/** Output attached to a `Domain` write result. */
+export interface DomainIntent {
+  /** The domain id (supplied for an update, or discovered for a new domain). */
+  readonly domainID: string
+}
