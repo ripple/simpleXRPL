@@ -24,6 +24,7 @@ import {
   mpt,
   SimpleXRPL,
   SimpleXRPLError,
+  validateTokenMetadata,
   XRP_ASSET,
 } from '../../../src/index.js'
 import type { LedgerPort, SimpleXRPLClient } from '../../../src/index.js'
@@ -74,12 +75,21 @@ describe('Token vertical', () => {
       MPTokenIssuanceCreateFlags.tfMPTCanTransfer |
       MPTokenIssuanceCreateFlags.tfMPTCanClawback
 
+    // A minimal, XLS-89-compliant metadata object (required on every issue).
+    const VALID_METADATA = {
+      ticker: 'TBILL',
+      name: 'T-Bill Token',
+      icon: 'https://example.org/icon.png',
+      asset_class: 'other',
+      issuer_name: 'Example Co.',
+    }
+
     it('applies SDK defaults (assetScale 2, full capabilities) and returns the id', async () => {
       const { client, txs } = await tokenClient({ mpt_issuance_id: 'MPT-1' })
       const result = await client.token.issue({
         maximumAmount: '1000000',
         transferFee: 0.5,
-        metadata: 'hello',
+        metadata: VALID_METADATA,
       })
 
       expect(result.source).toBe('rippled')
@@ -91,8 +101,7 @@ describe('Token vertical', () => {
       expect(tx.MaximumAmount).toBe('1000000')
       // 0.5% → 500 units (0.001% increments)
       expect(tx.TransferFee).toBe(500)
-      // 'hello' hex-encoded, uppercase
-      expect(tx.MPTokenMetadata).toBe('68656C6C6F')
+      expect(tx.MPTokenMetadata).toBe(encodeMPTokenMetadata(VALID_METADATA))
       expect(tx.Flags).toBe(DEFAULT_FLAGS)
     })
 
@@ -100,6 +109,7 @@ describe('Token vertical', () => {
       const { client, txs } = await tokenClient()
       await client.token.issue({
         assetScale: 0,
+        metadata: VALID_METADATA,
         flags: { canClawback: false, canTransfer: false },
       })
       const tx = txs[0] as MPTokenIssuanceCreate
@@ -115,6 +125,7 @@ describe('Token vertical', () => {
     it('omits Flags when every capability is disabled', async () => {
       const { client, txs } = await tokenClient()
       await client.token.issue({
+        metadata: VALID_METADATA,
         flags: {
           canLock: false,
           canEscrow: false,
@@ -126,13 +137,15 @@ describe('Token vertical', () => {
       expect((txs[0] as MPTokenIssuanceCreate).Flags).toBeUndefined()
     })
 
-    it('encodes structured metadata via the ecosystem standard', async () => {
+    it('encodes structured metadata via the XLS-89 standard', async () => {
       const { client, txs } = await tokenClient()
+      // An RWA asset requires asset_subclass to satisfy the standard.
       const metadata = {
         ticker: 'TBILL',
         name: 'T-Bill Token',
-        icon: 'example.org/icon.png',
+        icon: 'https://example.org/icon.png',
         asset_class: 'rwa',
+        asset_subclass: 'treasury',
         issuer_name: 'Example Co.',
       }
       await client.token.issue({ metadata })
@@ -141,16 +154,39 @@ describe('Token vertical', () => {
       )
     })
 
+    it('rejects a raw string that is not XLS-89-compliant JSON', async () => {
+      const { client } = await tokenClient()
+      await expect(
+        client.token.issue({ metadata: 'not-standard-metadata' }),
+      ).rejects.toBeInstanceOf(IntentValidationError)
+    })
+
+    it('reports which metadata field is wrong in the error message', async () => {
+      const { client } = await tokenClient()
+      // A lowercase ticker violates the XLS-89 ticker rule.
+      const promise = client.token.issue({
+        metadata: { ...VALID_METADATA, ticker: 'lowercase' },
+      })
+      await expect(promise).rejects.toBeInstanceOf(IntentValidationError)
+      // The message names the standard, the offending field, and the fix.
+      await expect(promise).rejects.toThrow(/XLS-89/u)
+      await expect(promise).rejects.toThrow(/ticker/u)
+      await expect(promise).rejects.toThrow(/required fields/u)
+    })
+
     it('rejects invalid MaximumAmount and out-of-range TransferFee', async () => {
       const bad = await tokenClient()
       await expect(
-        bad.client.token.issue({ maximumAmount: 'abc' }),
+        bad.client.token.issue({
+          maximumAmount: 'abc',
+          metadata: VALID_METADATA,
+        }),
       ).rejects.toBeInstanceOf(IntentValidationError)
 
       // Percentage above the 50% MPT maximum is rejected before submission.
       const fee = await tokenClient()
       await expect(
-        fee.client.token.issue({ transferFee: 60 }),
+        fee.client.token.issue({ transferFee: 60, metadata: VALID_METADATA }),
       ).rejects.toBeInstanceOf(SimpleXRPLError)
     })
   })
@@ -264,5 +300,37 @@ describe('Token vertical', () => {
       expect(tx.TransactionType).toBe('OfferCancel')
       expect(tx.OfferSequence).toBe(42)
     })
+  })
+})
+
+describe('validateTokenMetadata', () => {
+  it('returns an empty array for XLS-89-compliant metadata', () => {
+    expect(
+      validateTokenMetadata({
+        ticker: 'TBILL',
+        name: 'T-Bill Token',
+        icon: 'https://example.org/icon.png',
+        asset_class: 'other',
+        issuer_name: 'Example Co.',
+      }),
+    ).toStrictEqual([])
+  })
+
+  it('returns the specific problems without throwing', () => {
+    const problems = validateTokenMetadata({
+      ...{
+        ticker: 'lowercase',
+        name: 'T-Bill Token',
+        icon: 'https://example.org/icon.png',
+        asset_class: 'other',
+        issuer_name: 'Example Co.',
+      },
+    })
+    expect(problems.length).toBeGreaterThan(0)
+    expect(problems.some((message) => message.includes('ticker'))).toBe(true)
+  })
+
+  it('reports an un-encodable raw string as a problem', () => {
+    expect(validateTokenMetadata('not-json').length).toBeGreaterThan(0)
   })
 })

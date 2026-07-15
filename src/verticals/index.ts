@@ -5,6 +5,7 @@ export type {
   XrpTransferParams,
 } from './xrp.js'
 export { Token } from './token.js'
+export { validateTokenMetadata } from './token.helpers.js'
 export type {
   CancelOfferParams,
   CreateOfferParams,

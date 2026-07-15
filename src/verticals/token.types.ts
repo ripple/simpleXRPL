@@ -37,10 +37,11 @@ export interface MptIssueParams {
   /** Transfer fee on secondary sales, as a percentage (0.5 = 0.5%, 0–50). */
   readonly transferFee?: number
   /**
-   * Token metadata: a structured object (encoded per the ecosystem standard) or
-   * a raw string (UTF-8 hex-encoded as-is).
+   * Token metadata (required): a structured object (encoded per the XLS-89
+   * standard) or a raw string (UTF-8 hex-encoded as-is). Either way it is
+   * validated against XLS-89; non-adherence is rejected.
    */
-  readonly metadata?: MPTokenMetadata | string
+  readonly metadata: MPTokenMetadata | string
   /** Capability flags. */
   readonly flags?: MptIssueFlags
 }

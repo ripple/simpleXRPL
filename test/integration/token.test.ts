@@ -15,6 +15,13 @@ describe('Token MPT (live testnet)', () => {
         const issued = await client.token.issue({
           assetScale: 0,
           transferFee: 0.5,
+          metadata: {
+            ticker: 'TBILL',
+            name: 'T-Bill Token',
+            icon: 'https://example.org/icon.png',
+            asset_class: 'other',
+            issuer_name: 'Example Co.',
+          },
           flags: { canTransfer: true },
         })
         expect(issued.source).toBe('rippled')

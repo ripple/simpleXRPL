@@ -64,12 +64,33 @@ export class Token {
    * `{ flags: { canClawback: false } }`). MPT capability flags are permanent
    * once the issuance exists.
    *
-   * @param params - Issuance settings and capability-flag overrides.
+   * `metadata` is required and validated against the XLS-89 standard, so every
+   * issuance is discoverable and properly described. Non-compliant metadata
+   * throws an {@link IntentValidationError} before submission; call
+   * {@link validateTokenMetadata} to check metadata ahead of time. See the
+   * standard at
+   * https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0089-multi-purpose-token-metadata-schema
+   *
+   * @example
+   * ```ts
+   * await client.token.issue({
+   *   metadata: {
+   *     ticker: 'TBILL',              // A-Z/0-9, up to 6 chars
+   *     name: 'Acme T-Bill Token',
+   *     icon: 'https://acme.example/icon.png',
+   *     asset_class: 'rwa',           // rwa | memes | wrapped | gaming | defi | other
+   *     asset_subclass: 'treasury',   // required when asset_class is 'rwa'
+   *     issuer_name: 'Acme Inc',
+   *   },
+   * })
+   * ```
+   *
+   * @param params - Issuance settings (metadata required) and flag overrides.
    * @param options - Source account and fee override.
    * @returns The result, with the new `mptIssuanceId` as its intent output.
    */
   public async issue(
-    params: MptIssueParams = {},
+    params: MptIssueParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<MptIssueIntent>> {
     const account = this.host.resolveAccount(options?.from)
@@ -84,9 +105,7 @@ export class Token {
     if (params.transferFee !== undefined) {
       tx.TransferFee = percentToTransferFee(params.transferFee)
     }
-    if (params.metadata !== undefined) {
-      tx.MPTokenMetadata = encodeMetadata(params.metadata)
-    }
+    tx.MPTokenMetadata = encodeMetadata(params.metadata)
     const flags = issueFlags(params.flags)
     if (flags !== undefined) {
       tx.Flags = flags
