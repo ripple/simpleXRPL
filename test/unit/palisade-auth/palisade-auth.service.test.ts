@@ -1,5 +1,5 @@
-import { PalisadeAuthError } from '../../../src/errors.js'
 import { PalisadeAuthService } from '../../../src/custodians/palisade/auth/palisade-auth.service.js'
+import { PalisadeAuthError } from '../../../src/errors.js'
 
 import { FakeAuthPort } from './test-utils.js'
 

@@ -1,10 +1,10 @@
+import { PalisadeAuthService } from '../../../src/custodians/palisade/auth/palisade-auth.service.js'
+import { PalisadeHttpClient } from '../../../src/custodians/palisade/transport/palisade-http-client.js'
 import {
   PalisadeApiError,
   PalisadeAuthError,
   SimpleXRPLError,
 } from '../../../src/errors.js'
-import { PalisadeAuthService } from '../../../src/custodians/palisade/auth/palisade-auth.service.js'
-import { PalisadeHttpClient } from '../../../src/custodians/palisade/transport/palisade-http-client.js'
 import { FakeAuthPort } from '../palisade-auth/test-utils.js'
 
 import { FakeHttpPort, ok, status } from './test-utils.js'

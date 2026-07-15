@@ -1,6 +1,7 @@
+import { PalisadeWalletContext } from '../../../src/custodians/palisade/discovery/wallet-context.js'
 import type { Account } from '../../../src/domain/index.js'
 import { AccountNotFoundError } from '../../../src/errors.js'
-import { PalisadeWalletContext } from '../../../src/custodians/palisade/discovery/wallet-context.js'
+
 import { makeFakeSigner } from './test-utils.js'
 
 const SIGNER = makeFakeSigner()
