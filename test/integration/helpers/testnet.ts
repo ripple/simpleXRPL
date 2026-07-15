@@ -52,3 +52,44 @@ export async function fundedTestnetClient(): Promise<TestnetFixture> {
     await faucet.disconnect()
   }
 }
+
+/**
+ * A connected client whose signers are all the funded wallets. `wallets[0]` is
+ * the primary signer.
+ */
+export interface MultiSignerFixture {
+  readonly client: SimpleXRPLClient
+  readonly wallets: readonly Wallet[]
+}
+
+/**
+ * Faucet-fund `count` accounts and return a connected client that holds a local
+ * signer for each (the first is the primary). Useful for multi-account flows
+ * such as an IOU issuer plus a holder.
+ *
+ * @param count - How many accounts to fund (default 2).
+ * @returns A connected client and its funded wallets.
+ */
+export async function fundedClientWithSigners(
+  count = 2,
+): Promise<MultiSignerFixture> {
+  const faucet = new Client(TESTNET_WS)
+  await faucet.connect()
+  try {
+    const funded = await Promise.all(
+      Array.from({ length: count }, async () => faucet.fundWallet()),
+    )
+    const wallets = funded.map((result) => result.wallet)
+    const client = await SimpleXRPL.init({
+      rippledUrl: TESTNET_WS,
+      signers: wallets.map((wallet) =>
+        LocalSigner.fromSeed(wallet.seed as string),
+      ),
+      ledger: new XrplLedger(TESTNET_WS),
+    })
+    await client.connect()
+    return { client, wallets }
+  } finally {
+    await faucet.disconnect()
+  }
+}

@@ -21,7 +21,7 @@ export * from './custodians/local/index.js'
 export * from './amount/index.js'
 
 // Multi-step orchestration: commits an ordered (Transaction, Account)
-// sequence step by step, no rollback (TDD §8, §9.4).
+// sequence step by step, no rollback.
 export * from './orchestration/index.js'
 
 // Verticals (business-intent verbs), e.g. `client.xrp.transfer`, `IOU.issue`.

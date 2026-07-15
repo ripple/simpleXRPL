@@ -21,7 +21,7 @@ function toSimpleXRPLError(error: unknown): SimpleXRPLError {
 
 /**
  * Run an ordered sequence of steps, committing each one before starting the
- * next (TDD §8, §9.4). Each step runs through the single-step pipeline
+ * next. Each step runs through the single-step pipeline
  * ({@link submitTransaction} — Validate → Dispatch → Resolve → Sign+submit),
  * so multi-step verbs get the same protocol validation and dispatch rules as
  * any single-step verb, with no orchestrator-specific custodian logic.
@@ -44,7 +44,7 @@ export async function runMultiStep(
   for (const [index, step] of steps.entries()) {
     let result: SubmissionResult
     try {
-      // eslint-disable-next-line no-await-in-loop -- Steps commit sequentially by design (TDD §8, §9.4); no rollback exists.
+      // eslint-disable-next-line no-await-in-loop -- Steps commit sequentially by design; no rollback exists.
       result = await submitTransaction(host, step)
     } catch (error) {
       throw new MultiStepFailureError(committed, {

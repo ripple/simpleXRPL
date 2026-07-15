@@ -7,7 +7,7 @@ import {
 import { XrplLedger } from '../ledger/index.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import type { LedgerPort } from '../ports/index.js'
-import { IOU, XRP } from '../verticals/index.js'
+import { IOUVertical, XRP } from '../verticals/index.js'
 
 import { buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
@@ -43,8 +43,8 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Native-XRP value transfers. */
   public readonly xrp: XRP
 
-  /** Issued-currency (IOU) issuance and transfer. */
-  public readonly iou: IOU
+  /** Issued-currency (IOU) issuance; `issue()` returns the lifecycle handle. */
+  public readonly iou: IOUVertical
 
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
@@ -65,7 +65,7 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.accountIndex = state.accountIndex
     this.ledgerInstance = state.ledger
     this.xrp = new XRP(this)
-    this.iou = new IOU(this)
+    this.iou = new IOUVertical(this)
   }
 
   /**
