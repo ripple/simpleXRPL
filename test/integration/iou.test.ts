@@ -31,8 +31,10 @@ describe('IOU vertical (live testnet)', () => {
         const lineAfterIssue = linesAfterIssue.result.lines.find(
           (line) => line.currency === 'USD',
         )
-        expect(lineAfterIssue?.limit).toBe('9'.repeat(15))
-        expect(lineAfterIssue?.balance).toBe('0')
+        // The ledger normalizes issued-currency amounts (e.g. returns
+        // "9999999999999990e-1"), so compare the limit numerically.
+        expect(Number(lineAfterIssue?.limit)).toBe(Number('9'.repeat(15)))
+        expect(Number(lineAfterIssue?.balance)).toBe(0)
 
         // Lock then unlock the holder's line — exercises the two-step
         // Individual Freeze + Deep Freeze sequencing (and its reverse) against
@@ -65,7 +67,7 @@ describe('IOU vertical (live testnet)', () => {
         const lineAfterTransfer = linesAfterTransfer.result.lines.find(
           (line) => line.currency === 'USD',
         )
-        expect(lineAfterTransfer?.balance).toBe('50')
+        expect(Number(lineAfterTransfer?.balance)).toBe(50)
       } finally {
         // eslint-disable-next-line n/no-process-env -- cleaning up the seeded env vars after the test
         delete process.env.XRPL_ISSUER_SEED
