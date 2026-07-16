@@ -15,6 +15,9 @@ const configuredWs = process.env.XRPL_TESTNET_WS
  */
 export const TESTNET_WS = configuredWs ?? DEFAULT_TESTNET_WS
 
+/** The public Testnet faucet HTTP endpoint (funds an address via POST). */
+export const TESTNET_FAUCET = 'https://faucet.altnet.rippletest.net/accounts'
+
 /**
  * A ready-to-use live client plus the funded accounts backing it: `client` is
  * wired to a real `XrplLedger` with `source` as its signer, and `destination`

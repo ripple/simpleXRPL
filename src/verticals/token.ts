@@ -28,9 +28,10 @@ import type {
   CreateOfferParams,
   MptAuthorizeParams,
   MptDestroyParams,
+  MptHolderParams,
   MptIssueIntent,
   MptIssueParams,
-  MptSetParams,
+  MptLockParams,
   TokenTransferParams,
   TokenWriteOptions,
 } from './token.types.js'
@@ -119,9 +120,9 @@ export class Token {
   }
 
   /**
-   * Authorize (or un-authorize) a holder for an MPT issuance.
+   * Opt the calling account in to hold an MPT issuance.
    *
-   * @param params - The issuance id, optional holder, and direction.
+   * @param params - The issuance id.
    * @param options - Source account and fee override.
    * @returns The submission result.
    */
@@ -129,58 +130,77 @@ export class Token {
     params: MptAuthorizeParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
-    const account = this.host.resolveAccount(options?.from)
-    const tx: MPTokenAuthorize = {
-      TransactionType: 'MPTokenAuthorize',
-      Account: account.address,
-      MPTokenIssuanceID: params.mptIssuanceId,
-    }
-    if (params.holder !== undefined) {
-      tx.Holder = params.holder
-    }
-    if (params.unauthorize) {
-      tx.Flags = MPTokenAuthorizeFlags.tfMPTUnauthorize
-    }
-    const result = await submitTransaction(this.host, {
-      transaction: tx,
-      account,
-      fee: options?.fee,
-    })
-    return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
+    return this.submitAuthorize(params, false, options)
   }
 
   /**
-   * Lock or unlock an MPT issuance (or a specific holder's balance).
+   * Opt the calling account out of holding an MPT issuance (balance must be 0).
    *
-   * @param params - The issuance id, optional holder, and lock direction.
+   * @param params - The issuance id.
    * @param options - Source account and fee override.
    * @returns The submission result.
    */
-  public async set(
-    params: MptSetParams,
+  public async unauthorize(
+    params: MptAuthorizeParams,
+    options?: TokenWriteOptions,
+  ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
+    return this.submitAuthorize(params, true, options)
+  }
+
+  /**
+   * Issuer grants a specific holder permission to hold this MPT (allow-listing).
+   *
+   * @param params - The issuance id and the holder to authorize.
+   * @param options - Source account and fee override.
+   * @returns The submission result.
+   */
+  public async grantHolder(
+    params: MptHolderParams,
+    options?: TokenWriteOptions,
+  ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
+    return this.submitAuthorize(params, false, options)
+  }
+
+  /**
+   * Issuer revokes a specific holder's permission to hold this MPT.
+   *
+   * @param params - The issuance id and the holder to revoke.
+   * @param options - Source account and fee override.
+   * @returns The submission result.
+   */
+  public async revokeHolder(
+    params: MptHolderParams,
+    options?: TokenWriteOptions,
+  ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
+    return this.submitAuthorize(params, true, options)
+  }
+
+  /**
+   * Lock an MPT issuance, or a specific holder's balance when `holder` is given.
+   *
+   * @param params - The issuance id and optional holder.
+   * @param options - Source account and fee override.
+   * @returns The submission result.
+   */
+  public async lock(
+    params: MptLockParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string; locked: boolean }>> {
-    const account = this.host.resolveAccount(options?.from)
-    const tx: MPTokenIssuanceSet = {
-      TransactionType: 'MPTokenIssuanceSet',
-      Account: account.address,
-      MPTokenIssuanceID: params.mptIssuanceId,
-      Flags: params.lock
-        ? MPTokenIssuanceSetFlags.tfMPTLock
-        : MPTokenIssuanceSetFlags.tfMPTUnlock,
-    }
-    if (params.holder !== undefined) {
-      tx.Holder = params.holder
-    }
-    const result = await submitTransaction(this.host, {
-      transaction: tx,
-      account,
-      fee: options?.fee,
-    })
-    return withIntent(result, {
-      mptIssuanceId: params.mptIssuanceId,
-      locked: params.lock,
-    })
+    return this.submitLock(params, true, options)
+  }
+
+  /**
+   * Unlock a previously locked MPT issuance or holder balance.
+   *
+   * @param params - The issuance id and optional holder.
+   * @param options - Source account and fee override.
+   * @returns The submission result.
+   */
+  public async unlock(
+    params: MptLockParams,
+    options?: TokenWriteOptions,
+  ): Promise<SubmissionResult<{ mptIssuanceId: string; locked: boolean }>> {
+    return this.submitLock(params, false, options)
   }
 
   /**
@@ -300,5 +320,78 @@ export class Token {
       fee: options?.fee,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
+  }
+
+  /**
+   * Build and submit an `MPTokenAuthorize`.
+   *
+   * @param params - The issuance id and optional specific holder.
+   * @param params.mptIssuanceId - The MPT issuance id.
+   * @param params.holder - A specific holder to (de)authorize, or self if omitted.
+   * @param unauthorize - Whether to set the unauthorize flag.
+   * @param options - Source account and fee override.
+   * @returns The submission result.
+   */
+  private async submitAuthorize(
+    params: { readonly mptIssuanceId: string; readonly holder?: string },
+    unauthorize: boolean,
+    options?: TokenWriteOptions,
+  ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
+    const account = this.host.resolveAccount(options?.from)
+    const tx: MPTokenAuthorize = {
+      TransactionType: 'MPTokenAuthorize',
+      Account: account.address,
+      MPTokenIssuanceID: params.mptIssuanceId,
+    }
+    if (params.holder !== undefined) {
+      tx.Holder = params.holder
+    }
+    if (unauthorize) {
+      tx.Flags = MPTokenAuthorizeFlags.tfMPTUnauthorize
+    }
+    const result = await submitTransaction(this.host, {
+      transaction: tx,
+      account,
+      fee: options?.fee,
+    })
+    return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
+  }
+
+  /**
+   * Build and submit an `MPTokenIssuanceSet` lock/unlock.
+   *
+   * @param params - The issuance id and optional specific holder.
+   * @param params.mptIssuanceId - The MPT issuance id.
+   * @param params.holder - A specific holder to (un)lock, or the whole issuance.
+   * @param lock - `true` locks, `false` unlocks.
+   * @param options - Source account and fee override.
+   * @returns The submission result, echoing the lock state.
+   */
+  private async submitLock(
+    params: { readonly mptIssuanceId: string; readonly holder?: string },
+    lock: boolean,
+    options?: TokenWriteOptions,
+  ): Promise<SubmissionResult<{ mptIssuanceId: string; locked: boolean }>> {
+    const account = this.host.resolveAccount(options?.from)
+    const tx: MPTokenIssuanceSet = {
+      TransactionType: 'MPTokenIssuanceSet',
+      Account: account.address,
+      MPTokenIssuanceID: params.mptIssuanceId,
+      Flags: lock
+        ? MPTokenIssuanceSetFlags.tfMPTLock
+        : MPTokenIssuanceSetFlags.tfMPTUnlock,
+    }
+    if (params.holder !== undefined) {
+      tx.Holder = params.holder
+    }
+    const result = await submitTransaction(this.host, {
+      transaction: tx,
+      account,
+      fee: options?.fee,
+    })
+    return withIntent(result, {
+      mptIssuanceId: params.mptIssuanceId,
+      locked: lock,
+    })
   }
 }

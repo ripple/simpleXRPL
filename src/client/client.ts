@@ -1,3 +1,4 @@
+import { LocalSigner } from '../custodians/local/index.js'
 import type { Account, AccountSelector, Custodian } from '../domain/index.js'
 import {
   AccountNotFoundError,
@@ -102,7 +103,10 @@ export class SimpleXRPLClient implements SubmissionHost {
    * @returns The ledger port.
    */
   public get ledger(): LedgerPort {
-    this.ledgerInstance ??= new XrplLedger(this.network.rippledUrl)
+    this.ledgerInstance ??= new XrplLedger(
+      this.network.rippledUrl,
+      this.network.faucetUrl,
+    )
     return this.ledgerInstance
   }
 
@@ -161,6 +165,20 @@ export class SimpleXRPLClient implements SubmissionHost {
    */
   public async refreshAccounts(): Promise<void> {
     this.accountIndex = await buildAccountIndex(this.signers)
+  }
+
+  /**
+   * Register a locally-signed account at runtime and index it so verbs can act
+   * on it immediately. Backs `Account.create`.
+   *
+   * @param seed - The account seed to hold a `LocalSigner` for.
+   * @returns The registered account.
+   */
+  public registerLocalAccount(seed: string): Account {
+    const signer = LocalSigner.fromSeed(seed)
+    const account: Account = { address: signer.primary.address, signer }
+    this.accountIndex.set(account.address, account)
+    return account
   }
 
   /**

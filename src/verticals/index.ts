@@ -11,10 +11,11 @@ export type {
   CreateOfferParams,
   MptAuthorizeParams,
   MptDestroyParams,
+  MptHolderParams,
   MptIssueFlags,
   MptIssueIntent,
   MptIssueParams,
-  MptSetParams,
+  MptLockParams,
   OfferFlags,
   TokenTransferParams,
   TokenWriteOptions,
@@ -37,6 +38,9 @@ export type {
 } from './domain.types.js'
 export { AccountVertical } from './account.js'
 export type {
+  AccountActivateParams,
+  AccountCredentials,
+  AccountFundParams,
   AccountSetParams,
   AccountWriteOptions,
   DepositPreauthParams,

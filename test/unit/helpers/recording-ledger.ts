@@ -9,6 +9,9 @@ export interface RecordingFixture {
   readonly client: SimpleXRPLClient
   readonly txs: Transaction[]
   readonly signers: readonly Wallet[]
+
+  /** Addresses passed to the fake faucet (records `Account.fund` calls). */
+  readonly fauceted: string[]
 }
 
 /**
@@ -26,6 +29,7 @@ export async function recordingClient(options?: {
   signerCount?: number
 }): Promise<RecordingFixture> {
   const txs: Transaction[] = []
+  const fauceted: string[] = []
   const meta = options?.meta
   const ledger: LedgerPort = {
     async autofill(tx: Transaction): Promise<Transaction> {
@@ -42,6 +46,9 @@ export async function recordingClient(options?: {
     submitAndWait: async (): Promise<TxResponse> =>
       ({ result: { hash: 'HASH', meta } }) as unknown as TxResponse,
     request: async <T>(): Promise<T> => ({}) as T,
+    async fundViaFaucet(address: string): Promise<void> {
+      fauceted.push(address)
+    },
   }
   const signers = Array.from({ length: options?.signerCount ?? 1 }, () =>
     Wallet.generate(),
@@ -53,5 +60,5 @@ export async function recordingClient(options?: {
     ),
     ledger,
   })
-  return { client, txs, signers }
+  return { client, txs, signers, fauceted }
 }
