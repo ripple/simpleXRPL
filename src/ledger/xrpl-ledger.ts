@@ -133,8 +133,14 @@ export class XrplLedger implements LedgerPort {
   private async waitForAccount(address: string): Promise<void> {
     for (let attempt = 0; attempt < FAUCET_POLL_ATTEMPTS; attempt += 1) {
       try {
+        // Query the *validated* ledger: the account must be finalized (not just
+        // present in the in-flight ledger) before a follow-up tx can validate.
         // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        await this.request({ command: 'account_info', account: address })
+        await this.request({
+          command: 'account_info',
+          account: address,
+          ledger_index: 'validated',
+        })
         return
       } catch {
         // eslint-disable-next-line no-await-in-loop -- sequential poll by design
