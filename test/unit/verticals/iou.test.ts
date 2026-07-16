@@ -59,6 +59,9 @@ function fakeIouHost(opts?: { clawbackEnabled?: boolean }): IouFixture {
     resolveAccount() {
       throw new Error('resolveAccount should not be called by IOU instances')
     },
+    registerLocalAccount() {
+      throw new Error('registerLocalAccount should not be called by IOU tests')
+    },
   }
   return { host, txs }
 }
@@ -307,7 +310,6 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
     })
 
     expect((txs[2] as OfferCreate).Flags).toBe(
-      // eslint-disable-next-line no-bitwise -- verifying the combined flag bitmask
       OfferCreateFlags.tfSell | OfferCreateFlags.tfPassive,
     )
   })
