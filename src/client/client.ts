@@ -1,3 +1,4 @@
+import { LocalSigner } from '../custodians/local/index.js'
 import type { Account, AccountSelector, Custodian } from '../domain/index.js'
 import {
   AccountNotFoundError,
@@ -7,7 +8,14 @@ import {
 import { XrplLedger } from '../ledger/index.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import type { LedgerPort } from '../ports/index.js'
-import { IOUVertical, XRP } from '../verticals/index.js'
+import {
+  AccountVertical,
+  Credential,
+  Domain,
+  IOUVertical,
+  Token,
+  XRP,
+} from '../verticals/index.js'
 
 import { buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
@@ -46,6 +54,18 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Issued-currency (IOU) issuance; `issue()` returns the lifecycle handle. */
   public readonly iou: IOUVertical
 
+  /** Multi-Purpose Token (MPT) family and DEX offers. */
+  public readonly token: Token
+
+  /** On-ledger credentials (issue, accept, delete). */
+  public readonly credential: Credential
+
+  /** Permissioned domains (create, update, delete). */
+  public readonly domain: Domain
+
+  /** Account settings, regular key, and deposit preauthorization. */
+  public readonly account: AccountVertical
+
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
 
@@ -66,6 +86,10 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.ledgerInstance = state.ledger
     this.xrp = new XRP(this)
     this.iou = new IOUVertical(this)
+    this.token = new Token(this)
+    this.credential = new Credential(this)
+    this.domain = new Domain(this)
+    this.account = new AccountVertical(this)
   }
 
   /**
@@ -84,7 +108,10 @@ export class SimpleXRPLClient implements SubmissionHost {
    * @returns The ledger port.
    */
   public get ledger(): LedgerPort {
-    this.ledgerInstance ??= new XrplLedger(this.network.rippledUrl)
+    this.ledgerInstance ??= new XrplLedger(
+      this.network.rippledUrl,
+      this.network.faucetUrl,
+    )
     return this.ledgerInstance
   }
 
@@ -143,6 +170,20 @@ export class SimpleXRPLClient implements SubmissionHost {
    */
   public async refreshAccounts(): Promise<void> {
     this.accountIndex = await buildAccountIndex(this.signers)
+  }
+
+  /**
+   * Register a locally-signed account at runtime and index it so verbs can act
+   * on it immediately. Backs `Account.create`.
+   *
+   * @param seed - The account seed to hold a `LocalSigner` for.
+   * @returns The registered account.
+   */
+  public registerLocalAccount(seed: string): Account {
+    const signer = LocalSigner.fromSeed(seed)
+    const account: Account = { address: signer.primary.address, signer }
+    this.accountIndex.set(account.address, account)
+    return account
   }
 
   /**

@@ -15,6 +15,9 @@ const configuredWs = process.env.XRPL_TESTNET_WS
  */
 export const TESTNET_WS = configuredWs ?? DEFAULT_TESTNET_WS
 
+/** The public Testnet faucet HTTP endpoint (funds an address via POST). */
+export const TESTNET_FAUCET = 'https://faucet.altnet.rippletest.net/accounts'
+
 /**
  * A ready-to-use live client plus the funded accounts backing it: `client` is
  * wired to a real `XrplLedger` with `source` as its signer, and `destination`
@@ -65,7 +68,7 @@ export interface MultiSignerFixture {
 /**
  * Faucet-fund `count` accounts and return a connected client that holds a local
  * signer for each (the first is the primary). Useful for multi-account flows
- * such as an IOU issuer plus a holder.
+ * such as an IOU or MPT issuer plus a holder.
  *
  * @param count - How many accounts to fund (default 2).
  * @returns A connected client and its funded wallets.

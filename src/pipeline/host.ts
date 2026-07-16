@@ -12,4 +12,11 @@ export interface SubmissionHost {
 
   /** Resolve the account a verb acts on. */
   resolveAccount: (selector?: AccountSelector) => Account
+
+  /**
+   * Register a locally-signed account at runtime so subsequent verbs can act on
+   * it. Used by `Account.create` to make a freshly generated account usable
+   * (e.g. by `Account.fund` / `Account.activate`).
+   */
+  registerLocalAccount: (seed: string) => Account
 }
