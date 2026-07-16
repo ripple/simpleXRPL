@@ -68,7 +68,7 @@ export interface MultiSignerFixture {
 /**
  * Faucet-fund `count` accounts and return a connected client that holds a local
  * signer for each (the first is the primary). Useful for multi-account flows
- * such as an MPT issuer plus a holder.
+ * such as an IOU or MPT issuer plus a holder.
  *
  * @param count - How many accounts to fund (default 2).
  * @returns A connected client and its funded wallets.

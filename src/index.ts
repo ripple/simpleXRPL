@@ -20,7 +20,11 @@ export * from './custodians/local/index.js'
 // Amount & asset model (XRP / IOU / MPT representation + decimal/scale conversion).
 export * from './amount/index.js'
 
-// Verticals (business-intent verbs), e.g. `client.xrp.transfer`.
+// Multi-step orchestration: commits an ordered (Transaction, Account)
+// sequence step by step, no rollback.
+export * from './orchestration/index.js'
+
+// Verticals (business-intent verbs), e.g. `client.xrp.transfer`, `IOU.issue`.
 export * from './verticals/index.js'
 
 // Production ledger port.

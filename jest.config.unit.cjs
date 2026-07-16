@@ -7,13 +7,15 @@ module.exports = {
   displayName: 'unit',
   roots: ['<rootDir>/src', '<rootDir>/test/unit'],
   testMatch: ['<rootDir>/test/unit/**/*.test.ts'],
-  // TODO: raise to 85% line coverage once the Build/Validate layers land.
+  // Build/Validate/vertical layers have landed; enforce coverage with a small
+  // buffer below current (~93% lines / ~90% branches) so a real regression
+  // fails CI without tripping on minor fluctuation.
   coverageThreshold: {
     global: {
-      lines: 0,
-      statements: 0,
-      branches: 0,
-      functions: 0,
+      lines: 90,
+      statements: 90,
+      branches: 85,
+      functions: 88,
     },
   },
 }
