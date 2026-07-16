@@ -1,5 +1,35 @@
 import type { AccountSelector, FeeIntent } from '../domain/index.js'
 
+/**
+ * The locally-generated credentials returned by `Account.create`. Nothing is
+ * written to the ledger; `seed` is the only way to control the account and must
+ * be stored securely.
+ */
+export interface AccountCredentials {
+  /** The classic r-address. */
+  readonly address: string
+  /** The public key (hex). */
+  readonly publicKey: string
+  /** The private key (hex) — sensitive. */
+  readonly privateKey: string
+  /** The account seed (secret) — sensitive. */
+  readonly seed: string
+}
+
+/** Parameters for `Account.fund` (testnet/devnet faucet funding). */
+export interface AccountFundParams {
+  /** The r-address to fund (typically from `Account.create`). */
+  readonly destination: string
+}
+
+/** Parameters for `Account.activate` (operator-funded activation). */
+export interface AccountActivateParams {
+  /** The r-address to activate (typically from `Account.create`). */
+  readonly destination: string
+  /** XRP to send; defaults to the network's base reserve. */
+  readonly amount?: string
+}
+
 /** Per-call options shared by the account verbs. */
 export interface AccountWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */

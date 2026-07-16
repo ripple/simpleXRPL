@@ -1,5 +1,5 @@
-import { AccountSetAsfFlags } from 'xrpl'
-import type { AccountSet, DepositPreauth, SetRegularKey } from 'xrpl'
+import { AccountSetAsfFlags, Wallet, xrpToDrops } from 'xrpl'
+import type { AccountSet, DepositPreauth, Payment, SetRegularKey } from 'xrpl'
 
 import type { SubmissionResult } from '../domain/index.js'
 import { SimpleXRPLError } from '../errors.js'
@@ -7,6 +7,9 @@ import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
 
 import type {
+  AccountActivateParams,
+  AccountCredentials,
+  AccountFundParams,
   AccountSetParams,
   AccountWriteOptions,
   DepositPreauthParams,
@@ -14,6 +17,10 @@ import type {
 } from './account.types.js'
 import { percentToTransferRate } from './fee.js'
 import { toHex } from './hex.js'
+
+/** XRP added on top of the base reserve by `activate` so the new account can
+ * afford its own `defaultRipple` transaction. */
+const ACTIVATION_BUFFER_XRP = 1
 
 /** Maps each named `Account.set` flag to its `AccountSetAsfFlags` value. */
 const FLAG_MAP: ReadonlyArray<readonly [keyof AccountSetParams, number]> = [
@@ -43,6 +50,94 @@ export class AccountVertical {
    */
   public constructor(host: SubmissionHost) {
     this.host = host
+  }
+
+  /**
+   * Generate a new XRPL keypair locally and register it so it can be funded and
+   * used right away. Nothing is written to the ledger until the account is
+   * funded; store the returned `seed` securely (it is the only way to control
+   * the account). Use this only to mint an additional account outside of
+   * `SimpleXRPL.init`.
+   *
+   * @returns The new account's address, public key, private key, and seed.
+   * @throws {@link SimpleXRPLError} if key generation yields no seed.
+   */
+  public create(): AccountCredentials {
+    const wallet = Wallet.generate()
+    if (wallet.seed === undefined) {
+      throw new SimpleXRPLError('Wallet.generate did not return a seed')
+    }
+    this.host.registerLocalAccount(wallet.seed)
+    return {
+      address: wallet.classicAddress,
+      publicKey: wallet.publicKey,
+      privateKey: wallet.privateKey,
+      seed: wallet.seed,
+    }
+  }
+
+  /**
+   * Fund a created account via the network faucet (testnet/devnet), then enable
+   * rippling (`defaultRipple`). The account must be one this client can sign for
+   * (e.g. from {@link create}).
+   *
+   * @param params - The destination address to fund.
+   * @param options - Fee override for the follow-up settings transaction.
+   * @returns The result of the `defaultRipple` settings change.
+   * @throws {@link SimpleXRPLError} if the ledger exposes no faucet.
+   */
+  public async fund(
+    params: AccountFundParams,
+    options?: AccountWriteOptions,
+  ): Promise<SubmissionResult<undefined>> {
+    if (this.host.ledger.fundViaFaucet === undefined) {
+      throw new SimpleXRPLError(
+        'Account.fund requires a faucet-capable ledger (testnet/devnet). ' +
+          'Use Account.activate to fund from an operator account instead.',
+      )
+    }
+    // Call as a method so the ledger keeps its `this` binding.
+    await this.host.ledger.fundViaFaucet(params.destination)
+    return this.set(
+      { defaultRipple: true },
+      { from: params.destination, fee: options?.fee },
+    )
+  }
+
+  /**
+   * Activate a created account by sending it XRP from the operator (primary)
+   * account, then enable rippling. The any-network counterpart to {@link fund};
+   * the account must be signable by this client (e.g. from {@link create}).
+   *
+   * @param params - The destination and optional XRP amount (default: base reserve).
+   * @param options - Fee override for the transactions.
+   * @returns The result of the `defaultRipple` settings change.
+   */
+  public async activate(
+    params: AccountActivateParams,
+    options?: AccountWriteOptions,
+  ): Promise<SubmissionResult<undefined>> {
+    const operator = this.host.resolveAccount()
+    // Default to the base reserve plus a buffer so the new account can afford
+    // the follow-up defaultRipple transaction's fee without dropping below it.
+    const amountXrp =
+      params.amount ??
+      String((await this.baseReserveXrp()) + ACTIVATION_BUFFER_XRP)
+    const payment: Payment = {
+      TransactionType: 'Payment',
+      Account: operator.address,
+      Destination: params.destination,
+      Amount: xrpToDrops(amountXrp),
+    }
+    await submitTransaction(this.host, {
+      transaction: payment,
+      account: operator,
+      fee: options?.fee,
+    })
+    return this.set(
+      { defaultRipple: true },
+      { from: params.destination, fee: options?.fee },
+    )
   }
 
   /**
@@ -148,6 +243,25 @@ export class AccountVertical {
       fee: options?.fee,
     })
     return withIntent(result, undefined)
+  }
+
+  /**
+   * Fetch the network's base reserve (in XRP) from `server_info`.
+   *
+   * @returns The base reserve as an XRP string.
+   * @throws {@link SimpleXRPLError} if the base reserve is not reported.
+   */
+  private async baseReserveXrp(): Promise<number> {
+    const info = await this.host.ledger.request<{
+      result: { info: { validated_ledger?: { reserve_base_xrp?: number } } }
+    }>({ command: 'server_info' })
+    const reserve = info.result.info.validated_ledger?.reserve_base_xrp
+    if (reserve === undefined) {
+      throw new SimpleXRPLError(
+        'Could not determine the base reserve from server_info',
+      )
+    }
+    return reserve
   }
 }
 

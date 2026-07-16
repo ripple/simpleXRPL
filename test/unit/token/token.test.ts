@@ -191,36 +191,63 @@ describe('Token vertical', () => {
     })
   })
 
-  describe('authorize', () => {
-    it('builds MPTokenAuthorize with holder and unauthorize flag', async () => {
+  describe('authorize / unauthorize', () => {
+    it('authorize builds a self MPTokenAuthorize (no holder, no flag)', async () => {
       const { client, txs } = await tokenClient()
-      const holder = Wallet.generate().classicAddress
-      await client.token.authorize({
-        mptIssuanceId: MPT_ID,
-        holder,
-        unauthorize: true,
-      })
+      await client.token.authorize({ mptIssuanceId: MPT_ID })
       const tx = txs[0] as MPTokenAuthorize
       expect(tx.TransactionType).toBe('MPTokenAuthorize')
       expect(tx.MPTokenIssuanceID).toBe(MPT_ID)
+      expect(tx.Holder).toBeUndefined()
+      expect(tx.Flags).toBeUndefined()
+    })
+
+    it('unauthorize sets the unauthorize flag (no holder)', async () => {
+      const { client, txs } = await tokenClient()
+      await client.token.unauthorize({ mptIssuanceId: MPT_ID })
+      const tx = txs[0] as MPTokenAuthorize
+      expect(tx.Holder).toBeUndefined()
+      expect(tx.Flags).toBe(MPTokenAuthorizeFlags.tfMPTUnauthorize)
+    })
+  })
+
+  describe('grantHolder / revokeHolder', () => {
+    it('grantHolder authorizes a specific holder (no flag)', async () => {
+      const { client, txs } = await tokenClient()
+      const holder = Wallet.generate().classicAddress
+      await client.token.grantHolder({ mptIssuanceId: MPT_ID, holder })
+      const tx = txs[0] as MPTokenAuthorize
+      expect(tx.MPTokenIssuanceID).toBe(MPT_ID)
+      expect(tx.Holder).toBe(holder)
+      expect(tx.Flags).toBeUndefined()
+    })
+
+    it('revokeHolder sets the unauthorize flag for a holder', async () => {
+      const { client, txs } = await tokenClient()
+      const holder = Wallet.generate().classicAddress
+      await client.token.revokeHolder({ mptIssuanceId: MPT_ID, holder })
+      const tx = txs[0] as MPTokenAuthorize
       expect(tx.Holder).toBe(holder)
       expect(tx.Flags).toBe(MPTokenAuthorizeFlags.tfMPTUnauthorize)
     })
   })
 
-  describe('set', () => {
-    it('maps lock true/false to the lock/unlock flags', async () => {
-      const locked = await tokenClient()
-      await locked.client.token.set({ mptIssuanceId: MPT_ID, lock: true })
-      expect((locked.txs[0] as MPTokenIssuanceSet).Flags).toBe(
-        MPTokenIssuanceSetFlags.tfMPTLock,
-      )
+  describe('lock / unlock', () => {
+    it('lock sets the lock flag (whole issuance)', async () => {
+      const { client, txs } = await tokenClient()
+      await client.token.lock({ mptIssuanceId: MPT_ID })
+      const tx = txs[0] as MPTokenIssuanceSet
+      expect(tx.Flags).toBe(MPTokenIssuanceSetFlags.tfMPTLock)
+      expect(tx.Holder).toBeUndefined()
+    })
 
-      const unlocked = await tokenClient()
-      await unlocked.client.token.set({ mptIssuanceId: MPT_ID, lock: false })
-      expect((unlocked.txs[0] as MPTokenIssuanceSet).Flags).toBe(
-        MPTokenIssuanceSetFlags.tfMPTUnlock,
-      )
+    it('unlock sets the unlock flag for a specific holder', async () => {
+      const { client, txs } = await tokenClient()
+      const holder = Wallet.generate().classicAddress
+      await client.token.unlock({ mptIssuanceId: MPT_ID, holder })
+      const tx = txs[0] as MPTokenIssuanceSet
+      expect(tx.Flags).toBe(MPTokenIssuanceSetFlags.tfMPTUnlock)
+      expect(tx.Holder).toBe(holder)
     })
   })
 
