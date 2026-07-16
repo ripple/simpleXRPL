@@ -281,23 +281,7 @@ export class IOU {
   public async buyOffer(
     params: IOUOfferParams,
   ): Promise<SubmissionResult<undefined>> {
-    const transaction = buildOfferCreate({
-      account: this.issuer.address,
-      takerGets: priceToLedgerAmount(params.price),
-      takerPays: {
-        currency: this.currency,
-        issuer: this.issuer.address,
-        value: String(params.amount),
-      },
-      orderType: params.orderType,
-      sell: false,
-      offerSequence: params.offerSequence,
-    })
-    const result = await submitTransaction(this.host, {
-      transaction,
-      account: this.issuer,
-    })
-    return withIntent(result, undefined)
+    return this.placeOffer(params, false)
   }
 
   /**
@@ -310,23 +294,7 @@ export class IOU {
   public async sellOffer(
     params: IOUOfferParams,
   ): Promise<SubmissionResult<undefined>> {
-    const transaction = buildOfferCreate({
-      account: this.issuer.address,
-      takerGets: {
-        currency: this.currency,
-        issuer: this.issuer.address,
-        value: String(params.amount),
-      },
-      takerPays: priceToLedgerAmount(params.price),
-      orderType: params.orderType,
-      sell: true,
-      offerSequence: params.offerSequence,
-    })
-    const result = await submitTransaction(this.host, {
-      transaction,
-      account: this.issuer,
-    })
-    return withIntent(result, undefined)
+    return this.placeOffer(params, true)
   }
 
   /**
@@ -349,6 +317,40 @@ export class IOU {
       account: this.issuer,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
+  }
+
+  /**
+   * Build and submit an `OfferCreate` for this IOU, on the given side.
+   *
+   * @param params - The amount, order type, price, and domain options.
+   * @param sell - Whether this is a sell offer.
+   * @returns The submission result.
+   */
+  private async placeOffer(
+    params: IOUOfferParams,
+    sell: boolean,
+  ): Promise<SubmissionResult<undefined>> {
+    const own = {
+      currency: this.currency,
+      issuer: this.issuer.address,
+      value: String(params.amount),
+    }
+    const price = priceToLedgerAmount(params.price)
+    const transaction = buildOfferCreate({
+      account: this.issuer.address,
+      takerGets: sell ? own : price,
+      takerPays: sell ? price : own,
+      orderType: params.orderType,
+      sell,
+      domainID: params.domainID,
+      hybrid: params.hybrid,
+      offerSequence: params.offerSequence,
+    })
+    const result = await submitTransaction(this.host, {
+      transaction,
+      account: this.issuer,
+    })
+    return withIntent(result, undefined)
   }
 
   private buildFreeze(holder: string, flag: XrplTrustSetFlags): TrustSet {

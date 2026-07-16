@@ -92,6 +92,17 @@ export interface IOUOfferParams {
    * ({@link IOU.sellOffer}) — XRP, an MPT, or another IOU.
    */
   readonly price: IOUOfferPrice
+  /**
+   * Restrict the offer to a permissioned domain. Omit for the open DEX. When
+   * set, the offer defaults to hybrid (also crosses the open DEX) unless
+   * `hybrid` is explicitly `false`.
+   */
+  readonly domainID?: string
+  /**
+   * Whether a domain-scoped offer also works the open DEX (hybrid). Only
+   * meaningful with `domainID`; defaults to `true` when `domainID` is set.
+   */
+  readonly hybrid?: boolean
   /** A prior offer sequence to replace. */
   readonly offerSequence?: number
 }

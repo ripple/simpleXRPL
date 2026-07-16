@@ -281,6 +281,67 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
     expect(tx.Flags).toBeUndefined()
   })
 
+  it('scopes an offer to a permissioned domain and defaults to hybrid', async () => {
+    const { host, txs } = fakeIouHost()
+    seedIssuanceEnv()
+    const iou = await IOU.issue(host, { ticker: 'USD' })
+    txs.length = 0
+
+    const domainID = 'A'.repeat(64)
+    await iou.buyOffer({
+      amount: 1,
+      orderType: 'limit',
+      price: { currency: 'XRP', amount: 1 },
+      domainID,
+    })
+    const tx = txs[0] as OfferCreate
+    expect(tx.DomainID).toBe(domainID)
+    // limit → no base flag; domain present + hybrid unspecified → tfHybrid.
+    expect(tx.Flags).toBe(OfferCreateFlags.tfHybrid)
+  })
+
+  it('sets DomainID without tfHybrid for a permissioned-only offer', async () => {
+    const { host, txs } = fakeIouHost()
+    seedIssuanceEnv()
+    const iou = await IOU.issue(host, { ticker: 'USD' })
+    txs.length = 0
+
+    const domainID = 'B'.repeat(64)
+    await iou.buyOffer({
+      amount: 1,
+      orderType: 'limit',
+      price: { currency: 'XRP', amount: 1 },
+      domainID,
+      hybrid: false,
+    })
+    const tx = txs[0] as OfferCreate
+    expect(tx.DomainID).toBe(domainID)
+    expect(tx.Flags).toBeUndefined()
+  })
+
+  it('combines tfHybrid with the order-type and sell flags', async () => {
+    const { host, txs } = fakeIouHost()
+    seedIssuanceEnv()
+    const iou = await IOU.issue(host, { ticker: 'USD' })
+    txs.length = 0
+
+    const domainID = 'C'.repeat(64)
+    await iou.sellOffer({
+      amount: 1,
+      orderType: 'market',
+      price: { currency: 'XRP', amount: 1 },
+      domainID,
+    })
+    const tx = txs[0] as OfferCreate
+    expect(tx.DomainID).toBe(domainID)
+
+    expect(tx.Flags).toBe(
+      OfferCreateFlags.tfSell |
+        OfferCreateFlags.tfImmediateOrCancel |
+        OfferCreateFlags.tfHybrid,
+    )
+  })
+
   it('maps market/fok/passive order types to their flag combinations', async () => {
     const { host, txs } = fakeIouHost()
     seedIssuanceEnv()

@@ -141,28 +141,43 @@ export interface OfferCreateInputs {
   readonly orderType: IOUOrderType
   /** Whether this is a sell offer (adds the `tfSell` bit). */
   readonly sell: boolean
+  /** Restrict to a permissioned domain; omit for the open DEX. */
+  readonly domainID?: string
+  /** Hybrid (also works the open DEX); defaults to `true` when `domainID` set. */
+  readonly hybrid?: boolean
   /** A prior offer sequence to replace. */
   readonly offerSequence?: number
 }
 
 /**
  * Build an `OfferCreate` transaction from its taker amounts and order type.
+ * A `domainID` restricts the offer to a permissioned domain and, unless
+ * `hybrid` is explicitly `false`, also sets `tfHybrid` so it works the open DEX.
  *
- * @param inputs - The account, amounts, order type, and side.
+ * @param inputs - The account, amounts, order type, side, and domain options.
  * @returns The `OfferCreate` transaction (Build-stage: intrinsic fields only).
  */
 export function buildOfferCreate(inputs: OfferCreateInputs): OfferCreate {
-  const flags = orderTypeFlags(inputs.orderType, inputs.sell)
-  return {
+  const base = orderTypeFlags(inputs.orderType, inputs.sell) ?? 0
+  const hybrid = inputs.domainID !== undefined && inputs.hybrid !== false
+  // eslint-disable-next-line no-bitwise -- XRPL transaction flags are combined as a bitmask
+  const flags = hybrid ? base | OfferCreateFlags.tfHybrid : base
+  const tx: OfferCreate = {
     TransactionType: 'OfferCreate',
     Account: inputs.account,
     TakerGets: inputs.takerGets,
     TakerPays: inputs.takerPays,
-    ...(flags === undefined ? {} : { Flags: flags }),
-    ...(inputs.offerSequence === undefined
-      ? {}
-      : { OfferSequence: inputs.offerSequence }),
   }
+  if (flags !== 0) {
+    tx.Flags = flags
+  }
+  if (inputs.domainID !== undefined) {
+    tx.DomainID = inputs.domainID
+  }
+  if (inputs.offerSequence !== undefined) {
+    tx.OfferSequence = inputs.offerSequence
+  }
+  return tx
 }
 
 /**
