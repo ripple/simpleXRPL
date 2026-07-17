@@ -26,6 +26,6 @@ export function mapClawback(
     type: 'Clawback',
     currency: toClawbackCurrency(tx.Amount),
     holder: toDestination(tx.Holder),
-    value: 'value' in tx.Amount ? tx.Amount.value : tx.Amount,
+    value: tx.Amount.value,
   }
 }

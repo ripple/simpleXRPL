@@ -2,9 +2,9 @@ import { SignerCapabilityError } from '../../../errors.js'
 
 /**
  * Throw a {@link SignerCapabilityError} naming a field Custody's native
- * operation schema has no slot for (TDD §7.3 — the raw-signing fallback is
- * the way out, gated by DGE-7465; this ticket has no raw path yet, so an
- * unsupported field is always a hard stop).
+ * operation schema has no slot for. The raw-signing fallback is the way out
+ * of this once it lands; until then, an unsupported field is always a hard
+ * stop.
  *
  * @param transactor - The XRPL transactor name.
  * @param field - The unsupported field's name.

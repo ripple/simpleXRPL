@@ -170,6 +170,26 @@ describe('buildProposeIntentBody', () => {
     })
   })
 
+  it('maps memos and sourceTag onto the XRPL parameters rather than dropping them', () => {
+    const tx: Payment = {
+      ...PAYMENT_TX,
+      SourceTag: 12345,
+      Memos: [{ Memo: { MemoData: '48656C6C6F' } }],
+    }
+    const body = buildProposeIntentBody(makeSigner(), {
+      domainId: 'domain-1',
+      authorUserId: 'user-1',
+      accountId: 'account-1',
+      transaction: tx,
+    })
+    expect(xrplParameters(body)).toMatchObject({
+      sourceTag: 12345,
+      memos: [
+        { memoData: '48656C6C6F', memoFormat: undefined, memoType: undefined },
+      ],
+    })
+  })
+
   it('propagates SignerCapabilityError for a transactor with no native mapping', () => {
     const tx: OfferCancel = {
       TransactionType: 'OfferCancel',
