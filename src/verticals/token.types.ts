@@ -34,35 +34,38 @@ export interface MptIssueParams {
   readonly assetScale?: number
   /** Maximum issuable amount, in base units. */
   readonly maximumAmount?: string
-  /** Transfer fee, in units of 1/100,000 (0–50,000). */
+  /** Transfer fee on secondary sales, as a percentage (0.5 = 0.5%, 0–50). */
   readonly transferFee?: number
   /**
-   * Token metadata: a structured object (encoded per the ecosystem standard) or
-   * a raw string (UTF-8 hex-encoded as-is).
+   * Token metadata (required): a structured object (encoded per the XLS-89
+   * standard) or a raw string (UTF-8 hex-encoded as-is). Either way it is
+   * validated against XLS-89; non-adherence is rejected.
    */
-  readonly metadata?: MPTokenMetadata | string
+  readonly metadata: MPTokenMetadata | string
   /** Capability flags. */
   readonly flags?: MptIssueFlags
 }
 
-/** Parameters for `Token.authorize`. */
+/** Parameters for `Token.authorize` / `Token.unauthorize` (calling account). */
 export interface MptAuthorizeParams {
   /** The MPT issuance id. */
   readonly mptIssuanceId: string
-  /** The holder to authorize; omit when a holder authorizes itself. */
-  readonly holder?: string
-  /** Remove a previously granted authorization. */
-  readonly unauthorize?: boolean
 }
 
-/** Parameters for `Token.set`. */
-export interface MptSetParams {
+/** Parameters for `Token.grantHolder` / `Token.revokeHolder` (issuer-side). */
+export interface MptHolderParams {
+  /** The MPT issuance id. */
+  readonly mptIssuanceId: string
+  /** The holder to grant or revoke. */
+  readonly holder: string
+}
+
+/** Parameters for `Token.lock` / `Token.unlock`. */
+export interface MptLockParams {
   /** The MPT issuance id. */
   readonly mptIssuanceId: string
   /** A specific holder to (un)lock; omit to affect the whole issuance. */
   readonly holder?: string
-  /** `true` locks, `false` unlocks. */
-  readonly lock: boolean
 }
 
 /** Parameters for `Token.destroy`. */

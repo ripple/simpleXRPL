@@ -28,6 +28,13 @@ export interface LedgerPort {
   /** Issue a raw ledger request and resolve with the typed response. */
   readonly request: <T>(req: LedgerRequest) => Promise<T>
 
+  /**
+   * Faucet-fund an address, resolving once it exists on-ledger. Present only on
+   * networks with a faucet (testnet/devnet); absent implementations mean
+   * `Account.fund` is unavailable and callers should use `Account.activate`.
+   */
+  readonly fundViaFaucet?: (address: string) => Promise<void>
+
   /** Open the connection, if the implementation is connection-oriented. */
   readonly connect?: () => Promise<void>
 

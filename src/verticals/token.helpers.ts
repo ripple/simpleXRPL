@@ -2,6 +2,7 @@ import {
   encodeMPTokenMetadata,
   MPTokenIssuanceCreateFlags,
   OfferCreateFlags,
+  validateMPTokenMetadata,
 } from 'xrpl'
 import type { IssuedCurrencyAmount, MPTokenMetadata } from 'xrpl'
 
@@ -33,22 +34,36 @@ function combineFlags(
 /* eslint-enable no-bitwise */
 
 /**
- * Map issuance capability booleans to the combined flag value.
+ * The SDK's default issuance capabilities: a fully capable, transferable token
+ * out of the box. Each is overridable by passing the flag explicitly (e.g.
+ * `{ canClawback: false }`). Note MPT capability flags are permanent once the
+ * issuance is created.
+ */
+export const DEFAULT_ISSUE_FLAGS: Required<MptIssueFlags> = {
+  canLock: true,
+  requireAuth: false,
+  canEscrow: true,
+  canTrade: true,
+  canTransfer: true,
+  canClawback: true,
+}
+
+/**
+ * Map issuance capability booleans to the combined flag value, applying the
+ * SDK defaults for any flag the caller did not specify.
  *
- * @param flags - The capability flags, if any.
- * @returns The combined flag number, or `undefined` when none are set.
+ * @param flags - The caller's capability-flag overrides, if any.
+ * @returns The combined flag number, or `undefined` when none are enabled.
  */
 export function issueFlags(flags?: MptIssueFlags): number | undefined {
-  if (flags === undefined) {
-    return undefined
-  }
+  const merged = { ...DEFAULT_ISSUE_FLAGS, ...flags }
   return combineFlags([
-    [flags.canLock, MPTokenIssuanceCreateFlags.tfMPTCanLock],
-    [flags.requireAuth, MPTokenIssuanceCreateFlags.tfMPTRequireAuth],
-    [flags.canEscrow, MPTokenIssuanceCreateFlags.tfMPTCanEscrow],
-    [flags.canTrade, MPTokenIssuanceCreateFlags.tfMPTCanTrade],
-    [flags.canTransfer, MPTokenIssuanceCreateFlags.tfMPTCanTransfer],
-    [flags.canClawback, MPTokenIssuanceCreateFlags.tfMPTCanClawback],
+    [merged.canLock, MPTokenIssuanceCreateFlags.tfMPTCanLock],
+    [merged.requireAuth, MPTokenIssuanceCreateFlags.tfMPTRequireAuth],
+    [merged.canEscrow, MPTokenIssuanceCreateFlags.tfMPTCanEscrow],
+    [merged.canTrade, MPTokenIssuanceCreateFlags.tfMPTCanTrade],
+    [merged.canTransfer, MPTokenIssuanceCreateFlags.tfMPTCanTransfer],
+    [merged.canClawback, MPTokenIssuanceCreateFlags.tfMPTCanClawback],
   ])
 }
 
@@ -89,22 +104,75 @@ export function toDexAmount(amount: Amount): IssuedCurrencyAmount | string {
 }
 
 /**
- * Encode MPT metadata to the on-ledger hex string. A structured object follows
- * the ecosystem metadata standard; a raw string is UTF-8 hex-encoded as-is.
+ * Encode structured or string metadata to the on-ledger hex form. A structured
+ * object goes through the xrpl helper; a raw string is UTF-8 hex-encoded as-is.
  *
  * @param metadata - Structured metadata or a raw string.
  * @returns The uppercase hex encoding.
- * @throws {@link IntentValidationError} if structured metadata is invalid.
+ * @throws Error if a structured object cannot be encoded.
  */
-export function encodeMetadata(metadata: MPTokenMetadata | string): string {
+function toMetadataHex(metadata: MPTokenMetadata | string): string {
   if (typeof metadata === 'string') {
     return Buffer.from(metadata, 'utf8').toString('hex').toUpperCase()
   }
+  return encodeMPTokenMetadata(metadata)
+}
+
+/**
+ * Check MPT metadata against the XLS-89 standard without throwing — the
+ * pre-flight companion to `Token.issue`. Accepts a structured object or a raw
+ * string, so callers can validate before (or independent of) issuing.
+ *
+ * @param metadata - Structured metadata or a raw string.
+ * @returns A list of problems; an empty array means the metadata is valid.
+ */
+export function validateTokenMetadata(
+  metadata: MPTokenMetadata | string,
+): string[] {
+  let hex: string
   try {
-    return encodeMPTokenMetadata(metadata)
+    hex = toMetadataHex(metadata)
   } catch (error) {
-    throw new IntentValidationError('Invalid MPT metadata', { cause: error })
+    const reason = error instanceof Error ? error.message : String(error)
+    return [`metadata could not be encoded: ${reason}`]
   }
+  return validateMPTokenMetadata(hex)
+}
+
+/**
+ * Encode MPT metadata to the on-ledger hex string and enforce the XLS-89
+ * standard. A structured object is encoded via the xrpl helper; a raw string is
+ * UTF-8 hex-encoded as-is. The result is validated and rejected if it does not
+ * adhere to the standard.
+ *
+ * @param metadata - Structured metadata or a raw string.
+ * @returns The uppercase hex encoding.
+ * @throws {@link IntentValidationError} if the metadata cannot be encoded or
+ *   does not follow the XLS-89 standard.
+ */
+export function encodeMetadata(metadata: MPTokenMetadata | string): string {
+  let hex: string
+  try {
+    hex = toMetadataHex(metadata)
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+    throw new IntentValidationError(
+      `Token.issue metadata could not be encoded: ${reason}. Pass a ` +
+        'structured MPTokenMetadata object or an XLS-89-compliant JSON string.',
+      { cause: error },
+    )
+  }
+  const problems = validateMPTokenMetadata(hex)
+  if (problems.length > 0) {
+    throw new IntentValidationError(
+      'Token.issue metadata does not follow the XLS-89 standard. Fix the ' +
+        'following before issuing (required fields: ticker, name, icon, ' +
+        'asset_class, issuer_name; asset_subclass is required when asset_class ' +
+        'is "rwa") — or call validateTokenMetadata(metadata) to check first:' +
+        `\n  - ${problems.join('\n  - ')}`,
+    )
+  }
+  return hex
 }
 
 /**
