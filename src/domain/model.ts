@@ -186,6 +186,15 @@ export interface Custodian {
   /** Which backend this custodian adapts. */
   readonly kind: CustodianKind
 
+  /**
+   * The backend tenant this custodian is bound to — a Custody domain id, a
+   * Palisade org/client identity, etc. Two signers with the same `kind` and
+   * the same `tenantId` point at the same backend tenant, which the client
+   * rejects at init (§3.1). `undefined` for backends with no tenant notion
+   * (e.g. a local wallet holder), so multiple of those may coexist freely.
+   */
+  readonly tenantId?: string
+
   /** The custodian's primary account; it owns this account. */
   readonly primary: AccountRef
 
