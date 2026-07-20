@@ -8,6 +8,7 @@ export type {
   CustodianRef,
   CustodyTransactionResult,
   FeeIntent,
+  IntentObserver,
   PalisadeTransactionResult,
   SignedEnvelope,
   SubmissionContext,

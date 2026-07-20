@@ -44,6 +44,28 @@ function describeFailure(
   return `Custody intent ${intentId} did not execute: status=${state.status}${detail}`
 }
 
+/**
+ * Fetch one intent's current entity, without polling (TDD §10.2): the
+ * non-blocking snapshot behind a handle's `poll()` and `client.intent.status`.
+ * Unlike {@link pollIntentUntilExecuted}, it never loops and never throws on a
+ * terminal-failure status — the caller reads `state.status` from the entity.
+ *
+ * @param client - The authenticated Custody client.
+ * @param domainId - The Custody domain the intent belongs to.
+ * @param intentId - The intent id to read.
+ * @returns The current intent entity.
+ */
+export async function fetchIntent(
+  client: CustodyHttpClient,
+  domainId: string,
+  intentId: string,
+): Promise<IntentEntity> {
+  const trusted = await client.get<TrustedIntent>(
+    `/v1/domains/${domainId}/intents/${intentId}`,
+  )
+  return trusted.data
+}
+
 /** Inputs for {@link pollIntentUntilExecuted}. */
 export interface PollIntentOptions {
   /** The authenticated Custody client. */

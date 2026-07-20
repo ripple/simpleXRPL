@@ -5,18 +5,14 @@ import type {
   AccountRef,
   Custodian,
   CustodianKind,
+  IntentObserver,
   SignedEnvelope,
   SignerCapabilities,
   SubmissionContext,
   SubmissionHandle,
   SubmissionResult,
-  TransactorType,
 } from '../../domain/index.js'
-import {
-  AccountNotFoundError,
-  SignerCapabilityError,
-  SimpleXRPLError,
-} from '../../errors.js'
+import { AccountNotFoundError, SimpleXRPLError } from '../../errors.js'
 import type { components } from '../../generated/custody.js'
 
 import {
@@ -30,17 +26,12 @@ import type {
 } from './construction.js'
 import { AccountContext } from './discovery/account-context.js'
 import { discoverXrplAccounts } from './discovery/account-discovery.js'
-import { buildCustomProperties } from './mapping/custom-properties.js'
 import { buildProposeIntentBody } from './mapping/envelope.js'
-import { buildSignManifestIntentBody } from './mapping/manifest-envelope.js'
 import { NATIVE_XRPL_TRANSACTORS } from './mapping/xrpl-operations.js'
-import { resolveSigningPublicKey } from './submission/account-key.js'
 import { runDryRun } from './submission/dry-run.js'
+import { createCustodyIntentHandle } from './submission/intent-handle.js'
 import { pollIntentUntilExecuted } from './submission/intent-polling.js'
-import {
-  assembleSignedTransaction,
-  buildSigningPreimage,
-} from './submission/raw-sign.js'
+import { signRawTransaction } from './submission/raw-flow.js'
 
 export type {
   RippleCustodyAuthOptions,
@@ -55,7 +46,7 @@ export type {
  * opt-in raw-signing path (`v0_SignManifest` + `Unsafe`) when
  * `allowRawSigning` is enabled.
  */
-export class RippleCustody implements Custodian {
+export class RippleCustody implements Custodian, IntentObserver {
   /** This custodian wraps the Custody REST API. */
   public readonly kind: CustodianKind = 'ripple-custody'
 
@@ -181,16 +172,47 @@ export class RippleCustody implements Custodian {
   }
 
   /**
-   * Submit and return a handle once the backend has accepted the intent.
+   * Submit and hand back a {@link SubmissionHandle} as soon as Custody has
+   * accepted the intent, without blocking on the governance outcome (TDD
+   * §10.2). Best for M-of-N approval flows that may span hours: the caller
+   * polls or waits on the handle, or resumes later via `client.intent`.
    *
-   * @returns Never; rejects until async submission is wired (DGE-7466).
-   * @throws {@link SimpleXRPLError} always, at this layer.
+   * @param tx - The fully autofilled transaction to submit.
+   * @param ctx - The submission context.
+   * @returns A handle over the accepted intent.
+   * @throws {@link SimpleXRPLError} if `tx` needs the raw-signing path — async
+   * submission there is not yet supported (use `submitAndWait`).
+   * @throws {@link SignerCapabilityError} if the custodian cannot sign the transactor.
    */
-  // eslint-disable-next-line class-methods-use-this -- Stub pending DGE-7466 (matches LocalSigner's own stub).
-  public async submitAsync(): Promise<SubmissionHandle> {
-    throw new SimpleXRPLError(
-      'Async submission is not yet implemented for RippleCustody',
-    )
+  public async submitAsync(
+    tx: Transaction,
+    ctx: SubmissionContext,
+  ): Promise<SubmissionHandle> {
+    if (!NATIVE_XRPL_TRANSACTORS.has(tx.TransactionType)) {
+      throw new SimpleXRPLError(
+        `Async submission is not supported for the RippleRaw path (${tx.TransactionType}); use submitAndWait for raw-signed transactors.`,
+      )
+    }
+    const intentId = await this.postNativeIntent(tx, ctx)
+    return this.observeIntent(intentId)
+  }
+
+  /**
+   * Resume observation of a native intent this custodian previously created,
+   * addressed by id (TDD §10.4) — the resume surface behind
+   * `client.intent.status` / `client.intent.await`.
+   *
+   * @param intentId - The client-generated intent id returned at submission.
+   * @returns A handle to poll or wait on the intent's outcome.
+   */
+  public observeIntent(intentId: string): SubmissionHandle {
+    return createCustodyIntentHandle({
+      client: this.state.client,
+      domainId: this.state.domainId,
+      custodian: this,
+      intentId,
+      defaultTimeoutMs: this.state.defaultTimeoutMs,
+    })
   }
 
   /**
@@ -204,10 +226,39 @@ export class RippleCustody implements Custodian {
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SubmissionResult> {
-    const { client, domainId } = this.state
+    const intentId = await this.postNativeIntent(tx, ctx)
+    const executed = await pollIntentUntilExecuted({
+      client: this.state.client,
+      domainId: this.state.domainId,
+      intentId,
+      timeoutMs: ctx.timeoutMs ?? this.state.defaultTimeoutMs,
+    })
+    return {
+      source: 'custody',
+      // Resolving the on-ledger txHash from the executed intent is a later
+      // refinement; the raw executed entity is exposed verbatim in the meantime.
+      response: executed,
+      intent: undefined,
+      intentId,
+    }
+  }
+
+  /**
+   * Build, optionally dry-run, and POST a native `v0_CreateTransactionOrder`
+   * intent. Shared by the sync ({@link submitNative}) and async
+   * ({@link submitAsync}) paths, which differ only in how they wait afterward.
+   *
+   * @param tx - The transaction to map and submit.
+   * @param ctx - The submission context.
+   * @returns The client-generated intent id Custody accepted.
+   */
+  private async postNativeIntent(
+    tx: Transaction,
+    ctx: SubmissionContext,
+  ): Promise<string> {
     const accountId = this.requireAccountId(ctx.account)
     const body = buildProposeIntentBody(this.state.intentSigner, {
-      domainId,
+      domainId: this.state.domainId,
       authorUserId: this.state.authorUserId,
       accountId,
       transaction: tx,
@@ -219,29 +270,12 @@ export class RippleCustody implements Custodian {
       body.request.payload,
       body.request.customProperties,
     )
-    await client.post('/v1/intents', body)
-
-    const executed = await pollIntentUntilExecuted({
-      client,
-      domainId,
-      intentId: body.request.id,
-      timeoutMs: ctx.timeoutMs ?? this.state.defaultTimeoutMs,
-    })
-    return {
-      source: 'custody',
-      // Resolving the on-ledger txHash from the executed intent is DGE-7466's
-      // governance-observation surface; the raw executed entity is exposed
-      // verbatim in the meantime.
-      response: executed,
-      intent: undefined,
-      intentId: body.request.id,
-    }
+    await this.state.client.post('/v1/intents', body)
+    return body.request.id
   }
 
   /**
-   * Run the raw-signing path: resolve the account's public key, build and
-   * sign the preimage, submit the `v0_SignManifest` intent, poll it to
-   * completion, then reassemble the fully signed transaction.
+   * Run the raw-signing path, delegating to the raw-flow module.
    *
    * @param tx - The fully autofilled transaction to sign.
    * @param ctx - The submission context.
@@ -253,99 +287,14 @@ export class RippleCustody implements Custodian {
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SignedEnvelope> {
-    this.assertRawEligible(tx.TransactionType)
-    const { client, domainId } = this.state
-    const accountId = this.requireAccountId(ctx.account)
-    const { preparedTx, body } = await this.buildManifestEnvelope(
+    return signRawTransaction({
+      state: this.state,
       tx,
       ctx,
-      accountId,
-    )
-    await this.maybeDryRun(
-      ctx,
-      body.request.payload,
-      body.request.customProperties,
-    )
-    await client.post('/v1/intents', body)
-
-    const manifestId = body.request.id
-    await pollIntentUntilExecuted({
-      client,
-      domainId,
-      intentId: manifestId,
-      timeoutMs: ctx.timeoutMs ?? this.state.defaultTimeoutMs,
+      accountId: this.requireAccountId(ctx.account),
+      maybeDryRun: async (payload, customProperties) =>
+        this.maybeDryRun(ctx, payload, customProperties),
     })
-    const signatureBase64 = await this.fetchManifestSignature(
-      accountId,
-      manifestId,
-    )
-    return assembleSignedTransaction(preparedTx, signatureBase64)
-  }
-
-  /**
-   * Resolve the account's public key and build the signed `v0_SignManifest`
-   * envelope for its preimage.
-   *
-   * @param tx - The fully autofilled transaction to sign.
-   * @param ctx - The submission context.
-   * @param accountId - The Custody account UUID that owns `tx`.
-   * @returns The `SigningPubKey`-stamped transaction and the signed envelope.
-   */
-  private async buildManifestEnvelope(
-    tx: Transaction,
-    ctx: SubmissionContext,
-    accountId: string,
-  ): Promise<{
-    preparedTx: Transaction
-    body: ReturnType<typeof buildSignManifestIntentBody>
-  }> {
-    const { domainId } = this.state
-    const publicKeyBase64 = await resolveSigningPublicKey(
-      this.state.client,
-      domainId,
-      accountId,
-    )
-    const { preparedTx, preimageBase64 } = buildSigningPreimage(
-      tx,
-      publicKeyBase64,
-    )
-    const body = buildSignManifestIntentBody(
-      this.state.intentSigner,
-      buildCustomProperties(tx),
-      {
-        domainId,
-        authorUserId: this.state.authorUserId,
-        accountId,
-        preimageBase64,
-        idempotencyKey: ctx.idempotencyKey,
-      },
-    )
-    return { preparedTx, body }
-  }
-
-  /**
-   * Fetch an executed manifest's raw signature.
-   *
-   * @param accountId - The Custody account UUID that signed it.
-   * @param manifestId - The manifest id (the envelope's own id).
-   * @returns The signature, base64-encoded.
-   * @throws {@link SignerCapabilityError} if Custody returned no raw signature.
-   */
-  private async fetchManifestSignature(
-    accountId: string,
-    manifestId: string,
-  ): Promise<string> {
-    const { client, domainId } = this.state
-    const manifest = await client.get<
-      components['schemas']['Core_ApiManifest']
-    >(`/v1/domains/${domainId}/accounts/${accountId}/manifests/${manifestId}`)
-    const { value } = manifest.data
-    if (value?.type !== 'Unsafe') {
-      throw new SignerCapabilityError(
-        `RippleCustody did not return a raw signature for manifest '${manifestId}'.`,
-      )
-    }
-    return value.signature
   }
 
   /**
@@ -370,27 +319,6 @@ export class RippleCustody implements Custodian {
       payload,
       customProperties,
     })
-  }
-
-  /**
-   * Guard the raw-signing path: it only applies to non-native transactors,
-   * and only when explicitly enabled.
-   *
-   * @param transactor - The transactor being signed.
-   * @throws {@link SignerCapabilityError} if `transactor` is native, or raw
-   * signing is disabled.
-   */
-  private assertRawEligible(transactor: TransactorType): void {
-    if (NATIVE_XRPL_TRANSACTORS.has(transactor)) {
-      throw new SignerCapabilityError(
-        `RippleCustody signs ${transactor} through its governed native path; there is no standalone signed envelope to produce. Call submitAndWait instead of sign.`,
-      )
-    }
-    if (!this.state.allowRawSigning) {
-      throw new SignerCapabilityError(
-        `RippleCustody cannot sign ${transactor}: it has no native operation for it and allowRawSigning is disabled. Enable allowRawSigning, or use a different signer for this account.`,
-      )
-    }
   }
 
   /**

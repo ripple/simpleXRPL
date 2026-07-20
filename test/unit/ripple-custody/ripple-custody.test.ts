@@ -423,8 +423,53 @@ describe('RippleCustody.submitAndWait', () => {
 })
 
 describe('RippleCustody.submitAsync', () => {
-  it('rejects — async submission is not yet implemented', async () => {
+  it('posts a native intent and returns a handle without blocking on the outcome', async () => {
+    const { custody, http } = await makeCustody({
+      // Still pending: a blocking submit would hang, but submitAsync returns now.
+      intentGet: () => ok(intentBody('intent-1', 'Open')),
+    })
+
+    const handle = await custody.submitAsync(PAYMENT_TX, makeContext(custody))
+
+    expect(handle.kind).toBe('ripple-custody')
+    expect(handle.id).toBeTruthy()
+    expect(handle.custodian).toBe(custody)
+    expect(
+      http.requests.some(
+        (request) =>
+          request.method === 'POST' && request.url.endsWith('/v1/intents'),
+      ),
+    ).toBe(true)
+  })
+
+  it('handle.poll() reports the current (non-terminal) intent status without throwing', async () => {
+    const { custody } = await makeCustody({
+      intentGet: () => ok(intentBody('intent-1', 'Open')),
+    })
+
+    const handle = await custody.submitAsync(PAYMENT_TX, makeContext(custody))
+    const snapshot = await handle.poll()
+
+    expect(snapshot.source).toBe('custody')
+    const entity = snapshot.response as { state: { status: string } }
+    expect(entity.state.status).toBe('Open')
+  })
+
+  it('handle.wait() resolves once the intent reaches Executed', async () => {
     const { custody } = await makeCustody()
-    await expect(custody.submitAsync()).rejects.toThrow(SimpleXRPLError)
+
+    const handle = await custody.submitAsync(PAYMENT_TX, makeContext(custody))
+    const result = await handle.wait()
+
+    expect(result.source).toBe('custody')
+    expect(result.intentId).toBe(handle.id)
+  })
+
+  it('throws for the raw-signing path (async not supported there)', async () => {
+    const { custody } = await makeCustody({}, { allowRawSigning: true })
+
+    await expect(
+      custody.submitAsync(OFFER_CANCEL_TX, makeContext(custody)),
+    ).rejects.toThrow(SimpleXRPLError)
   })
 })
