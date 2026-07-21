@@ -2,7 +2,7 @@
 
 > **buildRawTransactionBody**(`encodedTransaction`, `externalId`?): \{ `blockchain`: `"AVALANCHE"` \| `"ETHEREUM"` \| `"XRP_LEDGER"` \| `"POLYGON"` \| `"BNBCHAIN"` \| `"BASE"` \| `"HEDERA"` \| `"ARBITRUM"` \| `"ONE_MONEY"` \| `"SOLANA"` \| `"TRON"` \| `"BITCOIN"`; `encodedTransaction`: `string`; `externalId`: `string`; `signOnly`: `boolean`; \}
 
-Defined in: [src/custodians/palisade/mapping/raw.ts:14](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/custodians/palisade/mapping/raw.ts#L14)
+Defined in: [src/custodians/palisade/mapping/raw.ts:14](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/custodians/palisade/mapping/raw.ts#L14)
 
 Build the `RawTransaction` (sign-only) body: Palisade signs the encoded blob,
 and the SDK submits the returned signed transaction through the shared ledger.

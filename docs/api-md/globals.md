@@ -125,8 +125,6 @@ verticals, core types, and error classes) is built out incrementally.
 
 ## Variables
 
-- [PALISADE\_NATIVE\_TRANSACTORS](variables/PALISADE_NATIVE_TRANSACTORS.md)
-- [REDACTED\_FIELDS](variables/REDACTED_FIELDS.md)
 - [SimpleXRPL](variables/SimpleXRPL.md)
 - [VERSION](variables/VERSION.md)
 - [XRP\_ASSET](variables/XRP_ASSET.md)

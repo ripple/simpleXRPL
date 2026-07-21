@@ -1,6 +1,6 @@
 # Class: AmbiguousAccountError
 
-Defined in: [src/errors.ts:66](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L66)
+Defined in: [src/errors.ts:66](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L66)
 
 The same r-address was discovered under more than one custodian at init; the
 caller must drop one or supply an explicit per-call override.
@@ -15,7 +15,7 @@ caller must drop one or supply an explicit per-call override.
 
 > **new AmbiguousAccountError**(`account`, `custodians`): [`AmbiguousAccountError`](AmbiguousAccountError.md)
 
-Defined in: [src/errors.ts:76](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L76)
+Defined in: [src/errors.ts:76](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L76)
 
 Construct an AmbiguousAccountError.
 
@@ -40,7 +40,7 @@ Construct an AmbiguousAccountError.
 
 > `readonly` **account**: `string`
 
-Defined in: [src/errors.ts:67](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L67)
+Defined in: [src/errors.ts:67](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L67)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:26
 
 > `readonly` **custodians**: readonly [`CustodianKind`](../type-aliases/CustodianKind.md)[]
 
-Defined in: [src/errors.ts:68](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L68)
+Defined in: [src/errors.ts:68](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L68)
 
 ***
 
@@ -80,7 +80,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > `readonly` **name**: `string`
 
-Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L9)
+Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L9)
 
 #### Inherited from
 

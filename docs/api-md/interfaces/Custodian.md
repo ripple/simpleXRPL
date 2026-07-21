@@ -1,6 +1,6 @@
 # Interface: Custodian
 
-Defined in: [src/domain/model.ts:185](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L185)
+Defined in: [src/domain/model.ts:185](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L185)
 
 A signing backend. Each implementation (local, Ripple Custody, Palisade)
 adapts the canonical xrpl.js transaction to one backend's API and submission
@@ -12,7 +12,7 @@ flow, and is the unit of configuration on a client.
 
 > `readonly` **capabilities**: () => [`SignerCapabilities`](SignerCapabilities.md)
 
-Defined in: [src/domain/model.ts:196](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L196)
+Defined in: [src/domain/model.ts:196](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L196)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -26,7 +26,7 @@ What this custodian can sign, consulted at dispatch time.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md)
 
-Defined in: [src/domain/model.ts:187](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L187)
+Defined in: [src/domain/model.ts:187](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L187)
 
 Which backend this custodian adapts.
 
@@ -36,7 +36,7 @@ Which backend this custodian adapts.
 
 > `readonly` **listAccounts**: () => `Promise`\<[`Account`](Account.md)[]\>
 
-Defined in: [src/domain/model.ts:193](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L193)
+Defined in: [src/domain/model.ts:193](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L193)
 
 The full account list, discovered at construction.
 
@@ -50,7 +50,7 @@ The full account list, discovered at construction.
 
 > `readonly` **primary**: [`AccountRef`](AccountRef.md)
 
-Defined in: [src/domain/model.ts:190](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L190)
+Defined in: [src/domain/model.ts:190](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L190)
 
 The custodian's primary account; it owns this account.
 
@@ -60,7 +60,7 @@ The custodian's primary account; it owns this account.
 
 > `readonly` **sign**: (`tx`, `ctx`) => `Promise`\<[`SignedEnvelope`](SignedEnvelope.md)\>
 
-Defined in: [src/domain/model.ts:199](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L199)
+Defined in: [src/domain/model.ts:199](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L199)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -81,7 +81,7 @@ Produce a signed envelope for a transaction (raw-signing paths).
 
 > `readonly` **submitAndWait**: (`tx`, `ctx`) => `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`unknown`\>\>
 
-Defined in: [src/domain/model.ts:209](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L209)
+Defined in: [src/domain/model.ts:209](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L209)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -104,7 +104,7 @@ custodian returns the transport result; the vertical attaches the typed
 
 > `readonly` **submitAsync**: (`tx`, `ctx`) => `Promise`\<[`SubmissionHandle`](SubmissionHandle.md)\>
 
-Defined in: [src/domain/model.ts:215](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L215)
+Defined in: [src/domain/model.ts:215](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L215)
 
 Submit and return a handle once the backend has accepted the intent.
 

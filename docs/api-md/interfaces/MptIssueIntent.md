@@ -1,6 +1,6 @@
 # Interface: MptIssueIntent
 
-Defined in: [src/verticals/token.types.ts:118](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L118)
+Defined in: [src/verticals/token.types.ts:118](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L118)
 
 Output attached to a `Token.issue` result.
 
@@ -10,6 +10,6 @@ Output attached to a `Token.issue` result.
 
 > `readonly` **mptIssuanceId**: `string`
 
-Defined in: [src/verticals/token.types.ts:120](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L120)
+Defined in: [src/verticals/token.types.ts:120](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L120)
 
 The id of the newly created MPT issuance.

@@ -1,6 +1,6 @@
 # Class: PalisadeApiError
 
-Defined in: [src/errors.ts:122](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L122)
+Defined in: [src/errors.ts:122](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L122)
 
 A Palisade API call returned an error. The diagnostic `hint` (the
 `rpcStatus.message` Palisade's equivalent of Custody's `processing.hint`)
@@ -16,7 +16,7 @@ and full response body are preserved for the caller to surface.
 
 > **new PalisadeApiError**(`status`, `raw`, `hint`?): [`PalisadeApiError`](PalisadeApiError.md)
 
-Defined in: [src/errors.ts:134](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L134)
+Defined in: [src/errors.ts:134](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L134)
 
 Construct a PalisadeApiError.
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:26
 
 > `readonly` `optional` **hint**: `string`
 
-Defined in: [src/errors.ts:124](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L124)
+Defined in: [src/errors.ts:124](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L124)
 
 ***
 
@@ -74,7 +74,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > `readonly` **name**: `string`
 
-Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L9)
+Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L9)
 
 #### Inherited from
 
@@ -86,7 +86,7 @@ Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb
 
 > `readonly` **raw**: `unknown`
 
-Defined in: [src/errors.ts:125](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L125)
+Defined in: [src/errors.ts:125](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L125)
 
 ***
 
@@ -106,7 +106,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1078
 
 > `readonly` **status**: `number`
 
-Defined in: [src/errors.ts:123](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L123)
+Defined in: [src/errors.ts:123](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L123)
 
 ***
 

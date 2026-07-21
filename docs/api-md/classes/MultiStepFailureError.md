@@ -1,6 +1,6 @@
 # Class: MultiStepFailureError
 
-Defined in: [src/errors.ts:196](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L196)
+Defined in: [src/errors.ts:196](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L196)
 
 A multi-step verb failed partway through. simpleXRPL does not roll back; the
 already-committed steps are carried so the caller can reconcile manually.
@@ -15,7 +15,7 @@ already-committed steps are carried so the caller can reconcile manually.
 
 > **new MultiStepFailureError**(`committed`, `failed`): [`MultiStepFailureError`](MultiStepFailureError.md)
 
-Defined in: [src/errors.ts:211](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L211)
+Defined in: [src/errors.ts:211](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L211)
 
 Construct a MultiStepFailureError.
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:26
 
 > `readonly` **committed**: readonly [`SubmissionResult`](../type-aliases/SubmissionResult.md)[]
 
-Defined in: [src/errors.ts:197](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L197)
+Defined in: [src/errors.ts:197](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L197)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [src/errors.ts:197](https://github.com/ripple/simpleXRPL/blob/bfe89e
 
 > `readonly` **failed**: \{ `error`: [`SimpleXRPLError`](SimpleXRPLError.md); `step`: `number`; \}
 
-Defined in: [src/errors.ts:198](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L198)
+Defined in: [src/errors.ts:198](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L198)
 
 #### error
 
@@ -90,7 +90,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > `readonly` **name**: `string`
 
-Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L9)
+Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L9)
 
 #### Inherited from
 

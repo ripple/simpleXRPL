@@ -1,6 +1,6 @@
 # Class: SignerCapabilityError
 
-Defined in: [src/errors.ts:38](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L38)
+Defined in: [src/errors.ts:38](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L38)
 
 The resolved custodian cannot sign the requested transactor and the
 raw-signing fallback is not available.
@@ -15,7 +15,7 @@ raw-signing fallback is not available.
 
 > **new SignerCapabilityError**(`message`, `options`?): [`SignerCapabilityError`](SignerCapabilityError.md)
 
-Defined in: [src/errors.ts:18](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L18)
+Defined in: [src/errors.ts:18](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L18)
 
 Construct a SimpleXRPLError.
 
@@ -65,7 +65,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > `readonly` **name**: `string`
 
-Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L9)
+Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L9)
 
 #### Inherited from
 

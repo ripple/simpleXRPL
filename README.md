@@ -10,8 +10,12 @@ Writes dispatch to one of three signing backends behind a single `Custodian`
 abstraction: **local** (`xrpl` wallets), **Ripple Custody**, and **Palisade**.
 Reads go straight through `xrpl`.
 
-> **Status:** early development. This repository currently contains the project
-> scaffold; the public API is built out incrementally.
+The SDK ships six business-intent verticals — `xrp`, `iou`, `token`,
+`credential`, `domain`, and `account` — behind a single `SimpleXRPL.init(...)`
+entry point.
+
+> **Status:** pre-1.0 and under active development. The public API may still
+> change between releases.
 
 ## Requirements
 
@@ -21,13 +25,31 @@ simpleXRPL is **Node-targeted** and not intended to run in the browser. For
 browser-based reads or local signing, use the [`xrpl`](https://www.npmjs.com/package/xrpl)
 package directly.
 
-## Install
+## Quick start
 
-```sh
-npm install
+```ts
+import { SimpleXRPL, LocalSigner } from 'simplexrpl'
+
+// Bind one or more signing backends and connect to a network.
+const client = await SimpleXRPL.init({
+  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  signers: [LocalSigner.fromEnv()],
+})
+
+// Each vertical exposes business-intent verbs; the SDK builds, signs, and
+// submits the underlying XRPL transaction for you.
+await client.xrp.transfer({ to: 'rDestination...', amount: '10' })
 ```
 
+See the [API reference](#) for every vertical, method, and type. Writes dispatch
+to whichever signing backend owns the account — local, Ripple Custody, or
+Palisade — with no change to the call.
+
 ## Development
+
+Install dependencies with `npm install`.
+
+
 
 The package ships a **dual ESM + CJS build** and is type-checked with `tsc`;
 tests run on Jest via `ts-jest`.
@@ -41,7 +63,9 @@ tests run on Jest via `ts-jest`.
 | `npm run test:integration` | Live tier (testnet, `--runInBand`)                                      |
 | `npm run lint`             | ESLint (type-aware)                                                     |
 | `npm run format`           | Prettier write                                                          |
-| `npm run docgen`           | TypeDoc reference into `docs/api`                                       |
+| `npm run docgen`           | TypeDoc reference (HTML) into `docs/api`                                 |
+| `npm run docgen:md`        | TypeDoc reference (Markdown) into `docs/api-md`                          |
+| `npm run docgen:routing`   | Generate the connector routing table into `docs/connector-routing.md`   |
 
 ### Custodian types are generated, not hand-authored
 

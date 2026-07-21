@@ -1,6 +1,6 @@
 # Interface: SubmissionHandle
 
-Defined in: [src/domain/model.ts:160](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L160)
+Defined in: [src/domain/model.ts:160](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L160)
 
 Handle returned by an async submission, used to poll or wait for a terminal
 state without holding the original request open.
@@ -11,7 +11,7 @@ state without holding the original request open.
 
 > `readonly` `optional` **cancel**: () => `Promise`\<`void`\>
 
-Defined in: [src/domain/model.ts:177](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L177)
+Defined in: [src/domain/model.ts:177](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L177)
 
 Cancel the pending intent where the backend supports it.
 
@@ -25,7 +25,7 @@ Cancel the pending intent where the backend supports it.
 
 > `readonly` **custodian**: [`Custodian`](Custodian.md)
 
-Defined in: [src/domain/model.ts:168](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L168)
+Defined in: [src/domain/model.ts:168](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L168)
 
 The custodian that produced this handle.
 
@@ -35,7 +35,7 @@ The custodian that produced this handle.
 
 > `readonly` **id**: `string`
 
-Defined in: [src/domain/model.ts:165](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L165)
+Defined in: [src/domain/model.ts:165](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L165)
 
 Custodian-native id (intent id), or the XRPL transaction hash for local.
 
@@ -45,7 +45,7 @@ Custodian-native id (intent id), or the XRPL transaction hash for local.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md)
 
-Defined in: [src/domain/model.ts:162](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L162)
+Defined in: [src/domain/model.ts:162](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L162)
 
 The custodian kind that owns the underlying intent or transaction.
 
@@ -55,7 +55,7 @@ The custodian kind that owns the underlying intent or transaction.
 
 > `readonly` **poll**: () => `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`unknown`\>\>
 
-Defined in: [src/domain/model.ts:171](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L171)
+Defined in: [src/domain/model.ts:171](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L171)
 
 A non-blocking snapshot of the current state.
 
@@ -69,7 +69,7 @@ A non-blocking snapshot of the current state.
 
 > `readonly` **wait**: (`timeoutMs`?) => `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`unknown`\>\>
 
-Defined in: [src/domain/model.ts:174](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L174)
+Defined in: [src/domain/model.ts:174](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L174)
 
 Block until terminal state or the timeout (defaults to the custodian's).
 

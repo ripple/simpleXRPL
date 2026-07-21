@@ -1,6 +1,6 @@
 # Class: CustodyAuthError
 
-Defined in: [src/errors.ts:86](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L86)
+Defined in: [src/errors.ts:86](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L86)
 
 Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
 
@@ -14,7 +14,7 @@ Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
 
 > **new CustodyAuthError**(`message`, `options`?): [`CustodyAuthError`](CustodyAuthError.md)
 
-Defined in: [src/errors.ts:18](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L18)
+Defined in: [src/errors.ts:18](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L18)
 
 Construct a SimpleXRPLError.
 
@@ -64,7 +64,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > `readonly` **name**: `string`
 
-Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L9)
+Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/errors.ts#L9)
 
 #### Inherited from
 

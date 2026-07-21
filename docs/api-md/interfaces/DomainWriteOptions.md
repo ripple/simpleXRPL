@@ -1,6 +1,6 @@
 # Interface: DomainWriteOptions
 
-Defined in: [src/verticals/domain.types.ts:4](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/domain.types.ts#L4)
+Defined in: [src/verticals/domain.types.ts:4](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.types.ts#L4)
 
 Per-call options shared by the domain verbs.
 
@@ -10,7 +10,7 @@ Per-call options shared by the domain verbs.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [src/verticals/domain.types.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/domain.types.ts#L9)
+Defined in: [src/verticals/domain.types.ts:9](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.types.ts#L9)
 
 Fee override.
 
@@ -20,6 +20,6 @@ Fee override.
 
 > `readonly` `optional` **from**: [`AccountSelector`](../type-aliases/AccountSelector.md)
 
-Defined in: [src/verticals/domain.types.ts:6](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/domain.types.ts#L6)
+Defined in: [src/verticals/domain.types.ts:6](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.types.ts#L6)
 
 Source account; defaults to the primary signer's primary account.

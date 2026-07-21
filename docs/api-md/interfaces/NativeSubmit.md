@@ -1,6 +1,6 @@
 # Interface: NativeSubmit
 
-Defined in: [src/custodians/palisade/mapping/submit-operations.ts:30](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/custodians/palisade/mapping/submit-operations.ts#L30)
+Defined in: [src/custodians/palisade/mapping/submit-operations.ts:32](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/custodians/palisade/mapping/submit-operations.ts#L32)
 
 A native submission: the wallet-relative sub-path and its typed JSON body.
 
@@ -10,7 +10,7 @@ A native submission: the wallet-relative sub-path and its typed JSON body.
 
 > `readonly` **body**: `unknown`
 
-Defined in: [src/custodians/palisade/mapping/submit-operations.ts:34](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/custodians/palisade/mapping/submit-operations.ts#L34)
+Defined in: [src/custodians/palisade/mapping/submit-operations.ts:36](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/custodians/palisade/mapping/submit-operations.ts#L36)
 
 The typed Palisade request body.
 
@@ -20,6 +20,6 @@ The typed Palisade request body.
 
 > `readonly` **subPath**: `string`
 
-Defined in: [src/custodians/palisade/mapping/submit-operations.ts:32](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/custodians/palisade/mapping/submit-operations.ts#L32)
+Defined in: [src/custodians/palisade/mapping/submit-operations.ts:34](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/custodians/palisade/mapping/submit-operations.ts#L34)
 
 The wallet-relative op sub-path (e.g. `transfer`, `xrp/trust-set`).
