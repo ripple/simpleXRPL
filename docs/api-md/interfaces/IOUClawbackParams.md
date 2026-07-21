@@ -1,8 +1,12 @@
 # Interface: IOUClawbackParams
 
-Defined in: [src/verticals/iou.types.ts:36](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.types.ts#L36)
+Defined in: [src/verticals/iou.types.ts:71](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.types.ts#L71)
 
 Parameters for [IOU.clawback](../classes/IOU.md#clawback).
+
+## Extends
+
+- [`IOURef`](IOURef.md)
 
 ## Properties
 
@@ -10,7 +14,7 @@ Parameters for [IOU.clawback](../classes/IOU.md#clawback).
 
 > `readonly` **amount**: `number`
 
-Defined in: [src/verticals/iou.types.ts:40](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.types.ts#L40)
+Defined in: [src/verticals/iou.types.ts:75](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.types.ts#L75)
 
 The amount to claw back.
 
@@ -20,6 +24,22 @@ The amount to claw back.
 
 > `readonly` **holder**: `string`
 
-Defined in: [src/verticals/iou.types.ts:38](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.types.ts#L38)
+Defined in: [src/verticals/iou.types.ts:73](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.types.ts#L73)
 
 The holder's r-address to claw the currency back from.
+
+***
+
+### ticker
+
+> `readonly` **ticker**: `string`
+
+Defined in: [src/verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.types.ts#L14)
+
+The currency code: a 3-character ISO-4217-style code or a 40-character
+hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to
+the 40-character hex form.
+
+#### Inherited from
+
+[`IOURef`](IOURef.md).[`ticker`](IOURef.md#ticker)

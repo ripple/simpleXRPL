@@ -1,6 +1,6 @@
 # Class: Token
 
-Defined in: [src/verticals/token.ts:45](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L45)
+Defined in: [src/verticals/token.ts:45](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L45)
 
 The Token vertical: the Multi-Purpose Token (MPT) family and DEX offers.
 
@@ -10,7 +10,7 @@ The Token vertical: the Multi-Purpose Token (MPT) family and DEX offers.
 
 > **new Token**(`host`): [`Token`](Token.md)
 
-Defined in: [src/verticals/token.ts:53](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L53)
+Defined in: [src/verticals/token.ts:53](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L53)
 
 Construct the Token vertical.
 
@@ -30,7 +30,7 @@ Construct the Token vertical.
 
 > **authorize**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:129](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L129)
+Defined in: [src/verticals/token.ts:129](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L129)
 
 Opt the calling account in to hold an MPT issuance.
 
@@ -53,7 +53,7 @@ The submission result.
 
 > **cancelOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `offerSequence`: `number`; \}\>\>
 
-Defined in: [src/verticals/token.ts:307](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L307)
+Defined in: [src/verticals/token.ts:307](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L307)
 
 Cancel a standing offer.
 
@@ -76,7 +76,7 @@ The submission result.
 
 > **createOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/token.ts:271](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L271)
+Defined in: [src/verticals/token.ts:271](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L271)
 
 Place an offer on the decentralized exchange.
 
@@ -103,7 +103,7 @@ The submission result.
 
 > **destroy**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:213](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L213)
+Defined in: [src/verticals/token.ts:213](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L213)
 
 Destroy an MPT issuance (only when no tokens are outstanding).
 
@@ -126,7 +126,7 @@ The submission result.
 
 > **grantHolder**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:157](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L157)
+Defined in: [src/verticals/token.ts:157](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L157)
 
 Issuer grants a specific holder permission to hold this MPT (allow-listing).
 
@@ -149,7 +149,7 @@ The submission result.
 
 > **issue**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`MptIssueIntent`](../interfaces/MptIssueIntent.md)\>\>
 
-Defined in: [src/verticals/token.ts:93](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L93)
+Defined in: [src/verticals/token.ts:93](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L93)
 
 Create a new MPT issuance.
 
@@ -202,7 +202,7 @@ await client.token.issue({
 
 > **lock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `locked`: `boolean`; `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:185](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L185)
+Defined in: [src/verticals/token.ts:185](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L185)
 
 Lock an MPT issuance, or a specific holder's balance when `holder` is given.
 
@@ -225,7 +225,7 @@ The submission result.
 
 > **revokeHolder**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:171](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L171)
+Defined in: [src/verticals/token.ts:171](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L171)
 
 Issuer revokes a specific holder's permission to hold this MPT.
 
@@ -248,7 +248,7 @@ The submission result.
 
 > **transfer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `amount`: `string`; `to`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:239](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L239)
+Defined in: [src/verticals/token.ts:239](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L239)
 
 Send an MPT amount to another account.
 
@@ -275,7 +275,7 @@ The result, echoing the transfer as its intent output.
 
 > **unauthorize**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:143](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L143)
+Defined in: [src/verticals/token.ts:143](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L143)
 
 Opt the calling account out of holding an MPT issuance (balance must be 0).
 
@@ -298,7 +298,7 @@ The submission result.
 
 > **unlock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `locked`: `boolean`; `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [src/verticals/token.ts:199](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.ts#L199)
+Defined in: [src/verticals/token.ts:199](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.ts#L199)
 
 Unlock a previously locked MPT issuance or holder balance.
 

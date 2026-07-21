@@ -1,6 +1,6 @@
 # Interface: CreateOfferParams
 
-Defined in: [src/verticals/token.types.ts:98](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.types.ts#L98)
+Defined in: [src/verticals/token.types.ts:98](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L98)
 
 Parameters for `Token.createOffer`.
 
@@ -10,7 +10,7 @@ Parameters for `Token.createOffer`.
 
 > `readonly` `optional` **expiration**: `number`
 
-Defined in: [src/verticals/token.types.ts:104](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.types.ts#L104)
+Defined in: [src/verticals/token.types.ts:104](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L104)
 
 Offer expiration (seconds since the Ripple epoch).
 
@@ -20,7 +20,7 @@ Offer expiration (seconds since the Ripple epoch).
 
 > `readonly` `optional` **flags**: [`OfferFlags`](OfferFlags.md)
 
-Defined in: [src/verticals/token.types.ts:108](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.types.ts#L108)
+Defined in: [src/verticals/token.types.ts:108](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L108)
 
 Offer flags.
 
@@ -30,7 +30,7 @@ Offer flags.
 
 > `readonly` `optional` **offerSequence**: `number`
 
-Defined in: [src/verticals/token.types.ts:106](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.types.ts#L106)
+Defined in: [src/verticals/token.types.ts:106](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L106)
 
 A prior offer sequence to replace.
 
@@ -40,7 +40,7 @@ A prior offer sequence to replace.
 
 > `readonly` **takerGets**: [`Amount`](Amount.md)
 
-Defined in: [src/verticals/token.types.ts:100](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.types.ts#L100)
+Defined in: [src/verticals/token.types.ts:100](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L100)
 
 What the account gives (XRP or IOU — MPT is not DEX-tradeable).
 
@@ -50,6 +50,6 @@ What the account gives (XRP or IOU — MPT is not DEX-tradeable).
 
 > `readonly` **takerPays**: [`Amount`](Amount.md)
 
-Defined in: [src/verticals/token.types.ts:102](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/token.types.ts#L102)
+Defined in: [src/verticals/token.types.ts:102](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/token.types.ts#L102)
 
 What the account wants (XRP or IOU).

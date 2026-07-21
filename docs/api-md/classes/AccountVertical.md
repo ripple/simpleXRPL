@@ -1,6 +1,6 @@
 # Class: AccountVertical
 
-Defined in: [src/verticals/account.ts:43](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L43)
+Defined in: [src/verticals/account.ts:43](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L43)
 
 The Account vertical: account settings, regular key, and deposit preauth.
 Named `AccountVertical` to avoid colliding with the `Account` record type;
@@ -12,7 +12,7 @@ reached as `client.account`.
 
 > **new AccountVertical**(`host`): [`AccountVertical`](AccountVertical.md)
 
-Defined in: [src/verticals/account.ts:51](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L51)
+Defined in: [src/verticals/account.ts:51](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L51)
 
 Construct the Account vertical.
 
@@ -32,7 +32,7 @@ Construct the Account vertical.
 
 > **activate**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:116](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L116)
+Defined in: [src/verticals/account.ts:116](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L116)
 
 Activate a created account by sending it XRP from the operator (primary)
 account, then enable rippling. The any-network counterpart to [fund](AccountVertical.md#fund);
@@ -57,7 +57,7 @@ The result of the `defaultRipple` settings change.
 
 > **create**(): [`AccountCredentials`](../interfaces/AccountCredentials.md)
 
-Defined in: [src/verticals/account.ts:65](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L65)
+Defined in: [src/verticals/account.ts:65](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L65)
 
 Generate a new XRPL keypair locally and register it so it can be funded and
 used right away. Nothing is written to the ledger until the account is
@@ -81,7 +81,7 @@ The new account's address, public key, private key, and seed.
 
 > **depositPreauth**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:225](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L225)
+Defined in: [src/verticals/account.ts:225](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L225)
 
 Grant or revoke deposit preauthorization for another account.
 
@@ -104,7 +104,7 @@ The submission result.
 
 > **fund**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:89](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L89)
+Defined in: [src/verticals/account.ts:89](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L89)
 
 Fund a created account via the network faucet (testnet/devnet), then enable
 rippling (`defaultRipple`). The account must be one this client can sign for
@@ -133,7 +133,7 @@ The result of the `defaultRipple` settings change.
 
 > **set**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:154](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L154)
+Defined in: [src/verticals/account.ts:154](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L154)
 
 Update account settings. Flags are named booleans (`true` enables, `false`
 disables); `transferRate`, `tickSize`, and `domain` are set directly. At
@@ -163,7 +163,7 @@ The submission result.
 
 > **setRegularKey**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:198](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/account.ts#L198)
+Defined in: [src/verticals/account.ts:198](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/account.ts#L198)
 
 Set or remove the account's regular key.
 

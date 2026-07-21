@@ -1,30 +1,40 @@
 # Class: IOU
 
-Defined in: [src/verticals/iou.ts:64](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L64)
+Defined in: [src/verticals/iou.ts:51](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L51)
 
-An issued IOU: the handle [IOUVertical.issue](IOUVertical.md#issue) returns, bound to one
-issuer account and currency. Every instance method signs as that issuer —
-the "hot wallet" account `issue` also sets up only receives the initial
-trust line; it isn't a second signing identity later methods use. Callers
-name their own counterparty (`holder`/`destination`) per call.
+The IOU (trust-line currency) vertical, exposed as `client.iou`. Each verb
+acts as the IOU's **issuer** — the account resolved from
+[IOUWriteOptions.from](../interfaces/IOUWriteOptions.md#from) (default: the primary signer's account) signs,
+and its address is the currency issuer. Callers name their own counterparty
+(`holder`/`destination`) per call.
 
-## Properties
+## Constructors
 
-### iouID
+### new IOU()
 
-> `readonly` **iouID**: `string`
+> **new IOU**(`host`): [`IOU`](IOU.md)
 
-Defined in: [src/verticals/iou.ts:66](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L66)
+Defined in: [src/verticals/iou.ts:59](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L59)
 
-Currency code and issuer of this IOU, e.g. `USD.rIssuer...`.
+Construct the IOU vertical.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `host` | [`SubmissionHost`](../interfaces/SubmissionHost.md) | The client the pipeline runs against. |
+
+#### Returns
+
+[`IOU`](IOU.md)
 
 ## Methods
 
 ### authorize()
 
-> **authorize**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUAuthorizeIntent`](../interfaces/IOUAuthorizeIntent.md)\>\>
+> **authorize**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUAuthorizeIntent`](../interfaces/IOUAuthorizeIntent.md)\>\>
 
-Defined in: [src/verticals/iou.ts:133](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L133)
+Defined in: [src/verticals/iou.ts:118](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L118)
 
 Grant authorization for a holder to hold this IOU. Only meaningful when
 the issuer's account has `asfRequireAuth` set.
@@ -37,7 +47,8 @@ use [IOU.lock](IOU.md#lock) instead.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`IOUAuthorizeParams`](../interfaces/IOUAuthorizeParams.md) | The holder to authorize. |
+| `params` | [`IOUAuthorizeParams`](../interfaces/IOUAuthorizeParams.md) | The IOU and the holder to authorize. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -49,9 +60,9 @@ The submission result, with `{ holder }` as the intent output.
 
 ### buyOffer()
 
-> **buyOffer**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
+> **buyOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/iou.ts:281](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L281)
+Defined in: [src/verticals/iou.ts:261](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L261)
 
 Place an order on the DEX to acquire more of this IOU.
 
@@ -59,7 +70,8 @@ Place an order on the DEX to acquire more of this IOU.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`IOUOfferParams`](../interfaces/IOUOfferParams.md) | The amount to buy, order type, and price offered. |
+| `params` | [`IOUOfferParams`](../interfaces/IOUOfferParams.md) | The IOU, amount to buy, order type, and price offered. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -75,9 +87,9 @@ The submission result.
 
 ### cancelOffer()
 
-> **cancelOffer**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `offerSequence`: `number`; \}\>\>
+> **cancelOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `offerSequence`: `number`; \}\>\>
 
-Defined in: [src/verticals/iou.ts:307](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L307)
+Defined in: [src/verticals/iou.ts:291](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L291)
 
 Cancel a standing offer placed by this IOU's issuer.
 
@@ -86,6 +98,7 @@ Cancel a standing offer placed by this IOU's issuer.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `params` | [`IOUCancelOfferParams`](../interfaces/IOUCancelOfferParams.md) | The sequence number of the offer to cancel. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -98,9 +111,9 @@ output.
 
 ### clawback()
 
-> **clawback**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUClawbackIntent`](../interfaces/IOUClawbackIntent.md)\>\>
+> **clawback**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUClawbackIntent`](../interfaces/IOUClawbackIntent.md)\>\>
 
-Defined in: [src/verticals/iou.ts:224](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L224)
+Defined in: [src/verticals/iou.ts:196](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L196)
 
 Reclaim a holder's balance back to the issuer.
 
@@ -113,7 +126,8 @@ objects, which this SDK does not itself pre-check.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`IOUClawbackParams`](../interfaces/IOUClawbackParams.md) | The holder and amount to claw back. |
+| `params` | [`IOUClawbackParams`](../interfaces/IOUClawbackParams.md) | The IOU, holder, and amount to claw back. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -124,11 +138,50 @@ output.
 
 ***
 
+### issue()
+
+> **issue**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUIssueIntent`](../interfaces/IOUIssueIntent.md)\>\>
+
+Defined in: [src/verticals/iou.ts:80](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L80)
+
+Generate a new trust-line-based IOU between two developer-controlled
+accounts sourced from the environment.
+
+Unlike the other verbs, `issue` bootstraps both accounts from the
+environment rather than [IOUWriteOptions.from](../interfaces/IOUWriteOptions.md#from): it reads
+`XRPL_ISSUER_SEED` and `XRPL_HOT_WALLET_SEED`, has the issuer enable
+rippling (`AccountSet`), then the hot wallet extends trust up to the
+maximum allowable limit (`TrustSet`) — no `Payment` runs here, so no
+value exists yet; use [IOU.transfer](IOU.md#transfer) to send some. IOU tokens need
+off-chain config for display/interop (see xrplmeta self-publish docs).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params` | [`IOUIssueParams`](../interfaces/IOUIssueParams.md) | The ticker to issue. |
+
+#### Returns
+
+`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUIssueIntent`](../interfaces/IOUIssueIntent.md)\>\>
+
+The result, with `{ iouID }` as its intent output.
+
+#### Throws
+
+[IntentValidationError](IntentValidationError.md) if the required seeds aren't set.
+
+#### Throws
+
+[MultiStepFailureError](MultiStepFailureError.md) if either step fails.
+
+***
+
 ### lock()
 
-> **lock**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOULockIntent`](../interfaces/IOULockIntent.md)\>\>
+> **lock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOULockIntent`](../interfaces/IOULockIntent.md)\>\>
 
-Defined in: [src/verticals/iou.ts:162](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L162)
+Defined in: [src/verticals/iou.ts:151](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L151)
 
 Freeze a holder's ability to send and receive this IOU: Individual
 Freeze followed by Deep Freeze.
@@ -137,7 +190,8 @@ Freeze followed by Deep Freeze.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`IOULockParams`](../interfaces/IOULockParams.md) | The holder to lock. |
+| `params` | [`IOULockParams`](../interfaces/IOULockParams.md) | The IOU and the holder to lock. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -154,9 +208,9 @@ intent output.
 
 ### sellOffer()
 
-> **sellOffer**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
+> **sellOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/iou.ts:294](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L294)
+Defined in: [src/verticals/iou.ts:276](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L276)
 
 Place an order on the DEX to sell this IOU.
 
@@ -164,7 +218,8 @@ Place an order on the DEX to sell this IOU.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`IOUOfferParams`](../interfaces/IOUOfferParams.md) | The amount to sell, order type, and price wanted. |
+| `params` | [`IOUOfferParams`](../interfaces/IOUOfferParams.md) | The IOU, amount to sell, order type, and price wanted. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -180,9 +235,9 @@ The submission result.
 
 ### transfer()
 
-> **transfer**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUTransferIntent`](../interfaces/IOUTransferIntent.md)\>\>
+> **transfer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUTransferIntent`](../interfaces/IOUTransferIntent.md)\>\>
 
-Defined in: [src/verticals/iou.ts:251](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L251)
+Defined in: [src/verticals/iou.ts:227](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L227)
 
 Send a specified amount of this IOU to a destination account.
 
@@ -190,7 +245,8 @@ Send a specified amount of this IOU to a destination account.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`IOUTransferParams`](../interfaces/IOUTransferParams.md) | The destination and amount. |
+| `params` | [`IOUTransferParams`](../interfaces/IOUTransferParams.md) | The IOU, destination, and amount. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -203,9 +259,9 @@ intent output.
 
 ### unlock()
 
-> **unlock**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOULockIntent`](../interfaces/IOULockIntent.md)\>\>
+> **unlock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOULockIntent`](../interfaces/IOULockIntent.md)\>\>
 
-Defined in: [src/verticals/iou.ts:190](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L190)
+Defined in: [src/verticals/iou.ts:172](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.ts#L172)
 
 Restore a holder's ability to send and receive this IOU: clears Deep
 Freeze then Individual Freeze.
@@ -214,7 +270,8 @@ Freeze then Individual Freeze.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`IOULockParams`](../interfaces/IOULockParams.md) | The holder to unlock. |
+| `params` | [`IOULockParams`](../interfaces/IOULockParams.md) | The IOU and the holder to unlock. |
+| `options`? | [`IOUWriteOptions`](../interfaces/IOUWriteOptions.md) | Issuer account and fee override. |
 
 #### Returns
 
@@ -222,46 +279,6 @@ Freeze then Individual Freeze.
 
 The last step's submission result, with `{ holder }` as the
 intent output.
-
-#### Throws
-
-[MultiStepFailureError](MultiStepFailureError.md) if either step fails.
-
-***
-
-### issue()
-
-> `static` **issue**(`host`, `params`): `Promise`\<[`IOU`](IOU.md)\>
-
-Defined in: [src/verticals/iou.ts:97](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.ts#L97)
-
-Generate a new trust-line-based IOU between two developer-controlled
-accounts sourced from the environment.
-
-Reads `XRPL_ISSUER_SEED` and `XRPL_HOT_WALLET_SEED`: the issuer enables
-rippling (`AccountSet`), then the hot wallet extends trust up to the
-maximum allowable limit (`TrustSet`) — no `Payment` runs here, so no
-value exists yet; use [IOU.transfer](IOU.md#transfer) to send some.
-
-IOU tokens require additional off-chain configuration for reliable
-display and interop — see https://xrplmeta.org/issuers/docs/self-publish.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `host` | [`SubmissionHost`](../interfaces/SubmissionHost.md) | The client the pipeline runs against. |
-| `params` | [`IOUIssueParams`](../interfaces/IOUIssueParams.md) | The ticker to issue. |
-
-#### Returns
-
-`Promise`\<[`IOU`](IOU.md)\>
-
-The issued IOU handle.
-
-#### Throws
-
-[IntentValidationError](IntentValidationError.md) if the required seeds aren't set.
 
 #### Throws
 

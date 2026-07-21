@@ -1,6 +1,6 @@
 # Interface: Amount
 
-Defined in: [src/amount/amount.ts:16](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/amount/amount.ts#L16)
+Defined in: [src/amount/amount.ts:16](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/amount/amount.ts#L16)
 
 An amount of an [Asset](../type-aliases/Asset.md), expressed as a human-readable decimal string.
 
@@ -10,7 +10,7 @@ An amount of an [Asset](../type-aliases/Asset.md), expressed as a human-readable
 
 > `readonly` **asset**: [`Asset`](../type-aliases/Asset.md)
 
-Defined in: [src/amount/amount.ts:18](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/amount/amount.ts#L18)
+Defined in: [src/amount/amount.ts:18](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/amount/amount.ts#L18)
 
 What is being moved.
 
@@ -20,6 +20,6 @@ What is being moved.
 
 > `readonly` **value**: `string`
 
-Defined in: [src/amount/amount.ts:21](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/amount/amount.ts#L21)
+Defined in: [src/amount/amount.ts:21](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/amount/amount.ts#L21)
 
 The quantity, as a decimal string in display units (e.g. `'10.5'`).

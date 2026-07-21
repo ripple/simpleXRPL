@@ -1,6 +1,6 @@
 # Class: AccountNotFoundError
 
-Defined in: [src/errors.ts:48](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L48)
+Defined in: [src/errors.ts:48](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L48)
 
 The requested account is not registered on the client.
 
@@ -14,7 +14,7 @@ The requested account is not registered on the client.
 
 > **new AccountNotFoundError**(`account`): [`AccountNotFoundError`](AccountNotFoundError.md)
 
-Defined in: [src/errors.ts:56](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L56)
+Defined in: [src/errors.ts:56](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L56)
 
 Construct an AccountNotFoundError.
 
@@ -38,7 +38,7 @@ Construct an AccountNotFoundError.
 
 > `readonly` **account**: `string`
 
-Defined in: [src/errors.ts:49](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L49)
+Defined in: [src/errors.ts:49](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L49)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > `readonly` **name**: `string`
 
-Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L9)
+Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L9)
 
 #### Inherited from
 

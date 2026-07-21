@@ -2,7 +2,7 @@
 
 > **runMultiStep**(`host`, `steps`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)[]\>
 
-Defined in: [src/orchestration/multi-step.ts:39](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/orchestration/multi-step.ts#L39)
+Defined in: [src/orchestration/multi-step.ts:39](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/orchestration/multi-step.ts#L39)
 
 Run an ordered sequence of steps, committing each one before starting the
 next. Each step runs through the single-step pipeline

@@ -1,8 +1,8 @@
 # Interface: IOUIssueParams
 
-Defined in: [src/verticals/iou.types.ts:2](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.types.ts#L2)
+Defined in: [src/verticals/iou.types.ts:31](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.types.ts#L31)
 
-Parameters for [IOUVertical.issue](../classes/IOUVertical.md#issue).
+Parameters for [IOU.issue](../classes/IOU.md#issue).
 
 ## Properties
 
@@ -10,7 +10,7 @@ Parameters for [IOUVertical.issue](../classes/IOUVertical.md#issue).
 
 > `readonly` **ticker**: `string`
 
-Defined in: [src/verticals/iou.types.ts:8](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/iou.types.ts#L8)
+Defined in: [src/verticals/iou.types.ts:37](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/iou.types.ts#L37)
 
 The currency code: a 3-character ISO-4217-style code or a 40-character
 hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to

@@ -1,6 +1,6 @@
 # Class: Credential
 
-Defined in: [src/verticals/credential.ts:18](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/credential.ts#L18)
+Defined in: [src/verticals/credential.ts:18](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/credential.ts#L18)
 
 The Credential vertical: issue, accept, and delete on-ledger credentials.
 
@@ -10,7 +10,7 @@ The Credential vertical: issue, accept, and delete on-ledger credentials.
 
 > **new Credential**(`host`): [`Credential`](Credential.md)
 
-Defined in: [src/verticals/credential.ts:26](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/credential.ts#L26)
+Defined in: [src/verticals/credential.ts:26](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/credential.ts#L26)
 
 Construct the Credential vertical.
 
@@ -30,7 +30,7 @@ Construct the Credential vertical.
 
 > **accept**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; `issuer`: `string`; \}\>\>
 
-Defined in: [src/verticals/credential.ts:72](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/credential.ts#L72)
+Defined in: [src/verticals/credential.ts:72](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/credential.ts#L72)
 
 Accept a credential issued to the source account.
 
@@ -53,7 +53,7 @@ The result, echoing the issuer and credential type.
 
 > **delete**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; \}\>\>
 
-Defined in: [src/verticals/credential.ts:101](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/credential.ts#L101)
+Defined in: [src/verticals/credential.ts:101](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/credential.ts#L101)
 
 Delete a credential (as either its issuer or its holder).
 
@@ -76,7 +76,7 @@ The result, echoing the credential type.
 
 > **issue**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; `destination`: `string`; \}\>\>
 
-Defined in: [src/verticals/credential.ts:37](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/verticals/credential.ts#L37)
+Defined in: [src/verticals/credential.ts:37](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/verticals/credential.ts#L37)
 
 Issue a credential to a destination account.
 

@@ -1,6 +1,6 @@
 # Class: IntentPendingError
 
-Defined in: [src/errors.ts:147](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L147)
+Defined in: [src/errors.ts:147](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L147)
 
 Not a failure — a "still waiting" signal raised when a custodian intent has
 not reached a terminal state before the SDK's timeout. Resume later with the
@@ -16,7 +16,7 @@ carried `intentId`.
 
 > **new IntentPendingError**(`intentId`, `custodian`, `lastState`): [`IntentPendingError`](IntentPendingError.md)
 
-Defined in: [src/errors.ts:159](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L159)
+Defined in: [src/errors.ts:159](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L159)
 
 Construct an IntentPendingError.
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/typescript/lib/lib.es2022.error.d.ts:26
 
 > `readonly` **custodian**: `"ripple-custody"` \| `"palisade-custody"`
 
-Defined in: [src/errors.ts:149](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L149)
+Defined in: [src/errors.ts:149](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L149)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [src/errors.ts:149](https://github.com/ripple/simpleXRPL/blob/97d2f3
 
 > `readonly` **intentId**: `string`
 
-Defined in: [src/errors.ts:148](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L148)
+Defined in: [src/errors.ts:148](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L148)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [src/errors.ts:148](https://github.com/ripple/simpleXRPL/blob/97d2f3
 
 > `readonly` **lastState**: `string`
 
-Defined in: [src/errors.ts:150](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L150)
+Defined in: [src/errors.ts:150](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L150)
 
 ***
 
@@ -90,7 +90,7 @@ Defined in: node\_modules/typescript/lib/lib.es5.d.ts:1077
 
 > `readonly` **name**: `string`
 
-Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/errors.ts#L9)
+Defined in: [src/errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/errors.ts#L9)
 
 #### Inherited from
 

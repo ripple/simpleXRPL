@@ -1,6 +1,6 @@
 # Interface: SubmissionResultFields\<T\>
 
-Defined in: [src/domain/model.ts:127](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/domain/model.ts#L127)
+Defined in: [src/domain/model.ts:127](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L127)
 
 Fields shared by every [SubmissionResult](../type-aliases/SubmissionResult.md) variant.
 
@@ -16,7 +16,7 @@ Fields shared by every [SubmissionResult](../type-aliases/SubmissionResult.md) v
 
 > `readonly` **intent**: `T`
 
-Defined in: [src/domain/model.ts:129](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/domain/model.ts#L129)
+Defined in: [src/domain/model.ts:129](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L129)
 
 Vertical-specific output (e.g. a minted token id).
 
@@ -26,7 +26,7 @@ Vertical-specific output (e.g. a minted token id).
 
 > `readonly` `optional` **intentId**: `string`
 
-Defined in: [src/domain/model.ts:132](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/domain/model.ts#L132)
+Defined in: [src/domain/model.ts:132](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L132)
 
 Custodian intent id, when the path produced one.
 
@@ -36,6 +36,6 @@ Custodian intent id, when the path produced one.
 
 > `readonly` `optional` **txHash**: `string`
 
-Defined in: [src/domain/model.ts:135](https://github.com/ripple/simpleXRPL/blob/97d2f39b8206ea726601258e09c68a8b23b57199/src/domain/model.ts#L135)
+Defined in: [src/domain/model.ts:135](https://github.com/ripple/simpleXRPL/blob/bfe89ecb7cd8ddb36efb9e36e9918f11957e1898/src/domain/model.ts#L135)
 
 XRPL transaction hash once the transaction is on-ledger.
