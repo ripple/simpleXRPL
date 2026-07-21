@@ -8,6 +8,9 @@ export default [
       'coverage/',
       'node_modules/',
       'docs/',
+      // Doc samples: type-checked via tsconfig.examples.json, not linted with
+      // the strict src rules (they use console + placeholder literals).
+      'examples/',
       // Generated from vendored OpenAPI specs — never hand-edited or linted.
       'src/generated/',
       // Tooling configs are CommonJS / plain JS, not part of the typed project.

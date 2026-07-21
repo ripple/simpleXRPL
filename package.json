@@ -49,6 +49,7 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "fixup": "node scripts/fixup-dist.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:examples": "tsc -p tsconfig.examples.json",
     "test": "jest --config jest.config.unit.cjs",
     "test:watch": "jest --config jest.config.unit.cjs --watch",
     "test:integration": "jest --config jest.config.integration.cjs --runInBand",
