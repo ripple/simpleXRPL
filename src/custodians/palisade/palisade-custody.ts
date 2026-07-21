@@ -14,7 +14,6 @@ import type {
 } from '../../domain/index.js'
 import {
   AccountNotFoundError,
-  IntentPendingError,
   RippledSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
@@ -33,28 +32,25 @@ import {
 import { FetchHttpPort } from './transport/fetch-http-port.js'
 import { HttpPalisadeAuthPort } from './transport/http-palisade-auth-port.js'
 import { PalisadeHttpClient } from './transport/palisade-http-client.js'
+import { PalisadeTxTracker } from './tx-tracker.js'
 
 type PalisadeTransaction = components['schemas']['transactionsv2Transaction']
-type GetTransactionResponse =
-  components['schemas']['transactionsv2GetTransactionResponse']
 
 const DEFAULT_TIMEOUT_MS = 60_000
-const POLL_INTERVAL_MS = 1500
-const TERMINAL_SUCCESS = 'CONFIRMED'
-const TERMINAL_FAILURE: ReadonlySet<string> = new Set(['REJECTED', 'FAILED'])
 
 /**
  * The Palisade custodian: signs and submits through Palisade's vault/wallet API.
  * A transactor Palisade models natively uses its `Submit*`/transfer op; anything
  * else falls back to the raw sign-only path (`allowRawSigning`) and is submitted
- * through the shared ledger. Async submission is deferred to a later milestone.
+ * through the shared ledger. Native submissions can also run async, returning a
+ * handle to poll, wait on, or cancel (see {@link PalisadeTxTracker}).
  */
 export class PalisadeCustody implements Custodian {
   public readonly kind: CustodianKind = 'palisade-custody'
 
   private readonly client: PalisadeHttpClient
   private readonly allowRaw: boolean
-  private readonly timeoutMs: number
+  private readonly tracker: PalisadeTxTracker
   private context: PalisadeWalletContext
   private primaryAccount: Account | undefined
 
@@ -65,7 +61,7 @@ export class PalisadeCustody implements Custodian {
   ) {
     this.client = client
     this.allowRaw = allowRaw
-    this.timeoutMs = timeoutMs
+    this.tracker = new PalisadeTxTracker(client, this.kind, timeoutMs)
     this.context = new PalisadeWalletContext([])
   }
 
@@ -202,16 +198,37 @@ export class PalisadeCustody implements Custodian {
   }
 
   /**
-   * Async submission is provided by a later milestone (governance/await).
+   * Submit a native (governance) transactor without waiting: POST the op and
+   * return a handle to poll, wait on, or cancel. Only natively-mapped
+   * transactors are async — the raw path signs and submits inline, so it has no
+   * pending intent to hand back.
    *
-   * @returns Never; rejects until async submission is wired.
-   * @throws {@link SimpleXRPLError} always, at this layer.
+   * @param tx - The transaction to submit.
+   * @param ctx - The submission context.
+   * @returns A handle over the pending Palisade transaction.
+   * @throws {@link SimpleXRPLError} if the transactor has no native path.
    */
-  // eslint-disable-next-line class-methods-use-this -- placeholder until async submission lands
-  public async submitAsync(): Promise<SubmissionHandle> {
-    throw new SimpleXRPLError(
-      'Palisade async submission is not yet implemented',
+  public async submitAsync(
+    tx: Transaction,
+    ctx: SubmissionContext,
+  ): Promise<SubmissionHandle> {
+    if (!PALISADE_NATIVE_TRANSACTORS.has(tx.TransactionType)) {
+      throw new SimpleXRPLError(
+        `Palisade async submission supports only natively-mapped transactors; ` +
+          `${tx.TransactionType} would take the raw path — use submitAndWait.`,
+      )
+    }
+    const { subPath, body } = txToNativeSubmit(tx)
+    const base = this.transactionsBase(ctx.account)
+    const submitted = await this.client.post<PalisadeTransaction>(
+      `${base}/${subPath}`,
+      body,
     )
+    return this.tracker.makeHandle(this, {
+      base,
+      submitted,
+      timeoutMs: ctx.timeoutMs,
+    })
   }
 
   /**
@@ -227,20 +244,28 @@ export class PalisadeCustody implements Custodian {
     body: unknown,
     ctx: SubmissionContext,
   ): Promise<SubmissionResult> {
-    const ref = this.walletRef(ctx.account)
-    const base = `/v2/vaults/${ref.vaultId}/wallets/${ref.walletId}/transactions`
+    const base = this.transactionsBase(ctx.account)
     const submitted = await this.client.post<PalisadeTransaction>(
       `${base}/${subPath}`,
       body,
     )
-    const final = await this.pollUntilTerminal(base, submitted, ctx.timeoutMs)
-    return {
-      source: 'palisade',
-      response: final,
-      intent: undefined,
-      intentId: final.id,
-      txHash: final.hash,
-    }
+    const final = await this.tracker.pollUntilTerminal(
+      base,
+      submitted,
+      ctx.timeoutMs,
+    )
+    return this.tracker.toResult(final)
+  }
+
+  /**
+   * The wallet-relative transactions base path for an account.
+   *
+   * @param account - The account being acted on.
+   * @returns The `/v2/vaults/{vaultId}/wallets/{walletId}/transactions` path.
+   */
+  private transactionsBase(account: Account): string {
+    const ref = this.walletRef(account)
+    return `/v2/vaults/${ref.vaultId}/wallets/${ref.walletId}/transactions`
   }
 
   /**
@@ -271,49 +296,6 @@ export class PalisadeCustody implements Custodian {
       intent: undefined,
       txHash: response.result.hash,
     }
-  }
-
-  /**
-   * Poll a submitted transaction until it reaches a terminal status.
-   *
-   * @param base - The wallet-relative transactions base path.
-   * @param submitted - The initial submit response.
-   * @param timeoutMs - Optional per-call timeout override.
-   * @returns The terminal transaction.
-   * @throws {@link SignerCapabilityError} never; {@link IntentPendingError} on timeout.
-   */
-  private async pollUntilTerminal(
-    base: string,
-    submitted: PalisadeTransaction,
-    timeoutMs?: number,
-  ): Promise<PalisadeTransaction> {
-    const attempts = Math.max(
-      1,
-      Math.ceil((timeoutMs ?? this.timeoutMs) / POLL_INTERVAL_MS),
-    )
-    let current = submitted
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      if (current.status === TERMINAL_SUCCESS) {
-        return current
-      }
-      if (TERMINAL_FAILURE.has(current.status)) {
-        throw new SimpleXRPLError(
-          `Palisade transaction ${current.id} ${current.status}`,
-        )
-      }
-      if (attempt + 1 < attempts) {
-        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        await new Promise((resolve) => {
-          setTimeout(resolve, POLL_INTERVAL_MS)
-        })
-        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        const next = await this.client.get<GetTransactionResponse>(
-          `${base}/${current.id}`,
-        )
-        current = next.transaction ?? current
-      }
-    }
-    throw new IntentPendingError(current.id, 'palisade-custody', current.status)
   }
 
   /**
