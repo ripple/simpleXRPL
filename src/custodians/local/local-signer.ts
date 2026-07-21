@@ -229,14 +229,29 @@ export class LocalSigner implements Custodian {
   }
 
   /**
-   * Submit asynchronously. The async handle model is provided by later work.
+   * Submit asynchronously. A local transaction reaches its terminal state as
+   * soon as `submitAndWait` returns (TDD §10.1), so the returned handle is
+   * already resolved: `poll` and `wait` both yield that same result, and its
+   * `id` is the XRPL transaction hash (§10.2). No `cancel` — a submitted local
+   * transaction cannot be recalled (§10.3).
    *
-   * @returns Never; rejects until async submission is wired.
-   * @throws {@link SimpleXRPLError} always, at this layer.
+   * @param tx - The autofilled transaction to submit.
+   * @param ctx - The submission context (source account + shared ledger).
+   * @returns A pre-resolved handle over the submitted transaction.
+   * @throws {@link RippledSubmitError} if the transaction fails on-ledger.
    */
-  // eslint-disable-next-line class-methods-use-this -- Placeholder until async submission is wired.
-  public async submitAsync(): Promise<SubmissionHandle> {
-    throw new SimpleXRPLError('Async submission is not yet implemented')
+  public async submitAsync(
+    tx: Transaction,
+    ctx: SubmissionContext,
+  ): Promise<SubmissionHandle> {
+    const result = await this.submitAndWait(tx, ctx)
+    return {
+      kind: this.kind,
+      id: result.txHash ?? '',
+      custodian: this,
+      poll: async (): Promise<SubmissionResult> => result,
+      wait: async (): Promise<SubmissionResult> => result,
+    }
   }
 
   private walletFor(address: string): Wallet {
