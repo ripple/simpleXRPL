@@ -14,6 +14,8 @@ import { mapTrustSet } from './trust-set.js'
  * The XRPL transactors Palisade models on a native `Submit*`/transfer path —
  * the custodian's `nativeOps` set. Keep in sync with {@link txToNativeSubmit};
  * a transactor here with no case there would route native and then throw.
+ *
+ * @internal
  */
 export const PALISADE_NATIVE_TRANSACTORS: ReadonlySet<TransactorType> = new Set(
   [

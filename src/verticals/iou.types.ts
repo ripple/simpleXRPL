@@ -1,4 +1,33 @@
-/** Parameters for {@link IOUVertical.issue}. */
+import type { AccountSelector, FeeIntent } from '../domain/index.js'
+
+/**
+ * Identifies which IOU an operation targets. Every IOU write except
+ * {@link IOU.cancelOffer} names its currency; the issuer is the acting account
+ * (see {@link IOUWriteOptions.from}).
+ */
+export interface IOURef {
+  /**
+   * The currency code: a 3-character ISO-4217-style code or a 40-character
+   * hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to
+   * the 40-character hex form.
+   */
+  readonly ticker: string
+}
+
+/**
+ * Source account and fee overrides shared by the IOU write verbs. The
+ * resolved account is the IOU's issuer — it signs, and its address is the
+ * currency issuer.
+ */
+export interface IOUWriteOptions {
+  /** Issuer account; defaults to the primary signer's primary account. */
+  readonly from?: AccountSelector
+
+  /** Fee override. */
+  readonly fee?: FeeIntent
+}
+
+/** Parameters for {@link IOU.issue}. */
 export interface IOUIssueParams {
   /**
    * The currency code: a 3-character ISO-4217-style code or a 40-character
@@ -8,8 +37,14 @@ export interface IOUIssueParams {
   readonly ticker: string
 }
 
+/** Output attached to an {@link IOU.issue} result. */
+export interface IOUIssueIntent {
+  /** Currency code and issuer of the new IOU, e.g. `USD.rIssuer...`. */
+  readonly iouID: string
+}
+
 /** Parameters for {@link IOU.authorize}. */
-export interface IOUAuthorizeParams {
+export interface IOUAuthorizeParams extends IOURef {
   /** The holder's r-address being authorized. */
   readonly holder: string
 }
@@ -21,7 +56,7 @@ export interface IOUAuthorizeIntent {
 }
 
 /** Parameters for {@link IOU.lock} and {@link IOU.unlock}. */
-export interface IOULockParams {
+export interface IOULockParams extends IOURef {
   /** The holder's r-address whose trust line is (un)locked. */
   readonly holder: string
 }
@@ -33,7 +68,7 @@ export interface IOULockIntent {
 }
 
 /** Parameters for {@link IOU.clawback}. */
-export interface IOUClawbackParams {
+export interface IOUClawbackParams extends IOURef {
   /** The holder's r-address to claw the currency back from. */
   readonly holder: string
   /** The amount to claw back. */
@@ -49,7 +84,7 @@ export interface IOUClawbackIntent {
 }
 
 /** Parameters for {@link IOU.transfer}. */
-export interface IOUTransferParams {
+export interface IOUTransferParams extends IOURef {
   /** The destination r-address. */
   readonly destination: string
   /** The amount to send. */
@@ -82,7 +117,7 @@ export type IOUOfferPrice =
 export type IOUOrderType = 'limit' | 'market' | 'fok' | 'passive'
 
 /** Parameters for {@link IOU.buyOffer} and {@link IOU.sellOffer}. */
-export interface IOUOfferParams {
+export interface IOUOfferParams extends IOURef {
   /** The number of units of this IOU to buy or sell. */
   readonly amount: number
   /** The order type. */

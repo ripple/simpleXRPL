@@ -43,7 +43,7 @@ const DEFAULT_TIMEOUT_MS = 60_000
  * A transactor Palisade models natively uses its `Submit*`/transfer op; anything
  * else falls back to the raw sign-only path (`allowRawSigning`) and is submitted
  * through the shared ledger. Native submissions can also run async, returning a
- * handle to poll, wait on, or cancel (see {@link PalisadeTxTracker}).
+ * handle to poll, wait on, or cancel.
  */
 export class PalisadeCustody implements Custodian {
   public readonly kind: CustodianKind = 'palisade-custody'
