@@ -19,6 +19,7 @@ import {
 
 import { buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
+import { IntentInspector } from './intent-inspector.js'
 
 /** The network a client is bound to. */
 export interface NetworkInfo {
@@ -66,6 +67,9 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Account settings, regular key, and deposit preauthorization. */
   public readonly account: AccountVertical
 
+  /** Read-only observation of custodian governance intents (status/await). */
+  public readonly intent: IntentInspector
+
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
 
@@ -90,6 +94,7 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.credential = new Credential(this)
     this.domain = new Domain(this)
     this.account = new AccountVertical(this)
+    this.intent = new IntentInspector(this.signers)
   }
 
   /**

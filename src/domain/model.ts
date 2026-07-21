@@ -217,3 +217,23 @@ export interface Custodian {
     ctx: SubmissionContext,
   ) => Promise<SubmissionHandle>
 }
+
+/**
+ * A custodian that can resume observation of a governance intent it previously
+ * created, addressed by the intent id (§10.4). Only backends with a governed
+ * intent lifecycle (Ripple Custody, Palisade) implement this; a local wallet
+ * has no intents to observe. The client's intent inspector uses it to poll or
+ * await an intent whose original submission has already returned.
+ */
+export interface IntentObserver {
+  /** Which backend owns the intents this observer resumes. */
+  readonly kind: CustodianKind
+
+  /**
+   * Build a handle over an intent this custodian previously created.
+   *
+   * @param intentId - The client-generated intent id returned at submission.
+   * @returns A handle to poll or wait on the existing intent's outcome.
+   */
+  readonly observeIntent: (intentId: string) => SubmissionHandle
+}
