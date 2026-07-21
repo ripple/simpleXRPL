@@ -1,26 +1,25 @@
 /**
- * Issue a Real-World Asset (RWA) as a Multi-Purpose Token (MPT).
+ * Issue a Real-World Asset (RWA) through Ripple Custody.
  *
- * RWAs are issued as MPTs via the `token` vertical. Metadata follows the XLS-89
- * standard and is validated before submission (`asset_class: 'rwa'` requires an
- * `asset_subclass`). The issuance signs as the acting account — set `from` to
- * the account that should be the issuer.
- *
- * NOTE: the Ripple Custody connector is in progress. The issuance call below is
- * identical regardless of connector — once Ripple Custody is bound in `init`,
- * point `from` at its account (e.g. its r-address) and nothing else changes.
+ * RWAs are issued as Multi-Purpose Tokens (MPTs) via the `token` vertical.
+ * Metadata follows the XLS-89 standard and is validated before submission
+ * (`asset_class: 'rwa'` requires an `asset_subclass`). Here the issuer is a
+ * Ripple Custody account: Custody signs and submits the issuance as one
+ * governed action, subject to the domain's approval policy.
  */
-import { LocalSigner, SimpleXRPL } from 'simplexrpl'
+import { RippleCustody, SimpleXRPL } from 'simplexrpl'
+
+// The Custody-held issuer account; Custody governs every write it signs.
+const ISSUER_ADDRESS = process.env.RIPPLE_CUSTODY_PRIMARY ?? ''
+
+// Config (gateway, token endpoint, domain, intent-author key) comes from
+// `RIPPLE_CUSTODY_*` environment variables via `fromEnv`.
+const custody = await RippleCustody.fromEnv({ primary: ISSUER_ADDRESS })
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
-  // Bind your Ripple Custody connector here when available; using local
-  // signing as a stand-in so the sample is runnable today.
-  signers: [LocalSigner.fromEnv()],
+  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  signers: [custody],
 })
-
-// The issuer account. With Ripple Custody bound, this is its r-address.
-const issuer = client.resolveAccount().address
 
 const result = await client.token.issue(
   {
@@ -39,9 +38,13 @@ const result = await client.token.issue(
     // Keep the issuer able to claw back (compliance); other capabilities on.
     flags: { canClawback: true, canTransfer: true },
   },
-  { from: issuer },
+  // Issue as the Custody account. Omit `from` to use the primary signer.
+  { from: ISSUER_ADDRESS },
 )
 
+// `MPTokenIssuanceCreate` is native to Ripple Custody, so this returns once the
+// governed action reaches a terminal state — or throws `IntentPendingError` if
+// it's still awaiting approval past the timeout.
 console.log('issued MPT:', result.intent.mptIssuanceId)
 
 await client.disconnect()

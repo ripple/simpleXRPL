@@ -11,56 +11,65 @@
  *      when the order matters and you want one call site.
  */
 import {
-  LocalSigner,
   PalisadeCustody,
+  RippleCustody,
   runMultiStep,
   SimpleXRPL,
 } from 'simplexrpl'
 import type { Payment } from 'xrpl'
 
-const local = LocalSigner.fromEnv()
+// A common institutional split: the issuer is held in Ripple Custody (governed
+// approvals), the distribution/hot wallet in Palisade. One client drives both.
+// Config comes from the environment / your secrets manager.
+const custody = await RippleCustody.fromEnv({
+  primary: process.env.RIPPLE_CUSTODY_PRIMARY ?? '',
+})
 const palisade = await PalisadeCustody.create({
-  baseUrl: 'https://api.sandbox.palisade.co',
+  baseUrl: 'https://api.sandbox.palisade.co', // sandbox (TESTNET data)
   clientId: process.env.PALISADE_CLIENT_ID ?? '',
   clientSecret: process.env.PALISADE_CLIENT_SECRET ?? '',
-  primary: { vaultId: 'vault-id', walletId: 'wallet-id' },
+  primary: {
+    vaultId: process.env.PALISADE_VAULT_ID ?? '',
+    walletId: process.env.PALISADE_WALLET_ID ?? '',
+  },
 })
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
-  signers: [local, palisade],
+  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  signers: [custody, palisade],
 })
 
 // One account on each connector.
-const localAccount = client.resolveAccount(local.primary.address)
-const palisadeAccount = client.resolveAccount(palisade.primary.address)
+const issuer = client.resolveAccount(custody.primary.address)
+const hotWallet = client.resolveAccount(palisade.primary.address)
 
 // --- Approach 1: vertical verbs, each targeting a different custodian ------
-// Issue an IOU as the local account, then pay out from the Palisade account.
+// Issue an IOU as the Custody issuer, then pay out from the Palisade wallet.
 await client.iou.issue({ ticker: 'USD' })
 await client.xrp.transfer(
   { to: 'rBeneficiary00000000000000000000000', amount: '25' },
-  { from: palisadeAccount.address },
+  { from: hotWallet.address },
 )
 
 // --- Approach 2: an ordered multi-step workflow across both ----------------
 const stepOne: Payment = {
   TransactionType: 'Payment',
-  Account: localAccount.address,
+  Account: issuer.address,
   Destination: 'rBeneficiary00000000000000000000000',
   Amount: '1000000',
 }
 const stepTwo: Payment = {
   TransactionType: 'Payment',
-  Account: palisadeAccount.address,
+  Account: hotWallet.address,
   Destination: 'rBeneficiary00000000000000000000000',
   Amount: '2000000',
 }
 
-// Step 1 signs on Local, step 2 on Palisade — each routed automatically.
+// Step 1 signs on Ripple Custody, step 2 on Palisade — each routed
+// automatically to the connector that owns the account.
 const results = await runMultiStep(client, [
-  { transaction: stepOne, account: localAccount },
-  { transaction: stepTwo, account: palisadeAccount },
+  { transaction: stepOne, account: issuer },
+  { transaction: stepTwo, account: hotWallet },
 ])
 console.log(`workflow committed ${results.length} steps`)
 
