@@ -17,7 +17,7 @@ import {
   XRP,
 } from '../verticals/index.js'
 
-import { buildAccountIndex } from './account-index.js'
+import { assertDistinctTenants, buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
 import { IntentInspector } from './intent-inspector.js'
 
@@ -126,12 +126,14 @@ export class SimpleXRPLClient implements SubmissionHost {
    *
    * @param config - Network endpoints and pre-constructed custodians.
    * @returns A ready client.
+   * @throws {@link DuplicateSignerError} if two signers share a kind and tenant id.
    * @throws {@link AmbiguousAccountError} if an r-address is claimed by two custodians.
    */
   public static async init(
     config: SimpleXRPLConfig,
   ): Promise<SimpleXRPLClient> {
     const signers = config.signers ?? []
+    assertDistinctTenants(signers)
     const primarySigner = SimpleXRPLClient.resolvePrimary(
       signers,
       config.primarySigner,

@@ -81,6 +81,30 @@ export class AmbiguousAccountError extends SimpleXRPLError {
 }
 
 /**
+ * Two configured signers point at the same backend tenant — the same
+ * `kind` and the same `tenantId` (§3.1). The client rejects this at init so
+ * one backend is never registered twice; drop the duplicate signer.
+ */
+export class DuplicateSignerError extends SimpleXRPLError {
+  public readonly kind: CustodianKind
+  public readonly tenantId: string
+
+  /**
+   * Construct a DuplicateSignerError.
+   *
+   * @param kind - The custodian kind registered more than once.
+   * @param tenantId - The shared backend tenant id.
+   */
+  public constructor(kind: CustodianKind, tenantId: string) {
+    super(
+      `Two ${kind} signers are configured for the same tenant '${tenantId}'; register each backend tenant once`,
+    )
+    this.kind = kind
+    this.tenantId = tenantId
+  }
+}
+
+/**
  * Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
  */
 export class CustodyAuthError extends SimpleXRPLError {}

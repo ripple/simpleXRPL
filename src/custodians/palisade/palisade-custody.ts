@@ -48,6 +48,9 @@ const DEFAULT_TIMEOUT_MS = 60_000
 export class PalisadeCustody implements Custodian {
   public readonly kind: CustodianKind = 'palisade-custody'
 
+  /** The Palisade API client identity — the tenant two instances collide on. */
+  public readonly tenantId: string
+
   private readonly client: PalisadeHttpClient
   private readonly allowRaw: boolean
   private readonly tracker: PalisadeTxTracker
@@ -56,12 +59,12 @@ export class PalisadeCustody implements Custodian {
 
   private constructor(
     client: PalisadeHttpClient,
-    allowRaw: boolean,
-    timeoutMs: number,
+    options: { allowRaw: boolean; timeoutMs: number; tenantId: string },
   ) {
     this.client = client
-    this.allowRaw = allowRaw
-    this.tracker = new PalisadeTxTracker(client, this.kind, timeoutMs)
+    this.allowRaw = options.allowRaw
+    this.tenantId = options.tenantId
+    this.tracker = new PalisadeTxTracker(client, this.kind, options.timeoutMs)
     this.context = new PalisadeWalletContext([])
   }
 
@@ -104,11 +107,11 @@ export class PalisadeCustody implements Custodian {
       http,
       auth,
     })
-    const custodian = new PalisadeCustody(
-      client,
-      config.allowRawSigning ?? false,
-      config.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
-    )
+    const custodian = new PalisadeCustody(client, {
+      allowRaw: config.allowRawSigning ?? false,
+      timeoutMs: config.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
+      tenantId: config.clientId,
+    })
     const accounts = await discoverXrplWallets(client, custodian)
     custodian.context = new PalisadeWalletContext(accounts)
     custodian.primaryAccount = resolvePrimary(accounts, config.primary)

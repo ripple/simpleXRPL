@@ -3,6 +3,7 @@ import {
   AmbiguousAccountError,
   CustodyApiError,
   CustodyAuthError,
+  DuplicateSignerError,
   IntentPendingError,
   IntentValidationError,
   MultiStepFailureError,
@@ -48,6 +49,14 @@ describe('error hierarchy', () => {
     const err = new AmbiguousAccountError('rTest', ['local', 'ripple-custody'])
     expect(err.account).toBe('rTest')
     expect(err.custodians).toStrictEqual(['local', 'ripple-custody'])
+  })
+
+  it('DuplicateSignerError carries the kind and tenant id', () => {
+    const err = new DuplicateSignerError('ripple-custody', 'domain-x')
+    expect(err.kind).toBe('ripple-custody')
+    expect(err.tenantId).toBe('domain-x')
+    expect(err.message).toContain('domain-x')
+    expect(err).toBeInstanceOf(SimpleXRPLError)
   })
 
   it('CustodyApiError preserves status, hint, and raw body', () => {

@@ -1,5 +1,26 @@
 import type { Account, Custodian } from '../domain/index.js'
-import { AmbiguousAccountError } from '../errors.js'
+import { AmbiguousAccountError, DuplicateSignerError } from '../errors.js'
+
+/**
+ * Reject two signers bound to the same backend tenant — the same `kind` and
+ * the same defined `tenantId` (§3.1). Signers without a `tenantId` (e.g. local
+ * wallet holders) have no tenant to collide on, so any number may coexist.
+ *
+ * @param signers - The registered custodians.
+ * @throws {@link DuplicateSignerError} if two signers share a kind and tenant id.
+ */
+export function assertDistinctTenants(signers: readonly Custodian[]): void {
+  const seen = new Set<string>()
+  for (const signer of signers) {
+    if (signer.tenantId !== undefined) {
+      const key = `${signer.kind}:${signer.tenantId}`
+      if (seen.has(key)) {
+        throw new DuplicateSignerError(signer.kind, signer.tenantId)
+      }
+      seen.add(key)
+    }
+  }
+}
 
 /**
  * Merge one custodian's discovered accounts into the shared index, rejecting a
