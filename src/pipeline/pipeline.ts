@@ -5,6 +5,7 @@ import type {
   Account,
   FeeIntent,
   SubmissionContext,
+  SubmissionHandle,
   SubmissionResult,
 } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
@@ -38,6 +39,9 @@ export interface SubmitRequest {
 
   /** How long to wait before handing control back. */
   readonly timeoutMs?: number
+
+  /** Return a handle as soon as the intent is accepted, instead of blocking. */
+  readonly async?: boolean
 }
 
 /**
@@ -60,6 +64,50 @@ export async function submitTransaction(
   host: SubmissionHost,
   request: SubmitRequest,
 ): Promise<SubmissionResult> {
+  const { account, resolved, context } = await prepareSubmission(host, request)
+  const result = await account.signer.submitAndWait(resolved, context)
+  return { ...result, idempotencyKey: context.idempotencyKey }
+}
+
+/**
+ * Like {@link submitTransaction}, but returns a {@link SubmissionHandle} as
+ * soon as the custodian accepts the intent instead of blocking to a terminal
+ * state (TDD §10.2). For a governed custodian the handle observes the pending
+ * intent; for Local it wraps the already-submitted transaction.
+ *
+ * @param host - The client subset the pipeline runs against.
+ * @param request - The transaction, resolved account, and per-call options.
+ * @returns A handle over the accepted submission.
+ * @throws {@link IntentValidationError} if protocol validation fails.
+ * @throws {@link SignerCapabilityError} if the custodian cannot sign the transactor.
+ */
+export async function submitTransactionAsync(
+  host: SubmissionHost,
+  request: SubmitRequest,
+): Promise<SubmissionHandle> {
+  const { account, resolved, context } = await prepareSubmission(host, request)
+  return account.signer.submitAsync(resolved, { ...context, async: true })
+}
+
+/**
+ * Run the shared front half of the pipeline — Validate → Dispatch → Resolve —
+ * and assemble the submission context. Both the sync and async entry points
+ * diverge only in the final sign+submit step.
+ *
+ * @param host - The client subset the pipeline runs against.
+ * @param request - The transaction, resolved account, and per-call options.
+ * @returns The resolved account, the network-resolved transaction, and context.
+ * @throws {@link IntentValidationError} if protocol validation fails.
+ * @throws {@link SignerCapabilityError} if the custodian cannot sign the transactor.
+ */
+async function prepareSubmission(
+  host: SubmissionHost,
+  request: SubmitRequest,
+): Promise<{
+  account: Account
+  resolved: Transaction
+  context: SubmissionContext
+}> {
   const { transaction, account } = request
   validateProtocol(transaction)
   const path = dispatch(account, transaction.TransactionType)
@@ -79,9 +127,9 @@ export async function submitTransaction(
     customProperties: request.customProperties,
     idempotencyKey,
     timeoutMs: request.timeoutMs,
+    async: request.async,
   }
-  const result = await account.signer.submitAndWait(resolved, context)
-  return { ...result, idempotencyKey }
+  return { account, resolved, context }
 }
 
 /**

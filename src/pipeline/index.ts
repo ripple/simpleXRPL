@@ -1,6 +1,6 @@
 export { dispatch, isNativePath } from './dispatch.js'
 export type { SubmissionPath } from './dispatch.js'
-export { submitTransaction } from './pipeline.js'
+export { submitTransaction, submitTransactionAsync } from './pipeline.js'
 export type { SubmitRequest } from './pipeline.js'
 export { withIntent } from './wrap.js'
 export type { SubmissionHost } from './host.js'

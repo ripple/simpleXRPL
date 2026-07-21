@@ -140,6 +140,19 @@ export class PalisadeHttpClient {
   }
 
   /**
+   * Authenticated PUT (used by parameterized actions like freeze/unfreeze,
+   * which carry their inputs as query params rather than a body).
+   *
+   * @param path - API path beginning with `/`.
+   * @param query - Optional scalar query parameters.
+   * @returns The parsed response body.
+   */
+  public async put<T>(path: string, query?: Query): Promise<T> {
+    const response = await this.send('PUT', this.buildUrl(path, query))
+    return parseJsonBody<T>(response.body)
+  }
+
+  /**
    * Send with bearer injection and a single 401 refresh-and-replay.
    *
    * @param method - The HTTP method.
@@ -149,7 +162,7 @@ export class PalisadeHttpClient {
    * @throws {@link PalisadeAuthError} or {@link PalisadeApiError} on failure.
    */
   private async send(
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PUT',
     url: string,
     body?: string,
   ): Promise<HttpResponse> {

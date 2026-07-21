@@ -30,6 +30,7 @@ const DEST_ADDR = Wallet.generate().classicAddress
  * handlers keyed by a URL substring. Records POST bodies for assertions. */
 interface FakePort extends PalisadeHttpPort {
   readonly posts: Array<{ url: string; body: unknown }>
+  readonly puts: Array<{ url: string }>
 }
 
 function fakePort(handlers: {
@@ -39,6 +40,7 @@ function fakePort(handlers: {
   onRaw?: () => unknown
 }): FakePort {
   const posts: Array<{ url: string; body: unknown }> = []
+  const puts: Array<{ url: string }> = []
   const ok = (value: unknown): HttpResponse => ({
     status: 200,
     body: JSON.stringify(value),
@@ -62,19 +64,21 @@ function fakePort(handlers: {
     if (url.includes('/v2/wallets')) {
       return ok(wallets)
     }
+    if (method === 'PUT') {
+      puts.push({ url })
+      return { status: 200, body: '' }
+    }
+    if (method === 'GET') {
+      return ok(handlers.onGet?.())
+    }
     const parsed: unknown = body === undefined ? undefined : JSON.parse(body)
-    if (method === 'POST' && url.endsWith('/transactions/raw')) {
-      posts.push({ url, body: parsed })
+    posts.push({ url, body: parsed })
+    if (url.endsWith('/transactions/raw')) {
       return ok(handlers.onRaw?.())
     }
-    if (method === 'POST') {
-      posts.push({ url, body: parsed })
-      const subPath = url.split('/transactions/')[1]
-      return ok(handlers.onSubmit?.(subPath))
-    }
-    return ok(handlers.onGet?.())
+    return ok(handlers.onSubmit?.(url.split('/transactions/')[1]))
   }
-  return { send, posts }
+  return { send, posts, puts }
 }
 
 function ledgerStub(response?: TxResponse): LedgerPort {
@@ -300,8 +304,120 @@ describe('PalisadeCustody.sign / submitAsync', () => {
     })
   })
 
-  it('submitAsync is not yet implemented', async () => {
-    const custody = await makeCustody(fakePort({}))
-    await expect(custody.submitAsync()).rejects.toBeInstanceOf(SimpleXRPLError)
+  it('submitAsync rejects a transactor with no native path', async () => {
+    const custody = await makeCustody(fakePort({}), true)
+    const account = (await custody.listAccounts())[0]
+    const escrow: Transaction = {
+      TransactionType: 'EscrowFinish',
+      Account: PRIMARY_ADDR,
+      Owner: DEST_ADDR,
+      OfferSequence: 5,
+    }
+    await expect(
+      custody.submitAsync(escrow, contextFor(account, ledgerStub())),
+    ).rejects.toBeInstanceOf(SimpleXRPLError)
+  })
+})
+
+describe('PalisadeCustody.submitAsync — handle lifecycle', () => {
+  it('returns a handle over the pending intent without blocking', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    const handle = await custody.submitAsync(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    expect(handle.kind).toBe('palisade-custody')
+    expect(handle.id).toBe('tx1')
+    expect(handle.custodian).toBe(custody)
+    expect(port.posts[0].url).toContain('/transactions/transfer')
+  })
+
+  it('poll returns a non-blocking snapshot of the current state', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
+      onGet: () => ({
+        transaction: { id: 'tx1', status: 'SIGNATURE_PENDING' },
+      }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    const handle = await custody.submitAsync(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    const snapshot = await handle.poll()
+    expect(snapshot.source).toBe('palisade')
+    expect(snapshot.intentId).toBe('tx1')
+  })
+
+  it('wait resolves once the intent reaches a terminal status', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
+      onGet: () => ({
+        transaction: { id: 'tx1', status: 'CONFIRMED', hash: 'H1' },
+      }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    const handle = await custody.submitAsync(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    const result = await handle.wait()
+    expect(result.txHash).toBe('H1')
+    expect(result.intentId).toBe('tx1')
+  })
+
+  it('wait throws IntentPendingError when it never goes terminal', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
+      onGet: () => ({
+        transaction: { id: 'tx1', status: 'SIGNATURE_PENDING' },
+      }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    const handle = await custody.submitAsync(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    await expect(handle.wait(1)).rejects.toBeInstanceOf(IntentPendingError)
+  })
+
+  it('cancel issues a freeze PUT while the intent is still pending', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
+      onGet: () => ({
+        transaction: { id: 'tx1', status: 'SIGNATURE_PENDING' },
+      }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    const handle = await custody.submitAsync(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    await handle.cancel?.()
+    expect(port.puts[0].url).toContain('/transactions/tx1/freeze')
+    expect(port.puts[0].url).toContain('reason=')
+  })
+
+  it('cancel rejects once the intent is already terminal', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
+      onGet: () => ({ transaction: { id: 'tx1', status: 'CONFIRMED' } }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    const handle = await custody.submitAsync(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    await expect(handle.cancel?.()).rejects.toBeInstanceOf(SimpleXRPLError)
+    expect(port.puts).toHaveLength(0)
   })
 })

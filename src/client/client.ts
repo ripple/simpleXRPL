@@ -12,13 +12,14 @@ import {
   AccountVertical,
   Credential,
   Domain,
-  IOUVertical,
+  IOU,
   Token,
   XRP,
 } from '../verticals/index.js'
 
-import { buildAccountIndex } from './account-index.js'
+import { assertDistinctTenants, buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
+import { IntentInspector } from './intent-inspector.js'
 
 /** The network a client is bound to. */
 export interface NetworkInfo {
@@ -51,8 +52,8 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Native-XRP value transfers. */
   public readonly xrp: XRP
 
-  /** Issued-currency (IOU) issuance; `issue()` returns the lifecycle handle. */
-  public readonly iou: IOUVertical
+  /** Issued-currency (IOU) verbs: issue, transfer, authorize, lock, offers. */
+  public readonly iou: IOU
 
   /** Multi-Purpose Token (MPT) family and DEX offers. */
   public readonly token: Token
@@ -65,6 +66,9 @@ export class SimpleXRPLClient implements SubmissionHost {
 
   /** Account settings, regular key, and deposit preauthorization. */
   public readonly account: AccountVertical
+
+  /** Read-only observation of custodian governance intents (status/await). */
+  public readonly intent: IntentInspector
 
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
@@ -85,11 +89,12 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.accountIndex = state.accountIndex
     this.ledgerInstance = state.ledger
     this.xrp = new XRP(this)
-    this.iou = new IOUVertical(this)
+    this.iou = new IOU(this)
     this.token = new Token(this)
     this.credential = new Credential(this)
     this.domain = new Domain(this)
     this.account = new AccountVertical(this)
+    this.intent = new IntentInspector(this.signers)
   }
 
   /**
@@ -121,12 +126,14 @@ export class SimpleXRPLClient implements SubmissionHost {
    *
    * @param config - Network endpoints and pre-constructed custodians.
    * @returns A ready client.
+   * @throws {@link DuplicateSignerError} if two signers share a kind and tenant id.
    * @throws {@link AmbiguousAccountError} if an r-address is claimed by two custodians.
    */
   public static async init(
     config: SimpleXRPLConfig,
   ): Promise<SimpleXRPLClient> {
     const signers = config.signers ?? []
+    assertDistinctTenants(signers)
     const primarySigner = SimpleXRPLClient.resolvePrimary(
       signers,
       config.primarySigner,
