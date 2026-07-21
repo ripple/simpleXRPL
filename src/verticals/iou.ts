@@ -36,6 +36,7 @@ import type {
   IOUOfferParams,
   IOUTransferIntent,
   IOUTransferParams,
+  IOUWriteOptions,
 } from './iou.types.js'
 
 export type {
@@ -52,6 +53,7 @@ export type {
   IOUOrderType,
   IOUTransferIntent,
   IOUTransferParams,
+  IOUWriteOptions,
 } from './iou.types.js'
 
 /**
@@ -128,10 +130,12 @@ export class IOU {
    * use {@link IOU.lock} instead.
    *
    * @param params - The holder to authorize.
+   * @param options - Optional retry key (see {@link IOUWriteOptions}).
    * @returns The submission result, with `{ holder }` as the intent output.
    */
   public async authorize(
     params: IOUAuthorizeParams,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<IOUAuthorizeIntent>> {
     const transaction: TrustSet = {
       TransactionType: 'TrustSet',
@@ -146,6 +150,7 @@ export class IOU {
     const result = await submitTransaction(this.host, {
       transaction,
       account: this.issuer,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { holder: params.holder })
   }
@@ -162,20 +167,10 @@ export class IOU {
   public async lock(
     params: IOULockParams,
   ): Promise<SubmissionResult<IOULockIntent>> {
-    const results = await runMultiStep(this.host, [
-      {
-        transaction: this.buildFreeze(params.holder, TrustSetFlags.tfSetFreeze),
-        account: this.issuer,
-      },
-      {
-        transaction: this.buildFreeze(
-          params.holder,
-          TrustSetFlags.tfSetDeepFreeze,
-        ),
-        account: this.issuer,
-      },
+    return this.runFreeze(params.holder, [
+      TrustSetFlags.tfSetFreeze,
+      TrustSetFlags.tfSetDeepFreeze,
     ])
-    return withIntent(results[1], { holder: params.holder })
   }
 
   /**
@@ -190,23 +185,10 @@ export class IOU {
   public async unlock(
     params: IOULockParams,
   ): Promise<SubmissionResult<IOULockIntent>> {
-    const results = await runMultiStep(this.host, [
-      {
-        transaction: this.buildFreeze(
-          params.holder,
-          TrustSetFlags.tfClearDeepFreeze,
-        ),
-        account: this.issuer,
-      },
-      {
-        transaction: this.buildFreeze(
-          params.holder,
-          TrustSetFlags.tfClearFreeze,
-        ),
-        account: this.issuer,
-      },
+    return this.runFreeze(params.holder, [
+      TrustSetFlags.tfClearDeepFreeze,
+      TrustSetFlags.tfClearFreeze,
     ])
-    return withIntent(results[1], { holder: params.holder })
   }
 
   /**
@@ -218,11 +200,13 @@ export class IOU {
    * objects, which this SDK does not itself pre-check.
    *
    * @param params - The holder and amount to claw back.
+   * @param options - Optional retry key (see {@link IOUWriteOptions}).
    * @returns The submission result, with `{ holder, amount }` as the intent
    * output.
    */
   public async clawback(
     params: IOUClawbackParams,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<IOUClawbackIntent>> {
     await assertClawbackEnabled(this.host, this.issuer.address)
     const transaction: Clawback = {
@@ -237,6 +221,7 @@ export class IOU {
     const result = await submitTransaction(this.host, {
       transaction,
       account: this.issuer,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { holder: params.holder, amount: params.amount })
   }
@@ -245,11 +230,13 @@ export class IOU {
    * Send a specified amount of this IOU to a destination account.
    *
    * @param params - The destination and amount.
+   * @param options - Optional retry key (see {@link IOUWriteOptions}).
    * @returns The submission result, with `{ destination, amount }` as the
    * intent output.
    */
   public async transfer(
     params: IOUTransferParams,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<IOUTransferIntent>> {
     const amount: IssuedCurrencyAmount = {
       currency: this.currency,
@@ -264,6 +251,7 @@ export class IOU {
     const result = await submitTransaction(this.host, {
       transaction,
       account: this.issuer,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
       destination: params.destination,
@@ -275,37 +263,43 @@ export class IOU {
    * Place an order on the DEX to acquire more of this IOU.
    *
    * @param params - The amount to buy, order type, and price offered.
+   * @param options - Optional retry key (see {@link IOUWriteOptions}).
    * @returns The submission result.
    * @throws {@link IntentValidationError} if `params.price` is MPT-denominated.
    */
   public async buyOffer(
     params: IOUOfferParams,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<undefined>> {
-    return this.placeOffer(params, false)
+    return this.placeOffer(params, false, options)
   }
 
   /**
    * Place an order on the DEX to sell this IOU.
    *
    * @param params - The amount to sell, order type, and price wanted.
+   * @param options - Optional retry key (see {@link IOUWriteOptions}).
    * @returns The submission result.
    * @throws {@link IntentValidationError} if `params.price` is MPT-denominated.
    */
   public async sellOffer(
     params: IOUOfferParams,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<undefined>> {
-    return this.placeOffer(params, true)
+    return this.placeOffer(params, true, options)
   }
 
   /**
    * Cancel a standing offer placed by this IOU's issuer.
    *
    * @param params - The sequence number of the offer to cancel.
+   * @param options - Optional retry key (see {@link IOUWriteOptions}).
    * @returns The submission result, with `{ offerSequence }` as the intent
    * output.
    */
   public async cancelOffer(
     params: IOUCancelOfferParams,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<{ offerSequence: number }>> {
     const transaction: OfferCancel = {
       TransactionType: 'OfferCancel',
@@ -315,6 +309,7 @@ export class IOU {
     const result = await submitTransaction(this.host, {
       transaction,
       account: this.issuer,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
   }
@@ -324,11 +319,13 @@ export class IOU {
    *
    * @param params - The amount, order type, price, and domain options.
    * @param sell - Whether this is a sell offer.
+   * @param options - Optional retry key (see {@link IOUWriteOptions}).
    * @returns The submission result.
    */
   private async placeOffer(
     params: IOUOfferParams,
     sell: boolean,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<undefined>> {
     const own = {
       currency: this.currency,
@@ -349,8 +346,33 @@ export class IOU {
     const result = await submitTransaction(this.host, {
       transaction,
       account: this.issuer,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
+  }
+
+  /**
+   * Run an ordered two-step freeze/unfreeze on a holder's trust line. Each
+   * step is its own intent, auto-keyed for idempotency by the pipeline; a
+   * partial failure is resumed by re-running with the remaining flag (§8).
+   *
+   * @param holder - The holder whose trust line is (un)frozen.
+   * @param flags - The two `TrustSet` flags to apply, in order.
+   * @returns The last step's result, with `{ holder }` as the intent output.
+   * @throws {@link MultiStepFailureError} if either step fails.
+   */
+  private async runFreeze(
+    holder: string,
+    flags: readonly [XrplTrustSetFlags, XrplTrustSetFlags],
+  ): Promise<SubmissionResult<IOULockIntent>> {
+    const results = await runMultiStep(
+      this.host,
+      flags.map((flag) => ({
+        transaction: this.buildFreeze(holder, flag),
+        account: this.issuer,
+      })),
+    )
+    return withIntent(results[results.length - 1], { holder })
   }
 
   private buildFreeze(holder: string, flag: XrplTrustSetFlags): TrustSet {

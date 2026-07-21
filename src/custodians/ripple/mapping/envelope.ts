@@ -1,9 +1,8 @@
-import { randomUUID } from 'node:crypto'
-
 import type { Transaction } from 'xrpl'
 
 import type { FeeIntent } from '../../../domain/index.js'
 import type { components } from '../../../generated/custody.js'
+import { uuidV7 } from '../../../ids/index.js'
 import type { IntentSigner } from '../auth/intent-signer.js'
 
 import { buildCustomProperties } from './custom-properties.js'
@@ -40,9 +39,9 @@ export interface BuildEnvelopeOptions {
   /** Fee override; falls back to `Priority: Low` with no cap. */
   readonly fee?: FeeIntent
   /**
-   * Stable id making a retry resolve to the same intent. Generates a fresh id
-   * if omitted — a v4 placeholder; a later ticket replaces this with a real
-   * time-ordered UUIDv7.
+   * Stable id making a retry resolve to the same intent. Falls back to a fresh
+   * time-ordered {@link uuidV7} when omitted, though in practice the pipeline
+   * always supplies one so it is fixed before the intent is created.
    */
   readonly idempotencyKey?: string
 }
@@ -77,7 +76,7 @@ export function buildProposeIntentBody(
     type: 'XRPL',
   }
 
-  const intentId = options.idempotencyKey ?? randomUUID()
+  const intentId = options.idempotencyKey ?? uuidV7()
   const request = {
     author: { id: options.authorUserId, domainId: options.domainId },
     expiryAt: new Date(Date.now() + DEFAULT_EXPIRY_MS).toISOString(),

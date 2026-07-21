@@ -19,6 +19,7 @@ export type {
   IOUOrderType,
   IOUTransferIntent,
   IOUTransferParams,
+  IOUWriteOptions,
 } from './iou.js'
 export { IOUVertical } from './iou.vertical.js'
 export { Token } from './token.js'

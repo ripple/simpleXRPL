@@ -115,6 +115,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: extractMptIssuanceId(result) })
   }
@@ -224,6 +225,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
   }
@@ -256,6 +258,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { to: params.to, amount: params.amount.value })
   }
@@ -293,6 +296,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
   }
@@ -318,6 +322,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
   }
@@ -353,6 +358,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
   }
@@ -388,6 +394,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
       mptIssuanceId: params.mptIssuanceId,

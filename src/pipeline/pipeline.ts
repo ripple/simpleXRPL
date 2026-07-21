@@ -8,6 +8,7 @@ import type {
   SubmissionResult,
 } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
+import { uuidV7 } from '../ids/index.js'
 
 import { dispatch, isNativePath } from './dispatch.js'
 import type { SubmissionHost } from './host.js'
@@ -44,9 +45,14 @@ export interface SubmitRequest {
  * Sign+submit → Wait. Returns the custodian's transport result; callers attach
  * the vertical `intent` output via {@link withIntent}.
  *
+ * A stable idempotency id is generated here (a time-ordered UUIDv7) unless the
+ * caller supplied one, so it is fixed before the intent is created, surfaced on
+ * the result, and reused verbatim on a retry (§8) — resolving to the same
+ * intent instead of a duplicate.
+ *
  * @param host - The client subset the pipeline runs against.
  * @param request - The transaction, resolved account, and per-call options.
- * @returns The submission result.
+ * @returns The submission result, carrying the `idempotencyKey` used.
  * @throws {@link IntentValidationError} if protocol validation fails.
  * @throws {@link SignerCapabilityError} if the custodian cannot sign the transactor.
  */
@@ -64,16 +70,18 @@ export async function submitTransaction(
     ? transaction
     : await host.ledger.autofill(transaction)
 
+  const idempotencyKey = request.idempotencyKey ?? uuidV7()
   const context: SubmissionContext = {
     account,
     ledger: host.ledger,
     fee: request.fee,
     dryRun: request.dryRun,
     customProperties: request.customProperties,
-    idempotencyKey: request.idempotencyKey,
+    idempotencyKey,
     timeoutMs: request.timeoutMs,
   }
-  return account.signer.submitAndWait(resolved, context)
+  const result = await account.signer.submitAndWait(resolved, context)
+  return { ...result, idempotencyKey }
 }
 
 /**

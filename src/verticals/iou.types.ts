@@ -1,3 +1,17 @@
+/**
+ * Per-call options for single-step IOU verbs. IOU is an instantiated,
+ * issuer-bound vertical, so it exposes no `from`/`fee` here — only the retry
+ * key. Multi-step verbs (`issue`, `lock`, `unlock`) generate a fresh id per
+ * step instead, and are resumed by re-running the matching single-step verb (§8).
+ */
+export interface IOUWriteOptions {
+  /**
+   * A prior submission's `idempotencyKey` (from its result), to retry to the
+   * same intent instead of creating a duplicate (§8). Auto-generated when omitted.
+   */
+  readonly idempotencyKey?: string
+}
+
 /** Parameters for {@link IOUVertical.issue}. */
 export interface IOUIssueParams {
   /**
