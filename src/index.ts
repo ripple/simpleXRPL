@@ -17,6 +17,9 @@ export * from './client/index.js'
 // Local signing backend (wallets held in-process).
 export * from './custodians/local/index.js'
 
+// External signing backend (KMS/HSM — key never leaves the secure boundary).
+export * from './custodians/external/index.js'
+
 // Ripple Custody signing backend (native + raw-signing paths).
 export * from './custodians/ripple/index.js'
 

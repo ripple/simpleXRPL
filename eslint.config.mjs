@@ -45,7 +45,8 @@ export default [
       'import/extensions': 'off',
       'import/no-named-as-default': 'off',
       'multiline-comment-style': 'off',
-      'id-length': ['error', { exceptions: ['_'] }],
+      // `r` and `s` are the standard names for an ECDSA signature's scalars.
+      'id-length': ['error', { exceptions: ['_', 'r', 's'] }],
       'no-shadow': 'off',
       '@typescript-eslint/no-shadow': ['error'],
       'max-lines-per-function': [

@@ -7,7 +7,11 @@ import type { SignerCapabilities } from './capabilities.js'
 /**
  * The signing backend a custodian adapts.
  */
-export type CustodianKind = 'local' | 'ripple-custody' | 'palisade-custody'
+export type CustodianKind =
+  | 'local'
+  | 'ripple-custody'
+  | 'palisade-custody'
+  | 'external'
 
 /**
  * A custodian's opaque native identifier for an account: a string for
