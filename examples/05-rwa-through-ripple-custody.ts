@@ -1,0 +1,50 @@
+/**
+ * Issue a Real-World Asset (RWA) through Ripple Custody.
+ *
+ * RWAs are issued as Multi-Purpose Tokens (MPTs) via the `token` vertical.
+ * Metadata follows the XLS-89 standard and is validated before submission
+ * (`asset_class: 'rwa'` requires an `asset_subclass`). Here the issuer is a
+ * Ripple Custody account: Custody signs and submits the issuance as one
+ * governed action, subject to the domain's approval policy.
+ */
+import { RippleCustody, SimpleXRPL } from 'simplexrpl'
+
+// The Custody-held issuer account; Custody governs every write it signs.
+const ISSUER_ADDRESS = process.env.RIPPLE_CUSTODY_PRIMARY ?? ''
+
+// Config (gateway, token endpoint, domain, intent-author key) comes from
+// `RIPPLE_CUSTODY_*` environment variables via `fromEnv`.
+const custody = await RippleCustody.fromEnv({ primary: ISSUER_ADDRESS })
+
+const client = await SimpleXRPL.init({
+  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  signers: [custody],
+})
+
+const result = await client.token.issue(
+  {
+    metadata: {
+      ticker: 'TBILL',
+      name: 'Acme 3-Month T-Bill',
+      icon: 'https://acme.example/tbill.png',
+      asset_class: 'rwa',
+      asset_subclass: 'treasury',
+      issuer_name: 'Acme Capital',
+    },
+    // 2 decimal places of display precision.
+    assetScale: 2,
+    // 0.5% fee on secondary transfers.
+    transferFee: 0.5,
+    // Keep the issuer able to claw back (compliance); other capabilities on.
+    flags: { canClawback: true, canTransfer: true },
+  },
+  // Issue as the Custody account. Omit `from` to use the primary signer.
+  { from: ISSUER_ADDRESS },
+)
+
+// `MPTokenIssuanceCreate` is native to Ripple Custody, so this returns once the
+// governed action reaches a terminal state — or throws `IntentPendingError` if
+// it's still awaiting approval past the timeout.
+console.log('issued MPT:', result.intent.mptIssuanceId)
+
+await client.disconnect()

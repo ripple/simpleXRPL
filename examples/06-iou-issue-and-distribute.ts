@@ -1,0 +1,39 @@
+/**
+ * Issue and distribute an IOU (trust-line currency).
+ *
+ * `issue` bootstraps the issuer and a hot wallet from the environment
+ * (`XRPL_ISSUER_SEED`, `XRPL_HOT_WALLET_SEED`): the issuer enables rippling and
+ * the hot wallet extends a trust line. No value exists yet — `transfer` sends
+ * the currency out from the issuer. Every verb acts as the issuer, selected via
+ * `from` (defaults to the primary signer's account).
+ */
+import { LocalSigner, SimpleXRPL } from 'simplexrpl'
+
+const client = await SimpleXRPL.init({
+  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  signers: [LocalSigner.fromEnv()],
+})
+
+// 1. Issue. Returns the IOU id, e.g. "USD.rIssuer...".
+const issued = await client.iou.issue({ ticker: 'USD' })
+console.log('issued', issued.intent.iouID)
+
+// 2. Distribute: send 1,000 USD from the issuer to a holder. The holder must
+//    already trust the issuer for this currency (the hot wallet set up in step
+//    1 does; other holders extend their own trust line first).
+await client.iou.transfer({
+  ticker: 'USD',
+  destination: 'rHolder00000000000000000000000000000',
+  amount: 1000,
+})
+
+// 3. Optional issuer controls, all scoped to the same currency:
+//    - authorize a holder (when the issuer requires authorization)
+//    - lock / unlock a holder's line (reversible freeze)
+//    - clawback (requires clawback enabled before any trust lines exist)
+await client.iou.authorize({
+  ticker: 'USD',
+  holder: 'rHolder00000000000000000000000000000',
+})
+
+await client.disconnect()

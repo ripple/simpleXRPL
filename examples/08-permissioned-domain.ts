@@ -1,0 +1,44 @@
+/**
+ * Set up a permissioned domain and trade inside it.
+ *
+ * A permissioned domain restricts who can participate based on the credentials
+ * they hold. Create the domain with the credentials it accepts, then scope DEX
+ * offers to it with `domainID`.
+ */
+import { LocalSigner, SimpleXRPL } from 'simplexrpl'
+
+const client = await SimpleXRPL.init({
+  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  signers: [LocalSigner.fromEnv()],
+})
+
+// 1. Create the domain, listing the credentials it accepts (issuer + type).
+const domain = await client.domain.create({
+  credList: [
+    { issuer: 'rKycIssuer0000000000000000000000000', credType: 'KYC' },
+    { issuer: 'rAccreditation000000000000000000000', credType: 'ACCREDITED' },
+  ],
+})
+const domainID = domain.intent.domainID
+console.log('permissioned domain:', domainID)
+
+// 2. Update the accepted credentials later if the policy changes.
+await client.domain.setCredentials({
+  domain: domainID,
+  credList: [
+    { issuer: 'rKycIssuer0000000000000000000000000', credType: 'KYC' },
+  ],
+})
+
+// 3. Place a domain-scoped DEX offer. With `domainID` set, the offer defaults
+//    to hybrid (also crosses the open DEX) unless `hybrid: false` is passed.
+await client.iou.sellOffer({
+  ticker: 'USD',
+  amount: 100,
+  orderType: 'limit',
+  price: { currency: 'XRP', amount: 50 },
+  domainID,
+  hybrid: false, // permissioned-only: do not touch the open DEX
+})
+
+await client.disconnect()
