@@ -14,14 +14,14 @@ const PRIORITY_TO_CUSTODY: Readonly<
   high: 'High',
 }
 
-/** The fee strategy and cap for a write carrying no fee intent at all (TDD §7.4). */
+/** The fee strategy and cap for a write carrying no fee intent at all. */
 const DEFAULT_STRATEGY: XrplFeeStrategy = { type: 'Priority', priority: 'Low' }
 
 /**
  * Map the SDK's normalized {@link FeeIntent} to Custody's XRPL fee strategy
- * and cap (TDD §7.4). Custody's `feeStrategy` is mandatory on every intent, so
- * an absent or priority-less intent falls back to `Priority: Low` — matching
- * the reference SDK's own `options.feePriority ?? 'Low'` default.
+ * and cap. Custody's `feeStrategy` is mandatory on every intent, so an absent
+ * or priority-less intent falls back to `Priority: Low` — matching the
+ * reference SDK's own `options.feePriority ?? 'Low'` default.
  *
  * @param fee - The caller's (or custodian's configured default) fee intent.
  * @returns The Custody fee strategy and optional cap, ready to spread into a

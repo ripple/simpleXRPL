@@ -8,6 +8,7 @@ import type { IntentSigner } from '../auth/intent-signer.js'
 
 import { buildCustomProperties } from './custom-properties.js'
 import { toFeeStrategy } from './fee-strategy.js'
+import { toMemos } from './memos.js'
 import { txToOperation } from './xrpl-operations.js'
 
 type ProposeIntentBody = components['schemas']['Core_ProposeIntentBody']
@@ -19,9 +20,9 @@ const SECONDS_PER_MINUTE = 60
 const MINUTES_PER_HOUR = 60
 const HOURS_PER_DAY = 24
 /**
- * Default intent lifetime (TDD §10.1: "~1 day, overridable per call / at
- * init"). No override knob yet — that lands with the async/governance
- * refinements in DGE-7466.
+ * Default intent lifetime: ~1 day, meant to be overridable per call or at
+ * client init. No override knob yet — that lands with a later async/governance
+ * refinement.
  */
 const DEFAULT_EXPIRY_MS =
   HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND
@@ -39,20 +40,20 @@ export interface BuildEnvelopeOptions {
   /** Fee override; falls back to `Priority: Low` with no cap. */
   readonly fee?: FeeIntent
   /**
-   * Stable id making a retry resolve to the same intent (TDD §8). Generates a
-   * fresh id if omitted — a v4 placeholder; DGE-7472 replaces this with a
-   * real time-ordered UUIDv7.
+   * Stable id making a retry resolve to the same intent. Generates a fresh id
+   * if omitted — a v4 placeholder; a later ticket replaces this with a real
+   * time-ordered UUIDv7.
    */
   readonly idempotencyKey?: string
 }
 
 /**
- * Build and sign a `v0_CreateTransactionOrder` intent envelope (TDD §7.2,
- * §7.5): map the transaction to Custody's native operation, attach the fee
- * strategy and a human-readable `customProperties` summary, then sign the
- * canonicalized request with the intent-author key.
+ * Build and sign a `v0_CreateTransactionOrder` intent envelope: map the
+ * transaction to Custody's native operation, attach the fee strategy and a
+ * human-readable `customProperties` summary, then sign the canonicalized
+ * request with the intent-author key.
  *
- * @param intentSigner - Signs the canonicalized request (DGE-7462).
+ * @param intentSigner - Signs the canonicalized request.
  * @param options - The domain, author, account, transaction, and fee.
  * @returns The signed `{ request, signature }` body ready to POST to
  * `/v1/intents`.
@@ -70,7 +71,8 @@ export function buildProposeIntentBody(
   const parameters: TransactionOrderParametersXrpl = {
     feeStrategy,
     maximumFee,
-    memos: [],
+    memos: toMemos(options.transaction),
+    sourceTag: options.transaction.SourceTag,
     operation,
     type: 'XRPL',
   }

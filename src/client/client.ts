@@ -12,7 +12,7 @@ import {
   AccountVertical,
   Credential,
   Domain,
-  IOUVertical,
+  IOU,
   Token,
   XRP,
 } from '../verticals/index.js'
@@ -52,8 +52,8 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Native-XRP value transfers. */
   public readonly xrp: XRP
 
-  /** Issued-currency (IOU) issuance; `issue()` returns the lifecycle handle. */
-  public readonly iou: IOUVertical
+  /** Issued-currency (IOU) verbs: issue, transfer, authorize, lock, offers. */
+  public readonly iou: IOU
 
   /** Multi-Purpose Token (MPT) family and DEX offers. */
   public readonly token: Token
@@ -89,7 +89,7 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.accountIndex = state.accountIndex
     this.ledgerInstance = state.ledger
     this.xrp = new XRP(this)
-    this.iou = new IOUVertical(this)
+    this.iou = new IOU(this)
     this.token = new Token(this)
     this.credential = new Credential(this)
     this.domain = new Domain(this)

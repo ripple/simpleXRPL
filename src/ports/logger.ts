@@ -24,6 +24,8 @@ export interface Logger {
 /**
  * Field names a logger implementation must redact, so credentials and tokens
  * are never written to logs.
+ *
+ * @internal
  */
 export const REDACTED_FIELDS: readonly string[] = [
   'signingKey',

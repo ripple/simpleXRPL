@@ -11,16 +11,18 @@ export type {
   IOUCancelOfferParams,
   IOUClawbackIntent,
   IOUClawbackParams,
+  IOUIssueIntent,
   IOUIssueParams,
   IOULockIntent,
   IOULockParams,
   IOUOfferParams,
   IOUOfferPrice,
   IOUOrderType,
+  IOURef,
   IOUTransferIntent,
   IOUTransferParams,
-} from './iou.js'
-export { IOUVertical } from './iou.vertical.js'
+  IOUWriteOptions,
+} from './iou.types.js'
 export { Token } from './token.js'
 export { validateTokenMetadata } from './token.helpers.js'
 export type {

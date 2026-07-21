@@ -27,27 +27,58 @@ function describeAmount(amount: unknown): string | undefined {
   return undefined
 }
 
+/** Amount-shaped fields, keyed by the `customProperties` name they surface as. */
+const AMOUNT_FIELDS = [
+  ['amount', 'Amount'],
+  ['limitAmount', 'LimitAmount'],
+  ['takerGets', 'TakerGets'],
+  ['takerPays', 'TakerPays'],
+] as const
+
+/**
+ * Identifying string fields, surfaced verbatim so an approver can tell two
+ * otherwise-similar transactions apart (e.g. which holder is being authorized).
+ */
+const STRING_FIELDS = [
+  ['destination', 'Destination'],
+  ['authorize', 'Authorize'],
+  ['unauthorize', 'Unauthorize'],
+  ['holder', 'Holder'],
+  ['owner', 'Owner'],
+  ['regularKey', 'RegularKey'],
+  ['mptIssuanceId', 'MPTokenIssuanceID'],
+  ['domainId', 'DomainID'],
+] as const
+
 /**
  * Build the free-form, human-readable `customProperties` block Custody
- * displays to approvers but never validates (TDD §7.5). Not a public
- * contract — approvers see plain text, so this only needs to be legible, not
+ * displays to approvers but never validates. Not a public contract —
+ * approvers see plain text, so this only needs to be legible, not
  * machine-parseable.
  *
  * @param tx - The transaction the intent wraps.
- * @returns A small string-valued summary (verb, account, destination, amount).
+ * @returns A small string-valued summary describing the transaction (verb,
+ * account, and the fields most relevant to that transactor).
  */
 export function buildCustomProperties(tx: Transaction): StringsMap {
   const props: Record<string, string> = {
     transactionType: tx.TransactionType,
     account: tx.Account,
   }
-  if ('Destination' in tx && typeof tx.Destination === 'string') {
-    props.destination = tx.Destination
+  for (const [propName, field] of STRING_FIELDS) {
+    if (field in tx) {
+      const value = tx[field]
+      if (typeof value === 'string') {
+        props[propName] = value
+      }
+    }
   }
-  if ('Amount' in tx) {
-    const description = describeAmount(tx.Amount)
-    if (description !== undefined) {
-      props.amount = description
+  for (const [propName, field] of AMOUNT_FIELDS) {
+    if (field in tx) {
+      const description = describeAmount(tx[field])
+      if (description !== undefined) {
+        props[propName] = description
+      }
     }
   }
   return props

@@ -37,11 +37,11 @@ export const NATIVE_XRPL_TRANSACTORS: ReadonlySet<
 ])
 
 /**
- * Map a built xrpl.js transaction to Custody's native operation shape (TDD
- * §7.2 — "the per-transactor switch"). Only the 11 transactors in
+ * Map a built xrpl.js transaction to Custody's native operation shape — the
+ * per-transactor switch. Only the 11 transactors in
  * {@link NATIVE_XRPL_TRANSACTORS} are supported; within a supported
  * transactor, fields Custody's schema has no slot for throw
- * {@link SignerCapabilityError} rather than being silently dropped (TDD §7.3).
+ * {@link SignerCapabilityError} rather than being silently dropped.
  *
  * @param tx - The transaction to map.
  * @returns The Custody native operation.

@@ -20,6 +20,9 @@ export * from './custodians/local/index.js'
 // Ripple Custody signing backend (native + raw-signing paths).
 export * from './custodians/ripple/index.js'
 
+// Palisade custodian (native Submit* mapping + raw sign-only path).
+export * from './custodians/palisade/index.js'
+
 // Amount & asset model (XRP / IOU / MPT representation + decimal/scale conversion).
 export * from './amount/index.js'
 

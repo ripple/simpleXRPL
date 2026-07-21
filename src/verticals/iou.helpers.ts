@@ -11,6 +11,7 @@ import type {
   OfferCreate,
   Payment,
   TrustSet,
+  TrustSetFlags as XrplTrustSetFlags,
 } from 'xrpl'
 
 import { LocalSigner } from '../custodians/local/index.js'
@@ -210,6 +211,29 @@ export function buildTrustSet(
     TransactionType: 'TrustSet',
     Account: account,
     LimitAmount: limitAmount,
+  }
+}
+
+/**
+ * Build a single-flag `TrustSet` freeze/unfreeze on a holder's trust line.
+ *
+ * @param issuerAddress - The issuer's r-address (the signing account).
+ * @param currency - The encoded currency code.
+ * @param target - The holder and the freeze flag to apply.
+ * @param target.holder - The holder's r-address whose line is (un)frozen.
+ * @param target.flag - The `TrustSet` freeze flag to apply.
+ * @returns The built `TrustSet`.
+ */
+export function buildFreeze(
+  issuerAddress: string,
+  currency: string,
+  target: { holder: string; flag: XrplTrustSetFlags },
+): TrustSet {
+  return {
+    TransactionType: 'TrustSet',
+    Account: issuerAddress,
+    LimitAmount: { currency, issuer: target.holder, value: '0' },
+    Flags: target.flag,
   }
 }
 
