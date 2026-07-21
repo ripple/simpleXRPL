@@ -213,9 +213,39 @@ describe('LocalSigner', () => {
       )
     })
 
-    it('does not yet implement submitAsync', async () => {
-      const signer = LocalSigner.fromSeed(Wallet.generate().seed as string)
-      await expect(signer.submitAsync()).rejects.toBeInstanceOf(SimpleXRPLError)
+    it('submitAsync returns a pre-resolved handle over the submitted transaction', async () => {
+      const wallet = Wallet.generate()
+      const signer = LocalSigner.fromSeed(wallet.seed as string)
+      const tx = paymentFrom(
+        wallet.classicAddress,
+        Wallet.generate().classicAddress,
+      )
+      const ctx = {
+        account: { address: wallet.classicAddress, signer },
+        ledger: {
+          async submitAndWait(blob: string) {
+            return {
+              result: {
+                hash: 'LOCALHASH',
+                meta: { TransactionResult: 'tesSUCCESS' },
+              },
+              blob,
+            }
+          },
+        },
+      } as unknown as SubmissionContext
+
+      const handle = await signer.submitAsync(tx, ctx)
+
+      expect(handle.kind).toBe('local')
+      expect(handle.id).toBe('LOCALHASH')
+      expect(handle.custodian).toBe(signer)
+      // Local is terminal immediately: poll and wait yield the same result.
+      const polled = await handle.poll()
+      const waited = await handle.wait()
+      expect(polled.txHash).toBe('LOCALHASH')
+      expect(waited.txHash).toBe('LOCALHASH')
+      expect(polled).toStrictEqual(waited)
     })
   })
 })
