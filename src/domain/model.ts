@@ -133,6 +133,13 @@ export interface SubmissionResultFields<T> {
 
   /** XRPL transaction hash once the transaction is on-ledger. */
   readonly txHash?: string
+
+  /**
+   * The stable, client-generated id (a UUIDv7) this submission carried (§8).
+   * Re-submitting with the same id resolves to the same intent rather than
+   * creating a duplicate; pass it back as a verb's `idempotencyKey` to retry.
+   */
+  readonly idempotencyKey?: string
 }
 
 /**

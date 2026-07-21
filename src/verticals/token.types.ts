@@ -10,6 +10,12 @@ export interface TokenWriteOptions {
 
   /** Fee override. */
   readonly fee?: FeeIntent
+
+  /**
+   * A prior submission's `idempotencyKey` (from its result), to retry to the
+   * same intent instead of creating a duplicate (§8). Auto-generated when omitted.
+   */
+  readonly idempotencyKey?: string
 }
 
 /** Capability flags for an MPT issuance. */

@@ -112,7 +112,8 @@ export class IOU {
    * use {@link IOU.lock} instead.
    *
    * @param params - The IOU and the holder to authorize.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The submission result, with `{ holder }` as the intent output.
    */
   public async authorize(
@@ -134,6 +135,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { holder: params.holder })
   }
@@ -143,7 +145,8 @@ export class IOU {
    * Freeze followed by Deep Freeze.
    *
    * @param params - The IOU and the holder to lock.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The last step's submission result, with `{ holder }` as the
    * intent output.
    * @throws {@link MultiStepFailureError} if either step fails.
@@ -164,7 +167,8 @@ export class IOU {
    * Freeze then Individual Freeze.
    *
    * @param params - The IOU and the holder to unlock.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The last step's submission result, with `{ holder }` as the
    * intent output.
    * @throws {@link MultiStepFailureError} if either step fails.
@@ -189,7 +193,8 @@ export class IOU {
    * objects, which this SDK does not itself pre-check.
    *
    * @param params - The IOU, holder, and amount to claw back.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The submission result, with `{ holder, amount }` as the intent
    * output.
    */
@@ -212,6 +217,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { holder: params.holder, amount: params.amount })
   }
@@ -220,7 +226,8 @@ export class IOU {
    * Send a specified amount of this IOU to a destination account.
    *
    * @param params - The IOU, destination, and amount.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The submission result, with `{ destination, amount }` as the
    * intent output.
    */
@@ -243,6 +250,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
       destination: params.destination,
@@ -254,7 +262,8 @@ export class IOU {
    * Place an order on the DEX to acquire more of this IOU.
    *
    * @param params - The IOU, amount to buy, order type, and price offered.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The submission result.
    * @throws {@link IntentValidationError} if `params.price` is MPT-denominated.
    */
@@ -269,7 +278,8 @@ export class IOU {
    * Place an order on the DEX to sell this IOU.
    *
    * @param params - The IOU, amount to sell, order type, and price wanted.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The submission result.
    * @throws {@link IntentValidationError} if `params.price` is MPT-denominated.
    */
@@ -284,7 +294,8 @@ export class IOU {
    * Cancel a standing offer placed by this IOU's issuer.
    *
    * @param params - The sequence number of the offer to cancel.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The submission result, with `{ offerSequence }` as the intent
    * output.
    */
@@ -302,6 +313,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
   }
@@ -340,7 +352,8 @@ export class IOU {
    *
    * @param params - The amount, order type, price, and domain options.
    * @param sell - Whether this is a sell offer.
-   * @param options - Issuer account and fee override.
+   * @param options - Issuer account, fee override, and idempotency key (see
+   * {@link IOUWriteOptions}).
    * @returns The submission result.
    */
   private async placeOffer(
@@ -369,6 +382,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
   }

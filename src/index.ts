@@ -39,6 +39,9 @@ export * from './ledger/index.js'
 // Pipeline machinery (dispatch, submission host) — advanced / testing seams.
 export * from './pipeline/index.js'
 
+// Client-generated id generation (time-ordered UUIDv7 for idempotency).
+export * from './ids/index.js'
+
 // Internal domain model: the Custodian seam, accounts, capabilities, and the
 // typed submission result.
 export * from './domain/index.js'

@@ -133,6 +133,7 @@ export class AccountVertical {
       transaction: payment,
       account: operator,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return this.set(
       { defaultRipple: true },
@@ -184,6 +185,7 @@ export class AccountVertical {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
   }
@@ -211,6 +213,7 @@ export class AccountVertical {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
   }
@@ -241,6 +244,7 @@ export class AccountVertical {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
   }
