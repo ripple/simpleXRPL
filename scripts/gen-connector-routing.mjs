@@ -70,7 +70,11 @@ const PALISADE = new Set(
 const byVertical = verticalTransactors()
 
 const universe = [
-  ...new Set([...RIPPLE, ...PALISADE, ...[...byVertical.values()].flatMap((s) => [...s])]),
+  ...new Set([
+    ...RIPPLE,
+    ...PALISADE,
+    ...[...byVertical.values()].flatMap((s) => [...s]),
+  ]),
 ].sort((a, b) => a.localeCompare(b))
 
 /**
