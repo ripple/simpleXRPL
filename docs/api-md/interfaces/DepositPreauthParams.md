@@ -1,6 +1,6 @@
 # Interface: DepositPreauthParams
 
-Defined in: [src/verticals/account.types.ts:90](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.types.ts#L90)
+Defined in: [verticals/account.types.ts:96](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L96)
 
 Parameters for `Account.depositPreauth`.
 
@@ -10,7 +10,7 @@ Parameters for `Account.depositPreauth`.
 
 > `readonly` `optional` **authorize**: `string`
 
-Defined in: [src/verticals/account.types.ts:92](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.types.ts#L92)
+Defined in: [verticals/account.types.ts:98](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L98)
 
 An r-address to preauthorize for deposits.
 
@@ -20,6 +20,6 @@ An r-address to preauthorize for deposits.
 
 > `readonly` `optional` **unauthorize**: `string`
 
-Defined in: [src/verticals/account.types.ts:94](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.types.ts#L94)
+Defined in: [verticals/account.types.ts:100](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L100)
 
 An r-address to remove preauthorization from.

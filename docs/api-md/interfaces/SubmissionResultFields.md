@@ -1,6 +1,6 @@
 # Interface: SubmissionResultFields\<T\>
 
-Defined in: [src/domain/model.ts:127](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L127)
+Defined in: [domain/model.ts:131](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L131)
 
 Fields shared by every [SubmissionResult](../type-aliases/SubmissionResult.md) variant.
 
@@ -12,11 +12,23 @@ Fields shared by every [SubmissionResult](../type-aliases/SubmissionResult.md) v
 
 ## Properties
 
+### idempotencyKey?
+
+> `readonly` `optional` **idempotencyKey**: `string`
+
+Defined in: [domain/model.ts:146](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L146)
+
+The stable, client-generated id (a UUIDv7) this submission carried (§8).
+Re-submitting with the same id resolves to the same intent rather than
+creating a duplicate; pass it back as a verb's `idempotencyKey` to retry.
+
+***
+
 ### intent
 
 > `readonly` **intent**: `T`
 
-Defined in: [src/domain/model.ts:129](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L129)
+Defined in: [domain/model.ts:133](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L133)
 
 Vertical-specific output (e.g. a minted token id).
 
@@ -26,7 +38,7 @@ Vertical-specific output (e.g. a minted token id).
 
 > `readonly` `optional` **intentId**: `string`
 
-Defined in: [src/domain/model.ts:132](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L132)
+Defined in: [domain/model.ts:136](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L136)
 
 Custodian intent id, when the path produced one.
 
@@ -36,6 +48,6 @@ Custodian intent id, when the path produced one.
 
 > `readonly` `optional` **txHash**: `string`
 
-Defined in: [src/domain/model.ts:135](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L135)
+Defined in: [domain/model.ts:139](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L139)
 
 XRPL transaction hash once the transaction is on-ledger.

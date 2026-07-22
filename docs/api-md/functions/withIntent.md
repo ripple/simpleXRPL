@@ -2,7 +2,7 @@
 
 > **withIntent**\<`T`\>(`result`, `intent`): [`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`T`\>
 
-Defined in: [src/pipeline/wrap.ts:11](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/wrap.ts#L11)
+Defined in: [pipeline/wrap.ts:11](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/wrap.ts#L11)
 
 Attach a vertical's typed `intent` output to a custodian's transport result,
 preserving the discriminated `source`/`response` pairing.

@@ -1,7 +1,7 @@
 # Type Alias: CustodianKind
 
-> **CustodianKind**: `"local"` \| `"ripple-custody"` \| `"palisade-custody"`
+> **CustodianKind**: `"local"` \| `"ripple-custody"` \| `"palisade-custody"` \| `"external"`
 
-Defined in: [src/domain/model.ts:10](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L10)
+Defined in: [domain/model.ts:10](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L10)
 
 The signing backend a custodian adapts.

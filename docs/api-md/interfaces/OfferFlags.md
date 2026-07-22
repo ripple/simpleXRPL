@@ -1,6 +1,6 @@
 # Interface: OfferFlags
 
-Defined in: [src/verticals/token.types.ts:86](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L86)
+Defined in: [verticals/token.types.ts:92](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L92)
 
 Flags for `Token.createOffer`.
 
@@ -10,7 +10,7 @@ Flags for `Token.createOffer`.
 
 > `readonly` `optional` **fillOrKill**: `boolean`
 
-Defined in: [src/verticals/token.types.ts:92](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L92)
+Defined in: [verticals/token.types.ts:98](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L98)
 
 Consume the full amount or cancel entirely.
 
@@ -20,7 +20,7 @@ Consume the full amount or cancel entirely.
 
 > `readonly` `optional` **immediateOrCancel**: `boolean`
 
-Defined in: [src/verticals/token.types.ts:90](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L90)
+Defined in: [verticals/token.types.ts:96](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L96)
 
 Consume matching offers immediately; never place the remainder.
 
@@ -30,7 +30,7 @@ Consume matching offers immediately; never place the remainder.
 
 > `readonly` `optional` **passive**: `boolean`
 
-Defined in: [src/verticals/token.types.ts:88](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L88)
+Defined in: [verticals/token.types.ts:94](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L94)
 
 Do not consume offers that exactly match.
 
@@ -40,6 +40,6 @@ Do not consume offers that exactly match.
 
 > `readonly` `optional` **sell**: `boolean`
 
-Defined in: [src/verticals/token.types.ts:94](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L94)
+Defined in: [verticals/token.types.ts:100](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L100)
 
 Interpret the offer as selling `TakerGets`.
