@@ -26,3 +26,15 @@ account (and, for the Palisade samples, sandbox credentials).
 | [07-place-dex-order.ts](./07-place-dex-order.ts) | Placing DEX orders (IOU offers and generic token offers) |
 | [08-permissioned-domain.ts](./08-permissioned-domain.ts) | Creating a permissioned domain and scoping an offer to it |
 | [09-cross-custodian-workflow.ts](./09-cross-custodian-workflow.ts) | Sequencing work across two custodians — Ripple Custody + Palisade — via vertical verbs and `runMultiStep` |
+
+## External signing (KMS / HSM)
+
+Keys held outside the process sign through the `ExternalSigner` connector. AWS
+KMS has a built-in adapter (`import { AwsKmsSigner } from 'simplexrpl/aws-kms'`);
+for an HSM you implement the same `ExternalSignerPort` seam.
+
+| File | Shows |
+| ---- | ----- |
+| [10-hsm-pkcs11-signer.ts](./10-hsm-pkcs11-signer.ts) | Bring-your-own PKCS#11 HSM signer — implementing `ExternalSignerPort` (secp256k1) against your device |
+| [11-kms-signer.ts](./11-kms-signer.ts) | Signing with an AWS KMS-held key via the built-in `simplexrpl/aws-kms` adapter |
+| [12-external-signer-mock.ts](./12-external-signer-mock.ts) | **Runnable**: a mock in-process signer that signs & submits a real transfer, shown for both secp256k1 and ed25519 |

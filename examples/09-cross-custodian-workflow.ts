@@ -16,7 +16,7 @@ import {
   runMultiStep,
   SimpleXRPL,
 } from 'simplexrpl'
-import type { Payment } from 'xrpl'
+import type { Transaction } from 'simplexrpl'
 
 // A common institutional split: the issuer is held in Ripple Custody (governed
 // approvals), the distribution/hot wallet in Palisade. One client drives both.
@@ -52,13 +52,13 @@ await client.xrp.transfer(
 )
 
 // --- Approach 2: an ordered multi-step workflow across both ----------------
-const stepOne: Payment = {
+const stepOne: Transaction = {
   TransactionType: 'Payment',
   Account: issuer.address,
   Destination: 'rBeneficiary00000000000000000000000',
   Amount: '1000000',
 }
-const stepTwo: Payment = {
+const stepTwo: Transaction = {
   TransactionType: 'Payment',
   Account: hotWallet.address,
   Destination: 'rBeneficiary00000000000000000000000',

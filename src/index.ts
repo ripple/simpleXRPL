@@ -17,6 +17,9 @@ export * from './client/index.js'
 // Local signing backend (wallets held in-process).
 export * from './custodians/local/index.js'
 
+// External signing backend (KMS/HSM — key never leaves the secure boundary).
+export * from './custodians/external/index.js'
+
 // Ripple Custody signing backend (native + raw-signing paths).
 export * from './custodians/ripple/index.js'
 
@@ -52,3 +55,8 @@ export * from './errors.js'
 
 // Injected I/O ports (HTTP, ledger, clock, logger) — advanced / testing seams.
 export * from './ports/index.js'
+
+// Re-exported `xrpl` types that appear in this SDK's public API (LedgerPort,
+// SubmitRequest, SubmissionResult, Custodian) so callers can build on those
+// seams without depending on `xrpl` directly.
+export type { SubmitResponse, Transaction, TxResponse } from 'xrpl'

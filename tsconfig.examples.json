@@ -4,7 +4,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "simplexrpl": ["./src/index.ts"]
+      "simplexrpl": ["./src/index.ts"],
+      "simplexrpl/aws-kms": ["./src/custodians/external/adapters/aws-kms.ts"]
     },
     "noUnusedLocals": false,
     "noUnusedParameters": false

@@ -45,7 +45,9 @@ export default [
       'import/extensions': 'off',
       'import/no-named-as-default': 'off',
       'multiline-comment-style': 'off',
-      'id-length': ['error', { exceptions: ['_'] }],
+      // `r`/`s` (ECDSA signature scalars) and `x`/`y` (EC point coordinates)
+      // are the standard one-letter names in elliptic-curve code.
+      'id-length': ['error', { exceptions: ['_', 'r', 's', 'x', 'y'] }],
       'no-shadow': 'off',
       '@typescript-eslint/no-shadow': ['error'],
       'max-lines-per-function': [
