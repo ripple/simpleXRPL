@@ -12,7 +12,8 @@ import type {
   Secp256k1SignerPort,
 } from '../external-signer-port.js'
 
-/** DER INTEGER tag and the SEQUENCE/INTEGER header size (tag + 1-byte length). */
+/** DER tags and the SEQUENCE/INTEGER header size (tag + 1-byte length). */
+const DER_SEQUENCE = 0x30
 const DER_INTEGER = 0x02
 const DER_HEADER = 2
 /** Compressed-point prefixes: `02` for an even `y`, `03` for odd. */
@@ -59,11 +60,19 @@ function readDerInteger(
  *
  * @param der - The DER signature bytes.
  * @returns The `{ r, s }` scalars.
+ * @throws {@link SimpleXRPLError} if the bytes are not a well-formed two-INTEGER sequence.
  */
 function derToScalars(der: Uint8Array): EcdsaSignature {
   const buffer = Buffer.from(der)
+  if (buffer[0] !== DER_SEQUENCE) {
+    throw new SimpleXRPLError('Malformed DER signature from AWS KMS')
+  }
   const first = readDerInteger(buffer, DER_HEADER)
   const second = readDerInteger(buffer, first.next)
+  // Both INTEGERs must consume exactly the SEQUENCE body — no trailing bytes.
+  if (second.next !== buffer.length) {
+    throw new SimpleXRPLError('Malformed DER signature from AWS KMS')
+  }
   return { r: first.value, s: second.value }
 }
 

@@ -8,7 +8,7 @@ import { decode, deriveAddress, encodeForSigning } from 'xrpl'
 import type { Payment, Transaction, TxResponse } from 'xrpl'
 
 import { AwsKmsSigner } from '../../../../src/custodians/external/adapters/aws-kms.js'
-import { ExternalSigner } from '../../../../src/index.js'
+import { ExternalSigner, SimpleXRPLError } from '../../../../src/index.js'
 import type { LedgerPort, SubmissionContext } from '../../../../src/index.js'
 
 const PRIV = Uint8Array.from(
@@ -101,6 +101,22 @@ describe('AwsKmsSigner', () => {
     expect(fake.lastSign?.input.KeyId).toBe('my-key')
     expect(fake.lastSign?.input.MessageType).toBe('DIGEST')
     expect(fake.lastSign?.input.SigningAlgorithm).toBe('ECDSA_SHA_256')
+  })
+
+  it('rejects a malformed DER signature from KMS', async () => {
+    const client = {
+      async send(command: GetPublicKeyCommand | SignCommand) {
+        if (command instanceof GetPublicKeyCommand) {
+          return { PublicKey: spkiDer() }
+        }
+        // Bytes that are not a two-INTEGER SEQUENCE (no 0x30 tag).
+        return { Signature: Uint8Array.from([0x02, 0x01, 0x00]) }
+      },
+    } as unknown as KMSClient
+    const signer = AwsKmsSigner.create({ keyId: 'k', client })
+    await expect(
+      signer.signDigest(Uint8Array.from(Buffer.alloc(32, 7))),
+    ).rejects.toBeInstanceOf(SimpleXRPLError)
   })
 
   it('drives ExternalSigner to a verifiable on-ledger signature', async () => {

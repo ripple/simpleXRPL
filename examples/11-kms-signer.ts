@@ -25,8 +25,9 @@ const client = await SimpleXRPL.init({
 })
 
 // The KMS account signs like any other connector — build, sign (in KMS), submit.
+// Replace with a real, funded destination r-address.
 const result = await client.xrp.transfer({
-  to: 'rDestination00000000000000000000000',
+  to: 'rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe',
   amount: '10',
 })
 console.log('submitted via KMS-held key:', result.txHash)
