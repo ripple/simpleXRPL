@@ -1,0 +1,34 @@
+/**
+ * Sign with a key held in AWS KMS.
+ *
+ * simpleXRPL ships an AWS KMS adapter as a subpath import. The private key
+ * stays in KMS and never enters the process: the SDK hands KMS a digest and
+ * assembles the signature. Requires the optional peer dependency
+ * `@aws-sdk/client-kms` and an `ECC_SECG_P256K1` (secp256k1) KMS key.
+ *
+ * Credentials come from the standard AWS chain (env vars, shared profile, or an
+ * instance/role). This drops into your app once those and the key id are set.
+ */
+import { AwsKmsSigner } from 'simplexrpl/aws-kms'
+import { ExternalSigner, SimpleXRPL } from 'simplexrpl'
+
+// The KMS-backed signer. Its XRPL account is derived from the key's public key.
+const signer = AwsKmsSigner.create({
+  keyId: process.env.AWS_KMS_KEY_ID ?? '',
+  region: process.env.AWS_REGION ?? 'us-east-1',
+})
+const custody = await ExternalSigner.create({ signer })
+
+const client = await SimpleXRPL.init({
+  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  signers: [custody],
+})
+
+// The KMS account signs like any other connector — build, sign (in KMS), submit.
+const result = await client.xrp.transfer({
+  to: 'rDestination00000000000000000000000',
+  amount: '10',
+})
+console.log('submitted via KMS-held key:', result.txHash)
+
+await client.disconnect()

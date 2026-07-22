@@ -7,7 +7,9 @@ import type { SignedEnvelope } from '../../domain/index.js'
 
 import type {
   EcdsaSignature,
+  Ed25519SignerPort,
   ExternalSignerPort,
+  Secp256k1SignerPort,
 } from './external-signer-port.js'
 
 /** The order of the secp256k1 curve. */
@@ -95,12 +97,45 @@ function derEncode(signature: EcdsaSignature): string {
 }
 
 /**
+ * Produce the `TxnSignature` hex for a secp256k1 key: hash the signing data to
+ * XRPL's SHA-512Half digest, delegate to the port, normalize to low-S, then
+ * DER-encode.
+ *
+ * @param signingDataHex - The hex from `encodeForSigning`.
+ * @param port - The secp256k1 external signer.
+ * @returns The uppercase DER signature hex.
+ */
+async function secp256k1Signature(
+  signingDataHex: string,
+  port: Secp256k1SignerPort,
+): Promise<string> {
+  const signature = await port.signDigest(signingDigest(signingDataHex))
+  return derEncode({ r: signature.r, s: normalizeLowS(signature.s) })
+}
+
+/**
+ * Produce the `TxnSignature` hex for an ed25519 key: sign the signing-data
+ * bytes directly (ed25519 hashes internally) and hex-encode the 64-byte result.
+ *
+ * @param signingDataHex - The hex from `encodeForSigning`.
+ * @param port - The ed25519 external signer.
+ * @returns The uppercase signature hex.
+ */
+async function ed25519Signature(
+  signingDataHex: string,
+  port: Ed25519SignerPort,
+): Promise<string> {
+  const signature = await port.signMessage(Buffer.from(signingDataHex, 'hex'))
+  return Buffer.from(signature).toString('hex').toUpperCase()
+}
+
+/**
  * Sign a transaction with an external (KMS/HSM) key: set the signing public
- * key, hash the signing data, delegate the digest to the port, then normalize,
- * DER-encode, attach, and serialize. The private key never enters the process.
+ * key, produce the scheme-specific signature via the port (the private key
+ * never enters the process), attach it, and serialize.
  *
  * @param tx - The autofilled transaction to sign.
- * @param publicKeyHex - The signer's XRPL-format compressed public key.
+ * @param publicKeyHex - The signer's XRPL-format public key.
  * @param port - The external signer.
  * @returns The signed envelope (blob + hash).
  */
@@ -110,12 +145,11 @@ export async function signTransactionExternally(
   port: ExternalSignerPort,
 ): Promise<SignedEnvelope> {
   const toSign = { ...tx, SigningPubKey: publicKeyHex }
-  const digest = signingDigest(encodeForSigning(toSign))
-  const signature = await port.signDigest(digest)
-  const txnSignature = derEncode({
-    r: signature.r,
-    s: normalizeLowS(signature.s),
-  })
+  const signingDataHex = encodeForSigning(toSign)
+  const txnSignature =
+    port.algorithm === 'ed25519'
+      ? await ed25519Signature(signingDataHex, port)
+      : await secp256k1Signature(signingDataHex, port)
   const txBlob = encode({ ...toSign, TxnSignature: txnSignature })
   return { txBlob, hash: hashes.hashSignedTx(txBlob) }
 }

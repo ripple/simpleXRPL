@@ -1,3 +1,4 @@
+import { ed25519 } from '@noble/curves/ed25519'
 import { secp256k1 } from '@noble/curves/secp256k1'
 import { verify } from 'ripple-keypairs'
 import { decode, deriveAddress, encodeForSigning, Wallet } from 'xrpl'
@@ -11,6 +12,7 @@ import {
 } from '../../../../src/index.js'
 import type {
   EcdsaSignature,
+  Ed25519SignerPort,
   ExternalSignerPort,
   LedgerPort,
   SubmissionContext,
@@ -47,6 +49,30 @@ function fakePort(highS = false): ExternalSignerPort {
       const sNorm = highS ? SECP256K1_N - sig.s : sig.s
       return { r: sig.r, s: sNorm }
     },
+  }
+}
+
+// A fixed ed25519 test key. XRPL prefixes the 32-byte public key with `ED`.
+const ED_PRIV = Uint8Array.from(
+  Buffer.from(
+    '9d61b19deffebc3a6c1f6b2d7e5f8a0b1c2d3e4f5061728394a5b6c7d8e9f001',
+    'hex',
+  ),
+)
+const ED_PUB_HEX =
+  `ED${Buffer.from(ed25519.getPublicKey(ED_PRIV)).toString('hex')}`.toUpperCase()
+
+/**
+ * A fake ed25519 external signer backed by the test key.
+ *
+ * @returns An {@link Ed25519SignerPort} over the ed25519 test key.
+ */
+function fakeEd25519Port(): Ed25519SignerPort {
+  return {
+    algorithm: 'ed25519',
+    publicKey: async (): Promise<string> => ED_PUB_HEX,
+    signMessage: async (message: Uint8Array): Promise<Uint8Array> =>
+      ed25519.sign(message, ED_PRIV),
   }
 }
 
@@ -136,6 +162,24 @@ describe('ExternalSigner.sign', () => {
     expect(verify(signingData, decoded.TxnSignature as string, PUB_HEX)).toBe(
       true,
     )
+  })
+
+  it('signs with an ed25519 key (message signed directly, no digest)', async () => {
+    const custody = await ExternalSigner.create({ signer: fakeEd25519Port() })
+    expect(custody.primary.address).toBe(deriveAddress(ED_PUB_HEX))
+
+    const tx = paymentFrom(custody.primary.address)
+    const envelope = await custody.sign(
+      tx,
+      contextFor(custody.primary.address, ledgerStub()),
+    )
+    const decoded = decode(envelope.txBlob)
+    expect(decoded.SigningPubKey).toBe(ED_PUB_HEX)
+
+    const signingData = encodeForSigning({ ...tx, SigningPubKey: ED_PUB_HEX })
+    expect(
+      verify(signingData, decoded.TxnSignature as string, ED_PUB_HEX),
+    ).toBe(true)
   })
 
   it('normalizes a high-S signature to canonical low-S', async () => {
