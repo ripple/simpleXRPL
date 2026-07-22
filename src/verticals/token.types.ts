@@ -125,3 +125,85 @@ export interface MptIssueIntent {
   /** The id of the newly created MPT issuance. */
   readonly mptIssuanceId: string
 }
+
+/** An MPT issuance's capability flags, decoded to booleans. */
+export interface MptFlags {
+  /** The issuer can lock the token. */
+  readonly canLock: boolean
+  /** Holders must be authorized before holding. */
+  readonly requireAuth: boolean
+  /** The token can be used in escrows. */
+  readonly canEscrow: boolean
+  /** The token can be traded on the DEX. */
+  readonly canTrade: boolean
+  /** The token can be transferred between holders. */
+  readonly canTransfer: boolean
+  /** The issuer can claw back the token. */
+  readonly canClawback: boolean
+}
+
+/** A shaped MPT issuance (from `ledger_entry`). */
+export interface TokenData {
+  /** The MPT issuance id. */
+  readonly tokenID: string
+  /** The issuer r-address. */
+  readonly issuer: string
+  /** Decimal places between display value and base units. */
+  readonly assetScale: number
+  /** Maximum issuable amount (base units), if capped. */
+  readonly maximumAmount?: string
+  /** Amount currently in circulation (base units). */
+  readonly outstandingAmount: string
+  /** Secondary-transfer fee, as a percentage. */
+  readonly transferFee: number
+  /** Capability flags. */
+  readonly flags: MptFlags
+  /** Decoded XLS-89 metadata, if present and well-formed. */
+  readonly metadata?: MPTokenMetadata
+}
+
+/** Parameters for {@link Token.retrieve}. */
+export interface TokenRetrieveParams {
+  /** The MPT issuance id to fetch. */
+  readonly mptIssuanceId: string
+}
+
+/** Result of {@link Token.retrieve}. */
+export interface TokenRetrieveResult {
+  /** The queried MPT issuance id. */
+  readonly tokenID: string
+  /** The issuance snapshot, or `undefined` if no such issuance exists. */
+  readonly data: TokenData | undefined
+}
+
+/** An entry in {@link Token.list}: a full issuance (issuer) or a holding. */
+export interface TokenListEntry {
+  /** The MPT issuance id. */
+  readonly tokenID: string
+  /** The account's balance (present for `role: 'holder'`). */
+  readonly balance?: string
+  /** The full issuance snapshot (present for `role: 'issuer'`). */
+  readonly issuance?: TokenData
+}
+
+/** Parameters for {@link Token.list}. */
+export interface TokenListParams {
+  /** List tokens the account `holder`s (default) or `issuer`d. */
+  readonly role?: 'holder' | 'issuer'
+  /** The account to query; defaults to the primary signer's account. */
+  readonly account?: string
+}
+
+/** Result of {@link Token.list}: `tokens[i]` corresponds to `data[i]`. */
+export interface TokenListResult {
+  /** The MPT issuance id of each token. */
+  readonly tokens: readonly string[]
+  /** The shaped entries. */
+  readonly data: readonly TokenListEntry[]
+}
+
+/** Parameters for {@link Token.listOffers}. */
+export interface TokenListOffersParams {
+  /** The account whose offers to list; defaults to the primary signer's. */
+  readonly account?: string
+}

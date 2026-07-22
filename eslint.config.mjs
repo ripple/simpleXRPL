@@ -67,6 +67,14 @@ export default [
     },
   },
   {
+    // Vertical classes aggregate many business verbs plus their read methods,
+    // so they legitimately run longer than the default file budget.
+    files: ['src/verticals/*.ts'],
+    rules: {
+      'max-lines': ['warn', { max: 350, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
     files: ['test/**/*.ts'],
     rules: {
       'import/no-extraneous-dependencies': 'off',

@@ -100,12 +100,19 @@ describe('IOU vertical (live testnet)', () => {
           { ticker: 'USD', destination: holder.classicAddress, amount: 50 },
           from,
         )
-        const afterTransfer = await usdLine(
-          client,
-          holder.classicAddress,
-          issuer.classicAddress,
-        )
-        expect(Number(afterTransfer?.balance)).toBe(50)
+        // Read the holder's balance back through the SDK.
+        const retrieved = await client.iou.retrieve({
+          ticker: 'USD',
+          issuer: issuer.classicAddress,
+          account: holder.classicAddress,
+        })
+        expect(Number(retrieved.data?.balance)).toBe(50)
+        expect(retrieved.data?.currency).toBe('USD')
+        expect(retrieved.iouID).toBe(`USD.${issuer.classicAddress}`)
+
+        // The line also appears in the holder's full list.
+        const listed = await client.iou.list({ account: holder.classicAddress })
+        expect(listed.ious).toContain(`USD.${issuer.classicAddress}`)
       } finally {
         clearEnv()
         await client.disconnect()
@@ -178,17 +185,31 @@ describe('IOU vertical (live testnet)', () => {
           },
           from,
         )
-        const resting = await client.ledger.request<{
-          result: { offers: Array<{ seq: number }> }
-        }>({ command: 'account_offers', account: issuer.classicAddress })
-        expect(resting.result.offers.length).toBe(1)
-        const offerSequence = resting.result.offers[0].seq
+        // Read the resting offer back through the SDK, shaped and tagged.
+        const resting = await client.account.listOffers({
+          account: issuer.classicAddress,
+        })
+        expect(resting.data).toHaveLength(1)
+        const [offer] = resting.data
+        expect(offer.type).toBe('sell')
+        expect(offer.amount).toBe(10)
+        expect(offer.price).toEqual({ currency: 'XRP', amount: 5 })
 
-        await client.iou.cancelOffer({ offerSequence }, from)
-        const afterCancel = await client.ledger.request<{
-          result: { offers: unknown[] }
-        }>({ command: 'account_offers', account: issuer.classicAddress })
-        expect(afterCancel.result.offers).toHaveLength(0)
+        // It is also visible in the USD order book.
+        const book = await client.iou.listOffers({
+          ticker: 'USD',
+          issuer: issuer.classicAddress,
+        })
+        expect(book.data.some((entry) => entry.type === 'sell')).toBe(true)
+
+        await client.iou.cancelOffer(
+          { offerSequence: offer.offerSequence },
+          from,
+        )
+        const afterCancel = await client.account.listOffers({
+          account: issuer.classicAddress,
+        })
+        expect(afterCancel.data).toHaveLength(0)
       } finally {
         clearEnv()
         await client.disconnect()

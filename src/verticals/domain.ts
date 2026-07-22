@@ -8,11 +8,16 @@ import type { SubmissionResult } from '../domain/index.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
 
+import { listDomains, retrieveDomain } from './domain.reads.js'
 import type {
   AcceptedCredential,
   DomainCreateParams,
   DomainDeleteParams,
   DomainIntent,
+  DomainListParams,
+  DomainListResult,
+  DomainRetrieveParams,
+  DomainRetrieveResult,
   DomainSetCredentialsParams,
   DomainWriteOptions,
 } from './domain.types.js'
@@ -31,6 +36,28 @@ export class Domain {
    */
   public constructor(host: SubmissionHost) {
     this.host = host
+  }
+
+  /**
+   * Retrieve a permissioned domain by id (point-in-time). No signer required.
+   *
+   * @param params - The domain id to fetch.
+   * @returns The domain id and snapshot (or `undefined` data if absent).
+   */
+  public async retrieve(
+    params: DomainRetrieveParams,
+  ): Promise<DomainRetrieveResult> {
+    return retrieveDomain(this.host, params)
+  }
+
+  /**
+   * List every permissioned domain owned by an account. No signer required.
+   *
+   * @param params - The owner account (default: the primary signer's account).
+   * @returns The domain ids and shaped domains, index-aligned.
+   */
+  public async list(params?: DomainListParams): Promise<DomainListResult> {
+    return listDomains(this.host, params)
   }
 
   /**

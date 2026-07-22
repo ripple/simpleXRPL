@@ -41,4 +41,13 @@ await client.iou.sellOffer({
   hybrid: false, // permissioned-only: do not touch the open DEX
 })
 
+// 4. Read it back (no signer required). `retrieve` resolves a domain by id and
+//    returns its owner and accepted-credential list (decoded from hex); `list`
+//    returns every domain owned by an account (defaults to the primary).
+const read = await client.domain.retrieve({ domainID })
+console.log('accepts:', read.data?.credList)
+
+const owned = await client.domain.list()
+console.log('owned domains:', owned.domains)
+
 await client.disconnect()

@@ -153,3 +153,64 @@ export interface IOUCancelOfferParams {
   /** The sequence number of the offer to cancel. */
   readonly offerSequence: number
 }
+
+/** Which side of a trust line the query is from. Defaults to `holder`. */
+export type IOURole = 'holder' | 'issuer'
+
+/** A shaped trust line (from `account_lines`), the point-in-time IOU state. */
+export interface IOUTrustLine {
+  /** The currency ticker (hex codes decoded to ASCII where printable). */
+  readonly currency: string
+  /** The counterparty r-address (the issuer, when querying as `holder`). */
+  readonly peer: string
+  /** The trust-line balance, from the queried account's perspective. */
+  readonly balance: string
+  /** The queried account's trust limit. */
+  readonly limit: string
+  /** The counterparty's trust limit. */
+  readonly limitPeer: string
+  /** Whether rippling is disabled on this line (`no_ripple`). */
+  readonly noRipple: boolean
+  /** Whether the queried account has frozen this line. */
+  readonly frozen: boolean
+  /** Whether the line is authorized (issuer authorized the holder). */
+  readonly authorized: boolean
+}
+
+/** Parameters for {@link IOU.retrieve}. */
+export interface IOURetrieveParams extends IOURef {
+  /** The IOU issuer's r-address. */
+  readonly issuer: string
+  /** The holder account to read from; defaults to the primary signer's account. */
+  readonly account?: string
+}
+
+/** Result of {@link IOU.retrieve}. */
+export interface IOURetrieveResult {
+  /** Currency code and issuer, e.g. `USD.rIssuer...` — pass to write verbs. */
+  readonly iouID: string
+  /** The point-in-time trust-line snapshot, or `undefined` if no line exists. */
+  readonly data: IOUTrustLine | undefined
+}
+
+/** Parameters for {@link IOU.list}. */
+export interface IOUListParams {
+  /** Query as `holder` (default) or `issuer`. */
+  readonly role?: IOURole
+  /** The account whose trust lines to list; defaults to the primary signer's. */
+  readonly account?: string
+}
+
+/** Result of {@link IOU.list}: `ious[i]` corresponds to `data[i]`. */
+export interface IOUListResult {
+  /** The `iouID` of each line, composable into the write verbs. */
+  readonly ious: readonly string[]
+  /** The shaped trust lines. */
+  readonly data: readonly IOUTrustLine[]
+}
+
+/** Parameters for {@link IOU.listOffers}. */
+export interface IOUListOffersParams extends IOURef {
+  /** The IOU issuer's r-address. */
+  readonly issuer: string
+}

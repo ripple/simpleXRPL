@@ -134,6 +134,9 @@ export function makeFakeHost(accounts: readonly Account[]): SubmissionHost {
     registerLocalAccount(): Account {
       throw new Error('registerLocalAccount is not used by orchestration tests')
     },
+    primaryAddress(): string | undefined {
+      return accounts[0]?.address
+    },
   }
 }
 

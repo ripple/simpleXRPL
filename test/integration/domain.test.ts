@@ -17,29 +17,25 @@ describe('Domain (live testnet)', () => {
         expect(created.source).toBe('rippled')
         expect(created.intent.domainID).toMatch(/^[0-9A-F]{64}$/u)
 
-        const objects = await client.ledger.request<{
-          result: { account_objects: unknown[] }
-        }>({
-          command: 'account_objects',
-          account: owner.classicAddress,
-          type: 'permissioned_domain',
-        })
-        expect(objects.result.account_objects.length).toBeGreaterThanOrEqual(1)
+        // Read it back through the SDK: retrieve echoes the accepted-credential
+        // list (decoded from hex), and it appears in the owner's domain list.
+        const domainID = created.intent.domainID
+        const retrieved = await client.domain.retrieve({ domainID })
+        expect(retrieved.data?.owner).toBe(owner.classicAddress)
+        expect(retrieved.data?.credList).toEqual([
+          { issuer: issuer.classicAddress, credType: 'KYC' },
+        ])
+        const listed = await client.domain.list()
+        expect(listed.domains).toContain(domainID)
 
-        const deleted = await client.domain.delete({
-          domain: created.intent.domainID,
-        })
+        const deleted = await client.domain.delete({ domain: domainID })
         expect(deleted.source).toBe('rippled')
 
-        // The domain is gone from the owner's objects after deletion.
-        const afterDelete = await client.ledger.request<{
-          result: { account_objects: unknown[] }
-        }>({
-          command: 'account_objects',
-          account: owner.classicAddress,
-          type: 'permissioned_domain',
-        })
-        expect(afterDelete.result.account_objects).toHaveLength(0)
+        // After deletion the domain is absent from both reads.
+        expect(
+          (await client.domain.retrieve({ domainID })).data,
+        ).toBeUndefined()
+        expect((await client.domain.list()).domains).not.toContain(domainID)
       } finally {
         await client.disconnect()
       }

@@ -11,20 +11,22 @@ import type { SubmissionResult } from '../domain/index.js'
 import { runMultiStep } from '../orchestration/index.js'
 import type { SubmissionHost, SubmitRequest } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
+import { listBookOffers } from '../reads/offers.js'
+import type { ListOffersResult } from '../reads/offers.js'
 
 import {
   assertClawbackEnabled,
   buildAccountSet,
   buildFreeze,
   buildIssuedPayment,
+  buildMaxTrustSet,
   buildOfferCreate,
-  buildTrustSet,
   encodeCurrencyCode,
   localAccountFromSeed,
-  MAX_IOU_TRUST_LIMIT,
   priceToLedgerAmount,
   readIssuanceSeeds,
 } from './iou.helpers.js'
+import { listIous, retrieveIou } from './iou.reads.js'
 import type {
   IOUAuthorizeIntent,
   IOUAuthorizeParams,
@@ -33,20 +35,24 @@ import type {
   IOUClawbackParams,
   IOUIssueIntent,
   IOUIssueParams,
+  IOUListOffersParams,
+  IOUListParams,
+  IOUListResult,
   IOULockIntent,
   IOULockParams,
   IOUOfferParams,
+  IOURetrieveParams,
+  IOURetrieveResult,
   IOUTransferIntent,
   IOUTransferParams,
   IOUWriteOptions,
 } from './iou.types.js'
 
 /**
- * The IOU (trust-line currency) vertical, exposed as `client.iou`. Each verb
- * acts as the IOU's **issuer** — the account resolved from
- * {@link IOUWriteOptions.from} (default: the primary signer's account) signs,
- * and its address is the currency issuer. Callers name their own counterparty
- * (`holder`/`destination`) per call.
+ * The IOU (trust-line currency) vertical, exposed as `client.iou`. Write verbs
+ * act as the issuer ({@link IOUWriteOptions.from}, default the primary signer);
+ * reads take an explicit `account` or default to the primary. Callers name
+ * their own counterparty (`holder`/`destination`) per call.
  */
 export class IOU {
   private readonly host: SubmissionHost
@@ -65,12 +71,9 @@ export class IOU {
    * accounts sourced from the environment.
    *
    * Unlike the other verbs, `issue` bootstraps both accounts from the
-   * environment rather than {@link IOUWriteOptions.from}: it reads
-   * `XRPL_ISSUER_SEED` and `XRPL_HOT_WALLET_SEED`, has the issuer enable
-   * rippling (`AccountSet`), then the hot wallet extends trust up to the
-   * maximum allowable limit (`TrustSet`) — no `Payment` runs here, so no
-   * value exists yet; use {@link IOU.transfer} to send some. IOU tokens need
-   * off-chain config for display/interop (see xrplmeta self-publish docs).
+   * environment (`XRPL_ISSUER_SEED`, `XRPL_HOT_WALLET_SEED`): the issuer enables
+   * rippling (`AccountSet`), then the hot wallet extends trust to the maximum
+   * limit (`TrustSet`). No value exists yet — use {@link IOU.transfer} to send.
    *
    * @param params - The ticker to issue.
    * @returns The result, with `{ iouID }` as its intent output.
@@ -84,22 +87,52 @@ export class IOU {
     const issuer = localAccountFromSeed(issuerSeed)
     const holder = localAccountFromSeed(holderSeed)
     const currency = encodeCurrencyCode(params.ticker)
-    const limitAmount: IssuedCurrencyAmount = {
-      currency,
-      issuer: issuer.address,
-      value: MAX_IOU_TRUST_LIMIT,
-    }
-
     const steps: SubmitRequest[] = [
       { transaction: buildAccountSet(issuer.address), account: issuer },
       {
-        transaction: buildTrustSet(holder.address, limitAmount),
+        transaction: buildMaxTrustSet(holder.address, currency, issuer.address),
         account: holder,
       },
     ]
     const results = await runMultiStep(this.host, steps)
     return withIntent(results[results.length - 1], {
       iouID: `${currency}.${issuer.address}`,
+    })
+  }
+
+  /**
+   * Read a single IOU trust line (point-in-time). No signer required.
+   *
+   * @param params - The ticker, issuer, and optional holder account.
+   * @returns The `iouID` and the trust-line snapshot (or `undefined`).
+   */
+  public async retrieve(params: IOURetrieveParams): Promise<IOURetrieveResult> {
+    return retrieveIou(this.host, params)
+  }
+
+  /**
+   * List every IOU trust line for an account. No signer required.
+   *
+   * @param params - The role and optional account (default: primary signer's).
+   * @returns The `iouID`s and shaped trust lines, index-aligned.
+   */
+  public async list(params?: IOUListParams): Promise<IOUListResult> {
+    return listIous(this.host, params)
+  }
+
+  /**
+   * List all open offers in the market for this IOU (both sides), tagged
+   * buy/sell relative to it. No signer required.
+   *
+   * @param params - The IOU ticker and issuer to anchor the book on.
+   * @returns The shaped offers, composable into `buyOffer`/`sellOffer`.
+   */
+  public async listOffers(
+    params: IOUListOffersParams,
+  ): Promise<ListOffersResult> {
+    return listBookOffers(this.host, {
+      ticker: params.ticker,
+      issuer: params.issuer,
     })
   }
 

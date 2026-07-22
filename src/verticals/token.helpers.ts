@@ -4,14 +4,57 @@ import {
   OfferCreateFlags,
   validateMPTokenMetadata,
 } from 'xrpl'
-import type { IssuedCurrencyAmount, MPTokenMetadata } from 'xrpl'
+import type {
+  IssuedCurrencyAmount,
+  MPTokenIssuanceCreate,
+  MPTokenMetadata,
+} from 'xrpl'
 
 import type { Amount } from '../amount/index.js'
 import { toLedgerAmount } from '../amount/index.js'
 import type { SubmissionResult } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
 
-import type { MptIssueFlags, OfferFlags } from './token.types.js'
+import { percentToTransferFee } from './fee.js'
+import type {
+  MptIssueParams,
+  MptIssueFlags,
+  OfferFlags,
+} from './token.types.js'
+
+/** Default decimal places for a new issuance when `assetScale` is omitted. */
+const DEFAULT_ASSET_SCALE = 2
+
+/**
+ * Build the `MPTokenIssuanceCreate` for {@link Token.issue}: applies the default
+ * asset scale, encodes metadata, and sets the optional cap, fee, and flags.
+ *
+ * @param account - The issuer r-address.
+ * @param params - The issuance settings.
+ * @returns The built transaction.
+ */
+export function buildIssuance(
+  account: string,
+  params: MptIssueParams,
+): MPTokenIssuanceCreate {
+  const tx: MPTokenIssuanceCreate = {
+    TransactionType: 'MPTokenIssuanceCreate',
+    Account: account,
+    AssetScale: params.assetScale ?? DEFAULT_ASSET_SCALE,
+    MPTokenMetadata: encodeMetadata(params.metadata),
+  }
+  if (params.maximumAmount !== undefined) {
+    tx.MaximumAmount = params.maximumAmount
+  }
+  if (params.transferFee !== undefined) {
+    tx.TransferFee = percentToTransferFee(params.transferFee)
+  }
+  const flags = issueFlags(params.flags)
+  if (flags !== undefined) {
+    tx.Flags = flags
+  }
+  return tx
+}
 
 /**
  * Combine enabled flag bits into a single value.

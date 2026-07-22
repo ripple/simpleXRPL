@@ -60,3 +60,13 @@ export * from './ports/index.js'
 // SubmitRequest, SubmissionResult, Custodian) so callers can build on those
 // seams without depending on `xrpl` directly.
 export type { SubmitResponse, Transaction, TxResponse } from 'xrpl'
+
+// Read-model helpers (currency decode, credential-free account resolution).
+export {
+  decodeCurrency,
+  dropsToXrpString,
+  readAccountAddress,
+} from './reads/read-helpers.js'
+
+// Shaped-offer read model (shared by the `listOffers` verbs).
+export type { ListOffersResult, OfferSummary } from './reads/offers.js'
