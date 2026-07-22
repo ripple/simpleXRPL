@@ -5,11 +5,18 @@ import type { SubmissionResult } from '../domain/index.js'
 import { SimpleXRPLError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
+import { listAccountOffers } from '../reads/offers.js'
+import type { ListOffersResult } from '../reads/offers.js'
+import { readAccountAddress } from '../reads/read-helpers.js'
 
+import { retrieveAccount } from './account.reads.js'
 import type {
   AccountActivateParams,
   AccountCredentials,
   AccountFundParams,
+  AccountListOffersParams,
+  AccountRetrieveParams,
+  AccountRetrieveResult,
   AccountSetParams,
   AccountWriteOptions,
   DepositPreauthParams,
@@ -74,6 +81,34 @@ export class AccountVertical {
       privateKey: wallet.privateKey,
       seed: wallet.seed,
     }
+  }
+
+  /**
+   * Read an account's on-chain state — XRP balance, sequence, owner count, and
+   * flags. No signer required; pass `account` or default to the primary.
+   *
+   * @param params - The account to read (default: the primary signer's account).
+   * @returns The point-in-time account snapshot.
+   */
+  public async retrieve(
+    params?: AccountRetrieveParams,
+  ): Promise<AccountRetrieveResult> {
+    return retrieveAccount(this.host, params)
+  }
+
+  /**
+   * List the open DEX offers placed by an account. No signer required.
+   *
+   * @param params - The account (default: the primary signer's account).
+   * @returns The shaped offers (composable into `iou.buyOffer`/`sellOffer`).
+   */
+  public async listOffers(
+    params?: AccountListOffersParams,
+  ): Promise<ListOffersResult> {
+    return listAccountOffers(
+      this.host,
+      readAccountAddress(this.host, params?.account),
+    )
   }
 
   /**

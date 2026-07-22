@@ -36,4 +36,21 @@ await client.iou.authorize({
   holder: 'rHolder00000000000000000000000000000',
 })
 
+// 4. Read it back (no signer required). `retrieve` returns a single shaped
+//    trust line for the holder→issuer pair; `list` returns all of an account's
+//    lines. Pass `account` to read any address, or omit it for the primary.
+//    The issuer is the second half of the iouID ("USD.rIssuer...").
+const [, issuer] = issued.intent.iouID.split('.')
+const holder = 'rHolder00000000000000000000000000000'
+
+const line = await client.iou.retrieve({
+  ticker: 'USD',
+  issuer,
+  account: holder,
+})
+console.log('holder balance:', line.data?.balance ?? '0')
+
+const all = await client.iou.list({ account: holder })
+console.log('holder trust lines:', all.ious)
+
 await client.disconnect()

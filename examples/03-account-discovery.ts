@@ -33,4 +33,15 @@ console.log('resolved:', specific.address)
 // 4. Re-discover after upstream changes (e.g. a new custodian wallet).
 await client.refreshAccounts()
 
+// 5. Read an account's on-chain state (no signer required). With no argument it
+//    reads the primary signer's account; pass an r-address to read any account.
+const state = await client.account.retrieve()
+console.log('primary balance (XRP):', state.data.xrpBalance)
+console.log(
+  'sequence:',
+  state.data.sequence,
+  'owner objects:',
+  state.data.ownerCount,
+)
+
 await client.disconnect()

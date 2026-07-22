@@ -35,8 +35,24 @@ await client.iou.buyOffer({
   },
 })
 
-// Cancel a resting offer by its sequence number:
-await client.iou.cancelOffer({ offerSequence: 42 })
+// Read your resting offers back (no signer required) — each is shaped with its
+// sequence, amount, price, and buy/sell type, ready to compose or cancel.
+const mine = await client.account.listOffers()
+for (const offer of mine.data) {
+  console.log(offer.type, offer.amount, '@', offer.price)
+}
+
+// Or read the whole USD order book (both sides), regardless of who placed them:
+const book = await client.iou.listOffers({
+  ticker: 'USD',
+  issuer: 'rIssuer00000000000000000000000000000',
+})
+console.log('resting USD offers:', book.data.length)
+
+// Cancel a resting offer by its sequence number — here, the first one read back:
+if (mine.data.length > 0) {
+  await client.iou.cancelOffer({ offerSequence: mine.data[0].offerSequence })
+}
 
 // --- Via the token vertical: a generic XRP/IOU offer -----------------------
 await client.token.createOffer({

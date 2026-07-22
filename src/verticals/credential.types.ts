@@ -44,3 +44,58 @@ export interface CredentialDeleteParams {
   /** The issuer r-address (set when deleting as the holder). */
   readonly issuer?: string
 }
+
+/** Which side of a credential the query is from. Defaults to `holder`. */
+export type CredentialRole = 'holder' | 'issuer'
+
+/** Identifies a credential (all plain strings — never hex). */
+export interface CredentialRef {
+  /** The credential type. */
+  readonly credType: string
+  /** The issuer r-address. */
+  readonly issuer: string
+  /** The holder (subject) r-address. */
+  readonly holder: string
+}
+
+/** A shaped credential (from `ledger_entry` / `account_objects`); no hex. */
+export interface CredentialData extends CredentialRef {
+  /** Whether the holder has accepted the credential (`lsfAccepted`). */
+  readonly accepted: boolean
+  /** The optional URI (decoded from hex). */
+  readonly uri?: string
+  /** Expiration (seconds since the Ripple epoch), if set. */
+  readonly expiration?: number
+}
+
+/** Parameters for {@link Credential.retrieve}. */
+export interface CredentialRetrieveParams {
+  /** The credential type. */
+  readonly credType: string
+  /** The issuer r-address. */
+  readonly issuer: string
+  /** The holder (subject); defaults to the primary signer's account. */
+  readonly account?: string
+}
+
+/** Result of {@link Credential.retrieve}. */
+export interface CredentialRetrieveResult extends CredentialRef {
+  /** The credential snapshot, or `undefined` if none exists. */
+  readonly data: CredentialData | undefined
+}
+
+/** Parameters for {@link Credential.list}. */
+export interface CredentialListParams {
+  /** Query as `holder` (default) or `issuer`. */
+  readonly role?: CredentialRole
+  /** The account whose credentials to list; defaults to the primary signer's. */
+  readonly account?: string
+}
+
+/** Result of {@link Credential.list}: `credentials[i]` corresponds to `data[i]`. */
+export interface CredentialListResult {
+  /** The identifier of each credential. */
+  readonly credentials: readonly CredentialRef[]
+  /** The shaped credentials. */
+  readonly data: readonly CredentialData[]
+}

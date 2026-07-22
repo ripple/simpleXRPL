@@ -48,3 +48,41 @@ export interface DomainIntent {
   /** The domain id (supplied for an update, or discovered for a new domain). */
   readonly domainID: string
 }
+
+/** A shaped permissioned domain (from `ledger_entry` / `account_objects`). */
+export interface DomainData {
+  /** The domain's on-chain id. */
+  readonly domainID: string
+  /** The owning account's r-address. */
+  readonly owner: string
+  /** The credentials the domain accepts (credential types decoded from hex). */
+  readonly credList: readonly AcceptedCredential[]
+}
+
+/** Parameters for {@link Domain.retrieve}. */
+export interface DomainRetrieveParams {
+  /** The domain id to fetch. */
+  readonly domainID: string
+}
+
+/** Result of {@link Domain.retrieve}. */
+export interface DomainRetrieveResult {
+  /** The queried domain id. */
+  readonly domainID: string
+  /** The domain snapshot, or `undefined` if no such domain exists. */
+  readonly data: DomainData | undefined
+}
+
+/** Parameters for {@link Domain.list}. */
+export interface DomainListParams {
+  /** The owner whose domains to list; defaults to the primary signer's account. */
+  readonly account?: string
+}
+
+/** Result of {@link Domain.list}: `domains[i]` corresponds to `data[i]`. */
+export interface DomainListResult {
+  /** The domain id of each owned domain. */
+  readonly domains: readonly string[]
+  /** The shaped domains. */
+  readonly data: readonly DomainData[]
+}

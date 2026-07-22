@@ -194,6 +194,16 @@ export class SimpleXRPLClient implements SubmissionHost {
   }
 
   /**
+   * The primary signer's account address, or `undefined` in no-signer mode.
+   * Reads default to this; it never throws, so queries work without a signer.
+   *
+   * @returns The primary account's r-address, or `undefined`.
+   */
+  public primaryAddress(): string | undefined {
+    return this.primarySigner?.primary.address
+  }
+
+  /**
    * Resolve the account a verb acts on. With no selector, uses the primary
    * signer's primary account.
    *

@@ -99,3 +99,35 @@ export interface DepositPreauthParams {
   /** An r-address to remove preauthorization from. */
   readonly unauthorize?: string
 }
+
+/** Parameters for {@link AccountVertical.retrieve}. */
+export interface AccountRetrieveParams {
+  /** The account to read; defaults to the primary signer's account. */
+  readonly account?: string
+}
+
+/** A shaped account snapshot (from `account_info`). */
+export interface AccountData {
+  /** The account's r-address. */
+  readonly address: string
+  /** The XRP balance (converted from drops). */
+  readonly xrpBalance: string
+  /** The account sequence number. */
+  readonly sequence: number
+  /** The number of owned ledger objects (drives the reserve). */
+  readonly ownerCount: number
+  /** Account flags as booleans, as reported by `account_flags`. */
+  readonly flags: Readonly<Record<string, boolean>>
+}
+
+/** Result of {@link AccountVertical.retrieve}. */
+export interface AccountRetrieveResult {
+  /** The point-in-time account snapshot. */
+  readonly data: AccountData
+}
+
+/** Parameters for {@link AccountVertical.listOffers}. */
+export interface AccountListOffersParams {
+  /** The account whose offers to list; defaults to the primary signer's. */
+  readonly account?: string
+}

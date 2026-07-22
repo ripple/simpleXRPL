@@ -19,4 +19,11 @@ export interface SubmissionHost {
    * (e.g. by `Account.fund` / `Account.activate`).
    */
   registerLocalAccount: (seed: string) => Account
+
+  /**
+   * The primary signer's account address, or `undefined` on a no-signer client.
+   * Read methods use this as the default account to query; it never throws, so
+   * reads stay available without credentials (the caller passes an address).
+   */
+  primaryAddress: () => string | undefined
 }

@@ -4,10 +4,15 @@ import type { SubmissionResult } from '../domain/index.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
 
+import { listCredentials, retrieveCredential } from './credential.reads.js'
 import type {
   CredentialAcceptParams,
   CredentialDeleteParams,
   CredentialIssueParams,
+  CredentialListParams,
+  CredentialListResult,
+  CredentialRetrieveParams,
+  CredentialRetrieveResult,
   CredentialWriteOptions,
 } from './credential.types.js'
 import { toHex } from './hex.js'
@@ -25,6 +30,31 @@ export class Credential {
    */
   public constructor(host: SubmissionHost) {
     this.host = host
+  }
+
+  /**
+   * Retrieve a single credential by type and issuer (point-in-time). No signer
+   * required; pass `account` (the holder) or default to the primary.
+   *
+   * @param params - The credential type, issuer, and optional holder account.
+   * @returns The identifiers and snapshot (or `undefined` data if absent).
+   */
+  public async retrieve(
+    params: CredentialRetrieveParams,
+  ): Promise<CredentialRetrieveResult> {
+    return retrieveCredential(this.host, params)
+  }
+
+  /**
+   * List credentials an account holds or issued. No signer required.
+   *
+   * @param params - The role and account (default: the primary signer's).
+   * @returns The credential identifiers and shaped credentials, index-aligned.
+   */
+  public async list(
+    params?: CredentialListParams,
+  ): Promise<CredentialListResult> {
+    return listCredentials(this.host, params)
   }
 
   /**
