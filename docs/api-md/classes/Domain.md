@@ -1,6 +1,6 @@
 # Class: Domain
 
-Defined in: [src/verticals/domain.ts:24](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.ts#L24)
+Defined in: [verticals/domain.ts:29](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.ts#L29)
 
 The Domain vertical: create, update, and delete permissioned domains.
 
@@ -10,7 +10,7 @@ The Domain vertical: create, update, and delete permissioned domains.
 
 > **new Domain**(`host`): [`Domain`](Domain.md)
 
-Defined in: [src/verticals/domain.ts:32](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.ts#L32)
+Defined in: [verticals/domain.ts:37](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.ts#L37)
 
 Construct the Domain vertical.
 
@@ -30,7 +30,7 @@ Construct the Domain vertical.
 
 > **create**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`DomainIntent`](../interfaces/DomainIntent.md)\>\>
 
-Defined in: [src/verticals/domain.ts:43](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.ts#L43)
+Defined in: [verticals/domain.ts:70](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.ts#L70)
 
 Create a new permissioned domain.
 
@@ -53,7 +53,7 @@ The result, with the new domain id as its intent output.
 
 > **delete**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`DomainIntent`](../interfaces/DomainIntent.md)\>\>
 
-Defined in: [src/verticals/domain.ts:94](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.ts#L94)
+Defined in: [verticals/domain.ts:123](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.ts#L123)
 
 Delete a permissioned domain.
 
@@ -72,11 +72,55 @@ The result, echoing the domain id.
 
 ***
 
+### list()
+
+> **list**(`params`?): `Promise`\<[`DomainListResult`](../interfaces/DomainListResult.md)\>
+
+Defined in: [verticals/domain.ts:59](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.ts#L59)
+
+List every permissioned domain owned by an account. No signer required.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params`? | [`DomainListParams`](../interfaces/DomainListParams.md) | The owner account (default: the primary signer's account). |
+
+#### Returns
+
+`Promise`\<[`DomainListResult`](../interfaces/DomainListResult.md)\>
+
+The domain ids and shaped domains, index-aligned.
+
+***
+
+### retrieve()
+
+> **retrieve**(`params`): `Promise`\<[`DomainRetrieveResult`](../interfaces/DomainRetrieveResult.md)\>
+
+Defined in: [verticals/domain.ts:47](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.ts#L47)
+
+Retrieve a permissioned domain by id (point-in-time). No signer required.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params` | [`DomainRetrieveParams`](../interfaces/DomainRetrieveParams.md) | The domain id to fetch. |
+
+#### Returns
+
+`Promise`\<[`DomainRetrieveResult`](../interfaces/DomainRetrieveResult.md)\>
+
+The domain id and snapshot (or `undefined` data if absent).
+
+***
+
 ### setCredentials()
 
 > **setCredentials**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`DomainIntent`](../interfaces/DomainIntent.md)\>\>
 
-Defined in: [src/verticals/domain.ts:68](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/domain.ts#L68)
+Defined in: [verticals/domain.ts:96](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.ts#L96)
 
 Update the accepted credentials of an existing permissioned domain.
 

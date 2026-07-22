@@ -1,6 +1,6 @@
 # Interface: SubmitRequest
 
-Defined in: [src/pipeline/pipeline.ts:19](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L19)
+Defined in: [pipeline/pipeline.ts:21](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L21)
 
 A built transaction plus the resolved account and per-call options, handed to
 [submitTransaction](../functions/submitTransaction.md).
@@ -11,9 +11,19 @@ A built transaction plus the resolved account and per-call options, handed to
 
 > `readonly` **account**: [`Account`](Account.md)
 
-Defined in: [src/pipeline/pipeline.ts:24](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L24)
+Defined in: [pipeline/pipeline.ts:26](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L26)
 
 The resolved source account.
+
+***
+
+### async?
+
+> `readonly` `optional` **async**: `boolean`
+
+Defined in: [pipeline/pipeline.ts:44](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L44)
+
+Return a handle as soon as the intent is accepted, instead of blocking.
 
 ***
 
@@ -21,7 +31,7 @@ The resolved source account.
 
 > `readonly` `optional` **customProperties**: `Record`\<`string`, `unknown`\>
 
-Defined in: [src/pipeline/pipeline.ts:33](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L33)
+Defined in: [pipeline/pipeline.ts:35](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L35)
 
 Free-form approval metadata for custodian intents.
 
@@ -31,7 +41,7 @@ Free-form approval metadata for custodian intents.
 
 > `readonly` `optional` **dryRun**: `boolean`
 
-Defined in: [src/pipeline/pipeline.ts:30](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L30)
+Defined in: [pipeline/pipeline.ts:32](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L32)
 
 Pre-flight the write through the backend's dry-run, where supported.
 
@@ -41,7 +51,7 @@ Pre-flight the write through the backend's dry-run, where supported.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [src/pipeline/pipeline.ts:27](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L27)
+Defined in: [pipeline/pipeline.ts:29](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L29)
 
 Fee override; falls back to the custodian's default.
 
@@ -51,7 +61,7 @@ Fee override; falls back to the custodian's default.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [src/pipeline/pipeline.ts:36](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L36)
+Defined in: [pipeline/pipeline.ts:38](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L38)
 
 Stable, client-generated id making a retry idempotent.
 
@@ -61,7 +71,7 @@ Stable, client-generated id making a retry idempotent.
 
 > `readonly` `optional` **timeoutMs**: `number`
 
-Defined in: [src/pipeline/pipeline.ts:39](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L39)
+Defined in: [pipeline/pipeline.ts:41](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L41)
 
 How long to wait before handing control back.
 
@@ -71,6 +81,6 @@ How long to wait before handing control back.
 
 > `readonly` **transaction**: `Transaction`
 
-Defined in: [src/pipeline/pipeline.ts:21](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L21)
+Defined in: [pipeline/pipeline.ts:23](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L23)
 
 The transaction built by the vertical.

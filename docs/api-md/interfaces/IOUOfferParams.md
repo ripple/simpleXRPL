@@ -1,6 +1,6 @@
 # Interface: IOUOfferParams
 
-Defined in: [src/verticals/iou.types.ts:120](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L120)
+Defined in: [verticals/iou.types.ts:126](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L126)
 
 Parameters for [IOU.buyOffer](../classes/IOU.md#buyoffer) and [IOU.sellOffer](../classes/IOU.md#selloffer).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.buyOffer](../classes/IOU.md#buyoffer) and [IOU.sellOffer](..
 
 > `readonly` **amount**: `number`
 
-Defined in: [src/verticals/iou.types.ts:122](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L122)
+Defined in: [verticals/iou.types.ts:128](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L128)
 
 The number of units of this IOU to buy or sell.
 
@@ -24,7 +24,7 @@ The number of units of this IOU to buy or sell.
 
 > `readonly` `optional` **domainID**: `string`
 
-Defined in: [src/verticals/iou.types.ts:135](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L135)
+Defined in: [verticals/iou.types.ts:141](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L141)
 
 Restrict the offer to a permissioned domain. Omit for the open DEX. When
 set, the offer defaults to hybrid (also crosses the open DEX) unless
@@ -36,7 +36,7 @@ set, the offer defaults to hybrid (also crosses the open DEX) unless
 
 > `readonly` `optional` **hybrid**: `boolean`
 
-Defined in: [src/verticals/iou.types.ts:140](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L140)
+Defined in: [verticals/iou.types.ts:146](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L146)
 
 Whether a domain-scoped offer also works the open DEX (hybrid). Only
 meaningful with `domainID`; defaults to `true` when `domainID` is set.
@@ -47,7 +47,7 @@ meaningful with `domainID`; defaults to `true` when `domainID` is set.
 
 > `readonly` `optional` **offerSequence**: `number`
 
-Defined in: [src/verticals/iou.types.ts:142](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L142)
+Defined in: [verticals/iou.types.ts:148](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L148)
 
 A prior offer sequence to replace.
 
@@ -57,7 +57,7 @@ A prior offer sequence to replace.
 
 > `readonly` **orderType**: [`IOUOrderType`](../type-aliases/IOUOrderType.md)
 
-Defined in: [src/verticals/iou.types.ts:124](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L124)
+Defined in: [verticals/iou.types.ts:130](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L130)
 
 The order type.
 
@@ -67,7 +67,7 @@ The order type.
 
 > `readonly` **price**: [`IOUOfferPrice`](../type-aliases/IOUOfferPrice.md)
 
-Defined in: [src/verticals/iou.types.ts:129](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L129)
+Defined in: [verticals/iou.types.ts:135](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L135)
 
 What's offered in payment ([IOU.buyOffer](../classes/IOU.md#buyoffer)) or wanted in return
 ([IOU.sellOffer](../classes/IOU.md#selloffer)) — XRP, an MPT, or another IOU.
@@ -78,7 +78,7 @@ What's offered in payment ([IOU.buyOffer](../classes/IOU.md#buyoffer)) or wanted
 
 > `readonly` **ticker**: `string`
 
-Defined in: [src/verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L14)
+Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L14)
 
 The currency code: a 3-character ISO-4217-style code or a 40-character
 hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to

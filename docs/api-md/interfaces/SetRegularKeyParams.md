@@ -1,6 +1,6 @@
 # Interface: SetRegularKeyParams
 
-Defined in: [src/verticals/account.types.ts:84](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.types.ts#L84)
+Defined in: [verticals/account.types.ts:90](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L90)
 
 Parameters for `Account.setRegularKey`.
 
@@ -10,6 +10,6 @@ Parameters for `Account.setRegularKey`.
 
 > `readonly` `optional` **regularKey**: `string`
 
-Defined in: [src/verticals/account.types.ts:86](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.types.ts#L86)
+Defined in: [verticals/account.types.ts:92](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L92)
 
 The regular key r-address to set; omit to remove the current key.

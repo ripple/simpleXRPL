@@ -1,6 +1,6 @@
 # Interface: MptLockParams
 
-Defined in: [src/verticals/token.types.ts:64](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L64)
+Defined in: [verticals/token.types.ts:70](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L70)
 
 Parameters for `Token.lock` / `Token.unlock`.
 
@@ -10,7 +10,7 @@ Parameters for `Token.lock` / `Token.unlock`.
 
 > `readonly` `optional` **holder**: `string`
 
-Defined in: [src/verticals/token.types.ts:68](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L68)
+Defined in: [verticals/token.types.ts:74](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L74)
 
 A specific holder to (un)lock; omit to affect the whole issuance.
 
@@ -20,6 +20,6 @@ A specific holder to (un)lock; omit to affect the whole issuance.
 
 > `readonly` **mptIssuanceId**: `string`
 
-Defined in: [src/verticals/token.types.ts:66](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L66)
+Defined in: [verticals/token.types.ts:72](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L72)
 
 The MPT issuance id.

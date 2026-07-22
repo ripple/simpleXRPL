@@ -5,6 +5,8 @@
   "tsconfig": "tsconfig.esm.json",
   "excludeInternal": true,
   "excludePrivate": true,
+  "excludeExternals": true,
+  "externalPattern": ["**/node_modules/**", "**/src/generated/**"],
   "readme": "README.md",
   "name": "simpleXRPL"
 }

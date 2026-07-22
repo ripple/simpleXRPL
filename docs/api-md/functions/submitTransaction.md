@@ -2,11 +2,16 @@
 
 > **submitTransaction**(`host`, `request`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [src/pipeline/pipeline.ts:53](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/pipeline.ts#L53)
+Defined in: [pipeline/pipeline.ts:63](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L63)
 
 Run a single built transaction through Validate → Dispatch → Resolve →
 Sign+submit → Wait. Returns the custodian's transport result; callers attach
 the vertical `intent` output via [withIntent](withIntent.md).
+
+A stable idempotency id is generated here (a time-ordered UUIDv7) unless the
+caller supplied one, so it is fixed before the intent is created, surfaced on
+the result, and reused verbatim on a retry (§8) — resolving to the same
+intent instead of a duplicate.
 
 ## Parameters
 
@@ -19,7 +24,7 @@ the vertical `intent` output via [withIntent](withIntent.md).
 
 `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-The submission result.
+The submission result, carrying the `idempotencyKey` used.
 
 ## Throws
 

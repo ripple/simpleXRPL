@@ -1,6 +1,6 @@
 # Interface: SubmissionContext
 
-Defined in: [src/domain/model.ts:86](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L86)
+Defined in: [domain/model.ts:90](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L90)
 
 Per-submission context threaded through the pipeline to the custodian.
 
@@ -10,7 +10,7 @@ Per-submission context threaded through the pipeline to the custodian.
 
 > `readonly` **account**: [`Account`](Account.md)
 
-Defined in: [src/domain/model.ts:88](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L88)
+Defined in: [domain/model.ts:92](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L92)
 
 The resolved source account the transaction acts on.
 
@@ -20,7 +20,7 @@ The resolved source account the transaction acts on.
 
 > `readonly` `optional` **async**: `boolean`
 
-Defined in: [src/domain/model.ts:100](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L100)
+Defined in: [domain/model.ts:104](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L104)
 
 Return a handle instead of blocking until the transaction is terminal.
 
@@ -30,7 +30,7 @@ Return a handle instead of blocking until the transaction is terminal.
 
 > `readonly` `optional` **customProperties**: `Record`\<`string`, `unknown`\>
 
-Defined in: [src/domain/model.ts:106](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L106)
+Defined in: [domain/model.ts:110](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L110)
 
 Human-readable approval metadata stamped on custody intents.
 
@@ -40,7 +40,7 @@ Human-readable approval metadata stamped on custody intents.
 
 > `readonly` `optional` **dryRun**: `boolean`
 
-Defined in: [src/domain/model.ts:97](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L97)
+Defined in: [domain/model.ts:101](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L101)
 
 Pre-flight the write through the backend's dry-run, where supported.
 
@@ -50,7 +50,7 @@ Pre-flight the write through the backend's dry-run, where supported.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [src/domain/model.ts:94](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L94)
+Defined in: [domain/model.ts:98](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L98)
 
 Optional fee override; falls back to the custodian's configured default.
 
@@ -60,7 +60,7 @@ Optional fee override; falls back to the custodian's configured default.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [src/domain/model.ts:103](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L103)
+Defined in: [domain/model.ts:107](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L107)
 
 Stable, client-generated id that makes a retry resolve to the same intent.
 
@@ -70,7 +70,7 @@ Stable, client-generated id that makes a retry resolve to the same intent.
 
 > `readonly` **ledger**: [`LedgerPort`](LedgerPort.md)
 
-Defined in: [src/domain/model.ts:91](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L91)
+Defined in: [domain/model.ts:95](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L95)
 
 The shared ledger connection the custodian submits through.
 
@@ -80,6 +80,6 @@ The shared ledger connection the custodian submits through.
 
 > `readonly` `optional` **timeoutMs**: `number`
 
-Defined in: [src/domain/model.ts:109](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/domain/model.ts#L109)
+Defined in: [domain/model.ts:113](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L113)
 
 How long to wait before handing control back to the caller.

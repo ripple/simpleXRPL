@@ -1,6 +1,6 @@
 # Interface: MptAuthorizeParams
 
-Defined in: [src/verticals/token.types.ts:50](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L50)
+Defined in: [verticals/token.types.ts:56](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L56)
 
 Parameters for `Token.authorize` / `Token.unauthorize` (calling account).
 
@@ -10,6 +10,6 @@ Parameters for `Token.authorize` / `Token.unauthorize` (calling account).
 
 > `readonly` **mptIssuanceId**: `string`
 
-Defined in: [src/verticals/token.types.ts:52](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/token.types.ts#L52)
+Defined in: [verticals/token.types.ts:58](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L58)
 
 The MPT issuance id.

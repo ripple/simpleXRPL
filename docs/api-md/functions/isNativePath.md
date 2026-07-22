@@ -2,7 +2,7 @@
 
 > **isNativePath**(`path`): `boolean`
 
-Defined in: [src/pipeline/dispatch.ts:53](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/pipeline/dispatch.ts#L53)
+Defined in: [pipeline/dispatch.ts:59](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/dispatch.ts#L59)
 
 Whether the path submits through the custodian's own network rather than the
 shared ledger.

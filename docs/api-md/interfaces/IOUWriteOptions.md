@@ -1,6 +1,6 @@
 # Interface: IOUWriteOptions
 
-Defined in: [src/verticals/iou.types.ts:22](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L22)
+Defined in: [verticals/iou.types.ts:22](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L22)
 
 Source account and fee overrides shared by the IOU write verbs. The
 resolved account is the IOU's issuer — it signs, and its address is the
@@ -12,7 +12,7 @@ currency issuer.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [src/verticals/iou.types.ts:27](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L27)
+Defined in: [verticals/iou.types.ts:27](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L27)
 
 Fee override.
 
@@ -22,6 +22,17 @@ Fee override.
 
 > `readonly` `optional` **from**: [`AccountSelector`](../type-aliases/AccountSelector.md)
 
-Defined in: [src/verticals/iou.types.ts:24](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/iou.types.ts#L24)
+Defined in: [verticals/iou.types.ts:24](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L24)
 
 Issuer account; defaults to the primary signer's primary account.
+
+***
+
+### idempotencyKey?
+
+> `readonly` `optional` **idempotencyKey**: `string`
+
+Defined in: [verticals/iou.types.ts:33](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L33)
+
+A prior submission's `idempotencyKey` (from its result), to retry to the
+same intent instead of creating a duplicate (§8). Auto-generated when omitted.

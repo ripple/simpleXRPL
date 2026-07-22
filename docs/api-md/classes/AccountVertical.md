@@ -1,6 +1,6 @@
 # Class: AccountVertical
 
-Defined in: [src/verticals/account.ts:43](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L43)
+Defined in: [verticals/account.ts:50](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L50)
 
 The Account vertical: account settings, regular key, and deposit preauth.
 Named `AccountVertical` to avoid colliding with the `Account` record type;
@@ -12,7 +12,7 @@ reached as `client.account`.
 
 > **new AccountVertical**(`host`): [`AccountVertical`](AccountVertical.md)
 
-Defined in: [src/verticals/account.ts:51](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L51)
+Defined in: [verticals/account.ts:58](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L58)
 
 Construct the Account vertical.
 
@@ -32,7 +32,7 @@ Construct the Account vertical.
 
 > **activate**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:116](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L116)
+Defined in: [verticals/account.ts:151](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L151)
 
 Activate a created account by sending it XRP from the operator (primary)
 account, then enable rippling. The any-network counterpart to [fund](AccountVertical.md#fund);
@@ -57,7 +57,7 @@ The result of the `defaultRipple` settings change.
 
 > **create**(): [`AccountCredentials`](../interfaces/AccountCredentials.md)
 
-Defined in: [src/verticals/account.ts:65](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L65)
+Defined in: [verticals/account.ts:72](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L72)
 
 Generate a new XRPL keypair locally and register it so it can be funded and
 used right away. Nothing is written to the ledger until the account is
@@ -81,7 +81,7 @@ The new account's address, public key, private key, and seed.
 
 > **depositPreauth**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:225](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L225)
+Defined in: [verticals/account.ts:263](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L263)
 
 Grant or revoke deposit preauthorization for another account.
 
@@ -104,7 +104,7 @@ The submission result.
 
 > **fund**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:89](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L89)
+Defined in: [verticals/account.ts:124](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L124)
 
 Fund a created account via the network faucet (testnet/devnet), then enable
 rippling (`defaultRipple`). The account must be one this client can sign for
@@ -129,11 +129,56 @@ The result of the `defaultRipple` settings change.
 
 ***
 
+### listOffers()
+
+> **listOffers**(`params`?): `Promise`\<[`ListOffersResult`](../interfaces/ListOffersResult.md)\>
+
+Defined in: [verticals/account.ts:105](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L105)
+
+List the open DEX offers placed by an account. No signer required.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params`? | [`AccountListOffersParams`](../interfaces/AccountListOffersParams.md) | The account (default: the primary signer's account). |
+
+#### Returns
+
+`Promise`\<[`ListOffersResult`](../interfaces/ListOffersResult.md)\>
+
+The shaped offers (composable into `iou.buyOffer`/`sellOffer`).
+
+***
+
+### retrieve()
+
+> **retrieve**(`params`?): `Promise`\<[`AccountRetrieveResult`](../interfaces/AccountRetrieveResult.md)\>
+
+Defined in: [verticals/account.ts:93](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L93)
+
+Read an account's on-chain state — XRP balance, sequence, owner count, and
+flags. No signer required; pass `account` or default to the primary.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params`? | [`AccountRetrieveParams`](../interfaces/AccountRetrieveParams.md) | The account to read (default: the primary signer's account). |
+
+#### Returns
+
+`Promise`\<[`AccountRetrieveResult`](../interfaces/AccountRetrieveResult.md)\>
+
+The point-in-time account snapshot.
+
+***
+
 ### set()
 
 > **set**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:154](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L154)
+Defined in: [verticals/account.ts:190](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L190)
 
 Update account settings. Flags are named booleans (`true` enables, `false`
 disables); `transferRate`, `tickSize`, and `domain` are set directly. At
@@ -163,7 +208,7 @@ The submission result.
 
 > **setRegularKey**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [src/verticals/account.ts:198](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/account.ts#L198)
+Defined in: [verticals/account.ts:235](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.ts#L235)
 
 Set or remove the account's regular key.
 

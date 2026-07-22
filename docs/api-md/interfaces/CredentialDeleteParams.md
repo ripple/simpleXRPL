@@ -1,6 +1,6 @@
 # Interface: CredentialDeleteParams
 
-Defined in: [src/verticals/credential.types.ts:33](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/credential.types.ts#L33)
+Defined in: [verticals/credential.types.ts:39](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/credential.types.ts#L39)
 
 Parameters for `Credential.delete` (by the issuer or the holder).
 
@@ -10,7 +10,7 @@ Parameters for `Credential.delete` (by the issuer or the holder).
 
 > `readonly` **credType**: `string`
 
-Defined in: [src/verticals/credential.types.ts:35](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/credential.types.ts#L35)
+Defined in: [verticals/credential.types.ts:41](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/credential.types.ts#L41)
 
 The credential type (plain string; hex-encoded on the ledger).
 
@@ -20,7 +20,7 @@ The credential type (plain string; hex-encoded on the ledger).
 
 > `readonly` `optional` **holder**: `string`
 
-Defined in: [src/verticals/credential.types.ts:37](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/credential.types.ts#L37)
+Defined in: [verticals/credential.types.ts:43](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/credential.types.ts#L43)
 
 The holder r-address (set when deleting as the issuer).
 
@@ -30,6 +30,6 @@ The holder r-address (set when deleting as the issuer).
 
 > `readonly` `optional` **issuer**: `string`
 
-Defined in: [src/verticals/credential.types.ts:39](https://github.com/ripple/simpleXRPL/blob/e303b9ef881e97b383dabe0d848c44f29264c41d/src/verticals/credential.types.ts#L39)
+Defined in: [verticals/credential.types.ts:45](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/credential.types.ts#L45)
 
 The issuer r-address (set when deleting as the holder).
