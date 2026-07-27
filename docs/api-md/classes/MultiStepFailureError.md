@@ -1,6 +1,6 @@
 # Class: MultiStepFailureError
 
-Defined in: [errors.ts:220](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L220)
+Defined in: [errors.ts:220](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L220)
 
 A multi-step verb failed partway through. simpleXRPL does not roll back; the
 already-committed steps are carried so the caller can reconcile manually.
@@ -15,7 +15,7 @@ already-committed steps are carried so the caller can reconcile manually.
 
 > **new MultiStepFailureError**(`committed`, `failed`): [`MultiStepFailureError`](MultiStepFailureError.md)
 
-Defined in: [errors.ts:235](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L235)
+Defined in: [errors.ts:235](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L235)
 
 Construct a MultiStepFailureError.
 
@@ -42,7 +42,7 @@ Construct a MultiStepFailureError.
 
 > `readonly` **committed**: readonly [`SubmissionResult`](../type-aliases/SubmissionResult.md)[]
 
-Defined in: [errors.ts:221](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L221)
+Defined in: [errors.ts:221](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L221)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [errors.ts:221](https://github.com/ripple/simpleXRPL/blob/bbdadc487c
 
 > `readonly` **failed**: \{ `error`: [`SimpleXRPLError`](SimpleXRPLError.md); `step`: `number`; \}
 
-Defined in: [errors.ts:222](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L222)
+Defined in: [errors.ts:222](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L222)
 
 #### error
 
@@ -66,7 +66,7 @@ Defined in: [errors.ts:222](https://github.com/ripple/simpleXRPL/blob/bbdadc487c
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L9)
 
 #### Inherited from
 

@@ -2,7 +2,7 @@
 
 > **readAccountAddress**(`host`, `account`?): `string`
 
-Defined in: [reads/read-helpers.ts:21](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/reads/read-helpers.ts#L21)
+Defined in: [reads/read-helpers.ts:21](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/reads/read-helpers.ts#L21)
 
 Resolve the account a read targets. Reads never require a signer: pass an
 explicit `account`, or fall back to the primary signer's account when one is

@@ -75,7 +75,11 @@ export interface DomainRetrieveResult {
 
 /** Parameters for {@link Domain.list}. */
 export interface DomainListParams {
-  /** The owner whose domains to list; defaults to the primary signer's account. */
+  /**
+   * The owner whose domains to list.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 

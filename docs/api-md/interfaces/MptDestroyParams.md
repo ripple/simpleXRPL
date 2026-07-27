@@ -1,6 +1,6 @@
 # Interface: MptDestroyParams
 
-Defined in: [verticals/token.types.ts:78](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L78)
+Defined in: [verticals/token.types.ts:126](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L126)
 
 Parameters for `Token.destroy`.
 
@@ -10,6 +10,6 @@ Parameters for `Token.destroy`.
 
 > `readonly` **mptIssuanceId**: `string`
 
-Defined in: [verticals/token.types.ts:80](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L80)
+Defined in: [verticals/token.types.ts:128](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L128)
 
 The MPT issuance id.

@@ -1,6 +1,6 @@
 # Class: SimpleXRPLError
 
-Defined in: [errors.ts:8](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L8)
+Defined in: [errors.ts:8](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L8)
 
 Base class for every error thrown by simpleXRPL. Errors are pass-through but
 typed: distinct underlying failure modes are not flattened into one class.
@@ -31,7 +31,7 @@ typed: distinct underlying failure modes are not flattened into one class.
 
 > **new SimpleXRPLError**(`message`, `options`?): [`SimpleXRPLError`](SimpleXRPLError.md)
 
-Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L18)
+Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L18)
 
 Construct a SimpleXRPLError.
 
@@ -57,7 +57,7 @@ Construct a SimpleXRPLError.
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L9)
 
 #### Overrides
 

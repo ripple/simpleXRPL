@@ -1,6 +1,6 @@
 # Interface: TokenListEntry
 
-Defined in: [verticals/token.types.ts:180](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L180)
+Defined in: [verticals/token.types.ts:249](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L249)
 
 An entry in [Token.list](../classes/Token.md#list): a full issuance (issuer) or a holding.
 
@@ -10,7 +10,7 @@ An entry in [Token.list](../classes/Token.md#list): a full issuance (issuer) or 
 
 > `readonly` `optional` **balance**: `string`
 
-Defined in: [verticals/token.types.ts:184](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L184)
+Defined in: [verticals/token.types.ts:253](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L253)
 
 The account's balance (present for `role: 'holder'`).
 
@@ -20,7 +20,7 @@ The account's balance (present for `role: 'holder'`).
 
 > `readonly` `optional` **issuance**: [`TokenData`](TokenData.md)
 
-Defined in: [verticals/token.types.ts:186](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L186)
+Defined in: [verticals/token.types.ts:255](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L255)
 
 The full issuance snapshot (present for `role: 'issuer'`).
 
@@ -30,6 +30,6 @@ The full issuance snapshot (present for `role: 'issuer'`).
 
 > `readonly` **tokenID**: `string`
 
-Defined in: [verticals/token.types.ts:182](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L182)
+Defined in: [verticals/token.types.ts:251](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L251)
 
 The MPT issuance id.

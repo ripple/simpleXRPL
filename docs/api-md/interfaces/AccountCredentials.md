@@ -1,6 +1,6 @@
 # Interface: AccountCredentials
 
-Defined in: [verticals/account.types.ts:8](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L8)
+Defined in: [verticals/account.types.ts:8](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L8)
 
 The locally-generated credentials returned by `Account.create`. Nothing is
 written to the ledger; `seed` is the only way to control the account and must
@@ -12,7 +12,7 @@ be stored securely.
 
 > `readonly` **address**: `string`
 
-Defined in: [verticals/account.types.ts:10](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L10)
+Defined in: [verticals/account.types.ts:10](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L10)
 
 The classic r-address.
 
@@ -22,7 +22,7 @@ The classic r-address.
 
 > `readonly` **privateKey**: `string`
 
-Defined in: [verticals/account.types.ts:14](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L14)
+Defined in: [verticals/account.types.ts:14](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L14)
 
 The private key (hex) — sensitive.
 
@@ -32,7 +32,7 @@ The private key (hex) — sensitive.
 
 > `readonly` **publicKey**: `string`
 
-Defined in: [verticals/account.types.ts:12](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L12)
+Defined in: [verticals/account.types.ts:12](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L12)
 
 The public key (hex).
 
@@ -42,6 +42,6 @@ The public key (hex).
 
 > `readonly` **seed**: `string`
 
-Defined in: [verticals/account.types.ts:16](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L16)
+Defined in: [verticals/account.types.ts:16](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L16)
 
 The account seed (secret) — sensitive.

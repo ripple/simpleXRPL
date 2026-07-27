@@ -1,6 +1,6 @@
 # Interface: MptHolderParams
 
-Defined in: [verticals/token.types.ts:62](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L62)
+Defined in: [verticals/token.types.ts:110](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L110)
 
 Parameters for `Token.grantHolder` / `Token.revokeHolder` (issuer-side).
 
@@ -10,7 +10,7 @@ Parameters for `Token.grantHolder` / `Token.revokeHolder` (issuer-side).
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/token.types.ts:66](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L66)
+Defined in: [verticals/token.types.ts:114](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L114)
 
 The holder to grant or revoke.
 
@@ -20,6 +20,6 @@ The holder to grant or revoke.
 
 > `readonly` **mptIssuanceId**: `string`
 
-Defined in: [verticals/token.types.ts:64](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L64)
+Defined in: [verticals/token.types.ts:112](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L112)
 
 The MPT issuance id.

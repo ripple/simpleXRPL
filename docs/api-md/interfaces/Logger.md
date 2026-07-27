@@ -1,6 +1,6 @@
 # Interface: Logger
 
-Defined in: [ports/logger.ts:10](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/ports/logger.ts#L10)
+Defined in: [ports/logger.ts:10](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/logger.ts#L10)
 
 Structured logger interface used across the SDK. Implementations receive the
 redaction list below so known-sensitive fields never reach log output.
@@ -11,7 +11,7 @@ redaction list below so known-sensitive fields never reach log output.
 
 > `readonly` **debug**: (`message`, `fields`?) => `void`
 
-Defined in: [ports/logger.ts:12](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/ports/logger.ts#L12)
+Defined in: [ports/logger.ts:12](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/logger.ts#L12)
 
 Log at debug level.
 
@@ -32,7 +32,7 @@ Log at debug level.
 
 > `readonly` **error**: (`message`, `fields`?) => `void`
 
-Defined in: [ports/logger.ts:21](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/ports/logger.ts#L21)
+Defined in: [ports/logger.ts:21](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/logger.ts#L21)
 
 Log at error level.
 
@@ -53,7 +53,7 @@ Log at error level.
 
 > `readonly` **info**: (`message`, `fields`?) => `void`
 
-Defined in: [ports/logger.ts:15](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/ports/logger.ts#L15)
+Defined in: [ports/logger.ts:15](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/logger.ts#L15)
 
 Log at info level.
 
@@ -74,7 +74,7 @@ Log at info level.
 
 > `readonly` **warn**: (`message`, `fields`?) => `void`
 
-Defined in: [ports/logger.ts:18](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/ports/logger.ts#L18)
+Defined in: [ports/logger.ts:18](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/logger.ts#L18)
 
 Log at warn level.
 

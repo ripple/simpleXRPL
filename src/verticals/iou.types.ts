@@ -137,11 +137,15 @@ export interface IOUOfferParams extends IOURef {
    * Restrict the offer to a permissioned domain. Omit for the open DEX. When
    * set, the offer defaults to hybrid (also crosses the open DEX) unless
    * `hybrid` is explicitly `false`.
+   *
+   * @defaultValue Unset — the offer works the open DEX only.
    */
   readonly domainID?: string
   /**
    * Whether a domain-scoped offer also works the open DEX (hybrid). Only
-   * meaningful with `domainID`; defaults to `true` when `domainID` is set.
+   * meaningful together with `domainID`.
+   *
+   * @defaultValue `true` when `domainID` is set (otherwise not applicable).
    */
   readonly hybrid?: boolean
   /** A prior offer sequence to replace. */
@@ -181,7 +185,11 @@ export interface IOUTrustLine {
 export interface IOURetrieveParams extends IOURef {
   /** The IOU issuer's r-address. */
   readonly issuer: string
-  /** The holder account to read from; defaults to the primary signer's account. */
+  /**
+   * The holder account to read from.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 
@@ -195,9 +203,17 @@ export interface IOURetrieveResult {
 
 /** Parameters for {@link IOU.list}. */
 export interface IOUListParams {
-  /** Query as `holder` (default) or `issuer`. */
+  /**
+   * Query as `holder` or `issuer`.
+   *
+   * @defaultValue `'holder'`
+   */
   readonly role?: IOURole
-  /** The account whose trust lines to list; defaults to the primary signer's. */
+  /**
+   * The account whose trust lines to list.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 

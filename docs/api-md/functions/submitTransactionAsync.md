@@ -2,7 +2,7 @@
 
 > **submitTransactionAsync**(`host`, `request`): `Promise`\<[`SubmissionHandle`](../interfaces/SubmissionHandle.md)\>
 
-Defined in: [pipeline/pipeline.ts:84](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/pipeline/pipeline.ts#L84)
+Defined in: [pipeline/pipeline.ts:84](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/pipeline/pipeline.ts#L84)
 
 Like [submitTransaction](submitTransaction.md), but returns a [SubmissionHandle](../interfaces/SubmissionHandle.md) as
 soon as the custodian accepts the intent instead of blocking to a terminal
