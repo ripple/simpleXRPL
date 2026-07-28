@@ -8,5 +8,6 @@
   "excludeExternals": true,
   "externalPattern": ["**/node_modules/**", "**/src/generated/**"],
   "readme": "README.md",
-  "name": "simpleXRPL"
+  "name": "simpleXRPL",
+  "gitRevision": "main"
 }

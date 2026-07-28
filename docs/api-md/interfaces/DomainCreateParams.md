@@ -1,6 +1,6 @@
 # Interface: DomainCreateParams
 
-Defined in: [verticals/domain.types.ts:27](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/domain.types.ts#L27)
+Defined in: [verticals/domain.types.ts:27](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L27)
 
 Parameters for `Domain.create` (a new permissioned domain).
 
@@ -10,6 +10,6 @@ Parameters for `Domain.create` (a new permissioned domain).
 
 > `readonly` **credList**: readonly [`AcceptedCredential`](AcceptedCredential.md)[]
 
-Defined in: [verticals/domain.types.ts:29](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/domain.types.ts#L29)
+Defined in: [verticals/domain.types.ts:29](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L29)
 
 The credentials the domain accepts (at least one).

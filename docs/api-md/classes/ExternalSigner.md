@@ -1,6 +1,6 @@
 # Class: ExternalSigner
 
-Defined in: [custodians/external/external-signer.ts:40](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L40)
+Defined in: [custodians/external/external-signer.ts:40](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L40)
 
 A signing backend whose key lives in a KMS or HSM. Like [LocalSigner](LocalSigner.md)
 it is a local-family signer — it builds and signs a transaction, then submits
@@ -18,7 +18,7 @@ result (TDD §9). Signs any transactor via the raw path; no native operations.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md) = `'external'`
 
-Defined in: [custodians/external/external-signer.ts:42](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L42)
+Defined in: [custodians/external/external-signer.ts:42](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L42)
 
 This custodian signs with an external key (KMS/HSM).
 
@@ -34,7 +34,7 @@ This custodian signs with an external key (KMS/HSM).
 
 > **get** **primary**(): [`AccountRef`](../interfaces/AccountRef.md)
 
-Defined in: [custodians/external/external-signer.ts:63](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L63)
+Defined in: [custodians/external/external-signer.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L63)
 
 The primary (and only) account this signer owns.
 
@@ -56,7 +56,7 @@ The custodian's primary account; it owns this account.
 
 > **capabilities**(): [`SignerCapabilities`](../interfaces/SignerCapabilities.md)
 
-Defined in: [custodians/external/external-signer.ts:88](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L88)
+Defined in: [custodians/external/external-signer.ts:88](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L88)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -76,7 +76,7 @@ Capabilities allowing any transactor via raw signing.
 
 > **listAccounts**(): `Promise`\<[`Account`](../interfaces/Account.md)[]\>
 
-Defined in: [custodians/external/external-signer.ts:97](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L97)
+Defined in: [custodians/external/external-signer.ts:97](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L97)
 
 The full account list, discovered at construction.
 
@@ -96,7 +96,7 @@ The one account, keyed by r-address.
 
 > **sign**(`tx`, `_ctx`): `Promise`\<[`SignedEnvelope`](../interfaces/SignedEnvelope.md)\>
 
-Defined in: [custodians/external/external-signer.ts:108](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L108)
+Defined in: [custodians/external/external-signer.ts:108](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L108)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -123,7 +123,7 @@ The signed envelope (blob + hash).
 
 > **submitAndWait**(`tx`, `ctx`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [custodians/external/external-signer.ts:124](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L124)
+Defined in: [custodians/external/external-signer.ts:124](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L124)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -156,7 +156,7 @@ The xrpld-sourced submission result.
 
 > **submitAsync**(`tx`, `ctx`): `Promise`\<[`SubmissionHandle`](../interfaces/SubmissionHandle.md)\>
 
-Defined in: [custodians/external/external-signer.ts:157](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L157)
+Defined in: [custodians/external/external-signer.ts:157](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L157)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -187,7 +187,7 @@ A pre-resolved handle over the submitted transaction.
 
 > `static` **create**(`options`): `Promise`\<[`ExternalSigner`](ExternalSigner.md)\>
 
-Defined in: [custodians/external/external-signer.ts:73](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer.ts#L73)
+Defined in: [custodians/external/external-signer.ts:73](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/external/external-signer.ts#L73)
 
 Build an external signer: fetch the public key and resolve the account.
 

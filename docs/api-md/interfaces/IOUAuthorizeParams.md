@@ -1,6 +1,6 @@
 # Interface: IOUAuthorizeParams
 
-Defined in: [verticals/iou.types.ts:53](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L53)
+Defined in: [verticals/iou.types.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L53)
 
 Parameters for [IOU.authorize](../classes/IOU.md#authorize).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.authorize](../classes/IOU.md#authorize).
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/iou.types.ts:55](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L55)
+Defined in: [verticals/iou.types.ts:55](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L55)
 
 The holder's r-address being authorized.
 
@@ -24,7 +24,7 @@ The holder's r-address being authorized.
 
 > `readonly` **ticker**: `string`
 
-Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L14)
+Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L14)
 
 The currency code: a 3-character ISO-4217-style code or a 40-character
 hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to

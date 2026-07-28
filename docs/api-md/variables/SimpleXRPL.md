@@ -2,7 +2,7 @@
 
 > `const` **SimpleXRPL**: \{ `init`: `Promise`\<[`SimpleXRPLClient`](../classes/SimpleXRPLClient.md)\>; \}
 
-Defined in: [client/simple-xrpl.ts:8](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/client/simple-xrpl.ts#L8)
+Defined in: [client/simple-xrpl.ts:8](https://github.com/ripple/simpleXRPL/blob/main/src/client/simple-xrpl.ts#L8)
 
 The SDK entry point. `SimpleXRPL.init(...)` is the only way to obtain a
 [SimpleXRPLClient](../classes/SimpleXRPLClient.md); the client is never constructed via `new`.

@@ -1,6 +1,6 @@
 # Interface: XrpTransferIntent
 
-Defined in: [verticals/xrp.ts:37](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/xrp.ts#L37)
+Defined in: [verticals/xrp.ts:37](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L37)
 
 Output attached to an [XRP.transfer](../classes/XRP.md#transfer) result.
 
@@ -10,7 +10,7 @@ Output attached to an [XRP.transfer](../classes/XRP.md#transfer) result.
 
 > `readonly` **amount**: `string`
 
-Defined in: [verticals/xrp.ts:42](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/xrp.ts#L42)
+Defined in: [verticals/xrp.ts:42](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L42)
 
 Amount sent, in XRP.
 
@@ -20,6 +20,6 @@ Amount sent, in XRP.
 
 > `readonly` **to**: `string`
 
-Defined in: [verticals/xrp.ts:39](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/xrp.ts#L39)
+Defined in: [verticals/xrp.ts:39](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L39)
 
 Destination r-address.

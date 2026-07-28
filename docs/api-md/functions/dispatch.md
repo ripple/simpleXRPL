@@ -2,7 +2,7 @@
 
 > **dispatch**(`account`, `transactor`): [`SubmissionPath`](../type-aliases/SubmissionPath.md)
 
-Defined in: [pipeline/dispatch.ts:24](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/pipeline/dispatch.ts#L24)
+Defined in: [pipeline/dispatch.ts:24](https://github.com/ripple/simpleXRPL/blob/main/src/pipeline/dispatch.ts#L24)
 
 Choose the path for a transaction on a resolved account. Local signs
 everything; a custodian uses its native operation when the transactor is in

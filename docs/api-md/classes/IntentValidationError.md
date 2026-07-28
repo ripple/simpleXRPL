@@ -1,6 +1,6 @@
 # Class: IntentValidationError
 
-Defined in: [errors.ts:32](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L32)
+Defined in: [errors.ts:32](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L32)
 
 Pre-flight validation failed (intent shape, amount precision, flag rules, or
 a custodian dry-run rejection).
@@ -15,7 +15,7 @@ a custodian dry-run rejection).
 
 > **new IntentValidationError**(`message`, `options`?): [`IntentValidationError`](IntentValidationError.md)
 
-Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L18)
+Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L18)
 
 Construct a SimpleXRPLError.
 
@@ -41,7 +41,7 @@ Construct a SimpleXRPLError.
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L9)
 
 #### Inherited from
 

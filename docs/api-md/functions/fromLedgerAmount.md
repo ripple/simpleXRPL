@@ -2,7 +2,7 @@
 
 > **fromLedgerAmount**(`ledger`, `asset`): [`Amount`](../interfaces/Amount.md)
 
-Defined in: [amount/amount.ts:70](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/amount/amount.ts#L70)
+Defined in: [amount/amount.ts:70](https://github.com/ripple/simpleXRPL/blob/main/src/amount/amount.ts#L70)
 
 Convert an on-ledger amount back to a display amount for the given asset.
 

@@ -1,6 +1,6 @@
 # Interface: CredentialIssueParams
 
-Defined in: [verticals/credential.types.ts:19](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L19)
+Defined in: [verticals/credential.types.ts:19](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L19)
 
 Parameters for `Credential.issue` (issued by the source account).
 
@@ -10,7 +10,7 @@ Parameters for `Credential.issue` (issued by the source account).
 
 > `readonly` **credType**: `string`
 
-Defined in: [verticals/credential.types.ts:23](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L23)
+Defined in: [verticals/credential.types.ts:23](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L23)
 
 The credential type (plain string; hex-encoded on the ledger).
 
@@ -20,7 +20,7 @@ The credential type (plain string; hex-encoded on the ledger).
 
 > `readonly` **destination**: `string`
 
-Defined in: [verticals/credential.types.ts:21](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L21)
+Defined in: [verticals/credential.types.ts:21](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L21)
 
 The destination (holder) r-address the credential is about.
 
@@ -30,7 +30,7 @@ The destination (holder) r-address the credential is about.
 
 > `readonly` `optional` **expiration**: `number`
 
-Defined in: [verticals/credential.types.ts:25](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L25)
+Defined in: [verticals/credential.types.ts:25](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L25)
 
 Expiration (seconds since the Ripple epoch).
 
@@ -40,6 +40,6 @@ Expiration (seconds since the Ripple epoch).
 
 > `readonly` `optional` **URI**: `string`
 
-Defined in: [verticals/credential.types.ts:27](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L27)
+Defined in: [verticals/credential.types.ts:27](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L27)
 
 An optional URI (plain string; hex-encoded on the ledger).
