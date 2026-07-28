@@ -1,6 +1,6 @@
 # Class: CustodyAuthError
 
-Defined in: [errors.ts:110](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L110)
+Defined in: [errors.ts:110](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L110)
 
 Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
 
@@ -14,7 +14,7 @@ Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
 
 > **new CustodyAuthError**(`message`, `options`?): [`CustodyAuthError`](CustodyAuthError.md)
 
-Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L18)
+Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L18)
 
 Construct a SimpleXRPLError.
 
@@ -40,7 +40,7 @@ Construct a SimpleXRPLError.
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L9)
 
 #### Inherited from
 

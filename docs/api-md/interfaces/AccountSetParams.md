@@ -1,6 +1,6 @@
 # Interface: AccountSetParams
 
-Defined in: [verticals/account.types.ts:57](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L57)
+Defined in: [verticals/account.types.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L65)
 
 Parameters for `Account.set`. Each flag is a named boolean (`true` enables,
 `false` disables); combine with the non-flag fields freely. At least one
@@ -10,13 +10,16 @@ A single `AccountSet` can enable at most one flag and disable at most one, so
 toggling more than one flag in the same direction is rejected — call
 `set()` once per such change.
 
+Any field left unset is **left unchanged** on the account — omitting a flag
+neither enables nor disables it; the SDK applies no defaults here.
+
 ## Properties
 
 ### clawbackEnabled?
 
 > `readonly` `optional` **clawbackEnabled**: `boolean`
 
-Defined in: [verticals/account.types.ts:62](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L62)
+Defined in: [verticals/account.types.ts:70](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L70)
 
 Permanently allow this issuer to claw back issued tokens.
 
@@ -26,7 +29,7 @@ Permanently allow this issuer to claw back issued tokens.
 
 > `readonly` `optional` **defaultRipple**: `boolean`
 
-Defined in: [verticals/account.types.ts:74](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L74)
+Defined in: [verticals/account.types.ts:82](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L82)
 
 Enable rippling on trust lines by default.
 
@@ -36,7 +39,7 @@ Enable rippling on trust lines by default.
 
 > `readonly` `optional` **disableMaster**: `boolean`
 
-Defined in: [verticals/account.types.ts:66](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L66)
+Defined in: [verticals/account.types.ts:74](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L74)
 
 Permanently disable the master key pair.
 
@@ -46,7 +49,7 @@ Permanently disable the master key pair.
 
 > `readonly` `optional` **disallowXRP**: `boolean`
 
-Defined in: [verticals/account.types.ts:78](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L78)
+Defined in: [verticals/account.types.ts:86](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L86)
 
 Disallow incoming XRP payments (advisory).
 
@@ -56,7 +59,7 @@ Disallow incoming XRP payments (advisory).
 
 > `readonly` `optional` **domain**: `string`
 
-Defined in: [verticals/account.types.ts:86](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L86)
+Defined in: [verticals/account.types.ts:94](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L94)
 
 The account domain (plain string; hex-encoded on the ledger).
 
@@ -66,7 +69,7 @@ The account domain (plain string; hex-encoded on the ledger).
 
 > `readonly` `optional` **globalFreeze**: `boolean`
 
-Defined in: [verticals/account.types.ts:76](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L76)
+Defined in: [verticals/account.types.ts:84](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L84)
 
 Freeze all trust lines issued by this account.
 
@@ -76,7 +79,7 @@ Freeze all trust lines issued by this account.
 
 > `readonly` `optional` **noFreeze**: `boolean`
 
-Defined in: [verticals/account.types.ts:60](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L60)
+Defined in: [verticals/account.types.ts:68](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L68)
 
 Permanently give up the ability to freeze trust lines.
 
@@ -86,7 +89,7 @@ Permanently give up the ability to freeze trust lines.
 
 > `readonly` `optional` **requireAuth**: `boolean`
 
-Defined in: [verticals/account.types.ts:70](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L70)
+Defined in: [verticals/account.types.ts:78](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L78)
 
 Require holders to be authorized before they can hold issued tokens.
 
@@ -96,7 +99,7 @@ Require holders to be authorized before they can hold issued tokens.
 
 > `readonly` `optional` **requireDest**: `boolean`
 
-Defined in: [verticals/account.types.ts:72](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L72)
+Defined in: [verticals/account.types.ts:80](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L80)
 
 Require a destination tag on incoming payments.
 
@@ -106,7 +109,7 @@ Require a destination tag on incoming payments.
 
 > `readonly` `optional` **tickSize**: `number`
 
-Defined in: [verticals/account.types.ts:84](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L84)
+Defined in: [verticals/account.types.ts:92](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L92)
 
 Tick size for offers (3–15, or 0 to disable).
 
@@ -116,7 +119,7 @@ Tick size for offers (3–15, or 0 to disable).
 
 > `readonly` `optional` **transferRate**: `number`
 
-Defined in: [verticals/account.types.ts:82](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L82)
+Defined in: [verticals/account.types.ts:90](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L90)
 
 Transfer fee for issued currencies, as a percentage (0.5 = 0.5%, 0–100).
 
@@ -126,6 +129,6 @@ Transfer fee for issued currencies, as a percentage (0.5 = 0.5%, 0–100).
 
 > `readonly` `optional` **trustLineLocking**: `boolean`
 
-Defined in: [verticals/account.types.ts:64](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L64)
+Defined in: [verticals/account.types.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L72)
 
 Permanently allow trust-line locking.

@@ -1,6 +1,6 @@
 # Interface: TokenListResult
 
-Defined in: [verticals/token.types.ts:198](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L198)
+Defined in: [verticals/token.types.ts:275](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L275)
 
 Result of [Token.list](../classes/Token.md#list): `tokens[i]` corresponds to `data[i]`.
 
@@ -10,7 +10,7 @@ Result of [Token.list](../classes/Token.md#list): `tokens[i]` corresponds to `da
 
 > `readonly` **data**: readonly [`TokenListEntry`](TokenListEntry.md)[]
 
-Defined in: [verticals/token.types.ts:202](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L202)
+Defined in: [verticals/token.types.ts:279](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L279)
 
 The shaped entries.
 
@@ -20,6 +20,6 @@ The shaped entries.
 
 > `readonly` **tokens**: readonly `string`[]
 
-Defined in: [verticals/token.types.ts:200](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L200)
+Defined in: [verticals/token.types.ts:277](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L277)
 
 The MPT issuance id of each token.

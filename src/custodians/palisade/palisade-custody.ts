@@ -14,7 +14,7 @@ import type {
 } from '../../domain/index.js'
 import {
   AccountNotFoundError,
-  RippledSubmitError,
+  XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
 } from '../../errors.js'
@@ -112,9 +112,20 @@ export class PalisadeCustody implements Custodian {
       timeoutMs: config.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
       tenantId: config.clientId,
     })
-    const accounts = await discoverXrplWallets(client, custodian)
-    custodian.context = new PalisadeWalletContext(accounts)
-    custodian.primaryAccount = resolvePrimary(accounts, config.primary)
+    // When the primary's address is supplied, bind it directly and skip the
+    // `GET /v2/wallets` discovery call — so a transactions-only API credential
+    // (no wallet-read scope) still works. Otherwise discover the org's wallets.
+    // An empty string counts as "not supplied" (e.g. an unset env var).
+    const address = config.primary.xrplAddress
+    if (address === undefined || address === '') {
+      const accounts = await discoverXrplWallets(client, custodian)
+      custodian.context = new PalisadeWalletContext(accounts)
+      custodian.primaryAccount = resolvePrimary(accounts, config.primary)
+    } else {
+      const primary = primaryAccount(config.primary, address, custodian)
+      custodian.context = new PalisadeWalletContext([primary])
+      custodian.primaryAccount = primary
+    }
     return custodian
   }
 
@@ -276,8 +287,8 @@ export class PalisadeCustody implements Custodian {
    *
    * @param tx - The transaction to submit.
    * @param ctx - The submission context.
-   * @returns The rippled-sourced submission result.
-   * @throws {@link RippledSubmitError} on a non-`tesSUCCESS` engine result.
+   * @returns The xrpld-sourced submission result.
+   * @throws {@link XrpldSubmitError} on a non-`tesSUCCESS` engine result.
    */
   private async submitRaw(
     tx: Transaction,
@@ -291,10 +302,10 @@ export class PalisadeCustody implements Custodian {
         ? meta.TransactionResult
         : undefined
     if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
-      throw new RippledSubmitError(engineResult, response)
+      throw new XrpldSubmitError(engineResult, response)
     }
     return {
-      source: 'rippled',
+      source: 'xrpld',
       response,
       intent: undefined,
       txHash: response.result.hash,
@@ -318,6 +329,30 @@ export class PalisadeCustody implements Custodian {
       throw new AccountNotFoundError(account.address)
     }
     return { vaultId: ref.vaultId, walletId: ref.walletId }
+  }
+}
+
+/**
+ * Build the primary {@link Account} directly from its ref and address, without
+ * discovery. Used when the caller supplies `primary.xrplAddress` (see {@link
+ * PalisadeWalletRef.xrplAddress}).
+ *
+ * @param ref - The primary wallet's vault/wallet ids.
+ * @param ref.vaultId - The primary wallet's vault id.
+ * @param ref.walletId - The primary wallet's id.
+ * @param address - The wallet's XRPL r-address.
+ * @param signer - The custodian the account back-references.
+ * @returns The primary account.
+ */
+function primaryAccount(
+  ref: { vaultId: string; walletId: string },
+  address: string,
+  signer: Custodian,
+): Account {
+  return {
+    address,
+    custodianRef: { vaultId: ref.vaultId, walletId: ref.walletId },
+    signer,
   }
 }
 

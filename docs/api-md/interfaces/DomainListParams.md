@@ -1,6 +1,6 @@
 # Interface: DomainListParams
 
-Defined in: [verticals/domain.types.ts:77](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.types.ts#L77)
+Defined in: [verticals/domain.types.ts:77](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L77)
 
 Parameters for [Domain.list](../classes/Domain.md#list).
 
@@ -10,6 +10,12 @@ Parameters for [Domain.list](../classes/Domain.md#list).
 
 > `readonly` `optional` **account**: `string`
 
-Defined in: [verticals/domain.types.ts:79](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.types.ts#L79)
+Defined in: [verticals/domain.types.ts:83](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L83)
 
-The owner whose domains to list; defaults to the primary signer's account.
+The owner whose domains to list.
+
+#### Default Value
+
+```ts
+The primary signer's account.
+```

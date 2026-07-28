@@ -1,6 +1,6 @@
 # Interface: Account
 
-Defined in: [domain/model.ts:41](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L41)
+Defined in: [domain/model.ts:41](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L41)
 
 A discovered account, keyed by r-address, with a back-reference to the
 custodian that owns and signs for it.
@@ -15,7 +15,7 @@ custodian that owns and signs for it.
 
 > `readonly` **address**: `string`
 
-Defined in: [domain/model.ts:31](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L31)
+Defined in: [domain/model.ts:31](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L31)
 
 The XRPL r-address — the canonical key the core and verticals use.
 
@@ -29,7 +29,7 @@ The XRPL r-address — the canonical key the core and verticals use.
 
 > `readonly` `optional` **alias**: `string`
 
-Defined in: [domain/model.ts:43](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L43)
+Defined in: [domain/model.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L43)
 
 Custodian-side alias, when the backend exposes one.
 
@@ -39,7 +39,7 @@ Custodian-side alias, when the backend exposes one.
 
 > `readonly` `optional` **custodianRef**: [`CustodianRef`](../type-aliases/CustodianRef.md)
 
-Defined in: [domain/model.ts:34](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L34)
+Defined in: [domain/model.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L34)
 
 The owning custodian's native id, opaque to everything but that custodian.
 
@@ -53,7 +53,7 @@ The owning custodian's native id, opaque to everything but that custodian.
 
 > `readonly` `optional` **metadata**: \{ `kind`: [`CustodianKind`](../type-aliases/CustodianKind.md); `tags`: readonly `string`[]; \}
 
-Defined in: [domain/model.ts:49](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L49)
+Defined in: [domain/model.ts:49](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L49)
 
 Optional, advisory-only metadata.
 
@@ -71,6 +71,6 @@ Optional, advisory-only metadata.
 
 > `readonly` **signer**: [`Custodian`](Custodian.md)
 
-Defined in: [domain/model.ts:46](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/domain/model.ts#L46)
+Defined in: [domain/model.ts:46](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L46)
 
 The custodian that discovered and signs for this account.

@@ -1,6 +1,6 @@
 # Interface: DomainListResult
 
-Defined in: [verticals/domain.types.ts:83](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.types.ts#L83)
+Defined in: [verticals/domain.types.ts:87](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L87)
 
 Result of [Domain.list](../classes/Domain.md#list): `domains[i]` corresponds to `data[i]`.
 
@@ -10,7 +10,7 @@ Result of [Domain.list](../classes/Domain.md#list): `domains[i]` corresponds to 
 
 > `readonly` **data**: readonly [`DomainData`](DomainData.md)[]
 
-Defined in: [verticals/domain.types.ts:87](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.types.ts#L87)
+Defined in: [verticals/domain.types.ts:91](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L91)
 
 The shaped domains.
 
@@ -20,6 +20,6 @@ The shaped domains.
 
 > `readonly` **domains**: readonly `string`[]
 
-Defined in: [verticals/domain.types.ts:85](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/domain.types.ts#L85)
+Defined in: [verticals/domain.types.ts:89](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L89)
 
 The domain id of each owned domain.

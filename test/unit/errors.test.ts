@@ -10,7 +10,7 @@ import {
   NoSignerError,
   PalisadeApiError,
   PalisadeAuthError,
-  RippledSubmitError,
+  XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
 } from '../../src/index.js'
@@ -92,8 +92,8 @@ describe('error hierarchy', () => {
     expect(err.lastState).toBe('AwaitingApproval')
   })
 
-  it('RippledSubmitError preserves the engine result', () => {
-    const err = new RippledSubmitError('tecPATH_DRY', { foo: 1 })
+  it('XrpldSubmitError preserves the engine result', () => {
+    const err = new XrpldSubmitError('tecPATH_DRY', { foo: 1 })
     expect(err.engineResult).toBe('tecPATH_DRY')
     expect(err.raw).toStrictEqual({ foo: 1 })
   })

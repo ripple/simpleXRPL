@@ -55,6 +55,55 @@ above to see how a given method routes on each connector.
 | `token` | `MPTokenAuthorize`, `MPTokenIssuanceCreate`, `MPTokenIssuanceDestroy`, `MPTokenIssuanceSet`, `OfferCancel`, `OfferCreate`, `Payment` |
 | `xrp` | `Payment` |
 
+## Operation → native support
+
+Each simpleXRPL write operation, the XRPL transactor(s) it emits, and whether
+that operation is **native** on each custodian (all its transactors are in the
+custodian's native-ops set) or falls back to **raw** signing. Local signs every
+operation in-process. Read operations emit no transactor and are omitted.
+
+| Operation | Transactor(s) | Ripple Custody | Palisade |
+| ------ | ------ | ------ | ------ |
+| `XRP.transfer()` | `Payment` | **native** | **native** |
+| `IOU.issue()` | `TrustSet`, `AccountSet` | **native** | **native** |
+| `IOU.authorize()` | `TrustSet` | **native** | **native** |
+| `IOU.lock()` | `TrustSet` | **native** | **native** |
+| `IOU.unlock()` | `TrustSet` | **native** | **native** |
+| `IOU.clawback()` | `Clawback` | **native** | **native** |
+| `IOU.transfer()` | `Payment` | **native** | **native** |
+| `IOU.buyOffer()` | `OfferCreate` | **native** | **native** |
+| `IOU.sellOffer()` | `OfferCreate` | **native** | **native** |
+| `IOU.cancelOffer()` | `OfferCancel` | raw fallback¹ | **native** |
+| `Token.issue()` | `MPTokenIssuanceCreate` | **native** | raw fallback¹ |
+| `Token.authorize()` | `MPTokenAuthorize` | **native** | raw fallback¹ |
+| `Token.unauthorize()` | `MPTokenAuthorize` | **native** | raw fallback¹ |
+| `Token.grantHolder()` | `MPTokenAuthorize` | **native** | raw fallback¹ |
+| `Token.revokeHolder()` | `MPTokenAuthorize` | **native** | raw fallback¹ |
+| `Token.lock()` | `MPTokenIssuanceSet` | **native** | raw fallback¹ |
+| `Token.unlock()` | `MPTokenIssuanceSet` | **native** | raw fallback¹ |
+| `Token.destroy()` | `MPTokenIssuanceDestroy` | **native** | raw fallback¹ |
+| `Token.transfer()` | `Payment` | **native** | raw fallback¹ |
+| `Token.createOffer()` | `OfferCreate` | **native** | **native** |
+| `Token.cancelOffer()` | `OfferCancel` | raw fallback¹ | **native** |
+| `Domain.create()` | `PermissionedDomainSet` | raw fallback¹ | raw fallback¹ |
+| `Domain.setCredentials()` | `PermissionedDomainSet` | raw fallback¹ | raw fallback¹ |
+| `Domain.delete()` | `PermissionedDomainDelete` | raw fallback¹ | raw fallback¹ |
+| `Credential.issue()` | `CredentialCreate` | raw fallback¹ | raw fallback¹ |
+| `Credential.accept()` | `CredentialAccept` | raw fallback¹ | raw fallback¹ |
+| `Credential.delete()` | `CredentialDelete` | raw fallback¹ | raw fallback¹ |
+| `Account.fund()` | `Payment`, `AccountSet` | **native** | **native** |
+| `Account.activate()` | `Payment`, `AccountSet` | **native** | **native** |
+| `Account.set()` | `AccountSet` | **native** | **native** |
+| `Account.setRegularKey()` | `SetRegularKey` | raw fallback¹ | raw fallback¹ |
+| `Account.depositPreauth()` | `DepositPreauth` | **native** | raw fallback¹ |
+
+¹ **raw fallback** applies only when raw signing is enabled on that custodian
+(`allowRawSigning`); otherwise the operation is rejected with
+`SignerCapabilityError`. A multi-transactor operation (e.g. `IOU.issue`) is
+native only when every step is native. **Palisade has no native MPT support**,
+so `Token.transfer` — which carries an MPT amount — falls back to raw there
+even though `Payment` is otherwise native; Ripple Custody handles MPT natively.
+
 ---
 
 _Native-ops sets: `NATIVE_XRPL_TRANSACTORS` (Ripple Custody),

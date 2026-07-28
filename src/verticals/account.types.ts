@@ -26,11 +26,16 @@ export interface AccountFundParams {
 export interface AccountActivateParams {
   /** The r-address to activate (typically from `Account.create`). */
   readonly destination: string
-  /** XRP to send; defaults to the network's base reserve. */
+  /**
+   * XRP to send.
+   *
+   * @defaultValue The network's base reserve plus a small buffer (so the new
+   *   account can afford its own follow-up `defaultRipple` transaction).
+   */
   readonly amount?: string
 }
 
-/** Per-call options shared by the account verbs. */
+/** Per-call options shared by the account operations. */
 export interface AccountWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */
   readonly from?: AccountSelector
@@ -53,6 +58,9 @@ export interface AccountWriteOptions {
  * A single `AccountSet` can enable at most one flag and disable at most one, so
  * toggling more than one flag in the same direction is rejected — call
  * `set()` once per such change.
+ *
+ * Any field left unset is **left unchanged** on the account — omitting a flag
+ * neither enables nor disables it; the SDK applies no defaults here.
  */
 export interface AccountSetParams {
   // Irreversible flags.
@@ -102,7 +110,11 @@ export interface DepositPreauthParams {
 
 /** Parameters for {@link AccountVertical.retrieve}. */
 export interface AccountRetrieveParams {
-  /** The account to read; defaults to the primary signer's account. */
+  /**
+   * The account to read.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 
@@ -128,6 +140,10 @@ export interface AccountRetrieveResult {
 
 /** Parameters for {@link AccountVertical.listOffers}. */
 export interface AccountListOffersParams {
-  /** The account whose offers to list; defaults to the primary signer's. */
+  /**
+   * The account whose offers to list.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }

@@ -1,4 +1,5 @@
 import type { Account, Custodian, CustodianRef } from '../../../domain/index.js'
+import { PalisadeApiError, SimpleXRPLError } from '../../../errors.js'
 import type { operations } from '../../../generated/palisade.js'
 import type { PalisadeHttpClient } from '../transport/palisade-http-client.js'
 
@@ -6,6 +7,8 @@ import type { PalisadeHttpClient } from '../transport/palisade-http-client.js'
 const PAGE_SIZE = 100
 /** The status a wallet must reach before it has a usable on-ledger address. */
 const PROVISIONED_STATUS = 'PROVISIONED'
+/** HTTP 403: the credential is authenticated but lacks the required scope. */
+const HTTP_FORBIDDEN = 403
 
 /* eslint-disable @typescript-eslint/no-magic-numbers -- 200 indexes the OpenAPI success-response type. */
 type SuccessJson<
@@ -75,7 +78,21 @@ export async function discoverXrplWallets(
   client: PalisadeHttpClient,
   signer: Custodian,
 ): Promise<Account[]> {
-  const wallets = await listXrplWallets(client)
+  let wallets: PalisadeWallet[]
+  try {
+    wallets = await listXrplWallets(client)
+  } catch (error) {
+    if (error instanceof PalisadeApiError && error.status === HTTP_FORBIDDEN) {
+      throw new SimpleXRPLError(
+        'Palisade wallet discovery (GET /v2/wallets) was forbidden (403): the ' +
+          'API credential lacks the wallet-read permission. Either grant it, ' +
+          'or set the primary wallet address (PalisadeWalletRef.xrplAddress) so the ' +
+          'SDK skips discovery and binds the primary directly.',
+        { cause: error },
+      )
+    }
+    throw error
+  }
 
   return wallets.filter(isAddressedXrplWallet).map((wallet): Account => {
     const custodianRef: CustodianRef = {

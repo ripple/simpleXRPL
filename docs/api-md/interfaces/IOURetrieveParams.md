@@ -1,6 +1,6 @@
 # Interface: IOURetrieveParams
 
-Defined in: [verticals/iou.types.ts:181](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L181)
+Defined in: [verticals/iou.types.ts:185](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L185)
 
 Parameters for [IOU.retrieve](../classes/IOU.md#retrieve).
 
@@ -14,9 +14,15 @@ Parameters for [IOU.retrieve](../classes/IOU.md#retrieve).
 
 > `readonly` `optional` **account**: `string`
 
-Defined in: [verticals/iou.types.ts:185](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L185)
+Defined in: [verticals/iou.types.ts:193](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L193)
 
-The holder account to read from; defaults to the primary signer's account.
+The holder account to read from.
+
+#### Default Value
+
+```ts
+The primary signer's account.
+```
 
 ***
 
@@ -24,7 +30,7 @@ The holder account to read from; defaults to the primary signer's account.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/iou.types.ts:183](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L183)
+Defined in: [verticals/iou.types.ts:187](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L187)
 
 The IOU issuer's r-address.
 
@@ -34,7 +40,7 @@ The IOU issuer's r-address.
 
 > `readonly` **ticker**: `string`
 
-Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L14)
+Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L14)
 
 The currency code: a 3-character ISO-4217-style code or a 40-character
 hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to

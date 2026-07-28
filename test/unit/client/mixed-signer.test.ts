@@ -5,7 +5,6 @@ import {
   DuplicateSignerError,
   SignerCapabilityError,
   SimpleXRPL,
-  runMultiStep,
   submitTransaction,
 } from '../../../src/index.js'
 import type {
@@ -15,9 +14,10 @@ import type {
   SignerCapabilities,
   SubmissionResult,
 } from '../../../src/index.js'
+import { runMultiStep } from '../../../src/orchestration/index.js'
 import { fakeLedger } from '../pipeline/fake-ledger.js'
 
-const RIPPLED = 'wss://x.invalid'
+const XRPLD = 'wss://x.invalid'
 
 const notImplemented = async (): Promise<never> => {
   throw new Error('not implemented in tests')
@@ -84,7 +84,7 @@ function paymentFrom(account: string): Transaction {
 }
 
 describe('mixed-signer: per-account dispatch across custodians', () => {
-  it('routes a verb to the custodian that owns the resolved account', async () => {
+  it('routes an operation to the custodian that owns the resolved account', async () => {
     const alpha = makeRecordingCustodian('ripple-custody', 'rAlpha1', {
       tenantId: 'domain-a',
     })
@@ -92,7 +92,7 @@ describe('mixed-signer: per-account dispatch across custodians', () => {
       tenantId: 'org-b',
     })
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [alpha, beta],
       ledger: fakeLedger(),
     })
@@ -116,7 +116,7 @@ describe('mixed-signer: per-account dispatch across custodians', () => {
       tenantId: 'org-b',
     })
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [alpha, beta],
       ledger: fakeLedger(),
     })
@@ -145,7 +145,7 @@ describe('mixed-signer: per-account dispatch across custodians', () => {
       canSign: false,
     })
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [alpha, beta],
       ledger: fakeLedger(),
     })
@@ -170,7 +170,7 @@ describe('mixed-signer: init tenant deduplication', () => {
 
     await expect(
       SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [first, second],
         ledger: fakeLedger(),
       }),
@@ -186,7 +186,7 @@ describe('mixed-signer: init tenant deduplication', () => {
     })
 
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [first, second],
       ledger: fakeLedger(),
     })
@@ -198,7 +198,7 @@ describe('mixed-signer: init tenant deduplication', () => {
     const second = makeRecordingCustodian('local', 'rLocalB')
 
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [first, second],
       ledger: fakeLedger(),
     })

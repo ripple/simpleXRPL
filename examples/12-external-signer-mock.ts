@@ -70,7 +70,7 @@ async function signAndSubmit(
 ): Promise<void> {
   const custody = await ExternalSigner.create({ signer })
   const client = await SimpleXRPL.init({
-    rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+    xrpldUrl: 'wss://s.altnet.rippletest.net:51233',
     signers: [custody],
     ledger: inMemoryLedger(),
   })

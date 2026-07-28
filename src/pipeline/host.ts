@@ -10,11 +10,11 @@ export interface SubmissionHost {
   /** The shared ledger connection for autofill and Local/raw submission. */
   readonly ledger: LedgerPort
 
-  /** Resolve the account a verb acts on. */
+  /** Resolve the account an operation acts on. */
   resolveAccount: (selector?: AccountSelector) => Account
 
   /**
-   * Register a locally-signed account at runtime so subsequent verbs can act on
+   * Register a locally-signed account at runtime so subsequent operations can act on
    * it. Used by `Account.create` to make a freshly generated account usable
    * (e.g. by `Account.fund` / `Account.activate`).
    */

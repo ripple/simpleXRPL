@@ -2,7 +2,7 @@
  * Custodian-specific connections.
  *
  * Each connector is constructed and authenticated independently, then passed to
- * `SimpleXRPL.init`. Once bound, every vertical verb works the same regardless
+ * `SimpleXRPL.init`. Once bound, every vertical operation works the same regardless
  * of which connector owns the acting account — the SDK routes each write to the
  * custodian that holds the account.
  *
@@ -65,9 +65,9 @@ const local = LocalSigner.fromEnv()
 // --- Bind the connectors --------------------------------------------------
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
   signers: [palisade, rippleCustody, local],
-  // The default backend for verbs called without an explicit `from`.
+  // The default backend for operations called without an explicit `from`.
   primarySigner: rippleCustody,
 })
 

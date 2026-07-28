@@ -31,7 +31,7 @@ describe('Async submission handle (live testnet)', () => {
         expect(handle.id).toMatch(/^[0-9A-F]{64}$/u)
 
         const result = await handle.wait()
-        expect(result.source).toBe('rippled')
+        expect(result.source).toBe('xrpld')
         expect(result.txHash).toBe(handle.id)
 
         // A poll after terminal yields the same terminal result.

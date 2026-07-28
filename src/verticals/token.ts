@@ -84,7 +84,7 @@ export class Token {
    * List the open DEX offers placed by an account. No signer required.
    *
    * @param params - The account (default: the primary signer's account).
-   * @returns The shaped offers (composable into offer write verbs).
+   * @returns The shaped offers (composable into offer write operations).
    */
   public async listOffers(
     params?: TokenListOffersParams,

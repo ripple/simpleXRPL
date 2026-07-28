@@ -1,6 +1,6 @@
 # Interface: AccountListOffersParams
 
-Defined in: [verticals/account.types.ts:130](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L130)
+Defined in: [verticals/account.types.ts:142](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L142)
 
 Parameters for [AccountVertical.listOffers](../classes/AccountVertical.md#listoffers).
 
@@ -10,6 +10,12 @@ Parameters for [AccountVertical.listOffers](../classes/AccountVertical.md#listof
 
 > `readonly` `optional` **account**: `string`
 
-Defined in: [verticals/account.types.ts:132](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/account.types.ts#L132)
+Defined in: [verticals/account.types.ts:148](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L148)
 
-The account whose offers to list; defaults to the primary signer's.
+The account whose offers to list.
+
+#### Default Value
+
+```ts
+The primary signer's account.
+```

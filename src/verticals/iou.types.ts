@@ -15,7 +15,7 @@ export interface IOURef {
 }
 
 /**
- * Source account and fee overrides shared by the IOU write verbs. The
+ * Source account and fee overrides shared by the IOU write operations. The
  * resolved account is the IOU's issuer — it signs, and its address is the
  * currency issuer.
  */
@@ -137,11 +137,15 @@ export interface IOUOfferParams extends IOURef {
    * Restrict the offer to a permissioned domain. Omit for the open DEX. When
    * set, the offer defaults to hybrid (also crosses the open DEX) unless
    * `hybrid` is explicitly `false`.
+   *
+   * @defaultValue Unset — the offer works the open DEX only.
    */
   readonly domainID?: string
   /**
    * Whether a domain-scoped offer also works the open DEX (hybrid). Only
-   * meaningful with `domainID`; defaults to `true` when `domainID` is set.
+   * meaningful together with `domainID`.
+   *
+   * @defaultValue `true` when `domainID` is set (otherwise not applicable).
    */
   readonly hybrid?: boolean
   /** A prior offer sequence to replace. */
@@ -181,13 +185,17 @@ export interface IOUTrustLine {
 export interface IOURetrieveParams extends IOURef {
   /** The IOU issuer's r-address. */
   readonly issuer: string
-  /** The holder account to read from; defaults to the primary signer's account. */
+  /**
+   * The holder account to read from.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 
 /** Result of {@link IOU.retrieve}. */
 export interface IOURetrieveResult {
-  /** Currency code and issuer, e.g. `USD.rIssuer...` — pass to write verbs. */
+  /** Currency code and issuer, e.g. `USD.rIssuer...` — pass to write operations. */
   readonly iouID: string
   /** The point-in-time trust-line snapshot, or `undefined` if no line exists. */
   readonly data: IOUTrustLine | undefined
@@ -195,15 +203,23 @@ export interface IOURetrieveResult {
 
 /** Parameters for {@link IOU.list}. */
 export interface IOUListParams {
-  /** Query as `holder` (default) or `issuer`. */
+  /**
+   * Query as `holder` or `issuer`.
+   *
+   * @defaultValue `'holder'`
+   */
   readonly role?: IOURole
-  /** The account whose trust lines to list; defaults to the primary signer's. */
+  /**
+   * The account whose trust lines to list.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 
 /** Result of {@link IOU.list}: `ious[i]` corresponds to `data[i]`. */
 export interface IOUListResult {
-  /** The `iouID` of each line, composable into the write verbs. */
+  /** The `iouID` of each line, composable into the write operations. */
   readonly ious: readonly string[]
   /** The shaped trust lines. */
   readonly data: readonly IOUTrustLine[]

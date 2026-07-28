@@ -19,7 +19,7 @@ describe('Mixed-signer per-account dispatch (live testnet)', () => {
           { to: beta.classicAddress, amount: '5' },
           { from: alpha.classicAddress },
         )
-        expect(first.source).toBe('rippled')
+        expect(first.source).toBe('xrpld')
         expect(first.txHash).toMatch(/^[0-9A-F]{64}$/u)
 
         // beta -> alpha, signed by beta's signer (a different custodian).
@@ -27,7 +27,7 @@ describe('Mixed-signer per-account dispatch (live testnet)', () => {
           { to: alpha.classicAddress, amount: '5' },
           { from: beta.classicAddress },
         )
-        expect(second.source).toBe('rippled')
+        expect(second.source).toBe('xrpld')
         expect(second.txHash).toMatch(/^[0-9A-F]{64}$/u)
         expect(second.txHash).not.toBe(first.txHash)
       } finally {

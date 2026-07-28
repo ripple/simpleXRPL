@@ -32,14 +32,14 @@ export function withIntent<T>(
         source: 'palisade',
         response: result.response,
       }
-    case 'rippled':
+    case 'xrpld':
     default:
       return {
         intent,
         intentId,
         txHash,
         idempotencyKey,
-        source: 'rippled',
+        source: 'xrpld',
         response: result.response,
       }
   }

@@ -141,14 +141,14 @@ export function makeFakeHost(accounts: readonly Account[]): SubmissionHost {
 }
 
 /**
- * A minimal `SubmissionResult` fixture for the `rippled` source.
+ * A minimal `SubmissionResult` fixture for the `xrpld` source.
  *
  * @param txHash - The transaction hash to carry.
- * @returns A rippled-sourced submission result.
+ * @returns A xrpld-sourced submission result.
  */
 export function fakeResult(txHash: string): SubmissionResult {
   return {
-    source: 'rippled',
+    source: 'xrpld',
     intent: undefined,
     txHash,
     response: { type: 'response' } as unknown as TxResponse,

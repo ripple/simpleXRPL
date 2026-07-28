@@ -219,13 +219,13 @@ export function encodeMetadata(metadata: MPTokenMetadata | string): string {
 }
 
 /**
- * Read the new MPT issuance id from a rippled submission result's metadata.
+ * Read the new MPT issuance id from a xrpld submission result's metadata.
  *
  * @param result - The submission result.
  * @returns The issuance id, or an empty string when unavailable.
  */
 export function extractMptIssuanceId(result: SubmissionResult): string {
-  if (result.source !== 'rippled') {
+  if (result.source !== 'xrpld') {
     return ''
   }
   const { meta } = result.response.result

@@ -38,7 +38,7 @@ function engineResultOf(response: TxResponse): string | undefined {
 
 describe('RippleRaw signing (live testnet)', () => {
   it(
-    'builds a preimage, reassembles the external signature, and rippled accepts the blob on-ledger',
+    'builds a preimage, reassembles the external signature, and xrpld accepts the blob on-ledger',
     async () => {
       const { client, source, destination } = await fundedTestnetClient()
       try {
@@ -82,7 +82,7 @@ describe('RippleRaw signing (live testnet)', () => {
 
         const response = await client.ledger.submitAndWait(envelope.txBlob)
         expect(engineResultOf(response)).toBe('tesSUCCESS')
-        // The hash we computed during reassembly matches what rippled recorded.
+        // The hash we computed during reassembly matches what xrpld recorded.
         expect(response.result.hash).toBe(envelope.hash)
       } finally {
         await client.disconnect()

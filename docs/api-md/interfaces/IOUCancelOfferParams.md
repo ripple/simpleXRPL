@@ -1,6 +1,6 @@
 # Interface: IOUCancelOfferParams
 
-Defined in: [verticals/iou.types.ts:152](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L152)
+Defined in: [verticals/iou.types.ts:156](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L156)
 
 Parameters for [IOU.cancelOffer](../classes/IOU.md#canceloffer).
 
@@ -10,6 +10,6 @@ Parameters for [IOU.cancelOffer](../classes/IOU.md#canceloffer).
 
 > `readonly` **offerSequence**: `number`
 
-Defined in: [verticals/iou.types.ts:154](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L154)
+Defined in: [verticals/iou.types.ts:158](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L158)
 
 The sequence number of the offer to cancel.

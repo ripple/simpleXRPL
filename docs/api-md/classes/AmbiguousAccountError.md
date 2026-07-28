@@ -1,6 +1,6 @@
 # Class: AmbiguousAccountError
 
-Defined in: [errors.ts:66](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L66)
+Defined in: [errors.ts:66](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L66)
 
 The same r-address was discovered under more than one custodian at init; the
 caller must drop one or supply an explicit per-call override.
@@ -15,7 +15,7 @@ caller must drop one or supply an explicit per-call override.
 
 > **new AmbiguousAccountError**(`account`, `custodians`): [`AmbiguousAccountError`](AmbiguousAccountError.md)
 
-Defined in: [errors.ts:76](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L76)
+Defined in: [errors.ts:76](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L76)
 
 Construct an AmbiguousAccountError.
 
@@ -40,7 +40,7 @@ Construct an AmbiguousAccountError.
 
 > `readonly` **account**: `string`
 
-Defined in: [errors.ts:67](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L67)
+Defined in: [errors.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L67)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [errors.ts:67](https://github.com/ripple/simpleXRPL/blob/bbdadc487c2
 
 > `readonly` **custodians**: readonly [`CustodianKind`](../type-aliases/CustodianKind.md)[]
 
-Defined in: [errors.ts:68](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L68)
+Defined in: [errors.ts:68](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L68)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [errors.ts:68](https://github.com/ripple/simpleXRPL/blob/bbdadc487c2
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L9)
 
 #### Inherited from
 

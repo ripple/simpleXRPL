@@ -193,28 +193,28 @@ export class IntentPendingError extends SimpleXRPLError {
 }
 
 /**
- * A rippled submission was rejected. The `engineResult` and full response are
+ * A xrpld submission was rejected. The `engineResult` and full response are
  * preserved verbatim.
  */
-export class RippledSubmitError extends SimpleXRPLError {
+export class XrpldSubmitError extends SimpleXRPLError {
   public readonly engineResult: string
   public readonly raw: unknown
 
   /**
-   * Construct a RippledSubmitError.
+   * Construct a XrpldSubmitError.
    *
-   * @param engineResult - The rippled engine result code (e.g. `tecPATH_DRY`).
-   * @param raw - The full rippled response.
+   * @param engineResult - The xrpld engine result code (e.g. `tecPATH_DRY`).
+   * @param raw - The full xrpld response.
    */
   public constructor(engineResult: string, raw: unknown) {
-    super(`rippled submission failed: ${engineResult}`)
+    super(`xrpld submission failed: ${engineResult}`)
     this.engineResult = engineResult
     this.raw = raw
   }
 }
 
 /**
- * A multi-step verb failed partway through. simpleXRPL does not roll back; the
+ * A multi-step operation failed partway through. simpleXRPL does not roll back; the
  * already-committed steps are carried so the caller can reconcile manually.
  */
 export class MultiStepFailureError extends SimpleXRPLError {
@@ -236,7 +236,7 @@ export class MultiStepFailureError extends SimpleXRPLError {
     committed: readonly SubmissionResult[],
     failed: { readonly step: number; readonly error: SimpleXRPLError },
   ) {
-    super(`Multi-step verb failed at step ${failed.step}`)
+    super(`Multi-step operation failed at step ${failed.step}`)
     this.committed = committed
     this.failed = failed
   }

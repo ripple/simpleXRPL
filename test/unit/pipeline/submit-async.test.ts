@@ -15,7 +15,7 @@ describe('submitTransactionAsync (pipeline spine)', () => {
     const to = Wallet.generate().classicAddress
     const ledger = fakeLedger('ASYNCHASH')
     const client = await SimpleXRPL.init({
-      rippledUrl: 'wss://x.invalid',
+      xrpldUrl: 'wss://x.invalid',
       signers: [LocalSigner.fromSeed(wallet.seed as string)],
       ledger,
     })
@@ -35,7 +35,7 @@ describe('submitTransactionAsync (pipeline spine)', () => {
     expect(handle.kind).toBe('local')
     expect(handle.id).toBe('ASYNCHASH')
     const result = await handle.wait()
-    expect(result.source).toBe('rippled')
+    expect(result.source).toBe('xrpld')
     expect(result.txHash).toBe('ASYNCHASH')
     // Exactly one blob was submitted (async didn't double-submit).
     expect(ledger.submitted).toHaveLength(1)

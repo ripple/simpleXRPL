@@ -69,7 +69,7 @@ async function clientWithSigner(
   requests: LedgerRequest[],
 ): Promise<SimpleXRPLClient> {
   return SimpleXRPL.init({
-    rippledUrl: 'wss://x.invalid',
+    xrpldUrl: 'wss://x.invalid',
     signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
     ledger: fakeLedger(requests),
   })
@@ -132,7 +132,7 @@ describe('IOU reads without a signer', () => {
   it('work when given an explicit account', async () => {
     const requests: LedgerRequest[] = []
     const client = await SimpleXRPL.init({
-      rippledUrl: 'wss://x.invalid',
+      xrpldUrl: 'wss://x.invalid',
       ledger: fakeLedger(requests),
     })
     const { data } = await client.iou.list({ account: ISSUER })
@@ -142,7 +142,7 @@ describe('IOU reads without a signer', () => {
 
   it('throw a clear error when no account and no signer', async () => {
     const client = await SimpleXRPL.init({
-      rippledUrl: 'wss://x.invalid',
+      xrpldUrl: 'wss://x.invalid',
       ledger: fakeLedger([]),
     })
     await expect(client.iou.list()).rejects.toBeInstanceOf(SimpleXRPLError)

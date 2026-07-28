@@ -57,7 +57,7 @@ const STRING_FIELDS = [
  * machine-parseable.
  *
  * @param tx - The transaction the intent wraps.
- * @returns A small string-valued summary describing the transaction (verb,
+ * @returns A small string-valued summary describing the transaction (operation,
  * account, and the fields most relevant to that transactor).
  */
 export function buildCustomProperties(tx: Transaction): StringsMap {

@@ -1,6 +1,6 @@
 # Class: XRP
 
-Defined in: [verticals/xrp.ts:48](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/xrp.ts#L48)
+Defined in: [verticals/xrp.ts:48](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L48)
 
 The XRP helper vertical: native-XRP value transfers.
 
@@ -10,7 +10,7 @@ The XRP helper vertical: native-XRP value transfers.
 
 > **new XRP**(`host`): [`XRP`](XRP.md)
 
-Defined in: [verticals/xrp.ts:56](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/xrp.ts#L56)
+Defined in: [verticals/xrp.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L56)
 
 Construct the XRP vertical.
 
@@ -30,7 +30,7 @@ Construct the XRP vertical.
 
 > **transfer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`XrpTransferIntent`](../interfaces/XrpTransferIntent.md)\>\>
 
-Defined in: [verticals/xrp.ts:67](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/xrp.ts#L67)
+Defined in: [verticals/xrp.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L67)
 
 Send XRP from one account to another (a `Payment`).
 

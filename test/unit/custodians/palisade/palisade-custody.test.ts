@@ -10,7 +10,7 @@ import {
   AccountNotFoundError,
   IntentPendingError,
   PalisadeCustody,
-  RippledSubmitError,
+  XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
 } from '../../../../src/index.js'
@@ -160,6 +160,67 @@ describe('PalisadeCustody.create', () => {
     })
     await expect(makeCustody(port)).rejects.toBeInstanceOf(AccountNotFoundError)
   })
+
+  it('skips wallet discovery when the primary address is supplied', async () => {
+    let listedWallets = false
+    const port: PalisadeHttpPort = {
+      async send(request: HttpRequest): Promise<HttpResponse> {
+        if (request.url.includes('/credentials/oauth/token')) {
+          return {
+            status: 200,
+            body: JSON.stringify({ accessToken: 'tok', expiresIn: 3600 }),
+          }
+        }
+        if (request.url.includes('/v2/wallets')) {
+          listedWallets = true
+          return { status: 403, body: '{"message":"forbidden"}' }
+        }
+        throw new Error(`unexpected request: ${request.url}`)
+      },
+    }
+    const custody = await PalisadeCustody.create({
+      baseUrl: BASE_URL,
+      clientId: 'id',
+      clientSecret: 'secret',
+      primary: { ...PRIMARY, xrplAddress: PRIMARY_ADDR },
+      http: port,
+    })
+    expect(listedWallets).toBe(false)
+    expect(custody.primary.address).toBe(PRIMARY_ADDR)
+    expect(custody.primary.custodianRef).toEqual(PRIMARY)
+    expect((await custody.listAccounts())[0].address).toBe(PRIMARY_ADDR)
+  })
+
+  it('treats an empty primary address as unset and discovers wallets', async () => {
+    // Guards the `source .env` case where PALISADE_ADDRESS= yields '', which
+    // must NOT skip discovery (or it would bind an empty address).
+    const custody = await PalisadeCustody.create({
+      baseUrl: BASE_URL,
+      clientId: 'id',
+      clientSecret: 'secret',
+      primary: { ...PRIMARY, xrplAddress: '' },
+      http: fakePort({}),
+    })
+    expect(custody.primary.address).toBe(PRIMARY_ADDR)
+  })
+
+  it('raises an actionable error when discovery is forbidden (403)', async () => {
+    const port: PalisadeHttpPort = {
+      async send(request: HttpRequest): Promise<HttpResponse> {
+        if (request.url.includes('/credentials/oauth/token')) {
+          return {
+            status: 200,
+            body: JSON.stringify({ accessToken: 'tok', expiresIn: 3600 }),
+          }
+        }
+        return { status: 403, body: '{"message":"forbidden"}' }
+      },
+    }
+    // No primary.xrplAddress → discovery runs → 403 → guidance names both fixes.
+    await expect(makeCustody(port)).rejects.toThrow(
+      /wallet-read permission.*PalisadeWalletRef\.xrplAddress/su,
+    )
+  })
 })
 
 describe('PalisadeCustody.submitAndWait — native', () => {
@@ -229,13 +290,13 @@ describe('PalisadeCustody.submitAndWait — raw fallback', () => {
       escrow,
       contextFor(account, ledgerStub()),
     )
-    expect(result.source).toBe('rippled')
+    expect(result.source).toBe('xrpld')
     expect(result.txHash).toBe('RAWHASH')
     expect(port.posts[0].url).toContain('/transactions/raw')
     expect(port.posts[0].body).toMatchObject({ signOnly: true })
   })
 
-  it('surfaces a non-tesSUCCESS engine result as RippledSubmitError', async () => {
+  it('surfaces a non-tesSUCCESS engine result as XrpldSubmitError', async () => {
     const port = fakePort({
       onRaw: () => ({
         id: 'raw1',
@@ -250,7 +311,7 @@ describe('PalisadeCustody.submitAndWait — raw fallback', () => {
     } as unknown as TxResponse)
     await expect(
       custody.submitAndWait(escrow, contextFor(account, failing)),
-    ).rejects.toBeInstanceOf(RippledSubmitError)
+    ).rejects.toBeInstanceOf(XrpldSubmitError)
   })
 
   it('falls back to raw when a native transactor has an unsupported field', async () => {
@@ -269,7 +330,7 @@ describe('PalisadeCustody.submitAndWait — raw fallback', () => {
       withSendMax,
       contextFor(account, ledgerStub()),
     )
-    expect(result.source).toBe('rippled')
+    expect(result.source).toBe('xrpld')
     expect(port.posts[0].url).toContain('/transactions/raw')
   })
 
@@ -339,9 +400,7 @@ describe('PalisadeCustody.submitAsync — handle lifecycle', () => {
   it('poll returns a non-blocking snapshot of the current state', async () => {
     const port = fakePort({
       onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-      onGet: () => ({
-        transaction: { id: 'tx1', status: 'SIGNATURE_PENDING' },
-      }),
+      onGet: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
     })
     const custody = await makeCustody(port)
     const account = (await custody.listAccounts())[0]
@@ -357,9 +416,7 @@ describe('PalisadeCustody.submitAsync — handle lifecycle', () => {
   it('wait resolves once the intent reaches a terminal status', async () => {
     const port = fakePort({
       onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-      onGet: () => ({
-        transaction: { id: 'tx1', status: 'CONFIRMED', hash: 'H1' },
-      }),
+      onGet: () => ({ id: 'tx1', status: 'CONFIRMED', hash: 'H1' }),
     })
     const custody = await makeCustody(port)
     const account = (await custody.listAccounts())[0]
@@ -375,9 +432,7 @@ describe('PalisadeCustody.submitAsync — handle lifecycle', () => {
   it('wait throws IntentPendingError when it never goes terminal', async () => {
     const port = fakePort({
       onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-      onGet: () => ({
-        transaction: { id: 'tx1', status: 'SIGNATURE_PENDING' },
-      }),
+      onGet: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
     })
     const custody = await makeCustody(port)
     const account = (await custody.listAccounts())[0]
@@ -391,9 +446,7 @@ describe('PalisadeCustody.submitAsync — handle lifecycle', () => {
   it('cancel issues a freeze PUT while the intent is still pending', async () => {
     const port = fakePort({
       onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-      onGet: () => ({
-        transaction: { id: 'tx1', status: 'SIGNATURE_PENDING' },
-      }),
+      onGet: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
     })
     const custody = await makeCustody(port)
     const account = (await custody.listAccounts())[0]
@@ -409,7 +462,7 @@ describe('PalisadeCustody.submitAsync — handle lifecycle', () => {
   it('cancel rejects once the intent is already terminal', async () => {
     const port = fakePort({
       onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-      onGet: () => ({ transaction: { id: 'tx1', status: 'CONFIRMED' } }),
+      onGet: () => ({ id: 'tx1', status: 'CONFIRMED' }),
     })
     const custody = await makeCustody(port)
     const account = (await custody.listAccounts())[0]

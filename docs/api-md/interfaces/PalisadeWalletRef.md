@@ -1,6 +1,6 @@
 # Interface: PalisadeWalletRef
 
-Defined in: [custodians/palisade/config.ts:4](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/custodians/palisade/config.ts#L4)
+Defined in: [custodians/palisade/config.ts:4](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L4)
 
 The primary wallet's Palisade coordinates.
 
@@ -10,7 +10,7 @@ The primary wallet's Palisade coordinates.
 
 > `readonly` **vaultId**: `string`
 
-Defined in: [custodians/palisade/config.ts:5](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/custodians/palisade/config.ts#L5)
+Defined in: [custodians/palisade/config.ts:5](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L5)
 
 ***
 
@@ -18,4 +18,17 @@ Defined in: [custodians/palisade/config.ts:5](https://github.com/ripple/simpleXR
 
 > `readonly` **walletId**: `string`
 
-Defined in: [custodians/palisade/config.ts:6](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/custodians/palisade/config.ts#L6)
+Defined in: [custodians/palisade/config.ts:6](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L6)
+
+***
+
+### xrplAddress?
+
+> `readonly` `optional` **xrplAddress**: `string`
+
+Defined in: [custodians/palisade/config.ts:14](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L14)
+
+The wallet's XRPL r-address. Optional: when provided, [PalisadeCustody.create](../classes/PalisadeCustody.md#create) binds the primary directly and **skips wallet
+discovery** (the `GET /v2/wallets` listing). Supply it when the API
+credential is scoped to transactions only and cannot read the wallet list;
+omit it to have the address resolved by discovery instead.

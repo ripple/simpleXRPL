@@ -1,6 +1,6 @@
 # Class: PalisadeAuthError
 
-Defined in: [errors.ts:139](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L139)
+Defined in: [errors.ts:139](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L139)
 
 Authenticating with Palisade failed (API key).
 
@@ -14,7 +14,7 @@ Authenticating with Palisade failed (API key).
 
 > **new PalisadeAuthError**(`message`, `options`?): [`PalisadeAuthError`](PalisadeAuthError.md)
 
-Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L18)
+Defined in: [errors.ts:18](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L18)
 
 Construct a SimpleXRPLError.
 
@@ -40,7 +40,7 @@ Construct a SimpleXRPLError.
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L9)
 
 #### Inherited from
 

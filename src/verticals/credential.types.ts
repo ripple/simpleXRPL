@@ -1,6 +1,6 @@
 import type { AccountSelector, FeeIntent } from '../domain/index.js'
 
-/** Per-call options shared by the credential verbs. */
+/** Per-call options shared by the credential operations. */
 export interface CredentialWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */
   readonly from?: AccountSelector
@@ -74,7 +74,11 @@ export interface CredentialRetrieveParams {
   readonly credType: string
   /** The issuer r-address. */
   readonly issuer: string
-  /** The holder (subject); defaults to the primary signer's account. */
+  /**
+   * The holder (subject).
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 
@@ -86,9 +90,17 @@ export interface CredentialRetrieveResult extends CredentialRef {
 
 /** Parameters for {@link Credential.list}. */
 export interface CredentialListParams {
-  /** Query as `holder` (default) or `issuer`. */
+  /**
+   * Query as `holder` or `issuer`.
+   *
+   * @defaultValue `'holder'`
+   */
   readonly role?: CredentialRole
-  /** The account whose credentials to list; defaults to the primary signer's. */
+  /**
+   * The account whose credentials to list.
+   *
+   * @defaultValue The primary signer's account.
+   */
   readonly account?: string
 }
 

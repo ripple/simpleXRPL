@@ -25,7 +25,7 @@ interface OfferReference {
 /**
  * A shaped open offer. `amount`/`price` mirror the `buyOffer`/`sellOffer` input
  * format (XRP auto-converted from drops), so an offer read here is directly
- * composable back into those write verbs.
+ * composable back into those write operations.
  */
 export interface OfferSummary {
   /** The offer's sequence number (pass to `cancelOffer`). */
@@ -62,7 +62,7 @@ function quantityOf(amount: OfferAmount): number {
  * Convert an amount to the `buyOffer`/`sellOffer` price form.
  *
  * @param amount - The offer amount.
- * @returns The price, composable into the offer write verbs.
+ * @returns The price, composable into the offer write operations.
  */
 function toPrice(amount: OfferAmount): IOUOfferPrice {
   if (typeof amount === 'string') {

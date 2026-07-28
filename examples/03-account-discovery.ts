@@ -8,7 +8,7 @@
 import { LocalSigner, SimpleXRPL } from 'simplexrpl'
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233',
   signers: [LocalSigner.fromEnv()],
 })
 
@@ -23,7 +23,7 @@ for (const signer of client.signers) {
   console.log(signer.kind, 'owns', owned.length, 'account(s)')
 }
 
-// 3. Resolve the account a verb would act on. With no argument, the primary
+// 3. Resolve the account an operation would act on. With no argument, the primary
 //    signer's primary account; or pass an r-address / a { signer } selector.
 const primary = client.resolveAccount()
 console.log('primary:', primary.address)

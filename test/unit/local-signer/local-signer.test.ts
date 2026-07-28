@@ -4,7 +4,7 @@ import type { Transaction } from 'xrpl'
 import {
   AccountNotFoundError,
   LocalSigner,
-  RippledSubmitError,
+  XrpldSubmitError,
   SimpleXRPLError,
 } from '../../../src/index.js'
 import type { SubmissionContext } from '../../../src/index.js'
@@ -162,7 +162,7 @@ describe('LocalSigner', () => {
   })
 
   describe('submission', () => {
-    it('signs and submits through the ledger, returning a rippled result', async () => {
+    it('signs and submits through the ledger, returning a xrpld result', async () => {
       const wallet = Wallet.generate()
       const signer = LocalSigner.fromSeed(wallet.seed as string)
       const tx = paymentFrom(
@@ -181,13 +181,13 @@ describe('LocalSigner', () => {
       } as unknown as SubmissionContext
 
       const result = await signer.submitAndWait(tx, ctx)
-      expect(result.source).toBe('rippled')
+      expect(result.source).toBe('xrpld')
       expect(result.txHash).toBe('LOCALHASH')
       expect(submitted).toHaveLength(1)
       expect(typeof submitted[0]).toBe('string')
     })
 
-    it('throws RippledSubmitError on a non-tesSUCCESS engine result', async () => {
+    it('throws XrpldSubmitError on a non-tesSUCCESS engine result', async () => {
       const wallet = Wallet.generate()
       const signer = LocalSigner.fromSeed(wallet.seed as string)
       const tx = paymentFrom(
@@ -209,7 +209,7 @@ describe('LocalSigner', () => {
       } as unknown as SubmissionContext
 
       await expect(signer.submitAndWait(tx, ctx)).rejects.toBeInstanceOf(
-        RippledSubmitError,
+        XrpldSubmitError,
       )
     })
 

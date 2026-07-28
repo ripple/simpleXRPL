@@ -2,7 +2,7 @@
 
 > **mpt**(`mptIssuanceId`, `scale`): [`Asset`](../type-aliases/Asset.md)
 
-Defined in: [amount/asset.ts:36](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/amount/asset.ts#L36)
+Defined in: [amount/asset.ts:36](https://github.com/ripple/simpleXRPL/blob/main/src/amount/asset.ts#L36)
 
 A Multi-Purpose Token (MPT) asset.
 

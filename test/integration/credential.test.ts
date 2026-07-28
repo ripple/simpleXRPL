@@ -14,14 +14,14 @@ describe('Credential (live testnet)', () => {
           destination: subject.classicAddress,
           credType: 'KYC',
         })
-        expect(created.source).toBe('rippled')
+        expect(created.source).toBe('xrpld')
 
         // Subject accepts it.
         const accepted = await client.credential.accept(
           { issuer: issuer.classicAddress, credType: 'KYC' },
           { from: subject.classicAddress },
         )
-        expect(accepted.source).toBe('rippled')
+        expect(accepted.source).toBe('xrpld')
 
         // Read it back through the SDK: retrieve reports it accepted, and it
         // shows up in the subject's credential list.
@@ -42,7 +42,7 @@ describe('Credential (live testnet)', () => {
           holder: subject.classicAddress,
           credType: 'KYC',
         })
-        expect(deleted.source).toBe('rippled')
+        expect(deleted.source).toBe('xrpld')
 
         const afterDelete = await client.credential.retrieve({
           credType: 'KYC',

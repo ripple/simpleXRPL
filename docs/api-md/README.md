@@ -32,11 +32,11 @@ import { SimpleXRPL, LocalSigner } from 'simplexrpl'
 
 // Bind one or more signing backends and connect to a network.
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233',
   signers: [LocalSigner.fromEnv()],
 })
 
-// Each vertical exposes business-intent verbs; the SDK builds, signs, and
+// Each vertical exposes business-intent operations; the SDK builds, signs, and
 // submits the underlying XRPL transaction for you.
 await client.xrp.transfer({ to: 'rDestination...', amount: '10' })
 ```

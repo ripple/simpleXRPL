@@ -29,11 +29,12 @@ export * from './custodians/palisade/index.js'
 // Amount & asset model (XRP / IOU / MPT representation + decimal/scale conversion).
 export * from './amount/index.js'
 
-// Multi-step orchestration: commits an ordered (Transaction, Account)
-// sequence step by step, no rollback.
-export * from './orchestration/index.js'
+// Note: multi-step orchestration (`runMultiStep`) is intentionally internal —
+// callers sequence work through the vertical operations, which route each step to
+// the owning custodian, rather than assembling raw `(Transaction, Account)`
+// steps themselves.
 
-// Verticals (business-intent verbs), e.g. `client.xrp.transfer`, `IOU.issue`.
+// Verticals (business-intent operations), e.g. `client.xrp.transfer`, `IOU.issue`.
 export * from './verticals/index.js'
 
 // Production ledger port.
@@ -68,5 +69,5 @@ export {
   readAccountAddress,
 } from './reads/read-helpers.js'
 
-// Shaped-offer read model (shared by the `listOffers` verbs).
+// Shaped-offer read model (shared by the `listOffers` operations).
 export type { ListOffersResult, OfferSummary } from './reads/offers.js'

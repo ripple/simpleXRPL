@@ -1,8 +1,9 @@
 # Interface: OfferFlags
 
-Defined in: [verticals/token.types.ts:92](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L92)
+Defined in: [verticals/token.types.ts:141](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L141)
 
-Flags for `Token.createOffer`.
+Flags for `Token.createOffer`. Every flag defaults to `false` (a plain,
+resting limit offer that buys `TakerPays` with `TakerGets`).
 
 ## Properties
 
@@ -10,9 +11,13 @@ Flags for `Token.createOffer`.
 
 > `readonly` `optional` **fillOrKill**: `boolean`
 
-Defined in: [verticals/token.types.ts:98](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L98)
+Defined in: [verticals/token.types.ts:159](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L159)
 
 Consume the full amount or cancel entirely.
+
+#### Default Value
+
+`false`
 
 ***
 
@@ -20,9 +25,13 @@ Consume the full amount or cancel entirely.
 
 > `readonly` `optional` **immediateOrCancel**: `boolean`
 
-Defined in: [verticals/token.types.ts:96](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L96)
+Defined in: [verticals/token.types.ts:153](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L153)
 
 Consume matching offers immediately; never place the remainder.
+
+#### Default Value
+
+`false`
 
 ***
 
@@ -30,9 +39,13 @@ Consume matching offers immediately; never place the remainder.
 
 > `readonly` `optional` **passive**: `boolean`
 
-Defined in: [verticals/token.types.ts:94](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L94)
+Defined in: [verticals/token.types.ts:147](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L147)
 
 Do not consume offers that exactly match.
+
+#### Default Value
+
+`false`
 
 ***
 
@@ -40,6 +53,10 @@ Do not consume offers that exactly match.
 
 > `readonly` `optional` **sell**: `boolean`
 
-Defined in: [verticals/token.types.ts:100](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/token.types.ts#L100)
+Defined in: [verticals/token.types.ts:165](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L165)
 
 Interpret the offer as selling `TakerGets`.
+
+#### Default Value
+
+`false`

@@ -1,6 +1,6 @@
 # Interface: IOURetrieveResult
 
-Defined in: [verticals/iou.types.ts:189](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L189)
+Defined in: [verticals/iou.types.ts:197](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L197)
 
 Result of [IOU.retrieve](../classes/IOU.md#retrieve).
 
@@ -10,7 +10,7 @@ Result of [IOU.retrieve](../classes/IOU.md#retrieve).
 
 > `readonly` **data**: `undefined` \| [`IOUTrustLine`](IOUTrustLine.md)
 
-Defined in: [verticals/iou.types.ts:193](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L193)
+Defined in: [verticals/iou.types.ts:201](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L201)
 
 The point-in-time trust-line snapshot, or `undefined` if no line exists.
 
@@ -20,6 +20,6 @@ The point-in-time trust-line snapshot, or `undefined` if no line exists.
 
 > `readonly` **iouID**: `string`
 
-Defined in: [verticals/iou.types.ts:191](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/verticals/iou.types.ts#L191)
+Defined in: [verticals/iou.types.ts:199](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L199)
 
-Currency code and issuer, e.g. `USD.rIssuer...` — pass to write verbs.
+Currency code and issuer, e.g. `USD.rIssuer...` — pass to write operations.

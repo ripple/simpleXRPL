@@ -4,13 +4,13 @@
  * `issue` bootstraps the issuer and a hot wallet from the environment
  * (`XRPL_ISSUER_SEED`, `XRPL_HOT_WALLET_SEED`): the issuer enables rippling and
  * the hot wallet extends a trust line. No value exists yet — `transfer` sends
- * the currency out from the issuer. Every verb acts as the issuer, selected via
+ * the currency out from the issuer. Every operation acts as the issuer, selected via
  * `from` (defaults to the primary signer's account).
  */
 import { LocalSigner, SimpleXRPL } from 'simplexrpl'
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233',
   signers: [LocalSigner.fromEnv()],
 })
 

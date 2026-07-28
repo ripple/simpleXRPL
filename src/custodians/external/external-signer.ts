@@ -12,7 +12,7 @@ import type {
   SubmissionHandle,
   SubmissionResult,
 } from '../../domain/index.js'
-import { RippledSubmitError } from '../../errors.js'
+import { XrpldSubmitError } from '../../errors.js'
 
 import type { ExternalSignerPort } from './external-signer-port.js'
 import { signTransactionExternally } from './signing.js'
@@ -118,8 +118,8 @@ export class ExternalSigner implements Custodian {
    *
    * @param tx - The autofilled transaction to submit.
    * @param ctx - The submission context (source account + shared ledger).
-   * @returns The rippled-sourced submission result.
-   * @throws {@link RippledSubmitError} on a non-`tesSUCCESS` engine result.
+   * @returns The xrpld-sourced submission result.
+   * @throws {@link XrpldSubmitError} on a non-`tesSUCCESS` engine result.
    */
   public async submitAndWait(
     tx: Transaction,
@@ -133,10 +133,10 @@ export class ExternalSigner implements Custodian {
         ? meta.TransactionResult
         : undefined
     if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
-      throw new RippledSubmitError(engineResult, response)
+      throw new XrpldSubmitError(engineResult, response)
     }
     return {
-      source: 'rippled',
+      source: 'xrpld',
       response,
       intent: undefined,
       txHash: response.result.hash,
@@ -152,7 +152,7 @@ export class ExternalSigner implements Custodian {
    * @param tx - The autofilled transaction to submit.
    * @param ctx - The submission context (source account + shared ledger).
    * @returns A pre-resolved handle over the submitted transaction.
-   * @throws {@link RippledSubmitError} if the transaction fails on-ledger.
+   * @throws {@link XrpldSubmitError} if the transaction fails on-ledger.
    */
   public async submitAsync(
     tx: Transaction,

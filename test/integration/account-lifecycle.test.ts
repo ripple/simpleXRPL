@@ -21,7 +21,7 @@ describe('Account lifecycle (live testnet)', () => {
     async () => {
       // A signer-less client whose ledger has a faucet configured.
       const client = await SimpleXRPL.init({
-        rippledUrl: TESTNET_WS,
+        xrpldUrl: TESTNET_WS,
         ledger: new XrplLedger(TESTNET_WS, TESTNET_FAUCET),
       })
       await client.connect()
@@ -30,7 +30,7 @@ describe('Account lifecycle (live testnet)', () => {
         const funded = await client.account.fund({
           destination: created.address,
         })
-        expect(funded.source).toBe('rippled')
+        expect(funded.source).toBe('xrpld')
 
         const info = await client.ledger.request<AccountInfo>({
           command: 'account_info',
@@ -55,7 +55,7 @@ describe('Account lifecycle (live testnet)', () => {
         const activated = await client.account.activate({
           destination: created.address,
         })
-        expect(activated.source).toBe('rippled')
+        expect(activated.source).toBe('xrpld')
 
         const info = await client.ledger.request<AccountInfo>({
           command: 'account_info',

@@ -8,7 +8,7 @@
 import { iou, LocalSigner, SimpleXRPL, XRP_ASSET } from 'simplexrpl'
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233',
   signers: [LocalSigner.fromEnv()],
 })
 

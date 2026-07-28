@@ -10,8 +10,6 @@ import type { components } from '../../generated/palisade.js'
 import type { PalisadeHttpClient } from './transport/palisade-http-client.js'
 
 type PalisadeTransaction = components['schemas']['transactionsv2Transaction']
-type GetTransactionResponse =
-  components['schemas']['transactionsv2GetTransactionResponse']
 
 const POLL_INTERVAL_MS = 1500
 const TERMINAL_SUCCESS = 'CONFIRMED'
@@ -128,11 +126,11 @@ export class PalisadeTxTracker {
         await new Promise((resolve) => {
           setTimeout(resolve, POLL_INTERVAL_MS)
         })
+        // GET returns the transaction directly (not wrapped in `{ transaction }`).
         // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        const next = await this.client.get<GetTransactionResponse>(
+        current = await this.client.get<PalisadeTransaction>(
           `${base}/${current.id}`,
         )
-        current = next.transaction ?? current
       }
     }
     throw new IntentPendingError(current.id, 'palisade-custody', current.status)
@@ -144,16 +142,11 @@ export class PalisadeTxTracker {
    * @param base - The wallet-relative transactions base path.
    * @param id - The transaction id.
    * @returns The transaction.
-   * @throws {@link SimpleXRPLError} if the transaction is not found.
+   * @throws A `PalisadeApiError` if the API rejects the fetch (e.g. 404).
    */
   public async fetch(base: string, id: string): Promise<PalisadeTransaction> {
-    const response = await this.client.get<GetTransactionResponse>(
-      `${base}/${id}`,
-    )
-    if (response.transaction === undefined) {
-      throw new SimpleXRPLError(`Palisade transaction ${id} not found`)
-    }
-    return response.transaction
+    // GET returns the transaction directly (not wrapped in `{ transaction }`).
+    return this.client.get<PalisadeTransaction>(`${base}/${id}`)
   }
 
   /**

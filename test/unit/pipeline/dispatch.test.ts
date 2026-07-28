@@ -31,7 +31,7 @@ function makeCustodian(
       return { txBlob: '' }
     },
     async submitAndWait(): Promise<SubmissionResult> {
-      return { source: 'rippled', response: {} as never, intent: undefined }
+      return { source: 'xrpld', response: {} as never, intent: undefined }
     },
     async submitAsync(): Promise<SubmissionHandle> {
       throw new Error('not used')

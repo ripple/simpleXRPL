@@ -1,6 +1,6 @@
 # Class: IntentPendingError
 
-Defined in: [errors.ts:171](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L171)
+Defined in: [errors.ts:171](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L171)
 
 Not a failure — a "still waiting" signal raised when a custodian intent has
 not reached a terminal state before the SDK's timeout. Resume later with the
@@ -16,7 +16,7 @@ carried `intentId`.
 
 > **new IntentPendingError**(`intentId`, `custodian`, `lastState`): [`IntentPendingError`](IntentPendingError.md)
 
-Defined in: [errors.ts:183](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L183)
+Defined in: [errors.ts:183](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L183)
 
 Construct an IntentPendingError.
 
@@ -42,7 +42,7 @@ Construct an IntentPendingError.
 
 > `readonly` **custodian**: `"ripple-custody"` \| `"palisade-custody"`
 
-Defined in: [errors.ts:173](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L173)
+Defined in: [errors.ts:173](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L173)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [errors.ts:173](https://github.com/ripple/simpleXRPL/blob/bbdadc487c
 
 > `readonly` **intentId**: `string`
 
-Defined in: [errors.ts:172](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L172)
+Defined in: [errors.ts:172](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L172)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [errors.ts:172](https://github.com/ripple/simpleXRPL/blob/bbdadc487c
 
 > `readonly` **lastState**: `string`
 
-Defined in: [errors.ts:174](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L174)
+Defined in: [errors.ts:174](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L174)
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: [errors.ts:174](https://github.com/ripple/simpleXRPL/blob/bbdadc487c
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/bbdadc487c293be68597bc186ee6ad3a108d3261/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L9)
 
 #### Inherited from
 
