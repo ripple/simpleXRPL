@@ -77,6 +77,109 @@ const universe = [
   ]),
 ].sort((a, b) => a.localeCompare(b))
 
+// simpleXRPL write operations → the XRPL transactor(s) they emit, mirroring the
+// "Underlying Transactor" column of the API Surface. A trailing `true` marks an
+// operation that carries an MPT amount (see MPT_NATIVE below). Read operations
+// emit no transactor and `Account.create` is local key generation — both omitted.
+const OPERATIONS = [
+  ['XRP.transfer', ['Payment']],
+  ['IOU.issue', ['TrustSet', 'AccountSet']],
+  ['IOU.authorize', ['TrustSet']],
+  ['IOU.lock', ['TrustSet']],
+  ['IOU.unlock', ['TrustSet']],
+  ['IOU.clawback', ['Clawback']],
+  ['IOU.transfer', ['Payment']],
+  ['IOU.buyOffer', ['OfferCreate']],
+  ['IOU.sellOffer', ['OfferCreate']],
+  ['IOU.cancelOffer', ['OfferCancel']],
+  ['Token.issue', ['MPTokenIssuanceCreate']],
+  ['Token.authorize', ['MPTokenAuthorize']],
+  ['Token.unauthorize', ['MPTokenAuthorize']],
+  ['Token.grantHolder', ['MPTokenAuthorize']],
+  ['Token.revokeHolder', ['MPTokenAuthorize']],
+  ['Token.lock', ['MPTokenIssuanceSet']],
+  ['Token.unlock', ['MPTokenIssuanceSet']],
+  ['Token.destroy', ['MPTokenIssuanceDestroy']],
+  ['Token.transfer', ['Payment'], true],
+  ['Token.createOffer', ['OfferCreate']],
+  ['Token.cancelOffer', ['OfferCancel']],
+  ['Domain.create', ['PermissionedDomainSet']],
+  ['Domain.setCredentials', ['PermissionedDomainSet']],
+  ['Domain.delete', ['PermissionedDomainDelete']],
+  ['Credential.issue', ['CredentialCreate']],
+  ['Credential.accept', ['CredentialAccept']],
+  ['Credential.delete', ['CredentialDelete']],
+  ['Account.fund', ['Payment', 'AccountSet']],
+  ['Account.activate', ['Payment', 'AccountSet']],
+  ['Account.set', ['AccountSet']],
+  ['Account.setRegularKey', ['SetRegularKey']],
+  ['Account.depositPreauth', ['DepositPreauth']],
+]
+
+// Whether each custodian natively models MPT amounts. Palisade rejects every MPT
+// field (src/custodians/palisade/mapping/currency.ts throws), so an MPT-carrying
+// operation (Token.transfer) falls back to raw there even though `Payment` is
+// otherwise native. Ripple Custody maps MPT natively (`MultiPurposeToken`).
+const MPT_NATIVE = { ripple: true, palisade: false }
+
+// Class name per vertical file stem (XRP/IOU are acronyms).
+const CLASS_OF = { xrp: 'XRP', iou: 'IOU' }
+const className = (stem) =>
+  CLASS_OF[stem] ?? stem[0].toUpperCase() + stem.slice(1)
+// Public class methods that are not ledger-writing operations. `Account.create`
+// (local key generation) is skipped separately, since `Domain.create` IS a write.
+const NON_OPERATIONS = new Set([
+  'constructor',
+  'retrieve',
+  'list',
+  'listOffers',
+])
+
+// Guard: keep the map honest against the code. (1) Every transactor must exist
+// in the source-derived universe. (2) Every operation must be a real public
+// method on its vertical, and every public write method must be listed — so a
+// phantom or a newly-added-but-undocumented operation both throw.
+const known = new Set(universe)
+const mapped = new Set(OPERATIONS.map(([op]) => op))
+for (const [operation, transactors] of OPERATIONS) {
+  for (const transactor of transactors) {
+    if (!known.has(transactor)) {
+      throw new Error(
+        `OPERATIONS lists \`${transactor}\` for ${operation}, but no source ` +
+          `file emits it. Update the OPERATIONS map or the vertical.`,
+      )
+    }
+  }
+  const [prefix, method] = operation.split('.')
+  const src = readFileSync(
+    join(ROOT, `src/verticals/${prefix.toLowerCase()}.ts`),
+    'utf8',
+  )
+  if (!new RegExp(`public (?:async )?${method}\\(`, 'u').test(src)) {
+    throw new Error(
+      `OPERATIONS lists ${operation}, but ${prefix.toLowerCase()}.ts has no ` +
+        `such public method.`,
+    )
+  }
+}
+for (const name of readdirSync(join(ROOT, 'src/verticals'))) {
+  const stem = /^([a-z]+)\.ts$/u.exec(name)?.[1]
+  if (stem === undefined || stem === 'index') continue
+  const prefix = className(stem)
+  const src = readFileSync(join(ROOT, `src/verticals/${name}`), 'utf8')
+  for (const [, method] of src.matchAll(/public (?:async )?([a-zA-Z]+)\(/gu)) {
+    if (NON_OPERATIONS.has(method)) continue
+    // Account.create is local key generation, not a ledger write.
+    if (prefix === 'Account' && method === 'create') continue
+    if (!mapped.has(`${prefix}.${method}`)) {
+      throw new Error(
+        `${prefix}.${method} is a public write method but is missing from the ` +
+          `OPERATIONS map — add it (with its transactor) to keep the doc complete.`,
+      )
+    }
+  }
+}
+
 /**
  * The routing cell for one custodian and transactor.
  *
@@ -94,6 +197,36 @@ const rows = universe
       `| \`${t}\` | signs locally | ${cell(RIPPLE, t)} | ${cell(PALISADE, t)} |`,
   )
   .join('\n')
+
+/**
+ * The support cell for one custodian and an operation. Native only when EVERY
+ * transactor it emits is native (a multi-step operation routes each step
+ * independently) AND, if it carries an MPT amount, that custodian supports MPT.
+ *
+ * @param {Set<string>} nativeSet - That custodian's native-ops set.
+ * @param {boolean} mptNative - Whether the custodian supports MPT amounts.
+ * @param {string[]} transactors - The transactors the operation emits.
+ * @param {boolean} carriesMpt - Whether the operation carries an MPT amount.
+ * @returns {string} The rendered support cell.
+ */
+function opCell(nativeSet, mptNative, transactors, carriesMpt) {
+  const allNative = transactors.every((t) => nativeSet.has(t))
+  return allNative && (!carriesMpt || mptNative)
+    ? '**native**'
+    : 'raw fallback¹'
+}
+
+const operationRows = OPERATIONS.map(
+  ([operation, transactors, carriesMpt = false]) =>
+    `| \`${operation}()\` | ${transactors
+      .map((t) => `\`${t}\``)
+      .join(', ')} | ${opCell(
+      RIPPLE,
+      MPT_NATIVE.ripple,
+      transactors,
+      carriesMpt,
+    )} | ${opCell(PALISADE, MPT_NATIVE.palisade, transactors, carriesMpt)} |`,
+).join('\n')
 
 const verticalRows = [...byVertical.entries()]
   .sort(([a], [b]) => a.localeCompare(b))
@@ -140,6 +273,24 @@ above to see how a given method routes on each connector.
 | Vertical | Transactors emitted |
 | ------ | ------ |
 ${verticalRows}
+
+## Operation → native support
+
+Each simpleXRPL write operation, the XRPL transactor(s) it emits, and whether
+that operation is **native** on each custodian (all its transactors are in the
+custodian's native-ops set) or falls back to **raw** signing. Local signs every
+operation in-process. Read operations emit no transactor and are omitted.
+
+| Operation | Transactor(s) | Ripple Custody | Palisade |
+| ------ | ------ | ------ | ------ |
+${operationRows}
+
+¹ **raw fallback** applies only when raw signing is enabled on that custodian
+(\`allowRawSigning\`); otherwise the operation is rejected with
+\`SignerCapabilityError\`. A multi-transactor operation (e.g. \`IOU.issue\`) is
+native only when every step is native. **Palisade has no native MPT support**,
+so \`Token.transfer\` — which carries an MPT amount — falls back to raw there
+even though \`Payment\` is otherwise native; Ripple Custody handles MPT natively.
 
 ---
 
