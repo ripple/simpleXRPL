@@ -11,11 +11,10 @@
  * Wire the `Hsm` interface below to your PKCS#11 binding (e.g. `pkcs11js` or
  * `graphene-lib`); the exact calls are noted per method.
  */
-import { secp256k1 } from '@noble/curves/secp256k1'
 import { ExternalSigner, SimpleXRPL } from 'simplexrpl'
 import type { EcdsaSignature, Secp256k1SignerPort } from 'simplexrpl'
 
-import { inMemoryLedger } from './mocks.js'
+import { demoHsm, inMemoryLedger } from './mocks.js'
 
 /** secp256k1 sizes: 32-byte scalars, 65-byte uncompressed point (0x04‖X‖Y). */
 const SCALAR_BYTES = 32
@@ -97,23 +96,10 @@ class Pkcs11Signer implements Secp256k1SignerPort {
   }
 }
 
-// DEMO ONLY: an in-process key standing in for the HSM so this file runs
-// end to end. Your real `Hsm` calls PKCS#11 (see the notes above) and returns
-// the same shapes — a DER-wrapped `CKA_EC_POINT` and a raw `r‖s` — so nothing
-// downstream changes.
-function demoHsm(privHex: string): Hsm {
-  const priv = Buffer.from(privHex, 'hex')
-  return {
-    ecPoint: async (): Promise<Uint8Array> =>
-      secp256k1.getPublicKey(priv, false), // 65-byte 0x04‖X‖Y
-    signDigest: async (digest: Uint8Array): Promise<Uint8Array> =>
-      secp256k1.sign(digest, priv).toCompactRawBytes(), // raw r‖s
-  }
-}
-
-const hsm = demoHsm(
-  'c9537c5a2f3f7e1d4b6a8c0e2f4d6b8a1c3e5f7091b3d5f7a9c1e3050709b0d0f',
-)
+// `demoHsm()` is an in-process stand-in (from ./mocks) so this file runs end to
+// end offline; it returns the same shapes a PKCS#11 device does. In production
+// you delete it and construct `Pkcs11Signer` with your real `Hsm` binding.
+const hsm: Hsm = demoHsm()
 const custody = await ExternalSigner.create({ signer: new Pkcs11Signer(hsm) })
 const client = await SimpleXRPL.init({
   rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet

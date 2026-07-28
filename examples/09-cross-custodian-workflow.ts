@@ -1,22 +1,11 @@
 /**
  * Run a workflow across two custodians.
  *
- * A single client can drive accounts held by different connectors. Two ways to
- * sequence work across them:
- *
- *   1. Vertical verbs with `from` — each call routes to the custodian that owns
- *      the named account. Best for the common case.
- *   2. `runMultiStep` — commits an ordered (transaction, account) sequence step
- *      by step (no rollback), where steps can target different custodians. Best
- *      when the order matters and you want one call site.
+ * A single client can drive accounts held by different connectors: each vertical
+ * verb routes automatically to the custodian that owns the account it acts on —
+ * named via `from`, or the primary signer by default.
  */
-import {
-  PalisadeCustody,
-  RippleCustody,
-  runMultiStep,
-  SimpleXRPL,
-} from 'simplexrpl'
-import type { Transaction } from 'simplexrpl'
+import { PalisadeCustody, RippleCustody, SimpleXRPL } from 'simplexrpl'
 
 // A common institutional split: the issuer is held in Ripple Custody (governed
 // approvals), the distribution/hot wallet in Palisade. One client drives both.
@@ -39,38 +28,16 @@ const client = await SimpleXRPL.init({
   signers: [custody, palisade],
 })
 
-// One account on each connector.
-const issuer = client.resolveAccount(custody.primary.address)
+// The distribution/hot wallet on the Palisade connector.
 const hotWallet = client.resolveAccount(palisade.primary.address)
 
-// --- Approach 1: vertical verbs, each targeting a different custodian ------
-// Issue an IOU as the Custody issuer, then pay out from the Palisade wallet.
+// Each verb targets a different custodian. Issue an IOU as the Custody issuer
+// (the primary signer), then pay out from the Palisade hot wallet via `from` —
+// the client routes each call to the connector that owns the account.
 await client.iou.issue({ ticker: 'USD' })
 await client.xrp.transfer(
   { to: 'rBeneficiary00000000000000000000000', amount: '25' },
   { from: hotWallet.address },
 )
-
-// --- Approach 2: an ordered multi-step workflow across both ----------------
-const stepOne: Transaction = {
-  TransactionType: 'Payment',
-  Account: issuer.address,
-  Destination: 'rBeneficiary00000000000000000000000',
-  Amount: '1000000',
-}
-const stepTwo: Transaction = {
-  TransactionType: 'Payment',
-  Account: hotWallet.address,
-  Destination: 'rBeneficiary00000000000000000000000',
-  Amount: '2000000',
-}
-
-// Step 1 signs on Ripple Custody, step 2 on Palisade — each routed
-// automatically to the connector that owns the account.
-const results = await runMultiStep(client, [
-  { transaction: stepOne, account: issuer },
-  { transaction: stepTwo, account: hotWallet },
-])
-console.log(`workflow committed ${results.length} steps`)
 
 await client.disconnect()

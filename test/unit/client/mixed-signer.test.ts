@@ -5,7 +5,6 @@ import {
   DuplicateSignerError,
   SignerCapabilityError,
   SimpleXRPL,
-  runMultiStep,
   submitTransaction,
 } from '../../../src/index.js'
 import type {
@@ -15,6 +14,7 @@ import type {
   SignerCapabilities,
   SubmissionResult,
 } from '../../../src/index.js'
+import { runMultiStep } from '../../../src/orchestration/index.js'
 import { fakeLedger } from '../pipeline/fake-ledger.js'
 
 const RIPPLED = 'wss://x.invalid'

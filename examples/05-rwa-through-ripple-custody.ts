@@ -21,26 +21,19 @@ const client = await SimpleXRPL.init({
   signers: [custody],
 })
 
-const result = await client.token.issue(
-  {
-    metadata: {
-      ticker: 'TBILL',
-      name: 'Acme 3-Month T-Bill',
-      icon: 'https://acme.example/tbill.png',
-      asset_class: 'rwa',
-      asset_subclass: 'treasury',
-      issuer_name: 'Acme Capital',
-    },
-    // 2 decimal places of display precision.
-    assetScale: 2,
-    // 0.5% fee on secondary transfers.
-    transferFee: 0.5,
-    // Keep the issuer able to claw back (compliance); other capabilities on.
-    flags: { canClawback: true, canTransfer: true },
+// Metadata is the only required input. The issuer is the primary signer (the
+// Custody account), and everything else — assetScale,transfer fee, and the 
+// capability flags (clawback, transfer, …) — is left at its SDK default.
+const result = await client.token.issue({
+  metadata: {
+    ticker: 'TBILL',
+    name: 'Acme 3-Month T-Bill',
+    icon: 'https://acme.example/tbill.png',
+    asset_class: 'rwa',
+    asset_subclass: 'treasury',
+    issuer_name: 'Acme Capital',
   },
-  // Issue as the Custody account. Omit `from` to use the primary signer.
-  { from: ISSUER_ADDRESS },
-)
+})
 
 // `MPTokenIssuanceCreate` is native to Ripple Custody, so this returns once the
 // governed action reaches a terminal state — or throws `IntentPendingError` if
