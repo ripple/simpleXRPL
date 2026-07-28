@@ -1,6 +1,6 @@
 # Class: DuplicateSignerError
 
-Defined in: [errors.ts:88](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L88)
+Defined in: [errors.ts:88](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L88)
 
 Two configured signers point at the same backend tenant — the same
 `kind` and the same `tenantId` (§3.1). The client rejects this at init so
@@ -16,7 +16,7 @@ one backend is never registered twice; drop the duplicate signer.
 
 > **new DuplicateSignerError**(`kind`, `tenantId`): [`DuplicateSignerError`](DuplicateSignerError.md)
 
-Defined in: [errors.ts:98](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L98)
+Defined in: [errors.ts:98](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L98)
 
 Construct a DuplicateSignerError.
 
@@ -41,7 +41,7 @@ Construct a DuplicateSignerError.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md)
 
-Defined in: [errors.ts:89](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L89)
+Defined in: [errors.ts:89](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L89)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [errors.ts:89](https://github.com/ripple/simpleXRPL/blob/8629f04f582
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L9)
 
 #### Inherited from
 
@@ -61,4 +61,4 @@ Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582d
 
 > `readonly` **tenantId**: `string`
 
-Defined in: [errors.ts:90](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L90)
+Defined in: [errors.ts:90](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L90)

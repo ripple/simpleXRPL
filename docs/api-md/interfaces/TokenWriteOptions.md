@@ -1,6 +1,6 @@
 # Interface: TokenWriteOptions
 
-Defined in: [verticals/token.types.ts:7](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L7)
+Defined in: [verticals/token.types.ts:7](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/token.types.ts#L7)
 
 Per-call options shared by the token verbs.
 
@@ -10,7 +10,7 @@ Per-call options shared by the token verbs.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [verticals/token.types.ts:12](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L12)
+Defined in: [verticals/token.types.ts:12](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/token.types.ts#L12)
 
 Fee override.
 
@@ -20,7 +20,7 @@ Fee override.
 
 > `readonly` `optional` **from**: [`AccountSelector`](../type-aliases/AccountSelector.md)
 
-Defined in: [verticals/token.types.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L9)
+Defined in: [verticals/token.types.ts:9](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/token.types.ts#L9)
 
 Source account; defaults to the primary signer's primary account.
 
@@ -30,7 +30,7 @@ Source account; defaults to the primary signer's primary account.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [verticals/token.types.ts:18](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L18)
+Defined in: [verticals/token.types.ts:18](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/token.types.ts#L18)
 
 A prior submission's `idempotencyKey` (from its result), to retry to the
 same intent instead of creating a duplicate (§8). Auto-generated when omitted.

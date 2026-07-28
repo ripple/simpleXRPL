@@ -1,6 +1,6 @@
 # Class: XrpldSubmitError
 
-Defined in: [errors.ts:199](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L199)
+Defined in: [errors.ts:199](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L199)
 
 A xrpld submission was rejected. The `engineResult` and full response are
 preserved verbatim.
@@ -15,7 +15,7 @@ preserved verbatim.
 
 > **new XrpldSubmitError**(`engineResult`, `raw`): [`XrpldSubmitError`](XrpldSubmitError.md)
 
-Defined in: [errors.ts:209](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L209)
+Defined in: [errors.ts:209](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L209)
 
 Construct a XrpldSubmitError.
 
@@ -40,7 +40,7 @@ Construct a XrpldSubmitError.
 
 > `readonly` **engineResult**: `string`
 
-Defined in: [errors.ts:200](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L200)
+Defined in: [errors.ts:200](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L200)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [errors.ts:200](https://github.com/ripple/simpleXRPL/blob/8629f04f58
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L9)
 
 #### Inherited from
 
@@ -60,4 +60,4 @@ Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582d
 
 > `readonly` **raw**: `unknown`
 
-Defined in: [errors.ts:201](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L201)
+Defined in: [errors.ts:201](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L201)

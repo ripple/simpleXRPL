@@ -1,6 +1,6 @@
 # Interface: IOUTrustLine
 
-Defined in: [verticals/iou.types.ts:165](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L165)
+Defined in: [verticals/iou.types.ts:165](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L165)
 
 A shaped trust line (from `account_lines`), the point-in-time IOU state.
 
@@ -10,7 +10,7 @@ A shaped trust line (from `account_lines`), the point-in-time IOU state.
 
 > `readonly` **authorized**: `boolean`
 
-Defined in: [verticals/iou.types.ts:181](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L181)
+Defined in: [verticals/iou.types.ts:181](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L181)
 
 Whether the line is authorized (issuer authorized the holder).
 
@@ -20,7 +20,7 @@ Whether the line is authorized (issuer authorized the holder).
 
 > `readonly` **balance**: `string`
 
-Defined in: [verticals/iou.types.ts:171](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L171)
+Defined in: [verticals/iou.types.ts:171](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L171)
 
 The trust-line balance, from the queried account's perspective.
 
@@ -30,7 +30,7 @@ The trust-line balance, from the queried account's perspective.
 
 > `readonly` **currency**: `string`
 
-Defined in: [verticals/iou.types.ts:167](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L167)
+Defined in: [verticals/iou.types.ts:167](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L167)
 
 The currency ticker (hex codes decoded to ASCII where printable).
 
@@ -40,7 +40,7 @@ The currency ticker (hex codes decoded to ASCII where printable).
 
 > `readonly` **frozen**: `boolean`
 
-Defined in: [verticals/iou.types.ts:179](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L179)
+Defined in: [verticals/iou.types.ts:179](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L179)
 
 Whether the queried account has frozen this line.
 
@@ -50,7 +50,7 @@ Whether the queried account has frozen this line.
 
 > `readonly` **limit**: `string`
 
-Defined in: [verticals/iou.types.ts:173](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L173)
+Defined in: [verticals/iou.types.ts:173](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L173)
 
 The queried account's trust limit.
 
@@ -60,7 +60,7 @@ The queried account's trust limit.
 
 > `readonly` **limitPeer**: `string`
 
-Defined in: [verticals/iou.types.ts:175](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L175)
+Defined in: [verticals/iou.types.ts:175](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L175)
 
 The counterparty's trust limit.
 
@@ -70,7 +70,7 @@ The counterparty's trust limit.
 
 > `readonly` **noRipple**: `boolean`
 
-Defined in: [verticals/iou.types.ts:177](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L177)
+Defined in: [verticals/iou.types.ts:177](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L177)
 
 Whether rippling is disabled on this line (`no_ripple`).
 
@@ -80,6 +80,6 @@ Whether rippling is disabled on this line (`no_ripple`).
 
 > `readonly` **peer**: `string`
 
-Defined in: [verticals/iou.types.ts:169](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L169)
+Defined in: [verticals/iou.types.ts:169](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/iou.types.ts#L169)
 
 The counterparty r-address (the issuer, when querying as `holder`).

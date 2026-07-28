@@ -1,6 +1,6 @@
 # Interface: CredentialData
 
-Defined in: [verticals/credential.types.ts:62](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L62)
+Defined in: [verticals/credential.types.ts:62](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L62)
 
 A shaped credential (from `ledger_entry` / `account_objects`); no hex.
 
@@ -14,7 +14,7 @@ A shaped credential (from `ledger_entry` / `account_objects`); no hex.
 
 > `readonly` **accepted**: `boolean`
 
-Defined in: [verticals/credential.types.ts:64](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L64)
+Defined in: [verticals/credential.types.ts:64](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L64)
 
 Whether the holder has accepted the credential (`lsfAccepted`).
 
@@ -24,7 +24,7 @@ Whether the holder has accepted the credential (`lsfAccepted`).
 
 > `readonly` **credType**: `string`
 
-Defined in: [verticals/credential.types.ts:54](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L54)
+Defined in: [verticals/credential.types.ts:54](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L54)
 
 The credential type.
 
@@ -38,7 +38,7 @@ The credential type.
 
 > `readonly` `optional` **expiration**: `number`
 
-Defined in: [verticals/credential.types.ts:68](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L68)
+Defined in: [verticals/credential.types.ts:68](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L68)
 
 Expiration (seconds since the Ripple epoch), if set.
 
@@ -48,7 +48,7 @@ Expiration (seconds since the Ripple epoch), if set.
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/credential.types.ts:58](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L58)
+Defined in: [verticals/credential.types.ts:58](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L58)
 
 The holder (subject) r-address.
 
@@ -62,7 +62,7 @@ The holder (subject) r-address.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/credential.types.ts:56](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L56)
+Defined in: [verticals/credential.types.ts:56](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L56)
 
 The issuer r-address.
 
@@ -76,6 +76,6 @@ The issuer r-address.
 
 > `readonly` `optional` **uri**: `string`
 
-Defined in: [verticals/credential.types.ts:66](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L66)
+Defined in: [verticals/credential.types.ts:66](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L66)
 
 The optional URI (decoded from hex).

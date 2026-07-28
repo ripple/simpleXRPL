@@ -2,7 +2,7 @@
 
 > **buildRawTransactionBody**(`encodedTransaction`, `externalId`?): \{\}
 
-Defined in: [custodians/palisade/mapping/raw.ts:14](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/palisade/mapping/raw.ts#L14)
+Defined in: [custodians/palisade/mapping/raw.ts:14](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/palisade/mapping/raw.ts#L14)
 
 Build the `RawTransaction` (sign-only) body: Palisade signs the encoded blob,
 and the SDK submits the returned signed transaction through the shared ledger.

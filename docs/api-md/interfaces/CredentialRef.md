@@ -1,6 +1,6 @@
 # Interface: CredentialRef
 
-Defined in: [verticals/credential.types.ts:52](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L52)
+Defined in: [verticals/credential.types.ts:52](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L52)
 
 Identifies a credential (all plain strings — never hex).
 
@@ -15,7 +15,7 @@ Identifies a credential (all plain strings — never hex).
 
 > `readonly` **credType**: `string`
 
-Defined in: [verticals/credential.types.ts:54](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L54)
+Defined in: [verticals/credential.types.ts:54](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L54)
 
 The credential type.
 
@@ -25,7 +25,7 @@ The credential type.
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/credential.types.ts:58](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L58)
+Defined in: [verticals/credential.types.ts:58](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L58)
 
 The holder (subject) r-address.
 
@@ -35,6 +35,6 @@ The holder (subject) r-address.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/credential.types.ts:56](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/credential.types.ts#L56)
+Defined in: [verticals/credential.types.ts:56](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/credential.types.ts#L56)
 
 The issuer r-address.

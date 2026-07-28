@@ -1,6 +1,6 @@
 # Interface: RippleCustodyFromEnvOptions
 
-Defined in: [custodians/ripple/construction.ts:52](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L52)
+Defined in: [custodians/ripple/construction.ts:52](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L52)
 
 Construction options for [RippleCustody.fromEnv](../classes/RippleCustody.md#fromenv).
 
@@ -10,7 +10,7 @@ Construction options for [RippleCustody.fromEnv](../classes/RippleCustody.md#fro
 
 > `readonly` `optional` **allowRawSigning**: `boolean`
 
-Defined in: [custodians/ripple/construction.ts:56](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L56)
+Defined in: [custodians/ripple/construction.ts:56](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L56)
 
 Enable the raw-signing fallback (TDD §12.1). Defaults to `false`.
 
@@ -20,7 +20,7 @@ Enable the raw-signing fallback (TDD §12.1). Defaults to `false`.
 
 > `readonly` `optional` **defaultDryRun**: `boolean`
 
-Defined in: [custodians/ripple/construction.ts:60](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L60)
+Defined in: [custodians/ripple/construction.ts:60](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L60)
 
 Pre-flight every write through Custody's dry-run. Defaults to `false`.
 
@@ -30,7 +30,7 @@ Pre-flight every write through Custody's dry-run. Defaults to `false`.
 
 > `readonly` `optional` **defaultFee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [custodians/ripple/construction.ts:58](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L58)
+Defined in: [custodians/ripple/construction.ts:58](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L58)
 
 House fee intent, falls back to `Priority: Low`.
 
@@ -40,7 +40,7 @@ House fee intent, falls back to `Priority: Low`.
 
 > `readonly` `optional` **defaultTimeoutMs**: `number`
 
-Defined in: [custodians/ripple/construction.ts:62](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L62)
+Defined in: [custodians/ripple/construction.ts:62](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L62)
 
 How long `submitAndWait` polls before throwing `IntentPendingError`.
 
@@ -50,7 +50,7 @@ How long `submitAndWait` polls before throwing `IntentPendingError`.
 
 > `readonly` `optional` **env**: `Readonly`\<`Record`\<`string`, `undefined` \| `string`\>\>
 
-Defined in: [custodians/ripple/construction.ts:64](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L64)
+Defined in: [custodians/ripple/construction.ts:64](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L64)
 
 Environment source to scan. Defaults to `process.env`.
 
@@ -60,7 +60,7 @@ Environment source to scan. Defaults to `process.env`.
 
 > `readonly` `optional` **http**: `CustodyHttpPort`
 
-Defined in: [custodians/ripple/construction.ts:66](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L66)
+Defined in: [custodians/ripple/construction.ts:66](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L66)
 
 Injectable transport; defaults to `FetchHttpPort`.
 
@@ -70,6 +70,6 @@ Injectable transport; defaults to `FetchHttpPort`.
 
 > `readonly` **primary**: `string`
 
-Defined in: [custodians/ripple/construction.ts:54](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L54)
+Defined in: [custodians/ripple/construction.ts:54](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/ripple/construction.ts#L54)
 
 The primary account's r-address; validated against the discovered set.

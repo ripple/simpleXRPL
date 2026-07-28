@@ -2,7 +2,7 @@
 
 > **uuidV7**(`nowMs`): `string`
 
-Defined in: [ids/uuid-v7.ts:27](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/ids/uuid-v7.ts#L27)
+Defined in: [ids/uuid-v7.ts:27](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/ids/uuid-v7.ts#L27)
 
 Generate a UUIDv7 (RFC 9562): a 48-bit big-endian unix-millisecond timestamp
 followed by 74 random bits, with the version and variant fields set. The

@@ -1,6 +1,6 @@
 # Class: CustodyApiError
 
-Defined in: [errors.ts:116](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L116)
+Defined in: [errors.ts:116](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L116)
 
 A Ripple Custody API call returned an error. The diagnostic `hint` and full
 response body are preserved for the caller to surface.
@@ -15,7 +15,7 @@ response body are preserved for the caller to surface.
 
 > **new CustodyApiError**(`status`, `raw`, `hint`?): [`CustodyApiError`](CustodyApiError.md)
 
-Defined in: [errors.ts:128](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L128)
+Defined in: [errors.ts:128](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L128)
 
 Construct a CustodyApiError.
 
@@ -41,7 +41,7 @@ Construct a CustodyApiError.
 
 > `readonly` `optional` **hint**: `string`
 
-Defined in: [errors.ts:118](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L118)
+Defined in: [errors.ts:118](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L118)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [errors.ts:118](https://github.com/ripple/simpleXRPL/blob/8629f04f58
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L9)
 
 #### Inherited from
 
@@ -61,7 +61,7 @@ Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582d
 
 > `readonly` **raw**: `unknown`
 
-Defined in: [errors.ts:119](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L119)
+Defined in: [errors.ts:119](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L119)
 
 ***
 
@@ -69,4 +69,4 @@ Defined in: [errors.ts:119](https://github.com/ripple/simpleXRPL/blob/8629f04f58
 
 > `readonly` **status**: `number`
 
-Defined in: [errors.ts:117](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L117)
+Defined in: [errors.ts:117](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/errors.ts#L117)

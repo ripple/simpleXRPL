@@ -1,6 +1,6 @@
 # Interface: Ed25519SignerPort
 
-Defined in: [custodians/external/external-signer-port.ts:51](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L51)
+Defined in: [custodians/external/external-signer-port.ts:51](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer-port.ts#L51)
 
 An ed25519 external signer (e.g. GCP KMS, some HSMs).
 
@@ -10,7 +10,7 @@ An ed25519 external signer (e.g. GCP KMS, some HSMs).
 
 > `readonly` **algorithm**: `"ed25519"`
 
-Defined in: [custodians/external/external-signer-port.ts:53](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L53)
+Defined in: [custodians/external/external-signer-port.ts:53](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer-port.ts#L53)
 
 The signature scheme this key uses.
 
@@ -20,7 +20,7 @@ The signature scheme this key uses.
 
 > `readonly` **publicKey**: () => `Promise`\<`string`\>
 
-Defined in: [custodians/external/external-signer-port.ts:61](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L61)
+Defined in: [custodians/external/external-signer-port.ts:61](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer-port.ts#L61)
 
 The signer's public key as an XRPL-format hex string (33 bytes: the `ED`
 prefix followed by the 32-byte raw key).
@@ -37,7 +37,7 @@ The `ED`-prefixed public key hex.
 
 > `readonly` **signMessage**: (`message`) => `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [custodians/external/external-signer-port.ts:71](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L71)
+Defined in: [custodians/external/external-signer-port.ts:71](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/custodians/external/external-signer-port.ts#L71)
 
 Sign the message bytes directly — ed25519 hashes internally, so there is no
 pre-digest and no low-S step. Return the raw 64-byte signature; the SDK

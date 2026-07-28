@@ -1,6 +1,6 @@
 # Interface: AccountData
 
-Defined in: [verticals/account.types.ts:122](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L122)
+Defined in: [verticals/account.types.ts:122](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/account.types.ts#L122)
 
 A shaped account snapshot (from `account_info`).
 
@@ -10,7 +10,7 @@ A shaped account snapshot (from `account_info`).
 
 > `readonly` **address**: `string`
 
-Defined in: [verticals/account.types.ts:124](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L124)
+Defined in: [verticals/account.types.ts:124](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/account.types.ts#L124)
 
 The account's r-address.
 
@@ -20,7 +20,7 @@ The account's r-address.
 
 > `readonly` **flags**: `Readonly`\<`Record`\<`string`, `boolean`\>\>
 
-Defined in: [verticals/account.types.ts:132](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L132)
+Defined in: [verticals/account.types.ts:132](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/account.types.ts#L132)
 
 Account flags as booleans, as reported by `account_flags`.
 
@@ -30,7 +30,7 @@ Account flags as booleans, as reported by `account_flags`.
 
 > `readonly` **ownerCount**: `number`
 
-Defined in: [verticals/account.types.ts:130](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L130)
+Defined in: [verticals/account.types.ts:130](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/account.types.ts#L130)
 
 The number of owned ledger objects (drives the reserve).
 
@@ -40,7 +40,7 @@ The number of owned ledger objects (drives the reserve).
 
 > `readonly` **sequence**: `number`
 
-Defined in: [verticals/account.types.ts:128](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L128)
+Defined in: [verticals/account.types.ts:128](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/account.types.ts#L128)
 
 The account sequence number.
 
@@ -50,6 +50,6 @@ The account sequence number.
 
 > `readonly` **xrpBalance**: `string`
 
-Defined in: [verticals/account.types.ts:126](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L126)
+Defined in: [verticals/account.types.ts:126](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/account.types.ts#L126)
 
 The XRP balance (converted from drops).

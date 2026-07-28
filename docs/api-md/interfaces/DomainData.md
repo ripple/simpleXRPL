@@ -1,6 +1,6 @@
 # Interface: DomainData
 
-Defined in: [verticals/domain.types.ts:53](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L53)
+Defined in: [verticals/domain.types.ts:53](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/domain.types.ts#L53)
 
 A shaped permissioned domain (from `ledger_entry` / `account_objects`).
 
@@ -10,7 +10,7 @@ A shaped permissioned domain (from `ledger_entry` / `account_objects`).
 
 > `readonly` **credList**: readonly [`AcceptedCredential`](AcceptedCredential.md)[]
 
-Defined in: [verticals/domain.types.ts:59](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L59)
+Defined in: [verticals/domain.types.ts:59](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/domain.types.ts#L59)
 
 The credentials the domain accepts (credential types decoded from hex).
 
@@ -20,7 +20,7 @@ The credentials the domain accepts (credential types decoded from hex).
 
 > `readonly` **domainID**: `string`
 
-Defined in: [verticals/domain.types.ts:55](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L55)
+Defined in: [verticals/domain.types.ts:55](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/domain.types.ts#L55)
 
 The domain's on-chain id.
 
@@ -30,6 +30,6 @@ The domain's on-chain id.
 
 > `readonly` **owner**: `string`
 
-Defined in: [verticals/domain.types.ts:57](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L57)
+Defined in: [verticals/domain.types.ts:57](https://github.com/ripple/simpleXRPL/blob/289015b3acf1efe50075248af6c8f99635c1f164/src/verticals/domain.types.ts#L57)
 
 The owning account's r-address.
