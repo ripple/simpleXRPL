@@ -1,6 +1,6 @@
 # Interface: IOUListOffersParams
 
-Defined in: [verticals/iou.types.ts:229](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.types.ts#L229)
+Defined in: [verticals/iou.types.ts:229](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L229)
 
 Parameters for [IOU.listOffers](../classes/IOU.md#listoffers).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.listOffers](../classes/IOU.md#listoffers).
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/iou.types.ts:231](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.types.ts#L231)
+Defined in: [verticals/iou.types.ts:231](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L231)
 
 The IOU issuer's r-address.
 
@@ -24,7 +24,7 @@ The IOU issuer's r-address.
 
 > `readonly` **ticker**: `string`
 
-Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.types.ts#L14)
+Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L14)
 
 The currency code: a 3-character ISO-4217-style code or a 40-character
 hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to

@@ -54,7 +54,7 @@ function fakeLedger(handlers: {
 
 async function clientWith(ledger: LedgerPort): Promise<SimpleXRPLClient> {
   return SimpleXRPL.init({
-    rippledUrl: 'wss://x.invalid',
+    xrpldUrl: 'wss://x.invalid',
     signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
     ledger,
   })

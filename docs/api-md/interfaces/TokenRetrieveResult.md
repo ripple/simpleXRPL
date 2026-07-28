@@ -1,6 +1,6 @@
 # Interface: TokenRetrieveResult
 
-Defined in: [verticals/token.types.ts:241](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L241)
+Defined in: [verticals/token.types.ts:241](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L241)
 
 Result of [Token.retrieve](../classes/Token.md#retrieve).
 
@@ -10,7 +10,7 @@ Result of [Token.retrieve](../classes/Token.md#retrieve).
 
 > `readonly` **data**: `undefined` \| [`TokenData`](TokenData.md)
 
-Defined in: [verticals/token.types.ts:245](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L245)
+Defined in: [verticals/token.types.ts:245](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L245)
 
 The issuance snapshot, or `undefined` if no such issuance exists.
 
@@ -20,6 +20,6 @@ The issuance snapshot, or `undefined` if no such issuance exists.
 
 > `readonly` **tokenID**: `string`
 
-Defined in: [verticals/token.types.ts:243](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L243)
+Defined in: [verticals/token.types.ts:243](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L243)
 
 The queried MPT issuance id.

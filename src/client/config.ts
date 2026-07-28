@@ -7,8 +7,8 @@ import type { LedgerPort } from '../ports/index.js'
  * only binds them to a network and builds the account index.
  */
 export interface SimpleXRPLConfig {
-  /** The rippled endpoint (`ws(s)://` or `http(s)://`). */
-  readonly rippledUrl: string
+  /** The xrpld endpoint (`ws(s)://` or `http(s)://`). */
+  readonly xrpldUrl: string
 
   /** Faucet endpoint, used on test networks only. */
   readonly faucetUrl?: string
@@ -24,7 +24,7 @@ export interface SimpleXRPLConfig {
 
   /**
    * Ledger connection used for reads, autofill, and Local/raw submission.
-   * Defaults to an `XrplLedger` built from `rippledUrl`; inject a fake in tests.
+   * Defaults to an `XrplLedger` built from `xrpldUrl`; inject a fake in tests.
    */
   readonly ledger?: LedgerPort
 }

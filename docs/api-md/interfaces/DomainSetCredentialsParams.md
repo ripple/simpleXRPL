@@ -1,6 +1,6 @@
 # Interface: DomainSetCredentialsParams
 
-Defined in: [verticals/domain.types.ts:33](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/domain.types.ts#L33)
+Defined in: [verticals/domain.types.ts:33](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L33)
 
 Parameters for `Domain.setCredentials` (update an existing domain).
 
@@ -10,7 +10,7 @@ Parameters for `Domain.setCredentials` (update an existing domain).
 
 > `readonly` **credList**: readonly [`AcceptedCredential`](AcceptedCredential.md)[]
 
-Defined in: [verticals/domain.types.ts:37](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/domain.types.ts#L37)
+Defined in: [verticals/domain.types.ts:37](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L37)
 
 The credentials the domain accepts (at least one).
 
@@ -20,6 +20,6 @@ The credentials the domain accepts (at least one).
 
 > `readonly` **domain**: `string`
 
-Defined in: [verticals/domain.types.ts:35](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/domain.types.ts#L35)
+Defined in: [verticals/domain.types.ts:35](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L35)
 
 The domain to update.

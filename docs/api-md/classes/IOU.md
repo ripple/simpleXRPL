@@ -1,6 +1,6 @@
 # Class: IOU
 
-Defined in: [verticals/iou.ts:57](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L57)
+Defined in: [verticals/iou.ts:57](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L57)
 
 The IOU (trust-line currency) vertical, exposed as `client.iou`. Write verbs
 act as the issuer ([IOUWriteOptions.from](../interfaces/IOUWriteOptions.md#from), default the primary signer);
@@ -13,7 +13,7 @@ their own counterparty (`holder`/`destination`) per call.
 
 > **new IOU**(`host`): [`IOU`](IOU.md)
 
-Defined in: [verticals/iou.ts:65](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L65)
+Defined in: [verticals/iou.ts:65](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L65)
 
 Construct the IOU vertical.
 
@@ -33,7 +33,7 @@ Construct the IOU vertical.
 
 > **authorize**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUAuthorizeIntent`](../interfaces/IOUAuthorizeIntent.md)\>\>
 
-Defined in: [verticals/iou.ts:152](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L152)
+Defined in: [verticals/iou.ts:152](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L152)
 
 Grant authorization for a holder to hold this IOU. Only meaningful when
 the issuer's account has `asfRequireAuth` set.
@@ -61,7 +61,7 @@ The submission result, with `{ holder }` as the intent output.
 
 > **buyOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [verticals/iou.ts:303](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L303)
+Defined in: [verticals/iou.ts:303](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L303)
 
 Place an order on the DEX to acquire more of this IOU.
 
@@ -88,7 +88,7 @@ The submission result.
 
 > **cancelOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `offerSequence`: `number`; \}\>\>
 
-Defined in: [verticals/iou.ts:335](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L335)
+Defined in: [verticals/iou.ts:335](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L335)
 
 Cancel a standing offer placed by this IOU's issuer.
 
@@ -112,7 +112,7 @@ output.
 
 > **clawback**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUClawbackIntent`](../interfaces/IOUClawbackIntent.md)\>\>
 
-Defined in: [verticals/iou.ts:234](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L234)
+Defined in: [verticals/iou.ts:234](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L234)
 
 Reclaim a holder's balance back to the issuer.
 
@@ -141,7 +141,7 @@ output.
 
 > **issue**(`params`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUIssueIntent`](../interfaces/IOUIssueIntent.md)\>\>
 
-Defined in: [verticals/iou.ts:83](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L83)
+Defined in: [verticals/iou.ts:83](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L83)
 
 Generate a new trust-line-based IOU between two developer-controlled
 accounts sourced from the environment.
@@ -177,7 +177,7 @@ The result, with `{ iouID }` as its intent output.
 
 > **list**(`params`?): `Promise`\<[`IOUListResult`](../interfaces/IOUListResult.md)\>
 
-Defined in: [verticals/iou.ts:119](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L119)
+Defined in: [verticals/iou.ts:119](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L119)
 
 List every IOU trust line for an account. No signer required.
 
@@ -199,7 +199,7 @@ The `iouID`s and shaped trust lines, index-aligned.
 
 > **listOffers**(`params`): `Promise`\<[`ListOffersResult`](../interfaces/ListOffersResult.md)\>
 
-Defined in: [verticals/iou.ts:130](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L130)
+Defined in: [verticals/iou.ts:130](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L130)
 
 List all open offers in the market for this IOU (both sides), tagged
 buy/sell relative to it. No signer required.
@@ -222,7 +222,7 @@ The shaped offers, composable into `buyOffer`/`sellOffer`.
 
 > **lock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOULockIntent`](../interfaces/IOULockIntent.md)\>\>
 
-Defined in: [verticals/iou.ts:187](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L187)
+Defined in: [verticals/iou.ts:187](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L187)
 
 Freeze a holder's ability to send and receive this IOU: Individual
 Freeze followed by Deep Freeze.
@@ -251,7 +251,7 @@ intent output.
 
 > **retrieve**(`params`): `Promise`\<[`IOURetrieveResult`](../interfaces/IOURetrieveResult.md)\>
 
-Defined in: [verticals/iou.ts:109](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L109)
+Defined in: [verticals/iou.ts:109](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L109)
 
 Read a single IOU trust line (point-in-time). No signer required.
 
@@ -273,7 +273,7 @@ The `iouID` and the trust-line snapshot (or `undefined`).
 
 > **sellOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
 
-Defined in: [verticals/iou.ts:319](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L319)
+Defined in: [verticals/iou.ts:319](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L319)
 
 Place an order on the DEX to sell this IOU.
 
@@ -300,7 +300,7 @@ The submission result.
 
 > **transfer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOUTransferIntent`](../interfaces/IOUTransferIntent.md)\>\>
 
-Defined in: [verticals/iou.ts:267](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L267)
+Defined in: [verticals/iou.ts:267](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L267)
 
 Send a specified amount of this IOU to a destination account.
 
@@ -324,7 +324,7 @@ intent output.
 
 > **unlock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`IOULockIntent`](../interfaces/IOULockIntent.md)\>\>
 
-Defined in: [verticals/iou.ts:209](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.ts#L209)
+Defined in: [verticals/iou.ts:209](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.ts#L209)
 
 Restore a holder's ability to send and receive this IOU: clears Deep
 Freeze then Individual Freeze.

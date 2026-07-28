@@ -41,7 +41,7 @@ async function signerClient(
   requests: LedgerRequest[],
 ): Promise<SimpleXRPLClient> {
   return SimpleXRPL.init({
-    rippledUrl: 'wss://x.invalid',
+    xrpldUrl: 'wss://x.invalid',
     signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
     ledger: fakeLedger(requests),
   })
@@ -61,7 +61,7 @@ describe('Account.retrieve', () => {
   it('reads an explicit account without a signer', async () => {
     const requests: LedgerRequest[] = []
     const client = await SimpleXRPL.init({
-      rippledUrl: 'wss://x.invalid',
+      xrpldUrl: 'wss://x.invalid',
       ledger: fakeLedger(requests),
     })
     const { data } = await client.account.retrieve({
@@ -73,7 +73,7 @@ describe('Account.retrieve', () => {
 
   it('throws without a signer and without an account', async () => {
     const client = await SimpleXRPL.init({
-      rippledUrl: 'wss://x.invalid',
+      xrpldUrl: 'wss://x.invalid',
       ledger: fakeLedger([]),
     })
     await expect(client.account.retrieve()).rejects.toBeInstanceOf(

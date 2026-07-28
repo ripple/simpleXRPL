@@ -45,7 +45,7 @@ export async function fundedTestnetClient(): Promise<TestnetFixture> {
     const source = (await faucet.fundWallet()).wallet
     const destination = (await faucet.fundWallet()).wallet
     const client = await SimpleXRPL.init({
-      rippledUrl: TESTNET_WS,
+      xrpldUrl: TESTNET_WS,
       signers: [LocalSigner.fromSeed(source.seed as string)],
       ledger: new XrplLedger(TESTNET_WS),
     })
@@ -84,7 +84,7 @@ export async function fundedClientWithSigners(
     )
     const wallets = funded.map((result) => result.wallet)
     const client = await SimpleXRPL.init({
-      rippledUrl: TESTNET_WS,
+      xrpldUrl: TESTNET_WS,
       signers: wallets.map((wallet) =>
         LocalSigner.fromSeed(wallet.seed as string),
       ),

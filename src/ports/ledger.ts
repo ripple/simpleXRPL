@@ -7,7 +7,7 @@ export interface LedgerRequest {
   /** Command-specific parameters. */
   readonly [key: string]: unknown
 
-  /** The rippled command, e.g. `'account_info'`. */
+  /** The xrpld command, e.g. `'account_info'`. */
   readonly command: string
 }
 

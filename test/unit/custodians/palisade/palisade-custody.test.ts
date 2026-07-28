@@ -10,7 +10,7 @@ import {
   AccountNotFoundError,
   IntentPendingError,
   PalisadeCustody,
-  RippledSubmitError,
+  XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
 } from '../../../../src/index.js'
@@ -229,13 +229,13 @@ describe('PalisadeCustody.submitAndWait — raw fallback', () => {
       escrow,
       contextFor(account, ledgerStub()),
     )
-    expect(result.source).toBe('rippled')
+    expect(result.source).toBe('xrpld')
     expect(result.txHash).toBe('RAWHASH')
     expect(port.posts[0].url).toContain('/transactions/raw')
     expect(port.posts[0].body).toMatchObject({ signOnly: true })
   })
 
-  it('surfaces a non-tesSUCCESS engine result as RippledSubmitError', async () => {
+  it('surfaces a non-tesSUCCESS engine result as XrpldSubmitError', async () => {
     const port = fakePort({
       onRaw: () => ({
         id: 'raw1',
@@ -250,7 +250,7 @@ describe('PalisadeCustody.submitAndWait — raw fallback', () => {
     } as unknown as TxResponse)
     await expect(
       custody.submitAndWait(escrow, contextFor(account, failing)),
-    ).rejects.toBeInstanceOf(RippledSubmitError)
+    ).rejects.toBeInstanceOf(XrpldSubmitError)
   })
 
   it('falls back to raw when a native transactor has an unsupported field', async () => {
@@ -269,7 +269,7 @@ describe('PalisadeCustody.submitAndWait — raw fallback', () => {
       withSendMax,
       contextFor(account, ledgerStub()),
     )
-    expect(result.source).toBe('rippled')
+    expect(result.source).toBe('xrpld')
     expect(port.posts[0].url).toContain('/transactions/raw')
   })
 

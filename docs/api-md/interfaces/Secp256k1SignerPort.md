@@ -1,6 +1,6 @@
 # Interface: Secp256k1SignerPort
 
-Defined in: [custodians/external/external-signer-port.ts:26](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/external/external-signer-port.ts#L26)
+Defined in: [custodians/external/external-signer-port.ts:26](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L26)
 
 A secp256k1 external signer (e.g. AWS KMS, most PKCS#11 HSMs).
 
@@ -10,7 +10,7 @@ A secp256k1 external signer (e.g. AWS KMS, most PKCS#11 HSMs).
 
 > `readonly` **algorithm**: `"secp256k1"`
 
-Defined in: [custodians/external/external-signer-port.ts:28](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/external/external-signer-port.ts#L28)
+Defined in: [custodians/external/external-signer-port.ts:28](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L28)
 
 The signature scheme this key uses.
 
@@ -20,7 +20,7 @@ The signature scheme this key uses.
 
 > `readonly` **publicKey**: () => `Promise`\<`string`\>
 
-Defined in: [custodians/external/external-signer-port.ts:36](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/external/external-signer-port.ts#L36)
+Defined in: [custodians/external/external-signer-port.ts:36](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L36)
 
 The signer's public key as an XRPL-format compressed hex string (33 bytes,
 `02`/`03` prefix).
@@ -37,7 +37,7 @@ The compressed public key hex.
 
 > `readonly` **signDigest**: (`digest`) => `Promise`\<[`EcdsaSignature`](EcdsaSignature.md)\>
 
-Defined in: [custodians/external/external-signer-port.ts:47](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/external/external-signer-port.ts#L47)
+Defined in: [custodians/external/external-signer-port.ts:47](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/external/external-signer-port.ts#L47)
 
 Sign a 32-byte digest — XRPL's SHA-512Half of the signing data — returning
 the raw `{ r, s }` scalars. Adapters parse their provider's native format

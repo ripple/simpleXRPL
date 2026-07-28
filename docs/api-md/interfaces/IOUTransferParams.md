@@ -1,6 +1,6 @@
 # Interface: IOUTransferParams
 
-Defined in: [verticals/iou.types.ts:93](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.types.ts#L93)
+Defined in: [verticals/iou.types.ts:93](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L93)
 
 Parameters for [IOU.transfer](../classes/IOU.md#transfer).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.transfer](../classes/IOU.md#transfer).
 
 > `readonly` **amount**: `number`
 
-Defined in: [verticals/iou.types.ts:97](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.types.ts#L97)
+Defined in: [verticals/iou.types.ts:97](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L97)
 
 The amount to send.
 
@@ -24,7 +24,7 @@ The amount to send.
 
 > `readonly` **destination**: `string`
 
-Defined in: [verticals/iou.types.ts:95](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.types.ts#L95)
+Defined in: [verticals/iou.types.ts:95](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L95)
 
 The destination r-address.
 
@@ -34,7 +34,7 @@ The destination r-address.
 
 > `readonly` **ticker**: `string`
 
-Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/iou.types.ts#L14)
+Defined in: [verticals/iou.types.ts:14](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/iou.types.ts#L14)
 
 The currency code: a 3-character ISO-4217-style code or a 40-character
 hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to

@@ -74,7 +74,7 @@ interface LedgerEntryResponse<T> {
 
 /**
  * Look up a single ledger object, returning `undefined` when it does not exist
- * (rippled answers a missing entry with an error, which we treat as "absent").
+ * (xrpld answers a missing entry with an error, which we treat as "absent").
  *
  * @param host - The client the read runs against.
  * @param request - The `ledger_entry` parameters (minus `command`/`ledger_index`).

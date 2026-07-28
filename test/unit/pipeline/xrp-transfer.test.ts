@@ -17,14 +17,14 @@ describe('XRP.transfer (pipeline spine)', () => {
     const to = Wallet.generate().classicAddress
     const ledger = fakeLedger('E2EHASH')
     const client = await SimpleXRPL.init({
-      rippledUrl: 'wss://x.invalid',
+      xrpldUrl: 'wss://x.invalid',
       signers: [LocalSigner.fromSeed(wallet.seed as string)],
       ledger,
     })
 
     const result = await client.xrp.transfer({ to, amount: '10' })
 
-    expect(result.source).toBe('rippled')
+    expect(result.source).toBe('xrpld')
     expect(result.txHash).toBe('E2EHASH')
     expect(result.intent).toStrictEqual({ to, amount: '10' })
     // A signed blob (hex string) was submitted through the ledger.

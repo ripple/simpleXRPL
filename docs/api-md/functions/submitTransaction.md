@@ -2,7 +2,7 @@
 
 > **submitTransaction**(`host`, `request`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [pipeline/pipeline.ts:63](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/pipeline/pipeline.ts#L63)
+Defined in: [pipeline/pipeline.ts:63](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/pipeline/pipeline.ts#L63)
 
 Run a single built transaction through Validate → Dispatch → Resolve →
 Sign+submit → Wait. Returns the custodian's transport result; callers attach

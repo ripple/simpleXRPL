@@ -23,8 +23,8 @@ import { IntentInspector } from './intent-inspector.js'
 
 /** The network a client is bound to. */
 export interface NetworkInfo {
-  /** The rippled endpoint (`ws(s)://` or `http(s)://`). */
-  readonly rippledUrl: string
+  /** The xrpld endpoint (`ws(s)://` or `http(s)://`). */
+  readonly xrpldUrl: string
 
   /** Faucet endpoint, used on test networks only. */
   readonly faucetUrl?: string
@@ -73,7 +73,7 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
 
-  /** Lazily created from `network.rippledUrl` when not injected. */
+  /** Lazily created from `network.xrpldUrl` when not injected. */
   private ledgerInstance: LedgerPort | undefined
 
   private constructor(state: {
@@ -108,13 +108,13 @@ export class SimpleXRPLClient implements SubmissionHost {
 
   /**
    * The ledger connection for reads, autofill, and Local/raw submission.
-   * Created lazily from `network.rippledUrl` when none was injected.
+   * Created lazily from `network.xrpldUrl` when none was injected.
    *
    * @returns The ledger port.
    */
   public get ledger(): LedgerPort {
     this.ledgerInstance ??= new XrplLedger(
-      this.network.rippledUrl,
+      this.network.xrpldUrl,
       this.network.faucetUrl,
     )
     return this.ledgerInstance
@@ -140,7 +140,7 @@ export class SimpleXRPLClient implements SubmissionHost {
     )
     const accountIndex = await buildAccountIndex(signers)
     return new SimpleXRPLClient({
-      network: { rippledUrl: config.rippledUrl, faucetUrl: config.faucetUrl },
+      network: { xrpldUrl: config.xrpldUrl, faucetUrl: config.faucetUrl },
       signers,
       primarySigner,
       accountIndex,

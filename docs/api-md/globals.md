@@ -26,12 +26,12 @@ verticals, core types, and error classes) is built out incrementally.
 - [PalisadeAuthError](classes/PalisadeAuthError.md)
 - [PalisadeCustody](classes/PalisadeCustody.md)
 - [RippleCustody](classes/RippleCustody.md)
-- [RippledSubmitError](classes/RippledSubmitError.md)
 - [SignerCapabilityError](classes/SignerCapabilityError.md)
 - [SimpleXRPLClient](classes/SimpleXRPLClient.md)
 - [SimpleXRPLError](classes/SimpleXRPLError.md)
 - [Token](classes/Token.md)
 - [XRP](classes/XRP.md)
+- [XrpldSubmitError](classes/XrpldSubmitError.md)
 - [XrplLedger](classes/XrplLedger.md)
 
 ## Interfaces
@@ -186,7 +186,6 @@ verticals, core types, and error classes) is built out incrementally.
 - [isNativePath](functions/isNativePath.md)
 - [mpt](functions/mpt.md)
 - [readAccountAddress](functions/readAccountAddress.md)
-- [runMultiStep](functions/runMultiStep.md)
 - [submitTransaction](functions/submitTransaction.md)
 - [submitTransactionAsync](functions/submitTransactionAsync.md)
 - [toLedgerAmount](functions/toLedgerAmount.md)

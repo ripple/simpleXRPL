@@ -62,7 +62,7 @@ export type AccountSelector =
   | { readonly signer: Custodian; readonly account?: string }
 
 /**
- * A signed transaction ready to submit to rippled.
+ * A signed transaction ready to submit to xrpld.
  */
 export interface SignedEnvelope {
   /** The signed transaction blob (hex). */
@@ -152,7 +152,7 @@ export interface SubmissionResultFields<T> {
  */
 export type SubmissionResult<T = unknown> =
   | (SubmissionResultFields<T> & {
-      readonly source: 'rippled'
+      readonly source: 'xrpld'
       readonly response: TxResponse
     })
   | (SubmissionResultFields<T> & {

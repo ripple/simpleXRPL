@@ -80,7 +80,7 @@ async function issuedClient(clawbackEnabled = false): Promise<IouFixture> {
   process.env.XRPL_HOT_WALLET_SEED = holder.seed
   const { ledger, txs } = fakeLedger(clawbackEnabled)
   const client = await SimpleXRPL.init({
-    rippledUrl: 'wss://x.invalid',
+    xrpldUrl: 'wss://x.invalid',
     signers: [LocalSigner.fromSeed(issuer.seed as string)],
     ledger,
   })
@@ -101,7 +101,7 @@ afterEach(() => {
 
 describe('IOU.issue', () => {
   it('throws when the issuance env vars are missing', async () => {
-    const client = await SimpleXRPL.init({ rippledUrl: 'wss://x.invalid' })
+    const client = await SimpleXRPL.init({ xrpldUrl: 'wss://x.invalid' })
     await expect(client.iou.issue({ ticker: 'USD' })).rejects.toBeInstanceOf(
       IntentValidationError,
     )

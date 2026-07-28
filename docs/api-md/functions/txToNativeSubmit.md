@@ -2,7 +2,7 @@
 
 > **txToNativeSubmit**(`tx`): [`NativeSubmit`](../interfaces/NativeSubmit.md)
 
-Defined in: [custodians/palisade/mapping/submit-operations.ts:48](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/palisade/mapping/submit-operations.ts#L48)
+Defined in: [custodians/palisade/mapping/submit-operations.ts:48](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/palisade/mapping/submit-operations.ts#L48)
 
 Map a built xrpl.js transaction to its Palisade native submission. Fields
 with no native slot throw [SignerCapabilityError](../classes/SignerCapabilityError.md) rather than being

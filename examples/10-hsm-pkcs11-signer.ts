@@ -102,7 +102,7 @@ class Pkcs11Signer implements Secp256k1SignerPort {
 const hsm: Hsm = demoHsm()
 const custody = await ExternalSigner.create({ signer: new Pkcs11Signer(hsm) })
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
   signers: [custody],
   ledger: inMemoryLedger(), // omit in production to use the live XRPL connection
 })

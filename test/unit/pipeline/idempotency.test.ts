@@ -12,7 +12,7 @@ import type {
 
 import { fakeLedger } from './fake-ledger.js'
 
-const RIPPLED = 'wss://x.invalid'
+const XRPLD = 'wss://x.invalid'
 const UUID_V7_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u
 
@@ -70,7 +70,7 @@ describe('pipeline idempotency', () => {
   it('generates a UUIDv7 key when none is supplied and surfaces it on the result', async () => {
     const custodian = makeCustodian('rSrc1')
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [custodian],
       ledger: fakeLedger(),
     })
@@ -88,7 +88,7 @@ describe('pipeline idempotency', () => {
   it('reuses a caller-supplied key verbatim (retry resolves to the same intent)', async () => {
     const custodian = makeCustodian('rSrc1')
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [custodian],
       ledger: fakeLedger(),
     })
@@ -107,7 +107,7 @@ describe('pipeline idempotency', () => {
   it('generates a fresh key per submission when none is supplied', async () => {
     const custodian = makeCustodian('rSrc1')
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [custodian],
       ledger: fakeLedger(),
     })
@@ -130,7 +130,7 @@ describe('verb-level idempotency', () => {
   it('surfaces a generated key and reuses a supplied one through a verb', async () => {
     const custodian = makeCustodian('rSrc1')
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [custodian],
       ledger: fakeLedger(),
     })

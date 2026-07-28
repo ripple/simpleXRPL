@@ -5,7 +5,7 @@ import type { SubmissionResult } from '../../src/index.js'
 // Exercises discriminated-union narrowing on `source` at compile + run time.
 function describeResult(result: SubmissionResult): string {
   switch (result.source) {
-    case 'rippled':
+    case 'xrpld':
       // `response` is narrowed to TxResponse here.
       return result.response.type
     case 'custody':
@@ -18,9 +18,9 @@ function describeResult(result: SubmissionResult): string {
 }
 
 describe('SubmissionResult', () => {
-  it('narrows the rippled variant to a TxResponse', () => {
+  it('narrows the xrpld variant to a TxResponse', () => {
     const result: SubmissionResult = {
-      source: 'rippled',
+      source: 'xrpld',
       intent: undefined,
       txHash: 'ABC',
       response: { type: 'response' } as unknown as TxResponse,

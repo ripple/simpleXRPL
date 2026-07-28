@@ -158,13 +158,13 @@ function toAuthorizeCredential(
 }
 
 /**
- * Read a newly created domain's id from a rippled submission result's metadata.
+ * Read a newly created domain's id from a xrpld submission result's metadata.
  *
  * @param result - The submission result.
  * @returns The created domain id, or an empty string when unavailable.
  */
 function extractDomainId(result: SubmissionResult): string {
-  if (result.source !== 'rippled') {
+  if (result.source !== 'xrpld') {
     return ''
   }
   const { meta } = result.response.result

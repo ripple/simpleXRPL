@@ -6,7 +6,7 @@ import type { Payment, Transaction, TxResponse } from 'xrpl'
 
 import {
   ExternalSigner,
-  RippledSubmitError,
+  XrpldSubmitError,
   dispatch,
   isNativePath,
 } from '../../../../src/index.js'
@@ -204,17 +204,17 @@ describe('ExternalSigner.sign', () => {
 })
 
 describe('ExternalSigner.submitAndWait / submitAsync', () => {
-  it('submits through the ledger and returns a rippled result', async () => {
+  it('submits through the ledger and returns a xrpld result', async () => {
     const custody = await ExternalSigner.create({ signer: fakePort() })
     const result = await custody.submitAndWait(
       paymentFrom(custody.primary.address),
       contextFor(custody.primary.address, ledgerStub()),
     )
-    expect(result.source).toBe('rippled')
+    expect(result.source).toBe('xrpld')
     expect(result.txHash).toBe('HASH')
   })
 
-  it('throws RippledSubmitError on a non-tesSUCCESS engine result', async () => {
+  it('throws XrpldSubmitError on a non-tesSUCCESS engine result', async () => {
     const custody = await ExternalSigner.create({ signer: fakePort() })
     const failing = ledgerStub({
       result: { hash: 'H', meta: { TransactionResult: 'tecUNFUNDED_PAYMENT' } },
@@ -224,7 +224,7 @@ describe('ExternalSigner.submitAndWait / submitAsync', () => {
         paymentFrom(custody.primary.address),
         contextFor(custody.primary.address, failing),
       ),
-    ).rejects.toBeInstanceOf(RippledSubmitError)
+    ).rejects.toBeInstanceOf(XrpldSubmitError)
   })
 
   it('submitAsync returns a pre-resolved handle keyed by tx hash', async () => {

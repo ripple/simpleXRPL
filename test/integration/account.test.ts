@@ -12,7 +12,7 @@ describe('Account (live testnet)', () => {
           requireDest: true,
           domain: 'example.com',
         })
-        expect(result.source).toBe('rippled')
+        expect(result.source).toBe('xrpld')
 
         const info = await client.ledger.request<{
           result: {

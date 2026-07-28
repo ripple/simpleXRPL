@@ -1,6 +1,6 @@
 # Interface: AccountActivateParams
 
-Defined in: [verticals/account.types.ts:26](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L26)
+Defined in: [verticals/account.types.ts:26](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L26)
 
 Parameters for `Account.activate` (operator-funded activation).
 
@@ -10,7 +10,7 @@ Parameters for `Account.activate` (operator-funded activation).
 
 > `readonly` `optional` **amount**: `string`
 
-Defined in: [verticals/account.types.ts:35](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L35)
+Defined in: [verticals/account.types.ts:35](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L35)
 
 XRP to send.
 
@@ -25,6 +25,6 @@ The network's base reserve plus a small buffer (so the new
 
 > `readonly` **destination**: `string`
 
-Defined in: [verticals/account.types.ts:28](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/account.types.ts#L28)
+Defined in: [verticals/account.types.ts:28](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/account.types.ts#L28)
 
 The r-address to activate (typically from `Account.create`).

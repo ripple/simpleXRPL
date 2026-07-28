@@ -2,7 +2,7 @@
 
 > **toLedgerAmount**(`amount`): [`LedgerAmount`](../type-aliases/LedgerAmount.md)
 
-Defined in: [amount/amount.ts:41](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/amount/amount.ts#L41)
+Defined in: [amount/amount.ts:41](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/amount/amount.ts#L41)
 
 Convert a display amount to the on-ledger representation, applying decimal and
 scale conversion and validating precision.

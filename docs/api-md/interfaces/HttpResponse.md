@@ -1,6 +1,6 @@
 # Interface: HttpResponse\<T\>
 
-Defined in: [ports/http.ts:35](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/http.ts#L35)
+Defined in: [ports/http.ts:35](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/ports/http.ts#L35)
 
 A parsed HTTP response.
 
@@ -16,7 +16,7 @@ A parsed HTTP response.
 
 > `readonly` **data**: `T`
 
-Defined in: [ports/http.ts:40](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/http.ts#L40)
+Defined in: [ports/http.ts:40](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/ports/http.ts#L40)
 
 The parsed response body.
 
@@ -26,7 +26,7 @@ The parsed response body.
 
 > `readonly` **headers**: `Record`\<`string`, `string`\>
 
-Defined in: [ports/http.ts:43](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/http.ts#L43)
+Defined in: [ports/http.ts:43](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/ports/http.ts#L43)
 
 Response headers, lower-cased keys.
 
@@ -36,6 +36,6 @@ Response headers, lower-cased keys.
 
 > `readonly` **status**: `number`
 
-Defined in: [ports/http.ts:37](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/ports/http.ts#L37)
+Defined in: [ports/http.ts:37](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/ports/http.ts#L37)
 
 The HTTP status code.

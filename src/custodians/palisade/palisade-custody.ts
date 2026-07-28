@@ -14,7 +14,7 @@ import type {
 } from '../../domain/index.js'
 import {
   AccountNotFoundError,
-  RippledSubmitError,
+  XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
 } from '../../errors.js'
@@ -276,8 +276,8 @@ export class PalisadeCustody implements Custodian {
    *
    * @param tx - The transaction to submit.
    * @param ctx - The submission context.
-   * @returns The rippled-sourced submission result.
-   * @throws {@link RippledSubmitError} on a non-`tesSUCCESS` engine result.
+   * @returns The xrpld-sourced submission result.
+   * @throws {@link XrpldSubmitError} on a non-`tesSUCCESS` engine result.
    */
   private async submitRaw(
     tx: Transaction,
@@ -291,10 +291,10 @@ export class PalisadeCustody implements Custodian {
         ? meta.TransactionResult
         : undefined
     if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
-      throw new RippledSubmitError(engineResult, response)
+      throw new XrpldSubmitError(engineResult, response)
     }
     return {
-      source: 'rippled',
+      source: 'xrpld',
       response,
       intent: undefined,
       txHash: response.result.hash,

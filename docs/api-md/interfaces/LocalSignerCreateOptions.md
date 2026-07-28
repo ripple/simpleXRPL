@@ -1,6 +1,6 @@
 # Interface: LocalSignerCreateOptions
 
-Defined in: [custodians/local/local-signer.ts:22](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/local/local-signer.ts#L22)
+Defined in: [custodians/local/local-signer.ts:22](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/local/local-signer.ts#L22)
 
 Options for [LocalSigner.create](../classes/LocalSigner.md#create).
 
@@ -10,7 +10,7 @@ Options for [LocalSigner.create](../classes/LocalSigner.md#create).
 
 > `readonly` `optional` **primary**: `string`
 
-Defined in: [custodians/local/local-signer.ts:27](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/local/local-signer.ts#L27)
+Defined in: [custodians/local/local-signer.ts:27](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/local/local-signer.ts#L27)
 
 The primary account's r-address. Defaults to the first wallet.
 
@@ -20,6 +20,6 @@ The primary account's r-address. Defaults to the first wallet.
 
 > `readonly` **wallets**: readonly `Wallet`[]
 
-Defined in: [custodians/local/local-signer.ts:24](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/local/local-signer.ts#L24)
+Defined in: [custodians/local/local-signer.ts:24](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/local/local-signer.ts#L24)
 
 The wallets this signer holds (at least one).

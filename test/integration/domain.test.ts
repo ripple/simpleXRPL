@@ -14,7 +14,7 @@ describe('Domain (live testnet)', () => {
         const created = await client.domain.create({
           credList: [{ issuer: issuer.classicAddress, credType: 'KYC' }],
         })
-        expect(created.source).toBe('rippled')
+        expect(created.source).toBe('xrpld')
         expect(created.intent.domainID).toMatch(/^[0-9A-F]{64}$/u)
 
         // Read it back through the SDK: retrieve echoes the accepted-credential
@@ -29,7 +29,7 @@ describe('Domain (live testnet)', () => {
         expect(listed.domains).toContain(domainID)
 
         const deleted = await client.domain.delete({ domain: domainID })
-        expect(deleted.source).toBe('rippled')
+        expect(deleted.source).toBe('xrpld')
 
         // After deletion the domain is absent from both reads.
         expect(

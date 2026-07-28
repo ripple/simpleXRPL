@@ -24,7 +24,7 @@ const palisade = await PalisadeCustody.create({
 })
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
   signers: [custody, palisade],
 })
 

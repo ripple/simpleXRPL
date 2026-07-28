@@ -1,6 +1,6 @@
 # Interface: TokenData
 
-Defined in: [verticals/token.types.ts:215](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L215)
+Defined in: [verticals/token.types.ts:215](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L215)
 
 A shaped MPT issuance (from `ledger_entry`).
 
@@ -10,7 +10,7 @@ A shaped MPT issuance (from `ledger_entry`).
 
 > `readonly` **assetScale**: `number`
 
-Defined in: [verticals/token.types.ts:221](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L221)
+Defined in: [verticals/token.types.ts:221](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L221)
 
 Decimal places between display value and base units.
 
@@ -20,7 +20,7 @@ Decimal places between display value and base units.
 
 > `readonly` **flags**: [`MptFlags`](MptFlags.md)
 
-Defined in: [verticals/token.types.ts:229](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L229)
+Defined in: [verticals/token.types.ts:229](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L229)
 
 Capability flags.
 
@@ -30,7 +30,7 @@ Capability flags.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/token.types.ts:219](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L219)
+Defined in: [verticals/token.types.ts:219](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L219)
 
 The issuer r-address.
 
@@ -40,7 +40,7 @@ The issuer r-address.
 
 > `readonly` `optional` **maximumAmount**: `string`
 
-Defined in: [verticals/token.types.ts:223](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L223)
+Defined in: [verticals/token.types.ts:223](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L223)
 
 Maximum issuable amount (base units), if capped.
 
@@ -50,7 +50,7 @@ Maximum issuable amount (base units), if capped.
 
 > `readonly` `optional` **metadata**: `MPTokenMetadata`
 
-Defined in: [verticals/token.types.ts:231](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L231)
+Defined in: [verticals/token.types.ts:231](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L231)
 
 Decoded XLS-89 metadata, if present and well-formed.
 
@@ -60,7 +60,7 @@ Decoded XLS-89 metadata, if present and well-formed.
 
 > `readonly` **outstandingAmount**: `string`
 
-Defined in: [verticals/token.types.ts:225](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L225)
+Defined in: [verticals/token.types.ts:225](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L225)
 
 Amount currently in circulation (base units).
 
@@ -70,7 +70,7 @@ Amount currently in circulation (base units).
 
 > `readonly` **tokenID**: `string`
 
-Defined in: [verticals/token.types.ts:217](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L217)
+Defined in: [verticals/token.types.ts:217](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L217)
 
 The MPT issuance id.
 
@@ -80,6 +80,6 @@ The MPT issuance id.
 
 > `readonly` **transferFee**: `number`
 
-Defined in: [verticals/token.types.ts:227](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L227)
+Defined in: [verticals/token.types.ts:227](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L227)
 
 Secondary-transfer fee, as a percentage.

@@ -2,7 +2,7 @@
 
 > **dropsToXrpString**(`drops`): `string`
 
-Defined in: [reads/read-helpers.ts:66](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/reads/read-helpers.ts#L66)
+Defined in: [reads/read-helpers.ts:66](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/reads/read-helpers.ts#L66)
 
 Convert a drops string to a decimal XRP string.
 

@@ -1,6 +1,6 @@
 # Interface: DomainWriteOptions
 
-Defined in: [verticals/domain.types.ts:4](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/domain.types.ts#L4)
+Defined in: [verticals/domain.types.ts:4](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L4)
 
 Per-call options shared by the domain verbs.
 
@@ -10,7 +10,7 @@ Per-call options shared by the domain verbs.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [verticals/domain.types.ts:9](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/domain.types.ts#L9)
+Defined in: [verticals/domain.types.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L9)
 
 Fee override.
 
@@ -20,7 +20,7 @@ Fee override.
 
 > `readonly` `optional` **from**: [`AccountSelector`](../type-aliases/AccountSelector.md)
 
-Defined in: [verticals/domain.types.ts:6](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/domain.types.ts#L6)
+Defined in: [verticals/domain.types.ts:6](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L6)
 
 Source account; defaults to the primary signer's primary account.
 
@@ -30,7 +30,7 @@ Source account; defaults to the primary signer's primary account.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [verticals/domain.types.ts:15](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/domain.types.ts#L15)
+Defined in: [verticals/domain.types.ts:15](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/domain.types.ts#L15)
 
 A prior submission's `idempotencyKey` (from its result), to retry to the
 same intent instead of creating a duplicate (§8). Auto-generated when omitted.

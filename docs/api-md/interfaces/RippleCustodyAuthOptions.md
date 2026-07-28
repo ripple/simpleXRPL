@@ -1,6 +1,6 @@
 # Interface: RippleCustodyAuthOptions
 
-Defined in: [custodians/ripple/construction.ts:20](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/ripple/construction.ts#L20)
+Defined in: [custodians/ripple/construction.ts:20](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L20)
 
 Auth construction options (TDD §3.3).
 
@@ -10,7 +10,7 @@ Auth construction options (TDD §3.3).
 
 > `readonly` `optional` **publicKey**: `string`
 
-Defined in: [custodians/ripple/construction.ts:24](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/ripple/construction.ts#L24)
+Defined in: [custodians/ripple/construction.ts:24](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L24)
 
 Matching public key, base64 SPKI DER. Derived from `signingKey` if omitted.
 
@@ -20,7 +20,7 @@ Matching public key, base64 SPKI DER. Derived from `signingKey` if omitted.
 
 > `readonly` **signingKey**: `string`
 
-Defined in: [custodians/ripple/construction.ts:22](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/ripple/construction.ts#L22)
+Defined in: [custodians/ripple/construction.ts:22](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L22)
 
 Intent-author private key: PEM contents, or a path to a `.pem` file.
 
@@ -30,6 +30,6 @@ Intent-author private key: PEM contents, or a path to a `.pem` file.
 
 > `readonly` **tokenUrl**: `string`
 
-Defined in: [custodians/ripple/construction.ts:26](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/custodians/ripple/construction.ts#L26)
+Defined in: [custodians/ripple/construction.ts:26](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/custodians/ripple/construction.ts#L26)
 
 The Custody token endpoint URL.

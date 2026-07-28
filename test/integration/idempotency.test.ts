@@ -14,7 +14,7 @@ describe('Idempotency key (live testnet)', () => {
           to: destination.classicAddress,
           amount: '5',
         })
-        expect(first.source).toBe('rippled')
+        expect(first.source).toBe('xrpld')
         expect(first.idempotencyKey).toMatch(UUID_V7_RE)
 
         const second = await client.xrp.transfer({

@@ -24,7 +24,7 @@ describe('Token MPT (live testnet)', () => {
           },
           flags: { canTransfer: true },
         })
-        expect(issued.source).toBe('rippled')
+        expect(issued.source).toBe('xrpld')
         expect(issued.txHash).toMatch(/^[0-9A-F]{64}$/u)
         const mptIssuanceId = issued.intent.mptIssuanceId
         expect(mptIssuanceId).toMatch(/^[0-9A-F]{48}$/u)
@@ -34,7 +34,7 @@ describe('Token MPT (live testnet)', () => {
           { mptIssuanceId },
           { from: holder.classicAddress },
         )
-        expect(authorized.source).toBe('rippled')
+        expect(authorized.source).toBe('xrpld')
 
         // Read the issuance back through the SDK: flags, fee, and metadata are
         // decoded from the real ledger response.
@@ -53,7 +53,7 @@ describe('Token MPT (live testnet)', () => {
           to: holder.classicAddress,
           amount: { asset: mpt(mptIssuanceId, 0), value: '100' },
         })
-        expect(transferred.source).toBe('rippled')
+        expect(transferred.source).toBe('xrpld')
         expect(transferred.txHash).toMatch(/^[0-9A-F]{64}$/u)
 
         // Read the holding back through the SDK: the holder holds 100 units.

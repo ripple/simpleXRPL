@@ -1,6 +1,6 @@
 # Class: AccountNotFoundError
 
-Defined in: [errors.ts:48](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L48)
+Defined in: [errors.ts:48](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L48)
 
 The requested account is not registered on the client.
 
@@ -14,7 +14,7 @@ The requested account is not registered on the client.
 
 > **new AccountNotFoundError**(`account`): [`AccountNotFoundError`](AccountNotFoundError.md)
 
-Defined in: [errors.ts:56](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L56)
+Defined in: [errors.ts:56](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L56)
 
 Construct an AccountNotFoundError.
 
@@ -38,7 +38,7 @@ Construct an AccountNotFoundError.
 
 > `readonly` **account**: `string`
 
-Defined in: [errors.ts:49](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L49)
+Defined in: [errors.ts:49](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L49)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [errors.ts:49](https://github.com/ripple/simpleXRPL/blob/0609f879e05
 
 > `readonly` **name**: `string`
 
-Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/errors.ts#L9)
+Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/errors.ts#L9)
 
 #### Inherited from
 

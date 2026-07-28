@@ -17,7 +17,7 @@ const ISSUER_ADDRESS = process.env.RIPPLE_CUSTODY_PRIMARY ?? ''
 const custody = await RippleCustody.fromEnv({ primary: ISSUER_ADDRESS })
 
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
   signers: [custody],
 })
 

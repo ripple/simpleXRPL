@@ -7,10 +7,10 @@
  */
 import { LocalSigner, SimpleXRPL } from 'simplexrpl'
 
-// 1. Choose a network by pointing at a rippled endpoint. `faucetUrl` is only
+// 1. Choose a network by pointing at a xrpld endpoint. `faucetUrl` is only
 //    used on test networks (for `client.account.fund`).
 const client = await SimpleXRPL.init({
-  rippledUrl: 'wss://s.altnet.rippletest.net:51233',
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233',
   faucetUrl: 'https://faucet.altnet.rippletest.net/accounts',
 
   // 2. Choose your connector(s). Each custodian is constructed and

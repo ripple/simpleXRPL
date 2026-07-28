@@ -25,11 +25,11 @@ export class XrplLedger implements LedgerPort {
   /**
    * Wrap a new xrpl client bound to the given endpoint.
    *
-   * @param rippledUrl - The rippled WebSocket endpoint.
+   * @param xrpldUrl - The xrpld WebSocket endpoint.
    * @param faucetUrl - The faucet endpoint (testnet/devnet), enabling `fund`.
    */
-  public constructor(rippledUrl: string, faucetUrl?: string) {
-    this.client = new Client(rippledUrl)
+  public constructor(xrpldUrl: string, faucetUrl?: string) {
+    this.client = new Client(xrpldUrl)
     this.faucetUrl = faucetUrl
   }
 

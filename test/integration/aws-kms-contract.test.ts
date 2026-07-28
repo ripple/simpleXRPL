@@ -40,7 +40,7 @@ describeIfKms('AwsKmsSigner (live KMS contract)', () => {
       expect(custody.primary.address).toMatch(/^r[1-9A-HJ-NP-Za-km-z]{24,}$/u)
 
       const client = await SimpleXRPL.init({
-        rippledUrl: TESTNET_WS,
+        xrpldUrl: TESTNET_WS,
         faucetUrl: TESTNET_FAUCET,
         signers: [custody],
       })
@@ -56,7 +56,7 @@ describeIfKms('AwsKmsSigner (live KMS contract)', () => {
           to: destination,
           amount: '10',
         })
-        expect(result.source).toBe('rippled')
+        expect(result.source).toBe('xrpld')
         expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
       } finally {
         await client.disconnect()

@@ -1,6 +1,6 @@
 # Interface: TokenListParams
 
-Defined in: [verticals/token.types.ts:259](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L259)
+Defined in: [verticals/token.types.ts:259](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L259)
 
 Parameters for [Token.list](../classes/Token.md#list).
 
@@ -10,7 +10,7 @@ Parameters for [Token.list](../classes/Token.md#list).
 
 > `readonly` `optional` **account**: `string`
 
-Defined in: [verticals/token.types.ts:271](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L271)
+Defined in: [verticals/token.types.ts:271](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L271)
 
 The account to query; defaults to the primary signer's account.
 
@@ -26,7 +26,7 @@ The primary signer's account.
 
 > `readonly` `optional` **role**: `"issuer"` \| `"holder"`
 
-Defined in: [verticals/token.types.ts:265](https://github.com/ripple/simpleXRPL/blob/0609f879e05ccf687564ae843137111d9fc00580/src/verticals/token.types.ts#L265)
+Defined in: [verticals/token.types.ts:265](https://github.com/ripple/simpleXRPL/blob/8629f04f582da783f29526205caf1624754edd0d/src/verticals/token.types.ts#L265)
 
 List tokens the account `holder`s or `issuer`d.
 

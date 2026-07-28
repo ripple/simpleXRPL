@@ -18,7 +18,7 @@ describe('Reads without a signer (live testnet)', () => {
       await faucet.disconnect()
 
       const client = await SimpleXRPL.init({
-        rippledUrl: TESTNET_WS,
+        xrpldUrl: TESTNET_WS,
         ledger: new XrplLedger(TESTNET_WS),
       })
       await client.connect()
