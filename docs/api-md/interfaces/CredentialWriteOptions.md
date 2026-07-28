@@ -2,7 +2,7 @@
 
 Defined in: [verticals/credential.types.ts:4](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L4)
 
-Per-call options shared by the credential verbs.
+Per-call options shared by the credential operations.
 
 ## Properties
 

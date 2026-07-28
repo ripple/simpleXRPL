@@ -2,7 +2,7 @@
  * Run a workflow across two custodians.
  *
  * A single client can drive accounts held by different connectors: each vertical
- * verb routes automatically to the custodian that owns the account it acts on —
+ * operation routes automatically to the custodian that owns the account it acts on —
  * named via `from`, or the primary signer by default.
  */
 import { PalisadeCustody, RippleCustody, SimpleXRPL } from 'simplexrpl'
@@ -31,7 +31,7 @@ const client = await SimpleXRPL.init({
 // The distribution/hot wallet on the Palisade connector.
 const hotWallet = client.resolveAccount(palisade.primary.address)
 
-// Each verb targets a different custodian. Issue an IOU as the Custody issuer
+// Each operation targets a different custodian. Issue an IOU as the Custody issuer
 // (the primary signer), then pay out from the Palisade hot wallet via `from` —
 // the client routes each call to the connector that owns the account.
 await client.iou.issue({ ticker: 'USD' })

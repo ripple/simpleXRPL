@@ -66,7 +66,7 @@ function fakeLedger(clawbackEnabled = false): {
 /**
  * Build a client whose primary signer is a fresh issuer wallet, with that
  * wallet's seed (plus a hot-wallet seed) seeded into the env vars `IOU.issue`
- * reads. IOU verbs default their acting account to this issuer.
+ * reads. IOU operations default their acting account to this issuer.
  *
  * @param clawbackEnabled - Passed through to {@link fakeLedger}.
  * @returns The client, captured txs, and the issuer/holder addresses.

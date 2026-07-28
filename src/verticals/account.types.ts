@@ -35,7 +35,7 @@ export interface AccountActivateParams {
   readonly amount?: string
 }
 
-/** Per-call options shared by the account verbs. */
+/** Per-call options shared by the account operations. */
 export interface AccountWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */
   readonly from?: AccountSelector

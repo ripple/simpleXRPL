@@ -5,7 +5,8 @@
  * Metadata follows the XLS-89 standard and is validated before submission
  * (`asset_class: 'rwa'` requires an `asset_subclass`). Here the issuer is a
  * Ripple Custody account: Custody signs and submits the issuance as one
- * governed action, subject to the domain's approval policy.
+ * governed action, subject to the domain's approval policy. `MPTokenIssuanceCreate`
+ * is native to Ripple Custody, so it flows through the governed native path.
  */
 import { RippleCustody, SimpleXRPL } from 'simplexrpl'
 
@@ -22,7 +23,7 @@ const client = await SimpleXRPL.init({
 })
 
 // Metadata is the only required input. The issuer is the primary signer (the
-// Custody account), and everything else — assetScale,transfer fee, and the 
+// Custody account), and everything else — assetScale, transfer fee, and the
 // capability flags (clawback, transfer, …) — is left at its SDK default.
 const result = await client.token.issue({
   metadata: {
@@ -34,10 +35,6 @@ const result = await client.token.issue({
     issuer_name: 'Acme Capital',
   },
 })
-
-// `MPTokenIssuanceCreate` is native to Ripple Custody, so this returns once the
-// governed action reaches a terminal state — or throws `IntentPendingError` if
-// it's still awaiting approval past the timeout.
 console.log('issued MPT:', result.intent.mptIssuanceId)
 
 // Read the issuance back (no signer required): flags are decoded to booleans,

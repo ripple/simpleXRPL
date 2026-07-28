@@ -2,7 +2,7 @@
 
 Defined in: [verticals/domain.types.ts:4](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L4)
 
-Per-call options shared by the domain verbs.
+Per-call options shared by the domain operations.
 
 ## Properties
 

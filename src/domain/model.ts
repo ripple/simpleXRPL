@@ -53,7 +53,7 @@ export interface Account extends AccountRef {
 }
 
 /**
- * Caller-facing way to choose the source account for a verb: a bare address, an
+ * Caller-facing way to choose the source account for an operation: a bare address, an
  * explicit address, or a signer (optionally narrowed to one of its accounts).
  */
 export type AccountSelector =
@@ -141,7 +141,7 @@ export interface SubmissionResultFields<T> {
   /**
    * The stable, client-generated id (a UUIDv7) this submission carried (§8).
    * Re-submitting with the same id resolves to the same intent rather than
-   * creating a duplicate; pass it back as a verb's `idempotencyKey` to retry.
+   * creating a duplicate; pass it back as an operation's `idempotencyKey` to retry.
    */
   readonly idempotencyKey?: string
 }

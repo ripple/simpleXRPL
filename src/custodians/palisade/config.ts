@@ -22,7 +22,7 @@ export interface PalisadeCustodyConfig {
   readonly clientId: string
   /** OAuth2 client-credentials secret (held in memory only). */
   readonly clientSecret: string
-  /** The wallet used when a verb is called without an explicit account. */
+  /** The wallet used when an operation is called without an explicit account. */
   readonly primary: PalisadeWalletRef
   /** Allow the raw fallback for transactors/fields Palisade can't map. */
   readonly allowRawSigning?: boolean

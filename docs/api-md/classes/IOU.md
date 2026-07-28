@@ -2,7 +2,7 @@
 
 Defined in: [verticals/iou.ts:57](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.ts#L57)
 
-The IOU (trust-line currency) vertical, exposed as `client.iou`. Write verbs
+The IOU (trust-line currency) vertical, exposed as `client.iou`. Write operations
 act as the issuer ([IOUWriteOptions.from](../interfaces/IOUWriteOptions.md#from), default the primary signer);
 reads take an explicit `account` or default to the primary. Callers name
 their own counterparty (`holder`/`destination`) per call.
@@ -146,7 +146,7 @@ Defined in: [verticals/iou.ts:83](https://github.com/ripple/simpleXRPL/blob/main
 Generate a new trust-line-based IOU between two developer-controlled
 accounts sourced from the environment.
 
-Unlike the other verbs, `issue` bootstraps both accounts from the
+Unlike the other operations, `issue` bootstraps both accounts from the
 environment (`XRPL_ISSUER_SEED`, `XRPL_HOT_WALLET_SEED`): the issuer enables
 rippling (`AccountSet`), then the hot wallet extends trust to the maximum
 limit (`TrustSet`). No value exists yet — use [IOU.transfer](IOU.md#transfer) to send.

@@ -49,7 +49,7 @@ import type {
 } from './iou.types.js'
 
 /**
- * The IOU (trust-line currency) vertical, exposed as `client.iou`. Write verbs
+ * The IOU (trust-line currency) vertical, exposed as `client.iou`. Write operations
  * act as the issuer ({@link IOUWriteOptions.from}, default the primary signer);
  * reads take an explicit `account` or default to the primary. Callers name
  * their own counterparty (`holder`/`destination`) per call.
@@ -70,7 +70,7 @@ export class IOU {
    * Generate a new trust-line-based IOU between two developer-controlled
    * accounts sourced from the environment.
    *
-   * Unlike the other verbs, `issue` bootstraps both accounts from the
+   * Unlike the other operations, `issue` bootstraps both accounts from the
    * environment (`XRPL_ISSUER_SEED`, `XRPL_HOT_WALLET_SEED`): the issuer enables
    * rippling (`AccountSet`), then the hot wallet extends trust to the maximum
    * limit (`TrustSet`). No value exists yet — use {@link IOU.transfer} to send.

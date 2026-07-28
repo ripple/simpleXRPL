@@ -40,7 +40,7 @@ reads stay available without credentials (the caller passes an address).
 
 Defined in: [pipeline/host.ts:21](https://github.com/ripple/simpleXRPL/blob/main/src/pipeline/host.ts#L21)
 
-Register a locally-signed account at runtime so subsequent verbs can act on
+Register a locally-signed account at runtime so subsequent operations can act on
 it. Used by `Account.create` to make a freshly generated account usable
 (e.g. by `Account.fund` / `Account.activate`).
 
@@ -62,7 +62,7 @@ it. Used by `Account.create` to make a freshly generated account usable
 
 Defined in: [pipeline/host.ts:14](https://github.com/ripple/simpleXRPL/blob/main/src/pipeline/host.ts#L14)
 
-Resolve the account a verb acts on.
+Resolve the account an operation acts on.
 
 #### Parameters
 

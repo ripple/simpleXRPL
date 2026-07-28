@@ -4,7 +4,7 @@ Defined in: [reads/offers.ts:30](https://github.com/ripple/simpleXRPL/blob/main/
 
 A shaped open offer. `amount`/`price` mirror the `buyOffer`/`sellOffer` input
 format (XRP auto-converted from drops), so an offer read here is directly
-composable back into those write verbs.
+composable back into those write operations.
 
 ## Properties
 

@@ -33,7 +33,7 @@ export interface NetworkInfo {
 /**
  * The runtime client. Binds a set of pre-constructed custodians to a network,
  * flattens their discovered accounts into a single address to custodian index,
- * and resolves the account a verb acts on. Constructed only via
+ * and resolves the account an operation acts on. Constructed only via
  * {@link SimpleXRPLClient.init} (or `SimpleXRPL.init`), never with `new`.
  *
  * A client with no signers is fully usable for reads; every write path resolves
@@ -46,13 +46,13 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** The registered custodians (0..N). */
   public readonly signers: readonly Custodian[]
 
-  /** The default signer, used when a verb is called without an explicit account. */
+  /** The default signer, used when an operation is called without an explicit account. */
   public readonly primarySigner: Custodian | undefined
 
   /** Native-XRP value transfers. */
   public readonly xrp: XRP
 
-  /** Issued-currency (IOU) verbs: issue, transfer, authorize, lock, offers. */
+  /** Issued-currency (IOU) operations: issue, transfer, authorize, lock, offers. */
   public readonly iou: IOU
 
   /** Multi-Purpose Token (MPT) family and DEX offers. */
@@ -180,7 +180,7 @@ export class SimpleXRPLClient implements SubmissionHost {
   }
 
   /**
-   * Register a locally-signed account at runtime and index it so verbs can act
+   * Register a locally-signed account at runtime and index it so operations can act
    * on it immediately. Backs `Account.create`.
    *
    * @param seed - The account seed to hold a `LocalSigner` for.
@@ -204,7 +204,7 @@ export class SimpleXRPLClient implements SubmissionHost {
   }
 
   /**
-   * Resolve the account a verb acts on. With no selector, uses the primary
+   * Resolve the account an operation acts on. With no selector, uses the primary
    * signer's primary account.
    *
    * @param selector - An address, an explicit address, or a signer/account pair.
@@ -244,7 +244,7 @@ export class SimpleXRPLClient implements SubmissionHost {
   public requireSigner(): Custodian {
     if (this.primarySigner === undefined) {
       throw new NoSignerError(
-        'No signer configured. Pass `signers` to init, or an explicit account to the verb.',
+        'No signer configured. Pass `signers` to init, or an explicit account to the operation.',
       )
     }
     return this.primarySigner

@@ -2,7 +2,7 @@
 
 Defined in: [verticals/iou.types.ts:22](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L22)
 
-Source account and fee overrides shared by the IOU write verbs. The
+Source account and fee overrides shared by the IOU write operations. The
 resolved account is the IOU's issuer — it signs, and its address is the
 currency issuer.
 

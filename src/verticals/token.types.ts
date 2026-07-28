@@ -3,7 +3,7 @@ import type { MPTokenMetadata } from 'xrpl'
 import type { Amount } from '../amount/index.js'
 import type { AccountSelector, FeeIntent } from '../domain/index.js'
 
-/** Per-call options shared by the token verbs. */
+/** Per-call options shared by the token operations. */
 export interface TokenWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */
   readonly from?: AccountSelector

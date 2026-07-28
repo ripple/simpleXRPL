@@ -214,7 +214,7 @@ export class XrpldSubmitError extends SimpleXRPLError {
 }
 
 /**
- * A multi-step verb failed partway through. simpleXRPL does not roll back; the
+ * A multi-step operation failed partway through. simpleXRPL does not roll back; the
  * already-committed steps are carried so the caller can reconcile manually.
  */
 export class MultiStepFailureError extends SimpleXRPLError {
@@ -236,7 +236,7 @@ export class MultiStepFailureError extends SimpleXRPLError {
     committed: readonly SubmissionResult[],
     failed: { readonly step: number; readonly error: SimpleXRPLError },
   ) {
-    super(`Multi-step verb failed at step ${failed.step}`)
+    super(`Multi-step operation failed at step ${failed.step}`)
     this.committed = committed
     this.failed = failed
   }

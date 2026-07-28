@@ -36,7 +36,7 @@ const client = await SimpleXRPL.init({
   signers: [LocalSigner.fromEnv()],
 })
 
-// Each vertical exposes business-intent verbs; the SDK builds, signs, and
+// Each vertical exposes business-intent operations; the SDK builds, signs, and
 // submits the underlying XRPL transaction for you.
 await client.xrp.transfer({ to: 'rDestination...', amount: '10' })
 ```

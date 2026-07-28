@@ -35,7 +35,7 @@ Defaults to an `XrplLedger` built from `xrpldUrl`; inject a fake in tests.
 
 Defined in: [client/config.ts:23](https://github.com/ripple/simpleXRPL/blob/main/src/client/config.ts#L23)
 
-The default signer for verbs called without an explicit account. Defaults to `signers[0]`.
+The default signer for operations called without an explicit account. Defaults to `signers[0]`.
 
 ***
 
@@ -46,7 +46,7 @@ The default signer for verbs called without an explicit account. Defaults to `si
 Defined in: [client/config.ts:20](https://github.com/ripple/simpleXRPL/blob/main/src/client/config.ts#L20)
 
 Pre-constructed custodians. Omit for a no-signer client that can still read
-the ledger; write verbs then throw `NoSignerError` until a signer is added.
+the ledger; write operations then throw `NoSignerError` until a signer is added.
 
 ***
 

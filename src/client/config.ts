@@ -15,11 +15,11 @@ export interface SimpleXRPLConfig {
 
   /**
    * Pre-constructed custodians. Omit for a no-signer client that can still read
-   * the ledger; write verbs then throw `NoSignerError` until a signer is added.
+   * the ledger; write operations then throw `NoSignerError` until a signer is added.
    */
   readonly signers?: readonly Custodian[]
 
-  /** The default signer for verbs called without an explicit account. Defaults to `signers[0]`. */
+  /** The default signer for operations called without an explicit account. Defaults to `signers[0]`. */
   readonly primarySigner?: Custodian
 
   /**

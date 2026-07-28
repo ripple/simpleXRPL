@@ -2,7 +2,7 @@
 
 Defined in: [errors.ts:220](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L220)
 
-A multi-step verb failed partway through. simpleXRPL does not roll back; the
+A multi-step operation failed partway through. simpleXRPL does not roll back; the
 already-committed steps are carried so the caller can reconcile manually.
 
 ## Extends

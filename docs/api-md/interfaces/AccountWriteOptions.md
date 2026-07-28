@@ -2,7 +2,7 @@
 
 Defined in: [verticals/account.types.ts:39](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L39)
 
-Per-call options shared by the account verbs.
+Per-call options shared by the account operations.
 
 ## Properties
 

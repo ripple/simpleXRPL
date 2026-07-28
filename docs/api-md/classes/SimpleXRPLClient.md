@@ -4,7 +4,7 @@ Defined in: [client/client.ts:42](https://github.com/ripple/simpleXRPL/blob/main
 
 The runtime client. Binds a set of pre-constructed custodians to a network,
 flattens their discovered accounts into a single address to custodian index,
-and resolves the account a verb acts on. Constructed only via
+and resolves the account an operation acts on. Constructed only via
 [SimpleXRPLClient.init](SimpleXRPLClient.md#init) (or `SimpleXRPL.init`), never with `new`.
 
 A client with no signers is fully usable for reads; every write path resolves
@@ -62,7 +62,7 @@ Read-only observation of custodian governance intents (status/await).
 
 Defined in: [client/client.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L56)
 
-Issued-currency (IOU) verbs: issue, transfer, authorize, lock, offers.
+Issued-currency (IOU) operations: issue, transfer, authorize, lock, offers.
 
 ***
 
@@ -82,7 +82,7 @@ The network this client is bound to.
 
 Defined in: [client/client.ts:50](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L50)
 
-The default signer, used when a verb is called without an explicit account.
+The default signer, used when an operation is called without an explicit account.
 
 ***
 
@@ -234,7 +234,7 @@ become addressable; accounts removed upstream are gone on next lookup.
 
 Defined in: [client/client.ts:189](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L189)
 
-Register a locally-signed account at runtime so subsequent verbs can act on
+Register a locally-signed account at runtime so subsequent operations can act on
 it. Used by `Account.create` to make a freshly generated account usable
 (e.g. by `Account.fund` / `Account.activate`).
 
@@ -282,7 +282,7 @@ The primary signer.
 
 Defined in: [client/client.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L216)
 
-Resolve the account a verb acts on.
+Resolve the account an operation acts on.
 
 #### Parameters
 

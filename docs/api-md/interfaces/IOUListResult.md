@@ -22,4 +22,4 @@ The shaped trust lines.
 
 Defined in: [verticals/iou.types.ts:223](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L223)
 
-The `iouID` of each line, composable into the write verbs.
+The `iouID` of each line, composable into the write operations.

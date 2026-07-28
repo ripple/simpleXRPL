@@ -18,23 +18,23 @@ const client = await SimpleXRPL.init({
   //    local-signing backend that reads its seeds from the environment.
   signers: [LocalSigner.fromEnv()],
 
-  // 3. `primarySigner` is the default backend for verbs called without an
+  // 3. `primarySigner` is the default backend for operations called without an
   //    explicit account. Defaults to `signers[0]`, so this line is optional.
   // primarySigner: someSigner,
 })
 
-// With no `signers`, the client is read-only: reads work, but write verbs throw
+// With no `signers`, the client is read-only: reads work, but write operations throw
 // `NoSignerError` until a signer is added.
 
 // 4. Bind (register) an account at runtime — e.g. a freshly created wallet —
-//    so verbs can act on it immediately. Returns the registered account.
+//    so operations can act on it immediately. Returns the registered account.
 const seed = process.env.NEW_ACCOUNT_SEED
 if (seed !== undefined) {
   const account = client.registerLocalAccount(seed)
   console.log('registered', account.address)
 }
 
-// 5. Verbs default to the primary account; target any bound account with `from`.
+// 5. Operations default to the primary account; target any bound account with `from`.
 await client.xrp.transfer({
   to: 'rDestination00000000000000000000000',
   amount: '10',

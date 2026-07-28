@@ -1,6 +1,6 @@
 import type { AccountSelector, FeeIntent } from '../domain/index.js'
 
-/** Per-call options shared by the credential verbs. */
+/** Per-call options shared by the credential operations. */
 export interface CredentialWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */
   readonly from?: AccountSelector

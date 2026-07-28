@@ -86,4 +86,4 @@ Injectable clock for the auth service (defaults to `Date.now`).
 
 Defined in: [custodians/palisade/config.ts:26](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L26)
 
-The wallet used when a verb is called without an explicit account.
+The wallet used when an operation is called without an explicit account.

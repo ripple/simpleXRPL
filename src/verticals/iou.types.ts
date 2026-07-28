@@ -15,7 +15,7 @@ export interface IOURef {
 }
 
 /**
- * Source account and fee overrides shared by the IOU write verbs. The
+ * Source account and fee overrides shared by the IOU write operations. The
  * resolved account is the IOU's issuer — it signs, and its address is the
  * currency issuer.
  */
@@ -195,7 +195,7 @@ export interface IOURetrieveParams extends IOURef {
 
 /** Result of {@link IOU.retrieve}. */
 export interface IOURetrieveResult {
-  /** Currency code and issuer, e.g. `USD.rIssuer...` — pass to write verbs. */
+  /** Currency code and issuer, e.g. `USD.rIssuer...` — pass to write operations. */
   readonly iouID: string
   /** The point-in-time trust-line snapshot, or `undefined` if no line exists. */
   readonly data: IOUTrustLine | undefined
@@ -219,7 +219,7 @@ export interface IOUListParams {
 
 /** Result of {@link IOU.list}: `ious[i]` corresponds to `data[i]`. */
 export interface IOUListResult {
-  /** The `iouID` of each line, composable into the write verbs. */
+  /** The `iouID` of each line, composable into the write operations. */
   readonly ious: readonly string[]
   /** The shaped trust lines. */
   readonly data: readonly IOUTrustLine[]

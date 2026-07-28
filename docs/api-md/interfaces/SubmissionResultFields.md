@@ -20,7 +20,7 @@ Defined in: [domain/model.ts:146](https://github.com/ripple/simpleXRPL/blob/main
 
 The stable, client-generated id (a UUIDv7) this submission carried (§8).
 Re-submitting with the same id resolves to the same intent rather than
-creating a duplicate; pass it back as a verb's `idempotencyKey` to retry.
+creating a duplicate; pass it back as an operation's `idempotencyKey` to retry.
 
 ***
 

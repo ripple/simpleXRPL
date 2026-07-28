@@ -238,7 +238,7 @@ List the open DEX offers placed by an account. No signer required.
 
 `Promise`\<[`ListOffersResult`](../interfaces/ListOffersResult.md)\>
 
-The shaped offers (composable into offer write verbs).
+The shaped offers (composable into offer write operations).
 
 ***
 

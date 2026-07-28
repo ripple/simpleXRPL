@@ -126,8 +126,8 @@ describe('pipeline idempotency', () => {
   })
 })
 
-describe('verb-level idempotency', () => {
-  it('surfaces a generated key and reuses a supplied one through a verb', async () => {
+describe('operation-level idempotency', () => {
+  it('surfaces a generated key and reuses a supplied one through an operation', async () => {
     const custodian = makeCustodian('rSrc1')
     const client = await SimpleXRPL.init({
       xrpldUrl: XRPLD,

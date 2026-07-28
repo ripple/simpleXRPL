@@ -2,7 +2,7 @@
 
 Defined in: [verticals/token.types.ts:7](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L7)
 
-Per-call options shared by the token verbs.
+Per-call options shared by the token operations.
 
 ## Properties
 

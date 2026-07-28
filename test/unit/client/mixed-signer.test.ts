@@ -84,7 +84,7 @@ function paymentFrom(account: string): Transaction {
 }
 
 describe('mixed-signer: per-account dispatch across custodians', () => {
-  it('routes a verb to the custodian that owns the resolved account', async () => {
+  it('routes an operation to the custodian that owns the resolved account', async () => {
     const alpha = makeRecordingCustodian('ripple-custody', 'rAlpha1', {
       tenantId: 'domain-a',
     })
