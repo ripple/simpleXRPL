@@ -1,5 +1,10 @@
 import { readFileSync } from 'node:fs'
 
+import {
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} from '@aws-sdk/client-secrets-manager'
+
 import type { FeeIntent } from '../../domain/index.js'
 import { CustodyAuthError, SimpleXRPLError } from '../../errors.js'
 import type { components } from '../../generated/custody.js'
@@ -82,14 +87,42 @@ export interface RippleCustodyState {
 /** A PEM private key starts with this marker; anything else is a file path. */
 const PEM_MARKER = '-----BEGIN'
 
+/** An AWS Secrets Manager secret ARN starts with this marker. */
+const SECRETS_MANAGER_ARN_PREFIX = 'arn:aws:secretsmanager:'
+
 /**
- * Resolve `RIPPLE_CUSTODY_AUTH_SIGNING_KEY`: either literal PEM contents, or a
- * path to a `.pem` file (TDD §3.3).
+ * Fetch a signing key PEM from AWS Secrets Manager.
+ *
+ * @param secretId - The secret's ARN.
+ * @returns The secret's PEM contents.
+ * @throws {@link SimpleXRPLError} if the secret has no string value.
+ */
+async function fetchSigningKeyFromSecretsManager(
+  secretId: string,
+): Promise<string> {
+  const client = new SecretsManagerClient({})
+  const response = await client.send(
+    new GetSecretValueCommand({ SecretId: secretId }),
+  )
+  if (response.SecretString === undefined) {
+    throw new SimpleXRPLError(
+      `Secrets Manager secret '${secretId}' has no SecretString value`,
+    )
+  }
+  return response.SecretString
+}
+
+/**
+ * Resolve `RIPPLE_CUSTODY_AUTH_SIGNING_KEY`: literal PEM contents, a path to a
+ * `.pem` file, or an AWS Secrets Manager secret ARN (TDD §3.3).
  *
  * @param value - The env var's raw value.
  * @returns The PEM contents.
  */
-function resolveSigningKeyPem(value: string): string {
+async function resolveSigningKeyPem(value: string): Promise<string> {
+  if (value.startsWith(SECRETS_MANAGER_ARN_PREFIX)) {
+    return fetchSigningKeyFromSecretsManager(value)
+  }
   if (value.startsWith(PEM_MARKER)) {
     return value
   }
@@ -181,15 +214,15 @@ export async function buildRippleCustodyState(
  * @returns The resolved create() options.
  * @throws {@link SimpleXRPLError} if a required environment variable is missing.
  */
-export function resolveFromEnvOptions(
+export async function resolveFromEnvOptions(
   options: RippleCustodyFromEnvOptions,
-): RippleCustodyOptions {
+): Promise<RippleCustodyOptions> {
   // eslint-disable-next-line n/no-process-env -- fromEnv reads config from the environment by design.
   const env = options.env ?? process.env
   return {
     gatewayUrl: requireEnv(env, 'RIPPLE_CUSTODY_GATEWAY_URL'),
     auth: {
-      signingKey: resolveSigningKeyPem(
+      signingKey: await resolveSigningKeyPem(
         requireEnv(env, 'RIPPLE_CUSTODY_AUTH_SIGNING_KEY'),
       ),
       publicKey: env.RIPPLE_CUSTODY_AUTH_PUBLIC_KEY,

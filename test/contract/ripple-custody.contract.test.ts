@@ -24,7 +24,7 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     // response shapes still parse.
     custody = await RippleCustody.fromEnv({ primary: SANDBOX_PRIMARY })
     state = await buildRippleCustodyState(
-      resolveFromEnvOptions({ primary: SANDBOX_PRIMARY }),
+      await resolveFromEnvOptions({ primary: SANDBOX_PRIMARY }),
     )
   }, LIVE_TIMEOUT_MS)
 

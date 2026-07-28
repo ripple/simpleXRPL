@@ -97,7 +97,7 @@ export class RippleCustody implements Custodian, IntentObserver {
   public static async fromEnv(
     options: RippleCustodyFromEnvOptions,
   ): Promise<RippleCustody> {
-    return RippleCustody.create(resolveFromEnvOptions(options))
+    return RippleCustody.create(await resolveFromEnvOptions(options))
   }
 
   /**
