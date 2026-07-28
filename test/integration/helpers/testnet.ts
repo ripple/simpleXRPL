@@ -1,7 +1,14 @@
-import { Client, Wallet } from 'xrpl'
+import { Client, dropsToXrp, Wallet } from 'xrpl'
 
 import { LocalSigner, SimpleXRPL, XrplLedger } from '../../../src/index.js'
 import type { SimpleXRPLClient } from '../../../src/index.js'
+
+/** Minimum XRP an account should hold before it's considered funded. */
+const MIN_FUNDED_XRP = 25
+
+/** How long to wait for faucet funding to appear in a validated ledger. */
+const FUNDING_POLL_ATTEMPTS = 20
+const FUNDING_POLL_INTERVAL_MS = 1000
 
 const DEFAULT_TESTNET_WS = 'wss://s.altnet.rippletest.net:51233'
 
@@ -94,5 +101,75 @@ export async function fundedClientWithSigners(
     return { client, wallets }
   } finally {
     await faucet.disconnect()
+  }
+}
+
+/**
+ * The validated XRP balance of an address, or 0 when the account is unfunded.
+ *
+ * @param client - A connected testnet client.
+ * @param address - The r-address to check.
+ * @returns The balance in XRP.
+ */
+async function validatedBalanceXrp(
+  client: Client,
+  address: string,
+): Promise<number> {
+  try {
+    const info = await client.request({
+      command: 'account_info',
+      account: address,
+      ledger_index: 'validated',
+    })
+    return Number(dropsToXrp(info.result.account_data.Balance))
+  } catch {
+    // account_info throws `actNotFound` for an unfunded account.
+    return 0
+  }
+}
+
+/**
+ * Faucet-fund an existing address when it holds less than {@link
+ * MIN_FUNDED_XRP}, then wait until the balance appears in a validated ledger so
+ * a first transaction doesn't race the funding (see the funding-wait note in
+ * the repo's testing conventions). Idempotent — a funded account is untouched.
+ *
+ * Mirrors how the xrpl.js integration suite faucet-funds accounts, but targets
+ * a pre-existing address (e.g. a custodian-held wallet) via `destination`
+ * rather than generating a fresh wallet.
+ *
+ * @param address - The r-address to fund.
+ * @throws Error if the faucet request fails or funding never lands.
+ */
+export async function ensureFunded(address: string): Promise<void> {
+  const client = new Client(TESTNET_WS)
+  await client.connect()
+  try {
+    if ((await validatedBalanceXrp(client, address)) >= MIN_FUNDED_XRP) {
+      return
+    }
+    const response = await fetch(TESTNET_FAUCET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destination: address }),
+    })
+    if (!response.ok) {
+      throw new Error(`Testnet faucet funding failed (HTTP ${response.status})`)
+    }
+    /* eslint-disable no-await-in-loop -- polling for validated funding is sequential */
+    for (let attempt = 0; attempt < FUNDING_POLL_ATTEMPTS; attempt += 1) {
+      if ((await validatedBalanceXrp(client, address)) >= MIN_FUNDED_XRP) {
+        return
+      }
+      await new Promise((resolve) => {
+        setTimeout(resolve, FUNDING_POLL_INTERVAL_MS)
+      })
+    }
+    /* eslint-enable no-await-in-loop */
+    throw new Error(
+      `Address ${address} did not reach ${MIN_FUNDED_XRP} XRP after funding`,
+    )
+  } finally {
+    await client.disconnect()
   }
 }

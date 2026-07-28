@@ -4,6 +4,14 @@ import type { PalisadeHttpPort } from './transport/http-port.js'
 export interface PalisadeWalletRef {
   readonly vaultId: string
   readonly walletId: string
+  /**
+   * The wallet's XRPL r-address. Optional: when provided, {@link
+   * PalisadeCustody.create} binds the primary directly and **skips wallet
+   * discovery** (the `GET /v2/wallets` listing). Supply it when the API
+   * credential is scoped to transactions only and cannot read the wallet list;
+   * omit it to have the address resolved by discovery instead.
+   */
+  readonly xrplAddress?: string
 }
 
 /** Configuration for {@link PalisadeCustody.create}. */
