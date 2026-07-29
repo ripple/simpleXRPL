@@ -1,6 +1,6 @@
 # Interface: IOUTransferIntent
 
-Defined in: [verticals/iou.types.ts:101](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L101)
+Defined in: [verticals/iou.types.ts:110](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L110)
 
 Output attached to an [IOU.transfer](../classes/IOU.md#transfer) result.
 
@@ -10,7 +10,7 @@ Output attached to an [IOU.transfer](../classes/IOU.md#transfer) result.
 
 > `readonly` **amount**: `number`
 
-Defined in: [verticals/iou.types.ts:105](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L105)
+Defined in: [verticals/iou.types.ts:114](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L114)
 
 Amount sent.
 
@@ -20,6 +20,6 @@ Amount sent.
 
 > `readonly` **destination**: `string`
 
-Defined in: [verticals/iou.types.ts:103](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L103)
+Defined in: [verticals/iou.types.ts:112](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L112)
 
 Destination r-address.

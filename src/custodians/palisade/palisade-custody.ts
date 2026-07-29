@@ -21,7 +21,10 @@ import {
 import type { components } from '../../generated/palisade.js'
 
 import { PalisadeAuthService } from './auth/palisade-auth.service.js'
-import type { PalisadeCustodyConfig } from './config.js'
+import type {
+  PalisadeClientCredentials,
+  PalisadeCustodyConfig,
+} from './config.js'
 import { PalisadeWalletContext } from './discovery/wallet-context.js'
 import { discoverXrplWallets } from './discovery/wallet-discovery.js'
 import {
@@ -96,36 +99,30 @@ export class PalisadeCustody implements Custodian {
     config: PalisadeCustodyConfig,
   ): Promise<PalisadeCustody> {
     const http = config.http ?? new FetchHttpPort()
-    const auth = new PalisadeAuthService({
-      authPort: new HttpPalisadeAuthPort({ baseUrl: config.baseUrl, http }),
-      clientId: config.clientId,
-      clientSecret: config.clientSecret,
-      now: config.now,
-    })
-    const client = new PalisadeHttpClient({
-      baseUrl: config.baseUrl,
-      http,
-      auth,
-    })
-    const custodian = new PalisadeCustody(client, {
+    // A separate authenticated client per credential: discovery runs on the
+    // wallet-read credential, signing/submission on the transactions one.
+    function clientFor(creds: PalisadeClientCredentials): PalisadeHttpClient {
+      return new PalisadeHttpClient({
+        baseUrl: config.baseUrl,
+        http,
+        auth: new PalisadeAuthService({
+          authPort: new HttpPalisadeAuthPort({ baseUrl: config.baseUrl, http }),
+          clientId: creds.clientId,
+          clientSecret: creds.clientSecret,
+          now: config.now,
+        }),
+      })
+    }
+    const walletsClient = clientFor(config.credentials.wallets)
+    const transactionsClient = clientFor(config.credentials.transactions)
+    const custodian = new PalisadeCustody(transactionsClient, {
       allowRaw: config.allowRawSigning ?? false,
       timeoutMs: config.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
-      tenantId: config.clientId,
+      tenantId: config.credentials.transactions.clientId,
     })
-    // When the primary's address is supplied, bind it directly and skip the
-    // `GET /v2/wallets` discovery call — so a transactions-only API credential
-    // (no wallet-read scope) still works. Otherwise discover the org's wallets.
-    // An empty string counts as "not supplied" (e.g. an unset env var).
-    const address = config.primary.xrplAddress
-    if (address === undefined || address === '') {
-      const accounts = await discoverXrplWallets(client, custodian)
-      custodian.context = new PalisadeWalletContext(accounts)
-      custodian.primaryAccount = resolvePrimary(accounts, config.primary)
-    } else {
-      const primary = primaryAccount(config.primary, address, custodian)
-      custodian.context = new PalisadeWalletContext([primary])
-      custodian.primaryAccount = primary
-    }
+    const accounts = await discoverXrplWallets(walletsClient, custodian)
+    custodian.context = new PalisadeWalletContext(accounts)
+    custodian.primaryAccount = resolvePrimary(accounts, config.primary)
     return custodian
   }
 
@@ -329,30 +326,6 @@ export class PalisadeCustody implements Custodian {
       throw new AccountNotFoundError(account.address)
     }
     return { vaultId: ref.vaultId, walletId: ref.walletId }
-  }
-}
-
-/**
- * Build the primary {@link Account} directly from its ref and address, without
- * discovery. Used when the caller supplies `primary.xrplAddress` (see {@link
- * PalisadeWalletRef.xrplAddress}).
- *
- * @param ref - The primary wallet's vault/wallet ids.
- * @param ref.vaultId - The primary wallet's vault id.
- * @param ref.walletId - The primary wallet's id.
- * @param address - The wallet's XRPL r-address.
- * @param signer - The custodian the account back-references.
- * @returns The primary account.
- */
-function primaryAccount(
-  ref: { vaultId: string; walletId: string },
-  address: string,
-  signer: Custodian,
-): Account {
-  return {
-    address,
-    custodianRef: { vaultId: ref.vaultId, walletId: ref.walletId },
-    signer,
   }
 }
 

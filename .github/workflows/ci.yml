@@ -107,11 +107,12 @@ jobs:
       - name: Run custodian contract tests
         env:
           PALISADE_BASE_URL: ${{ secrets.PALISADE_BASE_URL }}
-          PALISADE_CLIENT_ID: ${{ secrets.PALISADE_CLIENT_ID }}
-          PALISADE_CLIENT_SECRET: ${{ secrets.PALISADE_CLIENT_SECRET }}
+          PALISADE_WALLETS_CLIENT_ID: ${{ secrets.PALISADE_WALLETS_CLIENT_ID }}
+          PALISADE_WALLETS_CLIENT_SECRET: ${{ secrets.PALISADE_WALLETS_CLIENT_SECRET }}
+          PALISADE_TX_CLIENT_ID: ${{ secrets.PALISADE_TX_CLIENT_ID }}
+          PALISADE_TX_CLIENT_SECRET: ${{ secrets.PALISADE_TX_CLIENT_SECRET }}
           PALISADE_VAULT_ID: ${{ secrets.PALISADE_VAULT_ID }}
           PALISADE_WALLET_ID: ${{ secrets.PALISADE_WALLET_ID }}
-          PALISADE_ADDRESS: ${{ secrets.PALISADE_ADDRESS }}
           PALISADE_DEST_ADDRESS: ${{ secrets.PALISADE_DEST_ADDRESS }}
           AWS_KMS_KEY_ID: ${{ secrets.AWS_KMS_KEY_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}

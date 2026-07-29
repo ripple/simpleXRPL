@@ -1,6 +1,6 @@
 # Interface: IOUAuthorizeParams
 
-Defined in: [verticals/iou.types.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L53)
+Defined in: [verticals/iou.types.ts:62](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L62)
 
 Parameters for [IOU.authorize](../classes/IOU.md#authorize).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.authorize](../classes/IOU.md#authorize).
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/iou.types.ts:55](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L55)
+Defined in: [verticals/iou.types.ts:64](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L64)
 
 The holder's r-address being authorized.
 

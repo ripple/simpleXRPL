@@ -85,9 +85,8 @@ export async function discoverXrplWallets(
     if (error instanceof PalisadeApiError && error.status === HTTP_FORBIDDEN) {
       throw new SimpleXRPLError(
         'Palisade wallet discovery (GET /v2/wallets) was forbidden (403): the ' +
-          'API credential lacks the wallet-read permission. Either grant it, ' +
-          'or set the primary wallet address (PalisadeWalletRef.xrplAddress) so the ' +
-          'SDK skips discovery and binds the primary directly.',
+          'configured `credentials.wallets` credential lacks the wallet-read ' +
+          'permission. Grant it a wallet-read permission set in Palisade.',
         { cause: error },
       )
     }

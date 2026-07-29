@@ -104,14 +104,18 @@ function contextFor(
   return { account, ledger, timeoutMs: extra?.timeoutMs }
 }
 
+const CREDENTIALS = {
+  wallets: { clientId: 'wallets-id', clientSecret: 'wallets-secret' },
+  transactions: { clientId: 'tx-id', clientSecret: 'tx-secret' },
+}
+
 async function makeCustody(
   port: PalisadeHttpPort,
   allowRawSigning = false,
 ): Promise<PalisadeCustody> {
   return PalisadeCustody.create({
     baseUrl: BASE_URL,
-    clientId: 'id',
-    clientSecret: 'secret',
+    credentials: CREDENTIALS,
     primary: PRIMARY,
     allowRawSigning,
     http: port,
@@ -161,49 +165,6 @@ describe('PalisadeCustody.create', () => {
     await expect(makeCustody(port)).rejects.toBeInstanceOf(AccountNotFoundError)
   })
 
-  it('skips wallet discovery when the primary address is supplied', async () => {
-    let listedWallets = false
-    const port: PalisadeHttpPort = {
-      async send(request: HttpRequest): Promise<HttpResponse> {
-        if (request.url.includes('/credentials/oauth/token')) {
-          return {
-            status: 200,
-            body: JSON.stringify({ accessToken: 'tok', expiresIn: 3600 }),
-          }
-        }
-        if (request.url.includes('/v2/wallets')) {
-          listedWallets = true
-          return { status: 403, body: '{"message":"forbidden"}' }
-        }
-        throw new Error(`unexpected request: ${request.url}`)
-      },
-    }
-    const custody = await PalisadeCustody.create({
-      baseUrl: BASE_URL,
-      clientId: 'id',
-      clientSecret: 'secret',
-      primary: { ...PRIMARY, xrplAddress: PRIMARY_ADDR },
-      http: port,
-    })
-    expect(listedWallets).toBe(false)
-    expect(custody.primary.address).toBe(PRIMARY_ADDR)
-    expect(custody.primary.custodianRef).toEqual(PRIMARY)
-    expect((await custody.listAccounts())[0].address).toBe(PRIMARY_ADDR)
-  })
-
-  it('treats an empty primary address as unset and discovers wallets', async () => {
-    // Guards the `source .env` case where PALISADE_ADDRESS= yields '', which
-    // must NOT skip discovery (or it would bind an empty address).
-    const custody = await PalisadeCustody.create({
-      baseUrl: BASE_URL,
-      clientId: 'id',
-      clientSecret: 'secret',
-      primary: { ...PRIMARY, xrplAddress: '' },
-      http: fakePort({}),
-    })
-    expect(custody.primary.address).toBe(PRIMARY_ADDR)
-  })
-
   it('raises an actionable error when discovery is forbidden (403)', async () => {
     const port: PalisadeHttpPort = {
       async send(request: HttpRequest): Promise<HttpResponse> {
@@ -216,9 +177,9 @@ describe('PalisadeCustody.create', () => {
         return { status: 403, body: '{"message":"forbidden"}' }
       },
     }
-    // No primary.xrplAddress → discovery runs → 403 → guidance names both fixes.
+    // A wallets credential lacking wallet-read → discovery 403 → actionable error.
     await expect(makeCustody(port)).rejects.toThrow(
-      /wallet-read permission.*PalisadeWalletRef\.xrplAddress/su,
+      /credentials\.wallets.*wallet-read permission/su,
     )
   })
 })

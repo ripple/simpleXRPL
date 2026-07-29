@@ -127,6 +127,39 @@ describe('IOU.issue', () => {
     })
   })
 
+  it('resolves issuer and holder from the client signers when holder is given', async () => {
+    // No XRPL_*_SEED env vars are set here — proves the holder path resolves
+    // both accounts from the client's signers, not the environment.
+    const issuer = Wallet.generate()
+    const holder = Wallet.generate()
+    const { ledger, txs } = fakeLedger()
+    const client = await SimpleXRPL.init({
+      xrpldUrl: 'wss://x.invalid',
+      signers: [
+        // signers[0] is the primary, so the issuer defaults to it.
+        LocalSigner.fromSeed(issuer.seed as string),
+        LocalSigner.fromSeed(holder.seed as string),
+      ],
+      ledger,
+    })
+
+    const result = await client.iou.issue({
+      ticker: 'USD',
+      holder: holder.classicAddress,
+    })
+
+    expect(result.intent.iouID).toBe(`USD.${issuer.classicAddress}`)
+    expect(txs[0].TransactionType).toBe('AccountSet')
+    expect(txs[0].Account).toBe(issuer.classicAddress)
+    const trustSet = txs[1] as TrustSet
+    expect(trustSet.Account).toBe(holder.classicAddress)
+    expect(trustSet.LimitAmount).toEqual({
+      currency: 'USD',
+      issuer: issuer.classicAddress,
+      value: '9'.repeat(15),
+    })
+  })
+
   it('hex-encodes a non-standard ticker', async () => {
     const { client, issuerAddress } = await issuedClient()
     const result = await client.iou.issue({ ticker: 'TBILL' })

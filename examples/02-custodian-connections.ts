@@ -23,8 +23,18 @@ import {
 // vault/wallet. `create` exchanges credentials and discovers the org's wallets.
 const palisade = await PalisadeCustody.create({
   baseUrl: 'https://api.sandbox.palisade.co', // sandbox (TESTNET data)
-  clientId: process.env.PALISADE_CLIENT_ID ?? '',
-  clientSecret: process.env.PALISADE_CLIENT_SECRET ?? '',
+  // Palisade scopes one permission set per credential, so a full setup needs
+  // two: a wallet-read credential (account discovery) and a transactions one.
+  credentials: {
+    wallets: {
+      clientId: process.env.PALISADE_WALLETS_CLIENT_ID ?? '',
+      clientSecret: process.env.PALISADE_WALLETS_CLIENT_SECRET ?? '',
+    },
+    transactions: {
+      clientId: process.env.PALISADE_TX_CLIENT_ID ?? '',
+      clientSecret: process.env.PALISADE_TX_CLIENT_SECRET ?? '',
+    },
+  },
   primary: {
     vaultId: process.env.PALISADE_VAULT_ID ?? '',
     walletId: process.env.PALISADE_WALLET_ID ?? '',

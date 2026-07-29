@@ -163,9 +163,11 @@ The shared ledger connection for autofill and Local/raw submission.
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [client/client.ts:254](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L254)
+Defined in: [client/client.ts:258](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L258)
 
-Open the ledger connection (no-op for a ledger that manages its own).
+Open the ledger connection. Optional — the ledger connects lazily on first
+use (reads, autofill, submission), so most callers never need to call this;
+it's useful only to pre-warm the connection. Idempotent.
 
 #### Returns
 
@@ -177,7 +179,7 @@ Open the ledger connection (no-op for a ledger that manages its own).
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [client/client.ts:259](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L259)
+Defined in: [client/client.ts:263](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L263)
 
 Close the ledger connection (no-op for a ledger that manages its own).
 

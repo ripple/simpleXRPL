@@ -36,7 +36,7 @@ Wrap a new xrpl client bound to the given endpoint.
 
 > **autofill**(`tx`): `Promise`\<`Transaction`\>
 
-Defined in: [ledger/xrpl-ledger.ts:82](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L82)
+Defined in: [ledger/xrpl-ledger.ts:86](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L86)
 
 Fill network-derived fields (sequence, fee, last ledger sequence).
 
@@ -62,7 +62,7 @@ The autofilled transaction.
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [ledger/xrpl-ledger.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L63)
+Defined in: [ledger/xrpl-ledger.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L67)
 
 Open the connection, if the implementation is connection-oriented.
 
@@ -80,7 +80,7 @@ Open the connection, if the implementation is connection-oriented.
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [ledger/xrpl-ledger.ts:70](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L70)
+Defined in: [ledger/xrpl-ledger.ts:74](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L74)
 
 Close the connection, if the implementation is connection-oriented.
 
@@ -128,7 +128,7 @@ networks with a faucet (testnet/devnet); absent implementations mean
 
 > **request**\<`T`\>(`req`): `Promise`\<`T`\>
 
-Defined in: [ledger/xrpl-ledger.ts:115](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L115)
+Defined in: [ledger/xrpl-ledger.ts:122](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L122)
 
 Issue a raw ledger request and resolve with the typed response.
 
@@ -160,7 +160,7 @@ The typed response.
 
 > **submit**(`signedTxBlob`): `Promise`\<`SubmitResponse`\>
 
-Defined in: [ledger/xrpl-ledger.ts:95](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L95)
+Defined in: [ledger/xrpl-ledger.ts:100](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L100)
 
 Submit a signed transaction blob.
 
@@ -186,7 +186,7 @@ The submit response.
 
 > **submitAndWait**(`signedTxBlob`): `Promise`\<`TxResponse`\<`Transaction`\>\>
 
-Defined in: [ledger/xrpl-ledger.ts:105](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L105)
+Defined in: [ledger/xrpl-ledger.ts:111](https://github.com/ripple/simpleXRPL/blob/main/src/ledger/xrpl-ledger.ts#L111)
 
 Submit a signed blob and wait for the transaction to reach terminal state.
 

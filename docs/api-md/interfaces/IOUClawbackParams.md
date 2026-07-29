@@ -1,6 +1,6 @@
 # Interface: IOUClawbackParams
 
-Defined in: [verticals/iou.types.ts:77](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L77)
+Defined in: [verticals/iou.types.ts:86](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L86)
 
 Parameters for [IOU.clawback](../classes/IOU.md#clawback).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.clawback](../classes/IOU.md#clawback).
 
 > `readonly` **amount**: `number`
 
-Defined in: [verticals/iou.types.ts:81](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L81)
+Defined in: [verticals/iou.types.ts:90](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L90)
 
 The amount to claw back.
 
@@ -24,7 +24,7 @@ The amount to claw back.
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/iou.types.ts:79](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L79)
+Defined in: [verticals/iou.types.ts:88](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L88)
 
 The holder's r-address to claw the currency back from.
 

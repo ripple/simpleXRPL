@@ -250,7 +250,11 @@ export class SimpleXRPLClient implements SubmissionHost {
     return this.primarySigner
   }
 
-  /** Open the ledger connection (no-op for a ledger that manages its own). */
+  /**
+   * Open the ledger connection. Optional — the ledger connects lazily on first
+   * use (reads, autofill, submission), so most callers never need to call this;
+   * it's useful only to pre-warm the connection. Idempotent.
+   */
   public async connect(): Promise<void> {
     await this.ledger.connect?.()
   }

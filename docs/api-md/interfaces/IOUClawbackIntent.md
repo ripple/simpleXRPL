@@ -1,6 +1,6 @@
 # Interface: IOUClawbackIntent
 
-Defined in: [verticals/iou.types.ts:85](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L85)
+Defined in: [verticals/iou.types.ts:94](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L94)
 
 Output attached to an [IOU.clawback](../classes/IOU.md#clawback) result.
 
@@ -10,7 +10,7 @@ Output attached to an [IOU.clawback](../classes/IOU.md#clawback) result.
 
 > `readonly` **amount**: `number`
 
-Defined in: [verticals/iou.types.ts:89](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L89)
+Defined in: [verticals/iou.types.ts:98](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L98)
 
 The amount clawed back.
 
@@ -20,6 +20,6 @@ The amount clawed back.
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/iou.types.ts:87](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L87)
+Defined in: [verticals/iou.types.ts:96](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L96)
 
 The holder's r-address clawed back from.

@@ -121,6 +121,8 @@ verticals, core types, and error classes) is built out incrementally.
 - [NetworkInfo](interfaces/NetworkInfo.md)
 - [OfferFlags](interfaces/OfferFlags.md)
 - [OfferSummary](interfaces/OfferSummary.md)
+- [PalisadeClientCredentials](interfaces/PalisadeClientCredentials.md)
+- [PalisadeCredentials](interfaces/PalisadeCredentials.md)
 - [PalisadeCustodyConfig](interfaces/PalisadeCustodyConfig.md)
 - [PalisadeWalletRef](interfaces/PalisadeWalletRef.md)
 - [RequestConfig](interfaces/RequestConfig.md)

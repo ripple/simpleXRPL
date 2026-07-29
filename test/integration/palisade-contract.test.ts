@@ -5,22 +5,23 @@ import { ensureFunded, TESTNET_WS } from './helpers/testnet.js'
 
 /**
  * Palisade contract tests: run the real adapter against a live Palisade
- * sandbox to verify our assumptions about its API still hold (DGE-7470).
+ * sandbox to verify our assumptions about its API still hold.
  *
  * These are gated on sandbox credentials and skip entirely when they're
  * absent — CI and local offline runs stay green without a Palisade account.
+ * Palisade scopes one permission set per credential, so a full setup needs two
+ * credentials: a wallet-read one (discovery) and a transactions one (signing).
  * Provide all of the following env vars to enable them:
  *
- *   PALISADE_BASE_URL       HTTPS base URL of the sandbox
- *   PALISADE_CLIENT_ID      OAuth client id
- *   PALISADE_CLIENT_SECRET  OAuth client secret
- *   PALISADE_VAULT_ID       Primary wallet's vault id
- *   PALISADE_WALLET_ID      Primary wallet id
+ *   PALISADE_BASE_URL              HTTPS base URL of the sandbox
+ *   PALISADE_WALLETS_CLIENT_ID     Wallet-read credential's client id
+ *   PALISADE_WALLETS_CLIENT_SECRET Wallet-read credential's client secret
+ *   PALISADE_TX_CLIENT_ID          Transactions credential's client id
+ *   PALISADE_TX_CLIENT_SECRET      Transactions credential's client secret
+ *   PALISADE_VAULT_ID              Primary wallet's vault id
+ *   PALISADE_WALLET_ID             Primary wallet id
  *
  * Optional:
- *   PALISADE_ADDRESS        Primary wallet's r-address. When set, the SDK skips
- *                           wallet discovery — so a transactions-only API
- *                           credential (no wallet-read scope) works.
  *   PALISADE_DEST_ADDRESS   A second org wallet's r-address, used as the Payment
  *                           destination. Palisade's native transfer only accepts
  *                           destinations it knows (org wallets / Address Book),
@@ -45,16 +46,19 @@ function sandboxConfig(): PalisadeCustodyConfig | undefined {
   const env = process.env
   const {
     PALISADE_BASE_URL: baseUrl,
-    PALISADE_CLIENT_ID: clientId,
-    PALISADE_CLIENT_SECRET: clientSecret,
+    PALISADE_WALLETS_CLIENT_ID: walletsId,
+    PALISADE_WALLETS_CLIENT_SECRET: walletsSecret,
+    PALISADE_TX_CLIENT_ID: txId,
+    PALISADE_TX_CLIENT_SECRET: txSecret,
     PALISADE_VAULT_ID: vaultId,
     PALISADE_WALLET_ID: walletId,
-    PALISADE_ADDRESS: address,
   } = env
   if (
     baseUrl === undefined ||
-    clientId === undefined ||
-    clientSecret === undefined ||
+    walletsId === undefined ||
+    walletsSecret === undefined ||
+    txId === undefined ||
+    txSecret === undefined ||
     vaultId === undefined ||
     walletId === undefined
   ) {
@@ -62,11 +66,11 @@ function sandboxConfig(): PalisadeCustodyConfig | undefined {
   }
   return {
     baseUrl,
-    clientId,
-    clientSecret,
-    // `xrplAddress` (when set) makes the SDK skip wallet discovery, so this
-    // works with a transactions-only credential that lacks wallet-read scope.
-    primary: { vaultId, walletId, xrplAddress: address },
+    credentials: {
+      wallets: { clientId: walletsId, clientSecret: walletsSecret },
+      transactions: { clientId: txId, clientSecret: txSecret },
+    },
+    primary: { vaultId, walletId },
     // Contract tests exercise the native governance path only; raw signing is
     // covered by unit tests and needs no live account.
     allowRawSigning: false,
@@ -88,16 +92,13 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
   // so the body never runs without a config.
   const cfg = config as PalisadeCustodyConfig
 
-  // Setup: faucet-fund the primary (and, when configured, the destination)
-  // wallet on testnet so the Payment has a balance to send and a live recipient.
-  // Idempotent, and only when an address is configured (the discovery path has
-  // no address and needs no funding). Requires the sandbox wallet to live on the
-  // same network as TESTNET_WS's faucet.
+  // Setup: faucet-fund the primary (discovered via the wallets credential) and,
+  // when configured, the destination wallet — so the Payment has a balance to
+  // send and a live recipient. Idempotent. Requires the sandbox wallets to live
+  // on the same network as TESTNET_WS's faucet.
   beforeAll(async () => {
-    const { xrplAddress } = cfg.primary
-    if (xrplAddress !== undefined && xrplAddress !== '') {
-      await ensureFunded(xrplAddress)
-    }
+    const custody = await PalisadeCustody.create(cfg)
+    await ensureFunded(custody.primary.address)
     if (destAddress !== undefined && destAddress !== '') {
       await ensureFunded(destAddress)
     }

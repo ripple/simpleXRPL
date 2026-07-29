@@ -7,7 +7,7 @@ import type {
 } from 'xrpl'
 import { TrustSetFlags } from 'xrpl'
 
-import type { SubmissionResult } from '../domain/index.js'
+import type { Account, SubmissionResult } from '../domain/index.js'
 import { runMultiStep } from '../orchestration/index.js'
 import type { SubmissionHost, SubmitRequest } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
@@ -67,25 +67,29 @@ export class IOU {
   }
 
   /**
-   * Generate a new trust-line-based IOU between two developer-controlled
-   * accounts sourced from the environment.
+   * Generate a new trust-line-based IOU: the issuer enables rippling
+   * (`AccountSet`), then the hot wallet extends trust to the maximum limit
+   * (`TrustSet`). No value exists yet — use {@link IOU.transfer} to send.
    *
-   * Unlike the other operations, `issue` bootstraps both accounts from the
-   * environment (`XRPL_ISSUER_SEED`, `XRPL_HOT_WALLET_SEED`): the issuer enables
-   * rippling (`AccountSet`), then the hot wallet extends trust to the maximum
-   * limit (`TrustSet`). No value exists yet — use {@link IOU.transfer} to send.
+   * Two ways to source the issuer and hot wallet:
+   * - Pass `params.holder` (a client-owned account) and, optionally, the issuer
+   *   via `options.from` (default: the primary signer). Both resolve through the
+   *   client's signers, so either can be custody-held (Ripple Custody, Palisade).
+   * - Omit `params.holder` to bootstrap both from the `XRPL_ISSUER_SEED` /
+   *   `XRPL_HOT_WALLET_SEED` environment seeds (the local dev flow).
    *
-   * @param params - The ticker to issue.
+   * @param params - The ticker to issue, and optionally the holder account.
+   * @param options - Issuer source (`from`, default primary) and fee override.
    * @returns The result, with `{ iouID }` as its intent output.
-   * @throws {@link IntentValidationError} if the required seeds aren't set.
+   * @throws {@link IntentValidationError} if the env-seed flow is used and the
+   *   required seeds aren't set.
    * @throws {@link MultiStepFailureError} if either step fails.
    */
   public async issue(
     params: IOUIssueParams,
+    options?: IOUWriteOptions,
   ): Promise<SubmissionResult<IOUIssueIntent>> {
-    const { issuerSeed, holderSeed } = readIssuanceSeeds()
-    const issuer = localAccountFromSeed(issuerSeed)
-    const holder = localAccountFromSeed(holderSeed)
+    const { issuer, holder } = this.resolveIssuancePair(params, options)
     const currency = encodeCurrencyCode(params.ticker)
     const steps: SubmitRequest[] = [
       { transaction: buildAccountSet(issuer.address), account: issuer },
@@ -418,5 +422,31 @@ export class IOU {
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
+  }
+
+  /**
+   * Resolve the issuer and hot-wallet accounts for {@link IOU.issue}: from the
+   * client's signers when `params.holder` is given (so either can be custody-
+   * held), otherwise bootstrapped from the environment seeds.
+   *
+   * @param params - The issuance params; `holder` selects the mode.
+   * @param options - Issuer source override (`from`, default the primary signer).
+   * @returns The resolved issuer and holder accounts.
+   */
+  private resolveIssuancePair(
+    params: IOUIssueParams,
+    options?: IOUWriteOptions,
+  ): { issuer: Account; holder: Account } {
+    if (params.holder === undefined) {
+      const { issuerSeed, holderSeed } = readIssuanceSeeds()
+      return {
+        issuer: localAccountFromSeed(issuerSeed),
+        holder: localAccountFromSeed(holderSeed),
+      }
+    }
+    return {
+      issuer: this.host.resolveAccount(options?.from),
+      holder: this.host.resolveAccount(params.holder),
+    }
   }
 }

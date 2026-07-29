@@ -59,7 +59,11 @@ export class XrplLedger implements LedgerPort {
     await this.waitForAccount(address)
   }
 
-  /** Open the WebSocket connection if it is not already open. */
+  /**
+   * Open the WebSocket connection if it is not already open. Calling this is
+   * optional — every ledger operation (`autofill`, `submit`, `submitAndWait`,
+   * `request`) connects lazily on first use. Idempotent.
+   */
   public async connect(): Promise<void> {
     if (!this.client.isConnected()) {
       await this.client.connect()
@@ -80,6 +84,7 @@ export class XrplLedger implements LedgerPort {
    * @returns The autofilled transaction.
    */
   public async autofill(tx: Transaction): Promise<Transaction> {
+    await this.connect()
     // The SDK only ever autofills submittable transactions (verticals never
     // build pseudo-transactions); narrow for the client's stricter parameter.
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- narrow to SubmittableTransaction
@@ -93,6 +98,7 @@ export class XrplLedger implements LedgerPort {
    * @returns The submit response.
    */
   public async submit(signedTxBlob: string): Promise<SubmitResponse> {
+    await this.connect()
     return this.client.submit(signedTxBlob)
   }
 
@@ -103,6 +109,7 @@ export class XrplLedger implements LedgerPort {
    * @returns The transaction response.
    */
   public async submitAndWait(signedTxBlob: string): Promise<TxResponse> {
+    await this.connect()
     return this.client.submitAndWait(signedTxBlob)
   }
 
@@ -113,6 +120,7 @@ export class XrplLedger implements LedgerPort {
    * @returns The typed response.
    */
   public async request<T>(req: LedgerRequest): Promise<T> {
+    await this.connect()
     // The port exposes a generic request; xrpl types it against a per-command
     // union, so bridge the types at this single boundary.
     /* eslint-disable @typescript-eslint/consistent-type-assertions -- generic port over xrpl's per-command request typing */

@@ -41,6 +41,15 @@ export interface IOUIssueParams {
    * the 40-character hex form.
    */
   readonly ticker: string
+  /**
+   * The hot-wallet (holder) r-address that extends trust to the issuer — a
+   * client-owned account on any connector. When set, the issuer and holder are
+   * resolved from the client's signers (so either can be custody-held), with
+   * the issuer taken from {@link IOUWriteOptions.from} (default: the primary
+   * signer). When omitted, both are bootstrapped from the `XRPL_ISSUER_SEED` /
+   * `XRPL_HOT_WALLET_SEED` environment seeds (the local dev flow).
+   */
+  readonly holder?: string
 }
 
 /** Output attached to an {@link IOU.issue} result. */

@@ -1,6 +1,6 @@
 # Interface: PalisadeCustodyConfig
 
-Defined in: [custodians/palisade/config.ts:18](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L18)
+Defined in: [custodians/palisade/config.ts:31](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L31)
 
 Configuration for [PalisadeCustody.create](../classes/PalisadeCustody.md#create).
 
@@ -10,7 +10,7 @@ Configuration for [PalisadeCustody.create](../classes/PalisadeCustody.md#create)
 
 > `readonly` `optional` **allowRawSigning**: `boolean`
 
-Defined in: [custodians/palisade/config.ts:28](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L28)
+Defined in: [custodians/palisade/config.ts:39](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L39)
 
 Allow the raw fallback for transactors/fields Palisade can't map.
 
@@ -20,29 +20,19 @@ Allow the raw fallback for transactors/fields Palisade can't map.
 
 > `readonly` **baseUrl**: `string`
 
-Defined in: [custodians/palisade/config.ts:20](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L20)
+Defined in: [custodians/palisade/config.ts:33](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L33)
 
 Palisade API base URL (must be HTTPS).
 
 ***
 
-### clientId
+### credentials
 
-> `readonly` **clientId**: `string`
+> `readonly` **credentials**: [`PalisadeCredentials`](PalisadeCredentials.md)
 
-Defined in: [custodians/palisade/config.ts:22](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L22)
+Defined in: [custodians/palisade/config.ts:35](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L35)
 
-OAuth2 client-credentials id.
-
-***
-
-### clientSecret
-
-> `readonly` **clientSecret**: `string`
-
-Defined in: [custodians/palisade/config.ts:24](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L24)
-
-OAuth2 client-credentials secret (held in memory only).
+The wallet-read and transactions API credentials.
 
 ***
 
@@ -50,7 +40,7 @@ OAuth2 client-credentials secret (held in memory only).
 
 > `readonly` `optional` **defaultTimeoutMs**: `number`
 
-Defined in: [custodians/palisade/config.ts:30](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L30)
+Defined in: [custodians/palisade/config.ts:41](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L41)
 
 How long to wait for a native submission to reach a terminal status.
 
@@ -60,7 +50,7 @@ How long to wait for a native submission to reach a terminal status.
 
 > `readonly` `optional` **http**: `PalisadeHttpPort`
 
-Defined in: [custodians/palisade/config.ts:32](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L32)
+Defined in: [custodians/palisade/config.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L43)
 
 Injectable transport (defaults to the production fetch port).
 
@@ -70,7 +60,7 @@ Injectable transport (defaults to the production fetch port).
 
 > `readonly` `optional` **now**: () => `number`
 
-Defined in: [custodians/palisade/config.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L34)
+Defined in: [custodians/palisade/config.ts:45](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L45)
 
 Injectable clock for the auth service (defaults to `Date.now`).
 
@@ -84,6 +74,6 @@ Injectable clock for the auth service (defaults to `Date.now`).
 
 > `readonly` **primary**: [`PalisadeWalletRef`](PalisadeWalletRef.md)
 
-Defined in: [custodians/palisade/config.ts:26](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L26)
+Defined in: [custodians/palisade/config.ts:37](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L37)
 
 The wallet used when an operation is called without an explicit account.

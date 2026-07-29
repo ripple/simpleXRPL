@@ -1,6 +1,6 @@
 # Interface: IOUListOffersParams
 
-Defined in: [verticals/iou.types.ts:229](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L229)
+Defined in: [verticals/iou.types.ts:238](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L238)
 
 Parameters for [IOU.listOffers](../classes/IOU.md#listoffers).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.listOffers](../classes/IOU.md#listoffers).
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/iou.types.ts:231](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L231)
+Defined in: [verticals/iou.types.ts:240](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L240)
 
 The IOU issuer's r-address.
 
