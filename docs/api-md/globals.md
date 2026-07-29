@@ -16,6 +16,7 @@ verticals, core types, and error classes) is built out incrementally.
 - [Domain](classes/Domain.md)
 - [DuplicateSignerError](classes/DuplicateSignerError.md)
 - [ExternalSigner](classes/ExternalSigner.md)
+- [IntentInspector](classes/IntentInspector.md)
 - [IntentPendingError](classes/IntentPendingError.md)
 - [IntentValidationError](classes/IntentValidationError.md)
 - [IOU](classes/IOU.md)

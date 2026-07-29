@@ -48,7 +48,7 @@ Permissioned domains (create, update, delete).
 
 ### intent
 
-> `readonly` **intent**: `IntentInspector`
+> `readonly` **intent**: [`IntentInspector`](IntentInspector.md)
 
 Defined in: [client/client.ts:71](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L71)
 
