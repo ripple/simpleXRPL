@@ -91,6 +91,7 @@ async function buildManifestEnvelope(options: SignRawOptions): Promise<{
       domainId: state.domainId,
       authorUserId: state.authorUserId,
       accountId,
+      ledgerId: ctx.account.ledgerId,
       preimageBase64,
       idempotencyKey: ctx.idempotencyKey,
     },

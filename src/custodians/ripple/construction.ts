@@ -29,6 +29,8 @@ export interface RippleCustodyAuthOptions {
   readonly publicKey?: string
   /** The Custody token endpoint URL. */
   readonly tokenUrl: string
+  /** The OIDC client id to authenticate as. Defaults to `'customer_api'`. */
+  readonly clientId?: string
 }
 
 /** Construction options for {@link RippleCustody.create}. */
@@ -91,25 +93,93 @@ const PEM_MARKER = '-----BEGIN'
 const SECRETS_MANAGER_ARN_PREFIX = 'arn:aws:secretsmanager:'
 
 /**
- * Fetch a signing key PEM from AWS Secrets Manager.
+ * The Custody signing-key secret's shape in AWS Secrets Manager, per the
+ * convention used elsewhere in Ripple (e.g. cbdc-wallet, ledger-object-service):
+ * a JSON object, not a raw PEM string. `user_alias` identifies which Custody
+ * user this keypair belongs to; it isn't consumed here since the adapter
+ * resolves its author identity from `/v1/me` instead, but is validated as
+ * present so a mismatched/incomplete secret fails fast.
+ */
+interface CustodySigningKeySecret {
+  readonly public_key?: string
+  readonly private_key?: string
+  readonly user_alias?: string
+}
+
+/** A resolved signing key, with an optional public key from the same source. */
+interface ResolvedSigningKey {
+  readonly privateKeyPem: string
+  readonly publicKey?: string
+}
+
+/**
+ * Parse a Custody signing-key secret's JSON body.
+ *
+ * @param body - The secret's raw JSON string.
+ * @returns The parsed fields, or `undefined` if not a JSON object.
+ */
+function parseSigningKeySecret(
+  body: string,
+): CustodySigningKeySecret | undefined {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(body)
+  } catch {
+    return undefined
+  }
+  if (typeof parsed !== 'object' || parsed === null) {
+    return undefined
+  }
+  return {
+    public_key:
+      'public_key' in parsed && typeof parsed.public_key === 'string'
+        ? parsed.public_key
+        : undefined,
+    private_key:
+      'private_key' in parsed && typeof parsed.private_key === 'string'
+        ? parsed.private_key
+        : undefined,
+    user_alias:
+      'user_alias' in parsed && typeof parsed.user_alias === 'string'
+        ? parsed.user_alias
+        : undefined,
+  }
+}
+
+/**
+ * Fetch and parse the Custody signing-key secret from AWS Secrets Manager.
+ * Follows the same client/credential pattern used elsewhere in Ripple (e.g.
+ * `ledger-object-service`'s `amm-caspian-fetcher` lambda): no explicit
+ * credentials passed to the client — it relies on the default AWS SDK
+ * credential provider chain (env vars, shared profile, or the runtime's role).
  *
  * @param secretId - The secret's ARN.
- * @returns The secret's PEM contents.
- * @throws {@link SimpleXRPLError} if the secret has no string value.
+ * @returns The parsed private/public key pair.
+ * @throws {@link SimpleXRPLError} if the secret string is empty, isn't valid
+ * JSON, or is missing `private_key` or `user_alias`.
  */
-async function fetchSigningKeyFromSecretsManager(
+async function fetchSigningKeySecret(
   secretId: string,
-): Promise<string> {
+): Promise<ResolvedSigningKey> {
   const client = new SecretsManagerClient({})
-  const response = await client.send(
+  const secretResponse = await client.send(
     new GetSecretValueCommand({ SecretId: secretId }),
   )
-  if (response.SecretString === undefined) {
+  if (!secretResponse.SecretString) {
+    throw new SimpleXRPLError('Secret string is empty')
+  }
+
+  const secret = parseSigningKeySecret(secretResponse.SecretString)
+  if (secret === undefined) {
     throw new SimpleXRPLError(
-      `Secrets Manager secret '${secretId}' has no SecretString value`,
+      `Secrets Manager secret '${secretId}' is not valid JSON`,
     )
   }
-  return response.SecretString
+  if (!secret.private_key || !secret.user_alias) {
+    throw new SimpleXRPLError('private_key or user_alias not found in secret')
+  }
+
+  return { privateKeyPem: secret.private_key, publicKey: secret.public_key }
 }
 
 /**
@@ -117,17 +187,17 @@ async function fetchSigningKeyFromSecretsManager(
  * `.pem` file, or an AWS Secrets Manager secret ARN (TDD §3.3).
  *
  * @param value - The env var's raw value.
- * @returns The PEM contents.
+ * @returns The resolved private/public key pair.
  */
-async function resolveSigningKeyPem(value: string): Promise<string> {
+async function resolveSigningKey(value: string): Promise<ResolvedSigningKey> {
   if (value.startsWith(SECRETS_MANAGER_ARN_PREFIX)) {
-    return fetchSigningKeyFromSecretsManager(value)
+    return fetchSigningKeySecret(value)
   }
   if (value.startsWith(PEM_MARKER)) {
-    return value
+    return { privateKeyPem: value }
   }
   // eslint-disable-next-line n/no-sync -- One-time startup config read, not on any request path.
-  return readFileSync(value, 'utf8')
+  return { privateKeyPem: readFileSync(value, 'utf8') }
 }
 
 /**
@@ -167,14 +237,14 @@ export async function buildRippleCustodyState(
   options: RippleCustodyOptions,
 ): Promise<RippleCustodyState> {
   const http = options.http ?? new FetchHttpPort()
-  const signingKeyPem = options.auth.signingKey
-  const keypair = KeypairService.fromPrivateKey(signingKeyPem)
+  const keypair = KeypairService.fromPrivateKey(options.auth.signingKey)
   const authService = new CustodyAuthService({
     authPort: new HttpCustodyAuthPort({
       tokenUrl: options.auth.tokenUrl,
       http,
+      clientId: options.auth.clientId,
     }),
-    privateKey: signingKeyPem,
+    privateKey: options.auth.signingKey,
     publicKey: options.auth.publicKey,
   })
   const client = new CustodyHttpClient({
@@ -182,7 +252,7 @@ export async function buildRippleCustodyState(
     http,
     auth: authService,
   })
-  const intentSigner = new IntentSigner(keypair, signingKeyPem)
+  const intentSigner = new IntentSigner(keypair, options.auth.signingKey)
 
   const me =
     await client.get<components['schemas']['Core_MeReference']>('/v1/me')
@@ -219,14 +289,16 @@ export async function resolveFromEnvOptions(
 ): Promise<RippleCustodyOptions> {
   // eslint-disable-next-line n/no-process-env -- fromEnv reads config from the environment by design.
   const env = options.env ?? process.env
+  const signingKey = await resolveSigningKey(
+    requireEnv(env, 'RIPPLE_CUSTODY_AUTH_SIGNING_KEY'),
+  )
   return {
     gatewayUrl: requireEnv(env, 'RIPPLE_CUSTODY_GATEWAY_URL'),
     auth: {
-      signingKey: await resolveSigningKeyPem(
-        requireEnv(env, 'RIPPLE_CUSTODY_AUTH_SIGNING_KEY'),
-      ),
-      publicKey: env.RIPPLE_CUSTODY_AUTH_PUBLIC_KEY,
+      signingKey: signingKey.privateKeyPem,
+      publicKey: env.RIPPLE_CUSTODY_AUTH_PUBLIC_KEY ?? signingKey.publicKey,
       tokenUrl: requireEnv(env, 'RIPPLE_CUSTODY_AUTH_TOKEN_URL'),
+      clientId: env.RIPPLE_CUSTODY_AUTH_CLIENT_ID,
     },
     domainId: requireEnv(env, 'RIPPLE_CUSTODY_DOMAIN_ID'),
     primary: options.primary,

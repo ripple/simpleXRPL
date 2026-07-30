@@ -261,6 +261,7 @@ export class RippleCustody implements Custodian, IntentObserver {
       domainId: this.state.domainId,
       authorUserId: this.state.authorUserId,
       accountId,
+      ledgerId: ctx.account.ledgerId,
       transaction: tx,
       fee: ctx.fee ?? this.state.defaultFee,
       idempotencyKey: ctx.idempotencyKey,

@@ -67,6 +67,7 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         domainId: state.domainId,
         authorUserId: state.authorUserId,
         accountId: primary.custodianRef,
+        ledgerId: primary.ledgerId,
         transaction: accountSet,
       })
 

@@ -4,6 +4,10 @@
  * `RIPPLE_CUSTODY_PRIMARY_ADDRESS` is the contract harness's own — the primary
  * account's r-address, which `fromEnv` takes as an argument rather than from
  * the environment.
+ *
+ * `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` accepts any form `resolveFromEnvOptions`
+ * supports: literal PEM contents, a `.pem` file path, or an AWS Secrets
+ * Manager secret ARN (see `construction.ts`).
  */
 const REQUIRED_ENV = [
   'RIPPLE_CUSTODY_GATEWAY_URL',

@@ -84,6 +84,7 @@ describe('discoverXrplAccounts', () => {
         address: 'rTreasury',
         alias: 'treasury',
         custodianRef: 'acc-1',
+        ledgerId: 'xrpl-1',
         signer: SIGNER,
       },
     ])
@@ -114,6 +115,27 @@ describe('discoverXrplAccounts', () => {
     const accounts = await discoverXrplAccounts(client, DOMAIN, SIGNER)
 
     expect(accounts.map((account) => account.address)).toEqual(['rOne', 'rTwo'])
+  })
+
+  it('stops paginating when nextStartingAfter is a literal null (not omitted)', async () => {
+    let ledgersCalls = 0
+    const client = makeClient((request) => {
+      const { url } = request
+      if (url.includes('/v1/ledgers')) {
+        ledgersCalls += 1
+        // Custody returns a literal `null` (not an omitted field) on the last page.
+        return ok({
+          items: [{ data: { id: 'xrpl-1', parameters: { type: 'XRPL' } } }],
+          count: 1,
+          nextStartingAfter: null,
+        })
+      }
+      return ok(accountsBody([]))
+    })
+
+    await discoverXrplAccounts(client, DOMAIN, SIGNER)
+
+    expect(ledgersCalls).toBe(1)
   })
 
   it('returns an empty list for a domain with no accounts', async () => {
@@ -156,6 +178,81 @@ describe('discoverXrplAccounts', () => {
     )
   })
 
+  it('discovers a multi-ledger Vault account via additionalDetails.ledgers (null top-level ledgerId)', async () => {
+    const client = makeClient((request) => {
+      const { url } = request
+      if (url.includes('/v1/ledgers')) {
+        return ok(
+          ledgersBody([
+            { id: 'xrpl-1', type: 'XRPL' },
+            { id: 'eth-1', type: 'Ethereum' },
+          ]),
+        )
+      }
+      if (url.includes('/addresses')) {
+        return ok(
+          addressesBody([
+            {
+              address: 'rVault',
+              scope: 'External',
+              ledgerId: 'xrpl-1',
+              accountId: 'acc-vault',
+            },
+          ]),
+        )
+      }
+      return ok(
+        accountsBody([
+          {
+            id: 'acc-vault',
+            alias: 'primary_account',
+            ledgerId: null,
+            additionalDetailsLedgers: [
+              { ledgerId: 'eth-1', status: 'Activated' },
+              { ledgerId: 'xrpl-1', status: 'Activated' },
+            ],
+          },
+        ]),
+      )
+    })
+
+    const accounts = await discoverXrplAccounts(client, DOMAIN, SIGNER)
+
+    expect(accounts).toEqual([
+      {
+        address: 'rVault',
+        alias: 'primary_account',
+        custodianRef: 'acc-vault',
+        ledgerId: 'xrpl-1',
+        signer: SIGNER,
+      },
+    ])
+  })
+
+  it('ignores a multi-ledger Vault account whose XRPL entry is not yet Activated', async () => {
+    const client = makeClient((request) => {
+      const { url } = request
+      if (url.includes('/v1/ledgers')) {
+        return ok(ledgersBody([{ id: 'xrpl-1', type: 'XRPL' }]))
+      }
+      return ok(
+        accountsBody([
+          {
+            id: 'acc-vault',
+            ledgerId: null,
+            additionalDetailsLedgers: [
+              { ledgerId: 'xrpl-1', status: 'Available' },
+            ],
+          },
+        ]),
+      )
+    })
+
+    await expect(discoverXrplAccounts(client, DOMAIN, SIGNER)).resolves.toEqual(
+      [],
+    )
+  })
+
   it('yields one Account per external address when an account has several', async () => {
     const client = makeClient((request) => {
       const { url } = request
@@ -188,8 +285,20 @@ describe('discoverXrplAccounts', () => {
     const accounts = await discoverXrplAccounts(client, DOMAIN, SIGNER)
 
     expect(accounts).toEqual([
-      { address: 'rA', alias: 'multi', custodianRef: 'acc-1', signer: SIGNER },
-      { address: 'rB', alias: 'multi', custodianRef: 'acc-1', signer: SIGNER },
+      {
+        address: 'rA',
+        alias: 'multi',
+        custodianRef: 'acc-1',
+        ledgerId: 'xrpl-1',
+        signer: SIGNER,
+      },
+      {
+        address: 'rB',
+        alias: 'multi',
+        custodianRef: 'acc-1',
+        ledgerId: 'xrpl-1',
+        signer: SIGNER,
+      },
     ])
   })
 })

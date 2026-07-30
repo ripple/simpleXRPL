@@ -21,6 +21,12 @@ export interface BuildManifestEnvelopeOptions {
   readonly authorUserId: string
   /** The Custody account UUID whose vault key signs the preimage. */
   readonly accountId: string
+  /**
+   * The XRPL ledger id backing `accountId`. Required for multi-ledger Vault
+   * accounts (no ledger default of their own); omit for legacy single-ledger
+   * accounts, where Custody infers it from the account itself.
+   */
+  readonly ledgerId?: string
   /** The base64 signing preimage from {@link buildSigningPreimage}. */
   readonly preimageBase64: string
   /**
@@ -56,6 +62,7 @@ export function buildSignManifestIntentBody(
     payload: {
       id: manifestId,
       accountId: options.accountId,
+      ledgerId: options.ledgerId,
       content: { value: options.preimageBase64, type: 'Unsafe' as const },
       customProperties,
       type: 'v0_SignManifest' as const,

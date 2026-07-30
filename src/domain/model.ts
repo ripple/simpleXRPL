@@ -38,6 +38,13 @@ export interface Account extends AccountRef {
   /** Custodian-side alias, when the backend exposes one. */
   readonly alias?: string
 
+  /**
+   * The custodian-specific ledger id backing this address, when the backend
+   * needs one disambiguated (e.g. Ripple Custody's multi-ledger Vault
+   * accounts, which carry no ledger default of their own).
+   */
+  readonly ledgerId?: string
+
   /** The custodian that discovered and signs for this account. */
   readonly signer: Custodian
 

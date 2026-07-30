@@ -86,4 +86,35 @@ describe('buildSignManifestIntentBody', () => {
     expect(body.request.id).toBeTruthy()
     expect(body.request.id).toBe(manifestPayload(body).id)
   })
+
+  it('omits payload.ledgerId when none is given (legacy single-ledger accounts)', () => {
+    const body = buildSignManifestIntentBody(
+      makeSigner(),
+      {},
+      {
+        domainId: 'domain-1',
+        authorUserId: 'user-1',
+        accountId: 'account-1',
+        preimageBase64: 'cHJlaW1hZ2U=',
+      },
+    )
+
+    expect(manifestPayload(body).ledgerId).toBeUndefined()
+  })
+
+  it('stamps payload.ledgerId when given (multi-ledger Vault accounts)', () => {
+    const body = buildSignManifestIntentBody(
+      makeSigner(),
+      {},
+      {
+        domainId: 'domain-1',
+        authorUserId: 'user-1',
+        accountId: 'account-1',
+        ledgerId: 'xrpl',
+        preimageBase64: 'cHJlaW1hZ2U=',
+      },
+    )
+
+    expect(manifestPayload(body).ledgerId).toBe('xrpl')
+  })
 })

@@ -34,6 +34,12 @@ export interface BuildEnvelopeOptions {
   readonly authorUserId: string
   /** The Custody account UUID that owns and signs this transaction. */
   readonly accountId: string
+  /**
+   * The XRPL ledger id backing `accountId`. Required for multi-ledger Vault
+   * accounts (no ledger default of their own); omit for legacy single-ledger
+   * accounts, where Custody infers it from the account itself.
+   */
+  readonly ledgerId?: string
   /** The transaction to submit. */
   readonly transaction: Transaction
   /** Fee override; falls back to `Priority: Low` with no cap. */
@@ -84,6 +90,7 @@ export function buildProposeIntentBody(
     payload: {
       id: intentId,
       accountId: options.accountId,
+      ledgerId: options.ledgerId,
       parameters,
       customProperties,
       type: 'v0_CreateTransactionOrder' as const,

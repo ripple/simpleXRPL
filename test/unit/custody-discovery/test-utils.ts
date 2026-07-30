@@ -110,12 +110,22 @@ export function ledgersBody(
 /**
  * Build a `getAccounts` collection page.
  *
- * @param accounts - The account specs to include.
+ * @param accounts - The account specs to include. `additionalDetailsLedgers`
+ * models a multi-ledger Vault account (top-level `ledgerId: null`, with
+ * per-ledger status reported under `additionalDetails.ledgers` instead).
  * @param nextStartingAfter - Optional next-page cursor.
  * @returns An accounts collection page body.
  */
 export function accountsBody(
-  accounts: ReadonlyArray<{ id: string; alias?: string; ledgerId?: string }>,
+  accounts: ReadonlyArray<{
+    id: string
+    alias?: string
+    ledgerId?: string | null
+    additionalDetailsLedgers?: ReadonlyArray<{
+      ledgerId: string
+      status: string
+    }>
+  }>,
   nextStartingAfter?: string,
 ): JsonBody {
   return {
@@ -131,6 +141,14 @@ export function accountsBody(
       },
       signature: '',
       signingKey: '',
+      ...(account.additionalDetailsLedgers === undefined
+        ? {}
+        : {
+            additionalDetails: {
+              processing: {},
+              ledgers: account.additionalDetailsLedgers,
+            },
+          }),
     })),
     count: accounts.length,
     nextStartingAfter,
