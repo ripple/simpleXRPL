@@ -30,4 +30,5 @@ npm-debug.log*
 # Local env / secrets — never commit credentials (§12.2)
 .env
 .env.*
+!.env.example
 *.pem

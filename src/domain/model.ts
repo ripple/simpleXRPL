@@ -7,7 +7,8 @@ import type { SignerCapabilities } from './capabilities.js'
 /**
  * The signing backend a custodian adapts.
  */
-export type CustodianKind = 'local' | 'ripple-custody' | 'palisade-custody'
+export type CustodianKind =
+  'local' | 'ripple-custody' | 'palisade-custody' | 'external'
 
 /**
  * A custodian's opaque native identifier for an account: a string for
@@ -15,8 +16,7 @@ export type CustodianKind = 'local' | 'ripple-custody' | 'palisade-custody'
  * absent for local wallets. Read only by the owning custodian.
  */
 export type CustodianRef =
-  | string
-  | { readonly vaultId: string; readonly walletId: string }
+  string | { readonly vaultId: string; readonly walletId: string }
 
 /**
  * A minimal reference to an account: its r-address plus the owning custodian's
@@ -56,7 +56,7 @@ export interface Account extends AccountRef {
 }
 
 /**
- * Caller-facing way to choose the source account for a verb: a bare address, an
+ * Caller-facing way to choose the source account for an operation: a bare address, an
  * explicit address, or a signer (optionally narrowed to one of its accounts).
  */
 export type AccountSelector =
@@ -65,7 +65,7 @@ export type AccountSelector =
   | { readonly signer: Custodian; readonly account?: string }
 
 /**
- * A signed transaction ready to submit to rippled.
+ * A signed transaction ready to submit to xrpld.
  */
 export interface SignedEnvelope {
   /** The signed transaction blob (hex). */
@@ -140,6 +140,13 @@ export interface SubmissionResultFields<T> {
 
   /** XRPL transaction hash once the transaction is on-ledger. */
   readonly txHash?: string
+
+  /**
+   * The stable, client-generated id (a UUIDv7) this submission carried (§8).
+   * Re-submitting with the same id resolves to the same intent rather than
+   * creating a duplicate; pass it back as an operation's `idempotencyKey` to retry.
+   */
+  readonly idempotencyKey?: string
 }
 
 /**
@@ -148,7 +155,7 @@ export interface SubmissionResultFields<T> {
  */
 export type SubmissionResult<T = unknown> =
   | (SubmissionResultFields<T> & {
-      readonly source: 'rippled'
+      readonly source: 'xrpld'
       readonly response: TxResponse
     })
   | (SubmissionResultFields<T> & {
@@ -192,6 +199,15 @@ export interface SubmissionHandle {
 export interface Custodian {
   /** Which backend this custodian adapts. */
   readonly kind: CustodianKind
+
+  /**
+   * The backend tenant this custodian is bound to — a Custody domain id, a
+   * Palisade org/client identity, etc. Two signers with the same `kind` and
+   * the same `tenantId` point at the same backend tenant, which the client
+   * rejects at init (§3.1). `undefined` for backends with no tenant notion
+   * (e.g. a local wallet holder), so multiple of those may coexist freely.
+   */
+  readonly tenantId?: string
 
   /** The custodian's primary account; it owns this account. */
   readonly primary: AccountRef

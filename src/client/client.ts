@@ -12,19 +12,19 @@ import {
   AccountVertical,
   Credential,
   Domain,
-  IOUVertical,
+  IOU,
   Token,
   XRP,
 } from '../verticals/index.js'
 
-import { buildAccountIndex } from './account-index.js'
+import { assertDistinctTenants, buildAccountIndex } from './account-index.js'
 import type { SimpleXRPLConfig } from './config.js'
 import { IntentInspector } from './intent-inspector.js'
 
 /** The network a client is bound to. */
 export interface NetworkInfo {
-  /** The rippled endpoint (`ws(s)://` or `http(s)://`). */
-  readonly rippledUrl: string
+  /** The xrpld endpoint (`ws(s)://` or `http(s)://`). */
+  readonly xrpldUrl: string
 
   /** Faucet endpoint, used on test networks only. */
   readonly faucetUrl?: string
@@ -33,7 +33,7 @@ export interface NetworkInfo {
 /**
  * The runtime client. Binds a set of pre-constructed custodians to a network,
  * flattens their discovered accounts into a single address to custodian index,
- * and resolves the account a verb acts on. Constructed only via
+ * and resolves the account an operation acts on. Constructed only via
  * {@link SimpleXRPLClient.init} (or `SimpleXRPL.init`), never with `new`.
  *
  * A client with no signers is fully usable for reads; every write path resolves
@@ -46,14 +46,14 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** The registered custodians (0..N). */
   public readonly signers: readonly Custodian[]
 
-  /** The default signer, used when a verb is called without an explicit account. */
+  /** The default signer, used when an operation is called without an explicit account. */
   public readonly primarySigner: Custodian | undefined
 
   /** Native-XRP value transfers. */
   public readonly xrp: XRP
 
-  /** Issued-currency (IOU) issuance; `issue()` returns the lifecycle handle. */
-  public readonly iou: IOUVertical
+  /** Issued-currency (IOU) operations: issue, transfer, authorize, lock, offers. */
+  public readonly iou: IOU
 
   /** Multi-Purpose Token (MPT) family and DEX offers. */
   public readonly token: Token
@@ -73,7 +73,7 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
 
-  /** Lazily created from `network.rippledUrl` when not injected. */
+  /** Lazily created from `network.xrpldUrl` when not injected. */
   private ledgerInstance: LedgerPort | undefined
 
   private constructor(state: {
@@ -89,7 +89,7 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.accountIndex = state.accountIndex
     this.ledgerInstance = state.ledger
     this.xrp = new XRP(this)
-    this.iou = new IOUVertical(this)
+    this.iou = new IOU(this)
     this.token = new Token(this)
     this.credential = new Credential(this)
     this.domain = new Domain(this)
@@ -108,13 +108,13 @@ export class SimpleXRPLClient implements SubmissionHost {
 
   /**
    * The ledger connection for reads, autofill, and Local/raw submission.
-   * Created lazily from `network.rippledUrl` when none was injected.
+   * Created lazily from `network.xrpldUrl` when none was injected.
    *
    * @returns The ledger port.
    */
   public get ledger(): LedgerPort {
     this.ledgerInstance ??= new XrplLedger(
-      this.network.rippledUrl,
+      this.network.xrpldUrl,
       this.network.faucetUrl,
     )
     return this.ledgerInstance
@@ -126,19 +126,21 @@ export class SimpleXRPLClient implements SubmissionHost {
    *
    * @param config - Network endpoints and pre-constructed custodians.
    * @returns A ready client.
+   * @throws {@link DuplicateSignerError} if two signers share a kind and tenant id.
    * @throws {@link AmbiguousAccountError} if an r-address is claimed by two custodians.
    */
   public static async init(
     config: SimpleXRPLConfig,
   ): Promise<SimpleXRPLClient> {
     const signers = config.signers ?? []
+    assertDistinctTenants(signers)
     const primarySigner = SimpleXRPLClient.resolvePrimary(
       signers,
       config.primarySigner,
     )
     const accountIndex = await buildAccountIndex(signers)
     return new SimpleXRPLClient({
-      network: { rippledUrl: config.rippledUrl, faucetUrl: config.faucetUrl },
+      network: { xrpldUrl: config.xrpldUrl, faucetUrl: config.faucetUrl },
       signers,
       primarySigner,
       accountIndex,
@@ -178,7 +180,7 @@ export class SimpleXRPLClient implements SubmissionHost {
   }
 
   /**
-   * Register a locally-signed account at runtime and index it so verbs can act
+   * Register a locally-signed account at runtime and index it so operations can act
    * on it immediately. Backs `Account.create`.
    *
    * @param seed - The account seed to hold a `LocalSigner` for.
@@ -192,7 +194,17 @@ export class SimpleXRPLClient implements SubmissionHost {
   }
 
   /**
-   * Resolve the account a verb acts on. With no selector, uses the primary
+   * The primary signer's account address, or `undefined` in no-signer mode.
+   * Reads default to this; it never throws, so queries work without a signer.
+   *
+   * @returns The primary account's r-address, or `undefined`.
+   */
+  public primaryAddress(): string | undefined {
+    return this.primarySigner?.primary.address
+  }
+
+  /**
+   * Resolve the account an operation acts on. With no selector, uses the primary
    * signer's primary account.
    *
    * @param selector - An address, an explicit address, or a signer/account pair.
@@ -232,13 +244,17 @@ export class SimpleXRPLClient implements SubmissionHost {
   public requireSigner(): Custodian {
     if (this.primarySigner === undefined) {
       throw new NoSignerError(
-        'No signer configured. Pass `signers` to init, or an explicit account to the verb.',
+        'No signer configured. Pass `signers` to init, or an explicit account to the operation.',
       )
     }
     return this.primarySigner
   }
 
-  /** Open the ledger connection (no-op for a ledger that manages its own). */
+  /**
+   * Open the ledger connection. Optional — the ledger connects lazily on first
+   * use (reads, autofill, submission), so most callers never need to call this;
+   * it's useful only to pre-warm the connection. Idempotent.
+   */
   public async connect(): Promise<void> {
     await this.ledger.connect?.()
   }

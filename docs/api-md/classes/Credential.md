@@ -1,0 +1,139 @@
+# Class: Credential
+
+Defined in: [verticals/credential.ts:23](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.ts#L23)
+
+The Credential vertical: issue, accept, and delete on-ledger credentials.
+
+## Constructors
+
+### new Credential()
+
+> **new Credential**(`host`): [`Credential`](Credential.md)
+
+Defined in: [verticals/credential.ts:31](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.ts#L31)
+
+Construct the Credential vertical.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `host` | [`SubmissionHost`](../interfaces/SubmissionHost.md) | The client the pipeline runs against. |
+
+#### Returns
+
+[`Credential`](Credential.md)
+
+## Methods
+
+### accept()
+
+> **accept**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; `issuer`: `string`; \}\>\>
+
+Defined in: [verticals/credential.ts:103](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.ts#L103)
+
+Accept a credential issued to the source account.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params` | [`CredentialAcceptParams`](../interfaces/CredentialAcceptParams.md) | Credential type and issuer. |
+| `options`? | [`CredentialWriteOptions`](../interfaces/CredentialWriteOptions.md) | Source account (the holder) and fee override. |
+
+#### Returns
+
+`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; `issuer`: `string`; \}\>\>
+
+The result, echoing the issuer and credential type.
+
+***
+
+### delete()
+
+> **delete**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; \}\>\>
+
+Defined in: [verticals/credential.ts:133](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.ts#L133)
+
+Delete a credential (as either its issuer or its holder).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params` | [`CredentialDeleteParams`](../interfaces/CredentialDeleteParams.md) | Credential type, plus the counterparty (holder or issuer). |
+| `options`? | [`CredentialWriteOptions`](../interfaces/CredentialWriteOptions.md) | Source account and fee override. |
+
+#### Returns
+
+`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; \}\>\>
+
+The result, echoing the credential type.
+
+***
+
+### issue()
+
+> **issue**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; `destination`: `string`; \}\>\>
+
+Defined in: [verticals/credential.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.ts#L67)
+
+Issue a credential to a destination account.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params` | [`CredentialIssueParams`](../interfaces/CredentialIssueParams.md) | Destination, credential type, and optional expiration/URI. |
+| `options`? | [`CredentialWriteOptions`](../interfaces/CredentialWriteOptions.md) | Source account (the issuer) and fee override. |
+
+#### Returns
+
+`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `credType`: `string`; `destination`: `string`; \}\>\>
+
+The result, echoing the destination and credential type.
+
+***
+
+### list()
+
+> **list**(`params`?): `Promise`\<[`CredentialListResult`](../interfaces/CredentialListResult.md)\>
+
+Defined in: [verticals/credential.ts:54](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.ts#L54)
+
+List credentials an account holds or issued. No signer required.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params`? | [`CredentialListParams`](../interfaces/CredentialListParams.md) | The role and account (default: the primary signer's). |
+
+#### Returns
+
+`Promise`\<[`CredentialListResult`](../interfaces/CredentialListResult.md)\>
+
+The credential identifiers and shaped credentials, index-aligned.
+
+***
+
+### retrieve()
+
+> **retrieve**(`params`): `Promise`\<[`CredentialRetrieveResult`](../interfaces/CredentialRetrieveResult.md)\>
+
+Defined in: [verticals/credential.ts:42](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.ts#L42)
+
+Retrieve a single credential by type and issuer (point-in-time). No signer
+required; pass `account` (the holder) or default to the primary.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params` | [`CredentialRetrieveParams`](../interfaces/CredentialRetrieveParams.md) | The credential type, issuer, and optional holder account. |
+
+#### Returns
+
+`Promise`\<[`CredentialRetrieveResult`](../interfaces/CredentialRetrieveResult.md)\>
+
+The identifiers and snapshot (or `undefined` data if absent).

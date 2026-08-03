@@ -387,7 +387,7 @@ describe('RippleCustody.submitAndWait', () => {
     ).rejects.toThrow(IntentValidationError)
   })
 
-  it('signs and submits a non-native transactor through the raw path, returning a rippled result', async () => {
+  it('signs and submits a non-native transactor through the raw path, returning a xrpld result', async () => {
     const { custody } = await makeCustody({}, { allowRawSigning: true })
     const ledger = fakeLedger('RAWHASH')
 
@@ -396,7 +396,7 @@ describe('RippleCustody.submitAndWait', () => {
       makeContext(custody, { ledger }),
     )
 
-    expect(result).toMatchObject({ source: 'rippled', txHash: 'RAWHASH' })
+    expect(result).toMatchObject({ source: 'xrpld', txHash: 'RAWHASH' })
     expect(ledger.submitted).toHaveLength(1)
   })
 

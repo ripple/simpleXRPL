@@ -81,6 +81,30 @@ export class AmbiguousAccountError extends SimpleXRPLError {
 }
 
 /**
+ * Two configured signers point at the same backend tenant — the same
+ * `kind` and the same `tenantId` (§3.1). The client rejects this at init so
+ * one backend is never registered twice; drop the duplicate signer.
+ */
+export class DuplicateSignerError extends SimpleXRPLError {
+  public readonly kind: CustodianKind
+  public readonly tenantId: string
+
+  /**
+   * Construct a DuplicateSignerError.
+   *
+   * @param kind - The custodian kind registered more than once.
+   * @param tenantId - The shared backend tenant id.
+   */
+  public constructor(kind: CustodianKind, tenantId: string) {
+    super(
+      `Two ${kind} signers are configured for the same tenant '${tenantId}'; register each backend tenant once`,
+    )
+    this.kind = kind
+    this.tenantId = tenantId
+  }
+}
+
+/**
  * Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
  */
 export class CustodyAuthError extends SimpleXRPLError {}
@@ -115,10 +139,13 @@ export class CustodyApiError extends SimpleXRPLError {
 export class PalisadeAuthError extends SimpleXRPLError {}
 
 /**
- * A Palisade API call returned an error. The full response body is preserved.
+ * A Palisade API call returned an error. The diagnostic `hint` (the
+ * `rpcStatus.message` Palisade's equivalent of Custody's `processing.hint`)
+ * and full response body are preserved for the caller to surface.
  */
 export class PalisadeApiError extends SimpleXRPLError {
   public readonly status: number
+  public readonly hint?: string
   public readonly raw: unknown
 
   /**
@@ -126,11 +153,13 @@ export class PalisadeApiError extends SimpleXRPLError {
    *
    * @param status - The HTTP status code.
    * @param raw - The full response body.
+   * @param hint - Palisade's `rpcStatus.message`, preserved verbatim.
    */
-  public constructor(status: number, raw: unknown) {
+  public constructor(status: number, raw: unknown, hint?: string) {
     super(`Palisade API error (${status})`)
     this.status = status
     this.raw = raw
+    this.hint = hint
   }
 }
 
@@ -164,28 +193,28 @@ export class IntentPendingError extends SimpleXRPLError {
 }
 
 /**
- * A rippled submission was rejected. The `engineResult` and full response are
+ * A xrpld submission was rejected. The `engineResult` and full response are
  * preserved verbatim.
  */
-export class RippledSubmitError extends SimpleXRPLError {
+export class XrpldSubmitError extends SimpleXRPLError {
   public readonly engineResult: string
   public readonly raw: unknown
 
   /**
-   * Construct a RippledSubmitError.
+   * Construct a XrpldSubmitError.
    *
-   * @param engineResult - The rippled engine result code (e.g. `tecPATH_DRY`).
-   * @param raw - The full rippled response.
+   * @param engineResult - The xrpld engine result code (e.g. `tecPATH_DRY`).
+   * @param raw - The full xrpld response.
    */
   public constructor(engineResult: string, raw: unknown) {
-    super(`rippled submission failed: ${engineResult}`)
+    super(`xrpld submission failed: ${engineResult}`)
     this.engineResult = engineResult
     this.raw = raw
   }
 }
 
 /**
- * A multi-step verb failed partway through. simpleXRPL does not roll back; the
+ * A multi-step operation failed partway through. simpleXRPL does not roll back; the
  * already-committed steps are carried so the caller can reconcile manually.
  */
 export class MultiStepFailureError extends SimpleXRPLError {
@@ -207,7 +236,7 @@ export class MultiStepFailureError extends SimpleXRPLError {
     committed: readonly SubmissionResult[],
     failed: { readonly step: number; readonly error: SimpleXRPLError },
   ) {
-    super(`Multi-step verb failed at step ${failed.step}`)
+    super(`Multi-step operation failed at step ${failed.step}`)
     this.committed = committed
     this.failed = failed
   }

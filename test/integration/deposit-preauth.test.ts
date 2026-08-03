@@ -12,7 +12,7 @@ describe('DepositPreauth (live testnet)', () => {
         const granted = await client.account.depositPreauth({
           authorize: authorized.classicAddress,
         })
-        expect(granted.source).toBe('rippled')
+        expect(granted.source).toBe('xrpld')
 
         // A DepositPreauth object now sits under the owner.
         const objects = await client.ledger.request<{
@@ -28,7 +28,7 @@ describe('DepositPreauth (live testnet)', () => {
         const revoked = await client.account.depositPreauth({
           unauthorize: authorized.classicAddress,
         })
-        expect(revoked.source).toBe('rippled')
+        expect(revoked.source).toBe('xrpld')
 
         const afterRevoke = await client.ledger.request<{
           result: { account_objects: unknown[] }

@@ -24,7 +24,7 @@ describe('Token MPT (live testnet)', () => {
           },
           flags: { canTransfer: true },
         })
-        expect(issued.source).toBe('rippled')
+        expect(issued.source).toBe('xrpld')
         expect(issued.txHash).toMatch(/^[0-9A-F]{64}$/u)
         const mptIssuanceId = issued.intent.mptIssuanceId
         expect(mptIssuanceId).toMatch(/^[0-9A-F]{48}$/u)
@@ -34,47 +34,37 @@ describe('Token MPT (live testnet)', () => {
           { mptIssuanceId },
           { from: holder.classicAddress },
         )
-        expect(authorized.source).toBe('rippled')
+        expect(authorized.source).toBe('xrpld')
 
-        // The issuance object exists on the issuer's account, and the 0.5%
-        // fee landed as its 0.001%-increment integer (500).
-        const issuerObjects = await client.ledger.request<{
-          result: { account_objects: Array<{ TransferFee?: number }> }
-        }>({
-          command: 'account_objects',
-          account: issuer.classicAddress,
-          type: 'mpt_issuance',
-        })
-        expect(
-          issuerObjects.result.account_objects.length,
-        ).toBeGreaterThanOrEqual(1)
-        expect(issuerObjects.result.account_objects[0].TransferFee).toBe(500)
+        // Read the issuance back through the SDK: flags, fee, and metadata are
+        // decoded from the real ledger response.
+        const retrieved = await client.token.retrieve({ mptIssuanceId })
+        expect(retrieved.data?.issuer).toBe(issuer.classicAddress)
+        expect(retrieved.data?.transferFee).toBe(0.5)
+        expect(retrieved.data?.flags.canTransfer).toBe(true)
+        expect(retrieved.data?.metadata?.ticker).toBe('TBILL')
+
+        // The issuer (primary signer) lists it among its issuances.
+        const issued2 = await client.token.list({ role: 'issuer' })
+        expect(issued2.tokens).toContain(mptIssuanceId)
 
         // Issuer sends 100 base units to the holder.
         const transferred = await client.token.transfer({
           to: holder.classicAddress,
           amount: { asset: mpt(mptIssuanceId, 0), value: '100' },
         })
-        expect(transferred.source).toBe('rippled')
+        expect(transferred.source).toBe('xrpld')
         expect(transferred.txHash).toMatch(/^[0-9A-F]{64}$/u)
 
-        // Verify the on-ledger effect: the holder actually holds 100 units.
-        const holderObjects = await client.ledger.request<{
-          result: {
-            account_objects: Array<{
-              MPTokenIssuanceID?: string
-              MPTAmount?: string
-            }>
-          }
-        }>({
-          command: 'account_objects',
+        // Read the holding back through the SDK: the holder holds 100 units.
+        const holdings = await client.token.list({
+          role: 'holder',
           account: holder.classicAddress,
-          type: 'mptoken',
         })
-        const held = holderObjects.result.account_objects.find(
-          (object) => object.MPTokenIssuanceID === mptIssuanceId,
+        const held = holdings.data.find(
+          (entry) => entry.tokenID === mptIssuanceId,
         )
-        expect(held?.MPTAmount).toBe('100')
+        expect(held?.balance).toBe('100')
       } finally {
         await client.disconnect()
       }

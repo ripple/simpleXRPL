@@ -9,8 +9,7 @@ import { unsupported } from './unsupported.js'
 /**
  * Map an xrpl.js `Payment` to Custody's native operation. Custody has no
  * slot for cross-currency paths (`SendMax`, `Paths`, `DeliverMin`,
- * `DeliverMax`), `InvoiceID`, `CredentialIDs`, `DomainID`, or any `tf*` flag
- * (TDD §7.3's own Payment example).
+ * `DeliverMax`), `InvoiceID`, `CredentialIDs`, `DomainID`, or any `tf*` flag.
  *
  * @param tx - The `Payment` transaction.
  * @returns The Custody `Payment` operation.

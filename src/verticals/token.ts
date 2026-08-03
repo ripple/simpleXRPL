@@ -1,7 +1,6 @@
 import { MPTokenAuthorizeFlags, MPTokenIssuanceSetFlags } from 'xrpl'
 import type {
   MPTokenAuthorize,
-  MPTokenIssuanceCreate,
   MPTokenIssuanceDestroy,
   MPTokenIssuanceSet,
   OfferCancel,
@@ -14,15 +13,17 @@ import type { SubmissionResult } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
+import { listAccountOffers } from '../reads/offers.js'
+import type { ListOffersResult } from '../reads/offers.js'
+import { readAccountAddress } from '../reads/read-helpers.js'
 
-import { percentToTransferFee } from './fee.js'
 import {
-  encodeMetadata,
+  buildIssuance,
   extractMptIssuanceId,
-  issueFlags,
   offerFlags,
   toDexAmount,
 } from './token.helpers.js'
+import { listTokens, retrieveToken } from './token.reads.js'
 import type {
   CancelOfferParams,
   CreateOfferParams,
@@ -32,12 +33,14 @@ import type {
   MptIssueIntent,
   MptIssueParams,
   MptLockParams,
+  TokenListOffersParams,
+  TokenListParams,
+  TokenListResult,
+  TokenRetrieveParams,
+  TokenRetrieveResult,
   TokenTransferParams,
   TokenWriteOptions,
 } from './token.types.js'
-
-/** Default decimal places for a new issuance when the caller omits `assetScale`. */
-const DEFAULT_ASSET_SCALE = 2
 
 /**
  * The Token vertical: the Multi-Purpose Token (MPT) family and DEX offers.
@@ -52,6 +55,44 @@ export class Token {
    */
   public constructor(host: SubmissionHost) {
     this.host = host
+  }
+
+  /**
+   * Retrieve a single MPT issuance by id (point-in-time), with flags decoded to
+   * booleans and XLS-89 metadata decoded. No signer required.
+   *
+   * @param params - The MPT issuance id to fetch.
+   * @returns The issuance id and snapshot (or `undefined` data if absent).
+   */
+  public async retrieve(
+    params: TokenRetrieveParams,
+  ): Promise<TokenRetrieveResult> {
+    return retrieveToken(this.host, params)
+  }
+
+  /**
+   * List the MPTs an account holds (default) or issued. No signer required.
+   *
+   * @param params - The role and account (default: the primary signer's).
+   * @returns The token ids and shaped entries, index-aligned.
+   */
+  public async list(params?: TokenListParams): Promise<TokenListResult> {
+    return listTokens(this.host, params)
+  }
+
+  /**
+   * List the open DEX offers placed by an account. No signer required.
+   *
+   * @param params - The account (default: the primary signer's account).
+   * @returns The shaped offers (composable into offer write operations).
+   */
+  public async listOffers(
+    params?: TokenListOffersParams,
+  ): Promise<ListOffersResult> {
+    return listAccountOffers(
+      this.host,
+      readAccountAddress(this.host, params?.account),
+    )
   }
 
   /**
@@ -95,26 +136,11 @@ export class Token {
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<MptIssueIntent>> {
     const account = this.host.resolveAccount(options?.from)
-    const tx: MPTokenIssuanceCreate = {
-      TransactionType: 'MPTokenIssuanceCreate',
-      Account: account.address,
-      AssetScale: params.assetScale ?? DEFAULT_ASSET_SCALE,
-    }
-    if (params.maximumAmount !== undefined) {
-      tx.MaximumAmount = params.maximumAmount
-    }
-    if (params.transferFee !== undefined) {
-      tx.TransferFee = percentToTransferFee(params.transferFee)
-    }
-    tx.MPTokenMetadata = encodeMetadata(params.metadata)
-    const flags = issueFlags(params.flags)
-    if (flags !== undefined) {
-      tx.Flags = flags
-    }
     const result = await submitTransaction(this.host, {
-      transaction: tx,
+      transaction: buildIssuance(account.address, params),
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: extractMptIssuanceId(result) })
   }
@@ -224,6 +250,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
   }
@@ -256,6 +283,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { to: params.to, amount: params.amount.value })
   }
@@ -293,6 +321,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
   }
@@ -318,6 +347,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
   }
@@ -353,6 +383,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
   }
@@ -388,6 +419,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
       mptIssuanceId: params.mptIssuanceId,

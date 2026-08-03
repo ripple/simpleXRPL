@@ -10,32 +10,38 @@ import type {
   TxResponse,
 } from 'xrpl'
 
-import { IOU, IntentValidationError, SimpleXRPL } from '../../../src/index.js'
+import {
+  IntentValidationError,
+  LocalSigner,
+  SimpleXRPL,
+} from '../../../src/index.js'
 import type {
   LedgerPort,
   LedgerRequest,
-  SubmissionHost,
+  SimpleXRPLClient,
 } from '../../../src/index.js'
 
 interface IouFixture {
-  host: SubmissionHost
+  client: SimpleXRPLClient
   txs: Transaction[]
+  issuerAddress: string
+  holderAddress: string
 }
 
 /**
- * A minimal `SubmissionHost` whose ledger captures every built transaction
- * (via `autofill`) and answers `account_info` with the given clawback flag
- * state. `IOU`'s instance methods never call `resolveAccount` — they sign
- * with accounts built directly from env seeds — so it's left unimplemented.
+ * A ledger that captures every built transaction (via `autofill`) and answers
+ * `account_info` with the given clawback flag state.
  *
- * @param opts - Optional settings.
- * @param opts.clawbackEnabled - Whether `account_info` reports
+ * @param clawbackEnabled - Whether `account_info` reports
  * `lsfAllowTrustLineClawback` set (default `false`).
- * @returns The fake host and the transactions it builds.
+ * @returns The fake ledger and the transactions it builds.
  */
-function fakeIouHost(opts?: { clawbackEnabled?: boolean }): IouFixture {
+function fakeLedger(clawbackEnabled = false): {
+  ledger: LedgerPort
+  txs: Transaction[]
+} {
   const txs: Transaction[] = []
-  const flags = opts?.clawbackEnabled ? 0x80000000 : 0
+  const flags = clawbackEnabled ? 0x80000000 : 0
   const ledger: LedgerPort = {
     async autofill(tx: Transaction): Promise<Transaction> {
       txs.push(tx)
@@ -54,31 +60,33 @@ function fakeIouHost(opts?: { clawbackEnabled?: boolean }): IouFixture {
       return {} as T
     },
   }
-  const host: SubmissionHost = {
-    ledger,
-    resolveAccount() {
-      throw new Error('resolveAccount should not be called by IOU instances')
-    },
-    registerLocalAccount() {
-      throw new Error('registerLocalAccount should not be called by IOU tests')
-    },
-  }
-  return { host, txs }
+  return { ledger, txs }
 }
 
 /**
- * Seed two fresh local wallets into the env vars `IOU.issue` reads.
+ * Build a client whose primary signer is a fresh issuer wallet, with that
+ * wallet's seed (plus a hot-wallet seed) seeded into the env vars `IOU.issue`
+ * reads. IOU operations default their acting account to this issuer.
  *
- * @returns The issuer and holder r-addresses.
+ * @param clawbackEnabled - Passed through to {@link fakeLedger}.
+ * @returns The client, captured txs, and the issuer/holder addresses.
  */
-function seedIssuanceEnv(): { issuerAddress: string; holderAddress: string } {
+async function issuedClient(clawbackEnabled = false): Promise<IouFixture> {
   const issuer = Wallet.generate()
   const holder = Wallet.generate()
-  // eslint-disable-next-line n/no-process-env -- seeding the env vars IOU.issue reads is the point of this test helper
+  // eslint-disable-next-line n/no-process-env -- seeding the env vars IOU.issue reads is the point of this helper
   process.env.XRPL_ISSUER_SEED = issuer.seed
-  // eslint-disable-next-line n/no-process-env -- seeding the env vars IOU.issue reads is the point of this test helper
+  // eslint-disable-next-line n/no-process-env -- seeding the env vars IOU.issue reads is the point of this helper
   process.env.XRPL_HOT_WALLET_SEED = holder.seed
+  const { ledger, txs } = fakeLedger(clawbackEnabled)
+  const client = await SimpleXRPL.init({
+    xrpldUrl: 'wss://x.invalid',
+    signers: [LocalSigner.fromSeed(issuer.seed as string)],
+    ledger,
+  })
   return {
+    client,
+    txs,
     issuerAddress: issuer.classicAddress,
     holderAddress: holder.classicAddress,
   }
@@ -93,19 +101,18 @@ afterEach(() => {
 
 describe('IOU.issue', () => {
   it('throws when the issuance env vars are missing', async () => {
-    const client = await SimpleXRPL.init({ rippledUrl: 'wss://x.invalid' })
+    const client = await SimpleXRPL.init({ xrpldUrl: 'wss://x.invalid' })
     await expect(client.iou.issue({ ticker: 'USD' })).rejects.toBeInstanceOf(
       IntentValidationError,
     )
   })
 
   it('runs AccountSet on the issuer and a max-limit TrustSet on the holder', async () => {
-    const { host, txs } = fakeIouHost()
-    const { issuerAddress, holderAddress } = seedIssuanceEnv()
+    const { client, txs, issuerAddress, holderAddress } = await issuedClient()
 
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const result = await client.iou.issue({ ticker: 'USD' })
 
-    expect(iou.iouID).toBe(`USD.${issuerAddress}`)
+    expect(result.intent.iouID).toBe(`USD.${issuerAddress}`)
     const accountSet = txs[0]
     expect(accountSet.TransactionType).toBe('AccountSet')
     expect(accountSet.Account).toBe(issuerAddress)
@@ -120,32 +127,62 @@ describe('IOU.issue', () => {
     })
   })
 
+  it('resolves issuer and holder from the client signers when holder is given', async () => {
+    // No XRPL_*_SEED env vars are set here — proves the holder path resolves
+    // both accounts from the client's signers, not the environment.
+    const issuer = Wallet.generate()
+    const holder = Wallet.generate()
+    const { ledger, txs } = fakeLedger()
+    const client = await SimpleXRPL.init({
+      xrpldUrl: 'wss://x.invalid',
+      signers: [
+        // signers[0] is the primary, so the issuer defaults to it.
+        LocalSigner.fromSeed(issuer.seed as string),
+        LocalSigner.fromSeed(holder.seed as string),
+      ],
+      ledger,
+    })
+
+    const result = await client.iou.issue({
+      ticker: 'USD',
+      holder: holder.classicAddress,
+    })
+
+    expect(result.intent.iouID).toBe(`USD.${issuer.classicAddress}`)
+    expect(txs[0].TransactionType).toBe('AccountSet')
+    expect(txs[0].Account).toBe(issuer.classicAddress)
+    const trustSet = txs[1] as TrustSet
+    expect(trustSet.Account).toBe(holder.classicAddress)
+    expect(trustSet.LimitAmount).toEqual({
+      currency: 'USD',
+      issuer: issuer.classicAddress,
+      value: '9'.repeat(15),
+    })
+  })
+
   it('hex-encodes a non-standard ticker', async () => {
-    const { host } = fakeIouHost()
-    const { issuerAddress } = seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'TBILL' })
+    const { client, issuerAddress } = await issuedClient()
+    const result = await client.iou.issue({ ticker: 'TBILL' })
     const expected = '5442494C4C'.padEnd(40, '0')
-    expect(iou.iouID).toBe(`${expected}.${issuerAddress}`)
+    expect(result.intent.iouID).toBe(`${expected}.${issuerAddress}`)
   })
 
   it('rejects a ticker that does not fit in 20 bytes', async () => {
-    const { host } = fakeIouHost()
-    seedIssuanceEnv()
+    const { client } = await issuedClient()
     await expect(
-      IOU.issue(host, { ticker: 'A'.repeat(25) }),
+      client.iou.issue({ ticker: 'A'.repeat(25) }),
     ).rejects.toBeInstanceOf(IntentValidationError)
   })
 })
 
 describe('IOU.authorize', () => {
   it('builds a TrustSet with the tfSetfAuth flag', async () => {
-    const { host, txs } = fakeIouHost()
-    const { issuerAddress } = seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs, issuerAddress } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const holder = Wallet.generate().classicAddress
-    const result = await iou.authorize({ holder })
+    const result = await client.iou.authorize({ ticker: 'USD', holder })
     const tx = txs[0] as TrustSet
     expect(tx.TransactionType).toBe('TrustSet')
     expect(tx.Account).toBe(issuerAddress)
@@ -157,26 +194,24 @@ describe('IOU.authorize', () => {
 
 describe('IOU.lock / IOU.unlock', () => {
   it('locks with Individual Freeze then Deep Freeze, in order', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const holder = Wallet.generate().classicAddress
-    const result = await iou.lock({ holder })
+    const result = await client.iou.lock({ ticker: 'USD', holder })
     expect((txs[0] as TrustSet).Flags).toBe(TrustSetFlags.tfSetFreeze)
     expect((txs[1] as TrustSet).Flags).toBe(TrustSetFlags.tfSetDeepFreeze)
     expect(result.intent).toEqual({ holder })
   })
 
   it('unlocks by clearing Deep Freeze then Individual Freeze, in order', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const holder = Wallet.generate().classicAddress
-    const result = await iou.unlock({ holder })
+    const result = await client.iou.unlock({ ticker: 'USD', holder })
     expect((txs[0] as TrustSet).Flags).toBe(TrustSetFlags.tfClearDeepFreeze)
     expect((txs[1] as TrustSet).Flags).toBe(TrustSetFlags.tfClearFreeze)
     expect(result.intent).toEqual({ holder })
@@ -185,23 +220,29 @@ describe('IOU.lock / IOU.unlock', () => {
 
 describe('IOU.clawback', () => {
   it('throws when the issuer has not enabled asfAllowTrustLineClawback', async () => {
-    const { host } = fakeIouHost({ clawbackEnabled: false })
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client } = await issuedClient(false)
+    await client.iou.issue({ ticker: 'USD' })
 
     await expect(
-      iou.clawback({ holder: Wallet.generate().classicAddress, amount: 25 }),
+      client.iou.clawback({
+        ticker: 'USD',
+        holder: Wallet.generate().classicAddress,
+        amount: 25,
+      }),
     ).rejects.toBeInstanceOf(IntentValidationError)
   })
 
   it('builds a Clawback with the holder as the amount issuer', async () => {
-    const { host, txs } = fakeIouHost({ clawbackEnabled: true })
-    const { issuerAddress } = seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs, issuerAddress } = await issuedClient(true)
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const holder = Wallet.generate().classicAddress
-    const result = await iou.clawback({ holder, amount: 25 })
+    const result = await client.iou.clawback({
+      ticker: 'USD',
+      holder,
+      amount: 25,
+    })
     const tx = txs[0] as Clawback
     expect(tx.TransactionType).toBe('Clawback')
     expect(tx.Account).toBe(issuerAddress)
@@ -212,13 +253,16 @@ describe('IOU.clawback', () => {
 
 describe('IOU.transfer', () => {
   it('sends a Payment from the issuer to the destination', async () => {
-    const { host, txs } = fakeIouHost()
-    const { issuerAddress } = seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs, issuerAddress } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const destination = Wallet.generate().classicAddress
-    const result = await iou.transfer({ destination, amount: 50 })
+    const result = await client.iou.transfer({
+      ticker: 'USD',
+      destination,
+      amount: 50,
+    })
     const tx = txs[0] as Payment
     expect(tx.TransactionType).toBe('Payment')
     expect(tx.Account).toBe(issuerAddress)
@@ -234,12 +278,12 @@ describe('IOU.transfer', () => {
 
 describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   it('prices a sell offer in XRP and sets tfSell for a limit order', async () => {
-    const { host, txs } = fakeIouHost()
-    const { issuerAddress } = seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs, issuerAddress } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
-    await iou.sellOffer({
+    await client.iou.sellOffer({
+      ticker: 'USD',
       amount: 100,
       orderType: 'limit',
       price: { currency: 'XRP', amount: 50 },
@@ -256,13 +300,13 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('prices a buy offer in another IOU and omits flags for a limit order', async () => {
-    const { host, txs } = fakeIouHost()
-    const { issuerAddress } = seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs, issuerAddress } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const priceIssuer = Wallet.generate().classicAddress
-    await iou.buyOffer({
+    await client.iou.buyOffer({
+      ticker: 'USD',
       amount: 100,
       orderType: 'limit',
       price: { ticker: 'EUR', issuer: priceIssuer, amount: 90 },
@@ -282,13 +326,13 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('scopes an offer to a permissioned domain and defaults to hybrid', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const domainID = 'A'.repeat(64)
-    await iou.buyOffer({
+    await client.iou.buyOffer({
+      ticker: 'USD',
       amount: 1,
       orderType: 'limit',
       price: { currency: 'XRP', amount: 1 },
@@ -301,13 +345,13 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('sets DomainID without tfHybrid for a permissioned-only offer', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const domainID = 'B'.repeat(64)
-    await iou.buyOffer({
+    await client.iou.buyOffer({
+      ticker: 'USD',
       amount: 1,
       orderType: 'limit',
       price: { currency: 'XRP', amount: 1 },
@@ -320,13 +364,13 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('combines tfHybrid with the order-type and sell flags', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
     const domainID = 'C'.repeat(64)
-    await iou.sellOffer({
+    await client.iou.sellOffer({
+      ticker: 'USD',
       amount: 1,
       orderType: 'market',
       price: { currency: 'XRP', amount: 1 },
@@ -343,12 +387,12 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('maps market/fok/passive order types to their flag combinations', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
-    await iou.buyOffer({
+    await client.iou.buyOffer({
+      ticker: 'USD',
       amount: 1,
       orderType: 'market',
       price: { currency: 'XRP', amount: 1 },
@@ -357,14 +401,16 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
       OfferCreateFlags.tfImmediateOrCancel,
     )
 
-    await iou.buyOffer({
+    await client.iou.buyOffer({
+      ticker: 'USD',
       amount: 1,
       orderType: 'fok',
       price: { currency: 'XRP', amount: 1 },
     })
     expect((txs[1] as OfferCreate).Flags).toBe(OfferCreateFlags.tfFillOrKill)
 
-    await iou.sellOffer({
+    await client.iou.sellOffer({
+      ticker: 'USD',
       amount: 1,
       orderType: 'passive',
       price: { currency: 'XRP', amount: 1 },
@@ -376,12 +422,12 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('rejects an MPT-denominated price', async () => {
-    const { host } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
 
     await expect(
-      iou.sellOffer({
+      client.iou.sellOffer({
+        ticker: 'USD',
         amount: 1,
         orderType: 'limit',
         price: { mptIssuanceId: 'ID', amount: 1 },
@@ -390,12 +436,12 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('carries offerSequence through on both sell and buy', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
-    await iou.sellOffer({
+    await client.iou.sellOffer({
+      ticker: 'USD',
       amount: 1,
       orderType: 'limit',
       price: { currency: 'XRP', amount: 1 },
@@ -405,12 +451,11 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
   })
 
   it('builds an OfferCancel with the offer sequence', async () => {
-    const { host, txs } = fakeIouHost()
-    seedIssuanceEnv()
-    const iou = await IOU.issue(host, { ticker: 'USD' })
+    const { client, txs } = await issuedClient()
+    await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
-    await iou.cancelOffer({ offerSequence: 7 })
+    await client.iou.cancelOffer({ offerSequence: 7 })
     const tx = txs[0] as OfferCancel
     expect(tx.TransactionType).toBe('OfferCancel')
     expect(tx.OfferSequence).toBe(7)

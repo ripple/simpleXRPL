@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`buildCustomProperties golden — all native transactors AccountSet 1`] = `
+{
+  "account": "rAcct",
+  "transactionType": "AccountSet",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors Clawback 1`] = `
+{
+  "account": "rIssuer",
+  "amount": "25 USD issued by rHolder",
+  "transactionType": "Clawback",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors DepositPreauth 1`] = `
+{
+  "account": "rAcct",
+  "authorize": "rOther",
+  "transactionType": "DepositPreauth",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors EscrowFinish 1`] = `
+{
+  "account": "rAcct",
+  "owner": "rOwner",
+  "transactionType": "EscrowFinish",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors MPTokenAuthorize 1`] = `
+{
+  "account": "rHolder",
+  "mptIssuanceId": "00000001ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+  "transactionType": "MPTokenAuthorize",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors MPTokenIssuanceCreate 1`] = `
+{
+  "account": "rIssuer",
+  "transactionType": "MPTokenIssuanceCreate",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors MPTokenIssuanceDestroy 1`] = `
+{
+  "account": "rIssuer",
+  "mptIssuanceId": "00000001ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+  "transactionType": "MPTokenIssuanceDestroy",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors MPTokenIssuanceSet 1`] = `
+{
+  "account": "rIssuer",
+  "mptIssuanceId": "00000001ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+  "transactionType": "MPTokenIssuanceSet",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors OfferCreate 1`] = `
+{
+  "account": "rFrom",
+  "takerGets": "1000000 drops",
+  "takerPays": "10 USD issued by rIssuer",
+  "transactionType": "OfferCreate",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors Payment 1`] = `
+{
+  "account": "rFrom",
+  "amount": "10 USD issued by rIssuer",
+  "destination": "rTo",
+  "transactionType": "Payment",
+}
+`;
+
+exports[`buildCustomProperties golden — all native transactors TrustSet 1`] = `
+{
+  "account": "rFrom",
+  "limitAmount": "100 USD issued by rIssuer",
+  "transactionType": "TrustSet",
+}
+`;

@@ -60,8 +60,9 @@ describe('IOU vertical (live testnet)', () => {
       const [issuer, holder] = wallets
       seedEnv(issuer.seed as string, holder.seed as string)
       try {
-        const iou = await client.iou.issue({ ticker: 'USD' })
-        expect(iou.iouID).toBe(`USD.${issuer.classicAddress}`)
+        const from = { from: issuer.classicAddress }
+        const issued = await client.iou.issue({ ticker: 'USD' })
+        expect(issued.intent.iouID).toBe(`USD.${issuer.classicAddress}`)
 
         const afterIssue = await usdLine(
           client,
@@ -72,7 +73,10 @@ describe('IOU vertical (live testnet)', () => {
         expect(Number(afterIssue?.balance)).toBe(0)
 
         // Lock, and verify the issuer's freeze actually landed on the line.
-        await iou.lock({ holder: holder.classicAddress })
+        await client.iou.lock(
+          { ticker: 'USD', holder: holder.classicAddress },
+          from,
+        )
         const locked = await usdLine(
           client,
           holder.classicAddress,
@@ -81,7 +85,10 @@ describe('IOU vertical (live testnet)', () => {
         expect(locked?.freeze_peer).toBe(true)
 
         // Unlock, and verify the freeze cleared.
-        await iou.unlock({ holder: holder.classicAddress })
+        await client.iou.unlock(
+          { ticker: 'USD', holder: holder.classicAddress },
+          from,
+        )
         const unlocked = await usdLine(
           client,
           holder.classicAddress,
@@ -89,13 +96,23 @@ describe('IOU vertical (live testnet)', () => {
         )
         expect(unlocked?.freeze_peer ?? false).toBe(false)
 
-        await iou.transfer({ destination: holder.classicAddress, amount: 50 })
-        const afterTransfer = await usdLine(
-          client,
-          holder.classicAddress,
-          issuer.classicAddress,
+        await client.iou.transfer(
+          { ticker: 'USD', destination: holder.classicAddress, amount: 50 },
+          from,
         )
-        expect(Number(afterTransfer?.balance)).toBe(50)
+        // Read the holder's balance back through the SDK.
+        const retrieved = await client.iou.retrieve({
+          ticker: 'USD',
+          issuer: issuer.classicAddress,
+          account: holder.classicAddress,
+        })
+        expect(Number(retrieved.data?.balance)).toBe(50)
+        expect(retrieved.data?.currency).toBe('USD')
+        expect(retrieved.iouID).toBe(`USD.${issuer.classicAddress}`)
+
+        // The line also appears in the holder's full list.
+        const listed = await client.iou.list({ account: holder.classicAddress })
+        expect(listed.ious).toContain(`USD.${issuer.classicAddress}`)
       } finally {
         clearEnv()
         await client.disconnect()
@@ -116,8 +133,12 @@ describe('IOU vertical (live testnet)', () => {
           { clawbackEnabled: true },
           { from: issuer.classicAddress },
         )
-        const iou = await client.iou.issue({ ticker: 'USD' })
-        await iou.transfer({ destination: holder.classicAddress, amount: 50 })
+        const from = { from: issuer.classicAddress }
+        await client.iou.issue({ ticker: 'USD' })
+        await client.iou.transfer(
+          { ticker: 'USD', destination: holder.classicAddress, amount: 50 },
+          from,
+        )
 
         const funded = await usdLine(
           client,
@@ -126,7 +147,10 @@ describe('IOU vertical (live testnet)', () => {
         )
         expect(Number(funded?.balance)).toBe(50)
 
-        await iou.clawback({ holder: holder.classicAddress, amount: 50 })
+        await client.iou.clawback(
+          { ticker: 'USD', holder: holder.classicAddress, amount: 50 },
+          from,
+        )
         const clawed = await usdLine(
           client,
           holder.classicAddress,
@@ -148,25 +172,44 @@ describe('IOU vertical (live testnet)', () => {
       const [issuer, holder] = wallets
       seedEnv(issuer.seed as string, holder.seed as string)
       try {
-        const iou = await client.iou.issue({ ticker: 'USD' })
+        const from = { from: issuer.classicAddress }
+        await client.iou.issue({ ticker: 'USD' })
 
         // Issuer offers to sell 10 USD for 5 XRP; it should rest in the book.
-        await iou.sellOffer({
-          amount: 10,
-          orderType: 'limit',
-          price: { currency: 'XRP', amount: 5 },
+        await client.iou.sellOffer(
+          {
+            ticker: 'USD',
+            amount: 10,
+            orderType: 'limit',
+            price: { currency: 'XRP', amount: 5 },
+          },
+          from,
+        )
+        // Read the resting offer back through the SDK, shaped and tagged.
+        const resting = await client.account.listOffers({
+          account: issuer.classicAddress,
         })
-        const resting = await client.ledger.request<{
-          result: { offers: Array<{ seq: number }> }
-        }>({ command: 'account_offers', account: issuer.classicAddress })
-        expect(resting.result.offers.length).toBe(1)
-        const offerSequence = resting.result.offers[0].seq
+        expect(resting.data).toHaveLength(1)
+        const [offer] = resting.data
+        expect(offer.type).toBe('sell')
+        expect(offer.amount).toBe(10)
+        expect(offer.price).toEqual({ currency: 'XRP', amount: 5 })
 
-        await iou.cancelOffer({ offerSequence })
-        const afterCancel = await client.ledger.request<{
-          result: { offers: unknown[] }
-        }>({ command: 'account_offers', account: issuer.classicAddress })
-        expect(afterCancel.result.offers).toHaveLength(0)
+        // It is also visible in the USD order book.
+        const book = await client.iou.listOffers({
+          ticker: 'USD',
+          issuer: issuer.classicAddress,
+        })
+        expect(book.data.some((entry) => entry.type === 'sell')).toBe(true)
+
+        await client.iou.cancelOffer(
+          { offerSequence: offer.offerSequence },
+          from,
+        )
+        const afterCancel = await client.account.listOffers({
+          account: issuer.classicAddress,
+        })
+        expect(afterCancel.data).toHaveLength(0)
       } finally {
         clearEnv()
         await client.disconnect()
@@ -187,9 +230,12 @@ describe('IOU vertical (live testnet)', () => {
           { requireAuth: true },
           { from: issuer.classicAddress },
         )
-        const iou = await client.iou.issue({ ticker: 'USD' })
+        await client.iou.issue({ ticker: 'USD' })
 
-        await iou.authorize({ holder: holder.classicAddress })
+        await client.iou.authorize(
+          { ticker: 'USD', holder: holder.classicAddress },
+          { from: issuer.classicAddress },
+        )
         const line = await usdLine(
           client,
           holder.classicAddress,

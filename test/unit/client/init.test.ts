@@ -9,16 +9,16 @@ import {
 
 import { makeCustodian } from './test-utils.js'
 
-const RIPPLED = 'wss://example.invalid'
+const XRPLD = 'wss://example.invalid'
 
 describe('SimpleXRPL.init', () => {
   it('returns a SimpleXRPLClient bound to the network', async () => {
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       faucetUrl: 'https://faucet.invalid',
     })
     expect(client).toBeInstanceOf(SimpleXRPLClient)
-    expect(client.network.rippledUrl).toBe(RIPPLED)
+    expect(client.network.xrpldUrl).toBe(XRPLD)
     expect(client.network.faucetUrl).toBe('https://faucet.invalid')
   })
 
@@ -26,7 +26,7 @@ describe('SimpleXRPL.init', () => {
     const local = makeCustodian('local', ['rLocal1', 'rLocal2'])
     const custody = makeCustodian('ripple-custody', ['rCustody1'])
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [local, custody],
     })
     expect(
@@ -42,7 +42,7 @@ describe('SimpleXRPL.init', () => {
     const local = makeCustodian('local', ['rA'])
     const custody = makeCustodian('ripple-custody', ['rB'])
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [local, custody],
     })
     expect(client.primarySigner).toBe(local)
@@ -52,7 +52,7 @@ describe('SimpleXRPL.init', () => {
     const local = makeCustodian('local', ['rA'])
     const custody = makeCustodian('ripple-custody', ['rB'])
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [local, custody],
       primarySigner: custody,
     })
@@ -64,7 +64,7 @@ describe('SimpleXRPL.init', () => {
     const stranger = makeCustodian('palisade-custody', ['rZ'])
     await expect(
       SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [local],
         primarySigner: stranger,
       }),
@@ -75,7 +75,7 @@ describe('SimpleXRPL.init', () => {
     const local = makeCustodian('local', ['rShared'])
     const custody = makeCustodian('ripple-custody', ['rShared'])
     const promise = SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [local, custody],
     })
     await expect(promise).rejects.toBeInstanceOf(AmbiguousAccountError)
@@ -90,7 +90,7 @@ describe('SimpleXRPL.init', () => {
   it('does not treat one custodian listing the same address twice as ambiguous', async () => {
     const local = makeCustodian('local', ['rDup', 'rDup'])
     const client = await SimpleXRPL.init({
-      rippledUrl: RIPPLED,
+      xrpldUrl: XRPLD,
       signers: [local],
     })
     expect(client.accounts.size).toBe(1)
@@ -99,14 +99,14 @@ describe('SimpleXRPL.init', () => {
 
   describe('no-signer mode', () => {
     it('starts empty and usable when no signers are configured', async () => {
-      const client = await SimpleXRPL.init({ rippledUrl: RIPPLED })
+      const client = await SimpleXRPL.init({ xrpldUrl: XRPLD })
       expect(client.signers).toStrictEqual([])
       expect(client.primarySigner).toBeUndefined()
       expect(client.accounts.size).toBe(0)
     })
 
     it('throws NoSignerError from requireSigner and default resolveAccount', async () => {
-      const client = await SimpleXRPL.init({ rippledUrl: RIPPLED })
+      const client = await SimpleXRPL.init({ xrpldUrl: XRPLD })
       expect(() => client.requireSigner()).toThrow(NoSignerError)
       expect(() => client.resolveAccount()).toThrow(NoSignerError)
     })
@@ -116,7 +116,7 @@ describe('SimpleXRPL.init', () => {
     it('resolves by address, explicit address, signer, and signer/account pair', async () => {
       const local = makeCustodian('local', ['rPrimary', 'rSecond'])
       const client = await SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [local],
       })
       expect(client.resolveAccount('rSecond').address).toBe('rSecond')
@@ -132,7 +132,7 @@ describe('SimpleXRPL.init', () => {
     it('uses the primary signer primary account with no selector', async () => {
       const local = makeCustodian('local', ['rPrimary', 'rSecond'])
       const client = await SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [local],
       })
       expect(client.resolveAccount().address).toBe('rPrimary')
@@ -141,7 +141,7 @@ describe('SimpleXRPL.init', () => {
     it('throws AccountNotFoundError for an unknown address', async () => {
       const local = makeCustodian('local', ['rKnown'])
       const client = await SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [local],
       })
       expect(() => client.resolveAccount('rUnknown')).toThrow(
@@ -153,7 +153,7 @@ describe('SimpleXRPL.init', () => {
       const local = makeCustodian('local', ['rLocalOwned'])
       const custody = makeCustodian('ripple-custody', ['rCustodyOwned'])
       const client = await SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [local, custody],
       })
       expect(() =>
@@ -164,7 +164,7 @@ describe('SimpleXRPL.init', () => {
     it('throws AccountNotFoundError when the primary is not among discovered accounts', async () => {
       const local = makeCustodian('local', ['rReal'], 'rGhostPrimary')
       const client = await SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [local],
       })
       expect(() => client.resolveAccount()).toThrow(AccountNotFoundError)
@@ -178,7 +178,7 @@ describe('SimpleXRPL.init', () => {
     it('picks up added accounts and drops removed ones', async () => {
       const local = makeCustodian('local', ['rA'])
       const client = await SimpleXRPL.init({
-        rippledUrl: RIPPLED,
+        xrpldUrl: XRPLD,
         signers: [local],
       })
       expect(client.accounts.size).toBe(1)

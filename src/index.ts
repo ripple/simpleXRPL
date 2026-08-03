@@ -17,17 +17,24 @@ export * from './client/index.js'
 // Local signing backend (wallets held in-process).
 export * from './custodians/local/index.js'
 
+// External signing backend (KMS/HSM — key never leaves the secure boundary).
+export * from './custodians/external/index.js'
+
 // Ripple Custody signing backend (native + raw-signing paths).
 export * from './custodians/ripple/index.js'
+
+// Palisade custodian (native Submit* mapping + raw sign-only path).
+export * from './custodians/palisade/index.js'
 
 // Amount & asset model (XRP / IOU / MPT representation + decimal/scale conversion).
 export * from './amount/index.js'
 
-// Multi-step orchestration: commits an ordered (Transaction, Account)
-// sequence step by step, no rollback.
-export * from './orchestration/index.js'
+// Note: multi-step orchestration (`runMultiStep`) is intentionally internal —
+// callers sequence work through the vertical operations, which route each step to
+// the owning custodian, rather than assembling raw `(Transaction, Account)`
+// steps themselves.
 
-// Verticals (business-intent verbs), e.g. `client.xrp.transfer`, `IOU.issue`.
+// Verticals (business-intent operations), e.g. `client.xrp.transfer`, `IOU.issue`.
 export * from './verticals/index.js'
 
 // Production ledger port.
@@ -35,6 +42,9 @@ export * from './ledger/index.js'
 
 // Pipeline machinery (dispatch, submission host) — advanced / testing seams.
 export * from './pipeline/index.js'
+
+// Client-generated id generation (time-ordered UUIDv7 for idempotency).
+export * from './ids/index.js'
 
 // Internal domain model: the Custodian seam, accounts, capabilities, and the
 // typed submission result.
@@ -46,3 +56,18 @@ export * from './errors.js'
 
 // Injected I/O ports (HTTP, ledger, clock, logger) — advanced / testing seams.
 export * from './ports/index.js'
+
+// Re-exported `xrpl` types that appear in this SDK's public API (LedgerPort,
+// SubmitRequest, SubmissionResult, Custodian) so callers can build on those
+// seams without depending on `xrpl` directly.
+export type { SubmitResponse, Transaction, TxResponse } from 'xrpl'
+
+// Read-model helpers (currency decode, credential-free account resolution).
+export {
+  decodeCurrency,
+  dropsToXrpString,
+  readAccountAddress,
+} from './reads/read-helpers.js'
+
+// Shaped-offer read model (shared by the `listOffers` operations).
+export type { ListOffersResult, OfferSummary } from './reads/offers.js'

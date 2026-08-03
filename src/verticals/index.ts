@@ -11,16 +11,25 @@ export type {
   IOUCancelOfferParams,
   IOUClawbackIntent,
   IOUClawbackParams,
+  IOUIssueIntent,
   IOUIssueParams,
+  IOUListOffersParams,
+  IOUListParams,
+  IOUListResult,
   IOULockIntent,
   IOULockParams,
   IOUOfferParams,
   IOUOfferPrice,
   IOUOrderType,
+  IOURef,
+  IOURetrieveParams,
+  IOURetrieveResult,
+  IOURole,
   IOUTransferIntent,
   IOUTransferParams,
-} from './iou.js'
-export { IOUVertical } from './iou.vertical.js'
+  IOUTrustLine,
+  IOUWriteOptions,
+} from './iou.types.js'
 export { Token } from './token.js'
 export { validateTokenMetadata } from './token.helpers.js'
 export type {
@@ -29,19 +38,34 @@ export type {
   MptAuthorizeParams,
   MptDestroyParams,
   MptHolderParams,
+  MptFlags,
   MptIssueFlags,
   MptIssueIntent,
   MptIssueParams,
   MptLockParams,
   OfferFlags,
+  TokenData,
+  TokenListEntry,
+  TokenListOffersParams,
+  TokenListParams,
+  TokenListResult,
+  TokenRetrieveParams,
+  TokenRetrieveResult,
   TokenTransferParams,
   TokenWriteOptions,
 } from './token.types.js'
 export { Credential } from './credential.js'
 export type {
   CredentialAcceptParams,
+  CredentialData,
   CredentialDeleteParams,
   CredentialIssueParams,
+  CredentialListParams,
+  CredentialListResult,
+  CredentialRef,
+  CredentialRetrieveParams,
+  CredentialRetrieveResult,
+  CredentialRole,
   CredentialWriteOptions,
 } from './credential.types.js'
 export { Domain } from './domain.js'
@@ -49,7 +73,12 @@ export type {
   AcceptedCredential,
   DomainCreateParams,
   DomainDeleteParams,
+  DomainData,
   DomainIntent,
+  DomainListParams,
+  DomainListResult,
+  DomainRetrieveParams,
+  DomainRetrieveResult,
   DomainSetCredentialsParams,
   DomainWriteOptions,
 } from './domain.types.js'
@@ -57,7 +86,11 @@ export { AccountVertical } from './account.js'
 export type {
   AccountActivateParams,
   AccountCredentials,
+  AccountData,
   AccountFundParams,
+  AccountListOffersParams,
+  AccountRetrieveParams,
+  AccountRetrieveResult,
   AccountSetParams,
   AccountWriteOptions,
   DepositPreauthParams,

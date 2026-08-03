@@ -1,4 +1,8 @@
-import { dispatch, SignerCapabilityError } from '../../../src/index.js'
+import {
+  dispatch,
+  isNativePath,
+  SignerCapabilityError,
+} from '../../../src/index.js'
 import type {
   Account,
   Custodian,
@@ -6,6 +10,7 @@ import type {
   SignedEnvelope,
   SignerCapabilities,
   SubmissionHandle,
+  SubmissionPath,
   SubmissionResult,
 } from '../../../src/index.js'
 
@@ -26,7 +31,7 @@ function makeCustodian(
       return { txBlob: '' }
     },
     async submitAndWait(): Promise<SubmissionResult> {
-      return { source: 'rippled', response: {} as never, intent: undefined }
+      return { source: 'xrpld', response: {} as never, intent: undefined }
     },
     async submitAsync(): Promise<SubmissionHandle> {
       throw new Error('not used')
@@ -84,5 +89,18 @@ describe('dispatch', () => {
     expect(() => dispatch(accountOn(signer), 'Payment')).toThrow(
       SignerCapabilityError,
     )
+  })
+})
+
+describe('isNativePath', () => {
+  const cases: ReadonlyArray<[SubmissionPath, boolean]> = [
+    ['ripple-native', true],
+    ['palisade-native', true],
+    ['local', false],
+    ['ripple-raw', false],
+    ['palisade-raw', false],
+  ]
+  it.each(cases)('%s → native=%s', (path, expected) => {
+    expect(isNativePath(path)).toBe(expected)
   })
 })

@@ -23,12 +23,12 @@ function toSimpleXRPLError(error: unknown): SimpleXRPLError {
  * Run an ordered sequence of steps, committing each one before starting the
  * next. Each step runs through the single-step pipeline
  * ({@link submitTransaction} — Validate → Dispatch → Resolve → Sign+submit),
- * so multi-step verbs get the same protocol validation and dispatch rules as
- * any single-step verb, with no orchestrator-specific custodian logic.
+ * so multi-step operations get the same protocol validation and dispatch rules as
+ * any single-step operation, with no orchestrator-specific custodian logic.
  *
  * There is no rollback: if a step fails, every prior step has already
  * committed on-ledger/on-custodian. The caller reconciles manually, typically
- * by re-running just the failed step via its matching single-step verb.
+ * by re-running just the failed step via its matching single-step operation.
  *
  * @param host - The client subset the pipeline runs against.
  * @param steps - The ordered submission requests to run.

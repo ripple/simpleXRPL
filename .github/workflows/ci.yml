@@ -78,3 +78,42 @@ jobs:
         run: npm i -g npm@10 --registry=https://registry.npmjs.org
       - run: npm ci
       - run: npm run test:integration
+
+  # Live custodian contract tests (Palisade, AWS KMS) — gated on sandbox
+  # credentials supplied via repository/environment secrets. Runs only on merge
+  # to main, tags/releases, and manual dispatch — NOT on PRs (fork PRs don't get
+  # secrets, and we don't want an external sandbox gating every PR). Each suite
+  # still skips individually when its own secrets are absent.
+  contract-tests:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.ref == 'refs/heads/main' ||
+      startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        node-version: [22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Pin npm to v10
+        run: npm i -g npm@10 --registry=https://registry.npmjs.org
+      - run: npm ci
+      - name: Run custodian contract tests
+        env:
+          PALISADE_BASE_URL: ${{ secrets.PALISADE_BASE_URL }}
+          PALISADE_WALLETS_CLIENT_ID: ${{ secrets.PALISADE_WALLETS_CLIENT_ID }}
+          PALISADE_WALLETS_CLIENT_SECRET: ${{ secrets.PALISADE_WALLETS_CLIENT_SECRET }}
+          PALISADE_TX_CLIENT_ID: ${{ secrets.PALISADE_TX_CLIENT_ID }}
+          PALISADE_TX_CLIENT_SECRET: ${{ secrets.PALISADE_TX_CLIENT_SECRET }}
+          PALISADE_VAULT_ID: ${{ secrets.PALISADE_VAULT_ID }}
+          PALISADE_WALLET_ID: ${{ secrets.PALISADE_WALLET_ID }}
+          PALISADE_DEST_ADDRESS: ${{ secrets.PALISADE_DEST_ADDRESS }}
+          AWS_KMS_KEY_ID: ${{ secrets.AWS_KMS_KEY_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: npm run test:integration -- palisade-contract aws-kms-contract

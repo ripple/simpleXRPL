@@ -11,6 +11,7 @@ import type {
   OfferCreate,
   Payment,
   TrustSet,
+  TrustSetFlags as XrplTrustSetFlags,
 } from 'xrpl'
 
 import { LocalSigner } from '../custodians/local/index.js'
@@ -210,6 +211,50 @@ export function buildTrustSet(
     TransactionType: 'TrustSet',
     Account: account,
     LimitAmount: limitAmount,
+  }
+}
+
+/**
+ * Build a `TrustSet` extending trust to the maximum IOU limit — the hot-wallet
+ * step of {@link IOU.issue}.
+ *
+ * @param account - The holder (hot wallet) r-address.
+ * @param currency - The encoded currency code.
+ * @param issuer - The issuer r-address.
+ * @returns The built `TrustSet`.
+ */
+export function buildMaxTrustSet(
+  account: string,
+  currency: string,
+  issuer: string,
+): TrustSet {
+  return buildTrustSet(account, {
+    currency,
+    issuer,
+    value: MAX_IOU_TRUST_LIMIT,
+  })
+}
+
+/**
+ * Build a single-flag `TrustSet` freeze/unfreeze on a holder's trust line.
+ *
+ * @param issuerAddress - The issuer's r-address (the signing account).
+ * @param currency - The encoded currency code.
+ * @param target - The holder and the freeze flag to apply.
+ * @param target.holder - The holder's r-address whose line is (un)frozen.
+ * @param target.flag - The `TrustSet` freeze flag to apply.
+ * @returns The built `TrustSet`.
+ */
+export function buildFreeze(
+  issuerAddress: string,
+  currency: string,
+  target: { holder: string; flag: XrplTrustSetFlags },
+): TrustSet {
+  return {
+    TransactionType: 'TrustSet',
+    Account: issuerAddress,
+    LimitAmount: { currency, issuer: target.holder, value: '0' },
+    Flags: target.flag,
   }
 }
 

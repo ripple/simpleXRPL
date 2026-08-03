@@ -1,0 +1,64 @@
+/**
+ * Issue and distribute an IOU (trust-line currency) with Palisade-held accounts.
+ *
+ * `issue` sets up the trust line: the issuer enables rippling (`AccountSet`) and
+ * the hot wallet extends trust (`TrustSet`). Both are Palisade wallets here —
+ * pass the hot wallet via `holder`, and the issuer defaults to the primary
+ * signer. No value exists yet — `transfer` sends the currency out. Every
+ * operation acts as the issuer, selected via `from` (default: the primary).
+ */
+import { PalisadeCustody, SimpleXRPL } from 'simplexrpl'
+
+// The issuer wallet, held in Palisade (the primary signer). Palisade needs two
+// credentials: a wallet-read one (discovery) and a transactions one (signing).
+const palisade = await PalisadeCustody.create({
+  baseUrl: 'https://api.sandbox.palisade.co', // sandbox (TESTNET data)
+  credentials: {
+    wallets: {
+      clientId: process.env.PALISADE_WALLETS_CLIENT_ID ?? '',
+      clientSecret: process.env.PALISADE_WALLETS_CLIENT_SECRET ?? '',
+    },
+    transactions: {
+      clientId: process.env.PALISADE_TX_CLIENT_ID ?? '',
+      clientSecret: process.env.PALISADE_TX_CLIENT_SECRET ?? '',
+    },
+  },
+  primary: {
+    vaultId: process.env.PALISADE_VAULT_ID ?? '',
+    walletId: process.env.PALISADE_WALLET_ID ?? '',
+  },
+})
+
+const client = await SimpleXRPL.init({
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233', // XRPL Testnet
+  signers: [palisade],
+})
+
+// The hot wallet: a second Palisade wallet in the same org. It extends trust to
+// the issuer, and both accounts are signed by Palisade.
+const hotWallet = process.env.PALISADE_HOLDER_ADDRESS ?? ''
+
+// 1. Issue: AccountSet on the issuer (the primary) + a max-limit TrustSet on the
+//    hot wallet. Returns the IOU id, e.g. "USD.rIssuer...".
+const issued = await client.iou.issue({ ticker: 'USD', holder: hotWallet })
+console.log('issued', issued.intent.iouID)
+
+// 2. Distribute: send 1,000 USD from the issuer to the hot wallet, which now
+//    trusts it. Other holders extend their own trust line first.
+await client.iou.transfer({
+  ticker: 'USD',
+  destination: hotWallet,
+  amount: 1000,
+})
+
+// 3. Read it back (no signer required): the hot wallet's shaped USD trust line.
+//    The issuer is the second half of the iouID ("USD.rIssuer...").
+const [, issuer] = issued.intent.iouID.split('.')
+const line = await client.iou.retrieve({
+  ticker: 'USD',
+  issuer,
+  account: hotWallet,
+})
+console.log('hot wallet balance:', line.data?.balance ?? '0')
+
+await client.disconnect()

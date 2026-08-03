@@ -58,7 +58,7 @@ async function tokenClient(meta?: {
     request: async <T>(): Promise<T> => ({}) as T,
   }
   const client = await SimpleXRPL.init({
-    rippledUrl: 'wss://x.invalid',
+    xrpldUrl: 'wss://x.invalid',
     signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
     ledger,
   })
@@ -92,7 +92,7 @@ describe('Token vertical', () => {
         metadata: VALID_METADATA,
       })
 
-      expect(result.source).toBe('rippled')
+      expect(result.source).toBe('xrpld')
       expect(result.intent).toStrictEqual({ mptIssuanceId: 'MPT-1' })
 
       const tx = txs[0] as MPTokenIssuanceCreate

@@ -54,7 +54,7 @@ export async function recordingClient(options?: {
     Wallet.generate(),
   )
   const client = await SimpleXRPL.init({
-    rippledUrl: 'wss://x.invalid',
+    xrpldUrl: 'wss://x.invalid',
     signers: signers.map((wallet) =>
       LocalSigner.fromSeed(wallet.seed as string),
     ),

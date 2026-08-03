@@ -3,13 +3,14 @@ import {
   AmbiguousAccountError,
   CustodyApiError,
   CustodyAuthError,
+  DuplicateSignerError,
   IntentPendingError,
   IntentValidationError,
   MultiStepFailureError,
   NoSignerError,
   PalisadeApiError,
   PalisadeAuthError,
-  RippledSubmitError,
+  XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
 } from '../../src/index.js'
@@ -50,6 +51,14 @@ describe('error hierarchy', () => {
     expect(err.custodians).toStrictEqual(['local', 'ripple-custody'])
   })
 
+  it('DuplicateSignerError carries the kind and tenant id', () => {
+    const err = new DuplicateSignerError('ripple-custody', 'domain-x')
+    expect(err.kind).toBe('ripple-custody')
+    expect(err.tenantId).toBe('domain-x')
+    expect(err.message).toContain('domain-x')
+    expect(err).toBeInstanceOf(SimpleXRPLError)
+  })
+
   it('CustodyApiError preserves status, hint, and raw body', () => {
     const raw = { error: 'nope' }
     const err = new CustodyApiError(403, raw, 'insufficient role')
@@ -83,8 +92,8 @@ describe('error hierarchy', () => {
     expect(err.lastState).toBe('AwaitingApproval')
   })
 
-  it('RippledSubmitError preserves the engine result', () => {
-    const err = new RippledSubmitError('tecPATH_DRY', { foo: 1 })
+  it('XrpldSubmitError preserves the engine result', () => {
+    const err = new XrpldSubmitError('tecPATH_DRY', { foo: 1 })
     expect(err.engineResult).toBe('tecPATH_DRY')
     expect(err.raw).toStrictEqual({ foo: 1 })
   })

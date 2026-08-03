@@ -8,6 +8,9 @@ export default [
       'coverage/',
       'node_modules/',
       'docs/',
+      // Doc samples: type-checked via tsconfig.examples.json, not linted with
+      // the strict src rules (they use console + placeholder literals).
+      'examples/',
       // Generated from vendored OpenAPI specs — never hand-edited or linted.
       'src/generated/',
       // Tooling configs are CommonJS / plain JS, not part of the typed project.
@@ -42,7 +45,9 @@ export default [
       'import/extensions': 'off',
       'import/no-named-as-default': 'off',
       'multiline-comment-style': 'off',
-      'id-length': ['error', { exceptions: ['_'] }],
+      // `r`/`s` (ECDSA signature scalars) and `x`/`y` (EC point coordinates)
+      // are the standard one-letter names in elliptic-curve code.
+      'id-length': ['error', { exceptions: ['_', 'r', 's', 'x', 'y'] }],
       'no-shadow': 'off',
       '@typescript-eslint/no-shadow': ['error'],
       'max-lines-per-function': [
@@ -59,6 +64,16 @@ export default [
       'jsdoc/require-hyphen-before-param-description': 'off',
       'jsdoc/require-description-complete-sentence': 'off',
       'tsdoc/syntax': 'off',
+    },
+  },
+  {
+    // Vertical classes aggregate many business verbs plus their read methods,
+    // and the Palisade custodian aggregates every signing/submission path
+    // (native, async, raw) plus its API wiring — both legitimately run longer
+    // than the default file budget.
+    files: ['src/verticals/*.ts', 'src/custodians/palisade/palisade-custody.ts'],
+    rules: {
+      'max-lines': ['warn', { max: 350, skipBlankLines: true, skipComments: true }],
     },
   },
   {

@@ -4,6 +4,7 @@ import { SignerCapabilityError } from '../errors.js'
 /** The concrete route a write takes once dispatched. */
 export type SubmissionPath =
   | 'local'
+  | 'external'
   | 'ripple-native'
   | 'ripple-raw'
   | 'palisade-native'
@@ -27,6 +28,11 @@ export function dispatch(
   const { signer } = account
   if (signer.kind === 'local') {
     return 'local'
+  }
+  // External (KMS/HSM) is a local-family signer: it signs any transactor and
+  // submits through the shared ledger, so it needs no capability gating.
+  if (signer.kind === 'external') {
+    return 'external'
   }
 
   const capabilities = signer.capabilities()

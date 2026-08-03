@@ -13,7 +13,7 @@ describe('XRP.transfer (live testnet)', () => {
           amount: '10',
         })
 
-        expect(result.source).toBe('rippled')
+        expect(result.source).toBe('xrpld')
         expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
         expect(result.intent).toStrictEqual({
           to: destination.classicAddress,

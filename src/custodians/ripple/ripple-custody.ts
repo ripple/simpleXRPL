@@ -164,7 +164,7 @@ export class RippleCustody implements Custodian, IntentObserver {
     const envelope = await this.signRaw(tx, ctx)
     const response = await ctx.ledger.submitAndWait(envelope.txBlob)
     return {
-      source: 'rippled',
+      source: 'xrpld',
       response,
       intent: undefined,
       txHash: response.result.hash,

@@ -31,6 +31,16 @@
         "default": "./dist/cjs/index.js"
       }
     },
+    "./aws-kms": {
+      "import": {
+        "types": "./dist/esm/custodians/external/adapters/aws-kms.d.ts",
+        "default": "./dist/esm/custodians/external/adapters/aws-kms.js"
+      },
+      "require": {
+        "types": "./dist/cjs/custodians/external/adapters/aws-kms.d.ts",
+        "default": "./dist/cjs/custodians/external/adapters/aws-kms.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -42,13 +52,14 @@
     "clean": "rimraf dist coverage tsconfig.*.tsbuildinfo",
     "typegen": "run-s typegen:custody typegen:palisade",
     "typegen:custody": "openapi-typescript openapi/custody-v1.35-openapi.json -o src/generated/custody.ts && prettier --write src/generated/custody.ts",
-    "typegen:palisade": "openapi-typescript openapi/palisade-api.yaml -o src/generated/palisade.ts && prettier --write src/generated/palisade.ts",
+    "typegen:palisade": "openapi-typescript openapi/palisade-api.yaml -o src/generated/palisade.ts && node scripts/gen-palisade-routes.mjs && prettier --write src/generated/palisade.ts src/generated/palisade-routes.ts",
     "prebuild": "npm run clean",
     "build": "run-s build:cjs build:esm fixup",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
     "fixup": "node scripts/fixup-dist.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:examples": "tsc -p tsconfig.examples.json",
     "test": "jest --config jest.config.unit.cjs",
     "test:watch": "jest --config jest.config.unit.cjs --watch",
     "test:integration": "jest --config jest.config.integration.cjs --runInBand",
@@ -57,6 +68,8 @@
     "format": "prettier --write \"{src,test,scripts}/**/*.{ts,mjs}\"",
     "format:check": "prettier --check \"{src,test,scripts}/**/*.{ts,mjs}\"",
     "docgen": "typedoc",
+    "docgen:md": "typedoc --options typedoc.md.json",
+    "docgen:routing": "node scripts/gen-connector-routing.mjs",
     "prepublishOnly": "run-s clean build"
   },
   "prettier": "@xrplf/prettier-config",
@@ -66,10 +79,20 @@
     "canonicalize": "^2.0.0",
     "xrpl": "^4.1.0"
   },
+  "peerDependencies": {
+    "@aws-sdk/client-kms": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@aws-sdk/client-kms": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@aws-sdk/client-kms": "^3.1092.0",
     "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.17.0",
+    "@noble/curves": "^1.9.7",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.0",
     "@xrplf/eslint-config": "^3.0.0",
@@ -90,8 +113,10 @@
     "openapi-typescript": "^7.5.0",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
+    "ripple-keypairs": "^2.0.0",
     "ts-jest": "^29.2.5",
     "typedoc": "^0.27.6",
+    "typedoc-plugin-markdown": "^4.4.0",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.1"
   },

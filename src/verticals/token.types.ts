@@ -3,46 +3,100 @@ import type { MPTokenMetadata } from 'xrpl'
 import type { Amount } from '../amount/index.js'
 import type { AccountSelector, FeeIntent } from '../domain/index.js'
 
-/** Per-call options shared by the token verbs. */
+/** Per-call options shared by the token operations. */
 export interface TokenWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */
   readonly from?: AccountSelector
 
   /** Fee override. */
   readonly fee?: FeeIntent
+
+  /**
+   * A prior submission's `idempotencyKey` (from its result), to retry to the
+   * same intent instead of creating a duplicate (§8). Auto-generated when omitted.
+   */
+  readonly idempotencyKey?: string
 }
 
-/** Capability flags for an MPT issuance. */
+/**
+ * Capability flags for an MPT issuance. Every flag is optional; any flag left
+ * unset takes the SDK default below (a fully capable, transferable token).
+ * These capabilities are **permanent** once the issuance is created.
+ */
 export interface MptIssueFlags {
-  /** The issuer can lock the token (globally or per-holder). */
+  /**
+   * The issuer can lock the token (globally or per-holder).
+   *
+   * @defaultValue `true`
+   */
   readonly canLock?: boolean
-  /** Holders must be authorized before they can hold the token. */
+  /**
+   * Holders must be authorized before they can hold the token (allow-listing).
+   *
+   * @defaultValue `false`
+   */
   readonly requireAuth?: boolean
-  /** The token can be used in escrows. */
+  /**
+   * The token can be used in escrows.
+   *
+   * @defaultValue `true`
+   */
   readonly canEscrow?: boolean
-  /** The token can be traded on the DEX. */
+  /**
+   * The token can be traded on the DEX.
+   *
+   * @defaultValue `true`
+   */
   readonly canTrade?: boolean
-  /** The token can be transferred between holders. */
+  /**
+   * The token can be transferred between holders.
+   *
+   * @defaultValue `true`
+   */
   readonly canTransfer?: boolean
-  /** The issuer can claw back the token. */
+  /**
+   * The issuer can claw back the token.
+   *
+   * @defaultValue `true`
+   */
   readonly canClawback?: boolean
 }
 
 /** Parameters for `Token.issue`. */
 export interface MptIssueParams {
-  /** Decimal places between display value and base units. */
+  /**
+   * Decimal places between display value and base units.
+   *
+   * @defaultValue `2`
+   */
   readonly assetScale?: number
-  /** Maximum issuable amount, in base units. */
+  /**
+   * Maximum issuable amount, in base units.
+   *
+   * @defaultValue Uncapped — the protocol maximum (no `MaximumAmount` is set).
+   */
   readonly maximumAmount?: string
-  /** Transfer fee on secondary sales, as a percentage (0.5 = 0.5%, 0–50). */
+  /**
+   * Transfer fee on secondary sales, as a percentage (0.5 = 0.5%, range 0–50).
+   *
+   * @defaultValue `0` — no transfer fee.
+   */
   readonly transferFee?: number
   /**
    * Token metadata (required): a structured object (encoded per the XLS-89
    * standard) or a raw string (UTF-8 hex-encoded as-is). Either way it is
-   * validated against XLS-89; non-adherence is rejected.
+   * validated against XLS-89; non-adherence is rejected. There is no default —
+   * the SDK never substitutes placeholder metadata.
+   *
+   * @see {@link https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0089-multi-purpose-token-metadata-schema | XLS-89: Multi-Purpose Token Metadata Schema}
    */
   readonly metadata: MPTokenMetadata | string
-  /** Capability flags. */
+  /**
+   * Capability flags. Any flag omitted (or the whole object omitted) takes the
+   * per-flag SDK default; see {@link MptIssueFlags}.
+   *
+   * @defaultValue `{ canLock: true, requireAuth: false, canEscrow: true, canTrade: true, canTransfer: true, canClawback: true }`
+   */
   readonly flags?: MptIssueFlags
 }
 
@@ -82,15 +136,32 @@ export interface TokenTransferParams {
   readonly amount: Amount
 }
 
-/** Flags for `Token.createOffer`. */
+/** Flags for `Token.createOffer`. Every flag defaults to `false` (a plain,
+ * resting limit offer that buys `TakerPays` with `TakerGets`). */
 export interface OfferFlags {
-  /** Do not consume offers that exactly match. */
+  /**
+   * Do not consume offers that exactly match.
+   *
+   * @defaultValue `false`
+   */
   readonly passive?: boolean
-  /** Consume matching offers immediately; never place the remainder. */
+  /**
+   * Consume matching offers immediately; never place the remainder.
+   *
+   * @defaultValue `false`
+   */
   readonly immediateOrCancel?: boolean
-  /** Consume the full amount or cancel entirely. */
+  /**
+   * Consume the full amount or cancel entirely.
+   *
+   * @defaultValue `false`
+   */
   readonly fillOrKill?: boolean
-  /** Interpret the offer as selling `TakerGets`. */
+  /**
+   * Interpret the offer as selling `TakerGets`.
+   *
+   * @defaultValue `false`
+   */
   readonly sell?: boolean
 }
 
@@ -104,7 +175,11 @@ export interface CreateOfferParams {
   readonly expiration?: number
   /** A prior offer sequence to replace. */
   readonly offerSequence?: number
-  /** Offer flags. */
+  /**
+   * Offer flags. Omit for a plain resting limit offer.
+   *
+   * @defaultValue No flags set — see {@link OfferFlags} (all `false`).
+   */
   readonly flags?: OfferFlags
 }
 
@@ -118,4 +193,98 @@ export interface CancelOfferParams {
 export interface MptIssueIntent {
   /** The id of the newly created MPT issuance. */
   readonly mptIssuanceId: string
+}
+
+/** An MPT issuance's capability flags, decoded to booleans. */
+export interface MptFlags {
+  /** The issuer can lock the token. */
+  readonly canLock: boolean
+  /** Holders must be authorized before holding. */
+  readonly requireAuth: boolean
+  /** The token can be used in escrows. */
+  readonly canEscrow: boolean
+  /** The token can be traded on the DEX. */
+  readonly canTrade: boolean
+  /** The token can be transferred between holders. */
+  readonly canTransfer: boolean
+  /** The issuer can claw back the token. */
+  readonly canClawback: boolean
+}
+
+/** A shaped MPT issuance (from `ledger_entry`). */
+export interface TokenData {
+  /** The MPT issuance id. */
+  readonly tokenID: string
+  /** The issuer r-address. */
+  readonly issuer: string
+  /** Decimal places between display value and base units. */
+  readonly assetScale: number
+  /** Maximum issuable amount (base units), if capped. */
+  readonly maximumAmount?: string
+  /** Amount currently in circulation (base units). */
+  readonly outstandingAmount: string
+  /** Secondary-transfer fee, as a percentage. */
+  readonly transferFee: number
+  /** Capability flags. */
+  readonly flags: MptFlags
+  /** Decoded XLS-89 metadata, if present and well-formed. */
+  readonly metadata?: MPTokenMetadata
+}
+
+/** Parameters for {@link Token.retrieve}. */
+export interface TokenRetrieveParams {
+  /** The MPT issuance id to fetch. */
+  readonly mptIssuanceId: string
+}
+
+/** Result of {@link Token.retrieve}. */
+export interface TokenRetrieveResult {
+  /** The queried MPT issuance id. */
+  readonly tokenID: string
+  /** The issuance snapshot, or `undefined` if no such issuance exists. */
+  readonly data: TokenData | undefined
+}
+
+/** An entry in {@link Token.list}: a full issuance (issuer) or a holding. */
+export interface TokenListEntry {
+  /** The MPT issuance id. */
+  readonly tokenID: string
+  /** The account's balance (present for `role: 'holder'`). */
+  readonly balance?: string
+  /** The full issuance snapshot (present for `role: 'issuer'`). */
+  readonly issuance?: TokenData
+}
+
+/** Parameters for {@link Token.list}. */
+export interface TokenListParams {
+  /**
+   * List tokens the account `holder`s or `issuer`d.
+   *
+   * @defaultValue `'holder'`
+   */
+  readonly role?: 'holder' | 'issuer'
+  /**
+   * The account to query; defaults to the primary signer's account.
+   *
+   * @defaultValue The primary signer's account.
+   */
+  readonly account?: string
+}
+
+/** Result of {@link Token.list}: `tokens[i]` corresponds to `data[i]`. */
+export interface TokenListResult {
+  /** The MPT issuance id of each token. */
+  readonly tokens: readonly string[]
+  /** The shaped entries. */
+  readonly data: readonly TokenListEntry[]
+}
+
+/** Parameters for {@link Token.listOffers}. */
+export interface TokenListOffersParams {
+  /**
+   * The account whose offers to list.
+   *
+   * @defaultValue The primary signer's account.
+   */
+  readonly account?: string
 }

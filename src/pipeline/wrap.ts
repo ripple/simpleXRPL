@@ -12,13 +12,14 @@ export function withIntent<T>(
   result: SubmissionResult,
   intent: T,
 ): SubmissionResult<T> {
-  const { intentId, txHash } = result
+  const { intentId, txHash, idempotencyKey } = result
   switch (result.source) {
     case 'custody':
       return {
         intent,
         intentId,
         txHash,
+        idempotencyKey,
         source: 'custody',
         response: result.response,
       }
@@ -27,16 +28,18 @@ export function withIntent<T>(
         intent,
         intentId,
         txHash,
+        idempotencyKey,
         source: 'palisade',
         response: result.response,
       }
-    case 'rippled':
+    case 'xrpld':
     default:
       return {
         intent,
         intentId,
         txHash,
-        source: 'rippled',
+        idempotencyKey,
+        source: 'xrpld',
         response: result.response,
       }
   }

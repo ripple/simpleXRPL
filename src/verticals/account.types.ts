@@ -26,17 +26,28 @@ export interface AccountFundParams {
 export interface AccountActivateParams {
   /** The r-address to activate (typically from `Account.create`). */
   readonly destination: string
-  /** XRP to send; defaults to the network's base reserve. */
+  /**
+   * XRP to send.
+   *
+   * @defaultValue The network's base reserve plus a small buffer (so the new
+   *   account can afford its own follow-up `defaultRipple` transaction).
+   */
   readonly amount?: string
 }
 
-/** Per-call options shared by the account verbs. */
+/** Per-call options shared by the account operations. */
 export interface AccountWriteOptions {
   /** Source account; defaults to the primary signer's primary account. */
   readonly from?: AccountSelector
 
   /** Fee override. */
   readonly fee?: FeeIntent
+
+  /**
+   * A prior submission's `idempotencyKey` (from its result), to retry to the
+   * same intent instead of creating a duplicate (§8). Auto-generated when omitted.
+   */
+  readonly idempotencyKey?: string
 }
 
 /**
@@ -47,6 +58,9 @@ export interface AccountWriteOptions {
  * A single `AccountSet` can enable at most one flag and disable at most one, so
  * toggling more than one flag in the same direction is rejected — call
  * `set()` once per such change.
+ *
+ * Any field left unset is **left unchanged** on the account — omitting a flag
+ * neither enables nor disables it; the SDK applies no defaults here.
  */
 export interface AccountSetParams {
   // Irreversible flags.
@@ -92,4 +106,44 @@ export interface DepositPreauthParams {
   readonly authorize?: string
   /** An r-address to remove preauthorization from. */
   readonly unauthorize?: string
+}
+
+/** Parameters for {@link AccountVertical.retrieve}. */
+export interface AccountRetrieveParams {
+  /**
+   * The account to read.
+   *
+   * @defaultValue The primary signer's account.
+   */
+  readonly account?: string
+}
+
+/** A shaped account snapshot (from `account_info`). */
+export interface AccountData {
+  /** The account's r-address. */
+  readonly address: string
+  /** The XRP balance (converted from drops). */
+  readonly xrpBalance: string
+  /** The account sequence number. */
+  readonly sequence: number
+  /** The number of owned ledger objects (drives the reserve). */
+  readonly ownerCount: number
+  /** Account flags as booleans, as reported by `account_flags`. */
+  readonly flags: Readonly<Record<string, boolean>>
+}
+
+/** Result of {@link AccountVertical.retrieve}. */
+export interface AccountRetrieveResult {
+  /** The point-in-time account snapshot. */
+  readonly data: AccountData
+}
+
+/** Parameters for {@link AccountVertical.listOffers}. */
+export interface AccountListOffersParams {
+  /**
+   * The account whose offers to list.
+   *
+   * @defaultValue The primary signer's account.
+   */
+  readonly account?: string
 }

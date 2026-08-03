@@ -14,40 +14,42 @@ describe('Credential (live testnet)', () => {
           destination: subject.classicAddress,
           credType: 'KYC',
         })
-        expect(created.source).toBe('rippled')
+        expect(created.source).toBe('xrpld')
 
         // Subject accepts it.
         const accepted = await client.credential.accept(
           { issuer: issuer.classicAddress, credType: 'KYC' },
           { from: subject.classicAddress },
         )
-        expect(accepted.source).toBe('rippled')
+        expect(accepted.source).toBe('xrpld')
 
-        // The accepted credential is on-ledger under the subject.
-        const objects = await client.ledger.request<{
-          result: { account_objects: unknown[] }
-        }>({
-          command: 'account_objects',
+        // Read it back through the SDK: retrieve reports it accepted, and it
+        // shows up in the subject's credential list.
+        const retrieved = await client.credential.retrieve({
+          credType: 'KYC',
+          issuer: issuer.classicAddress,
           account: subject.classicAddress,
-          type: 'credential',
         })
-        expect(objects.result.account_objects.length).toBeGreaterThanOrEqual(1)
+        expect(retrieved.data?.accepted).toBe(true)
+        expect(retrieved.data?.credType).toBe('KYC')
+        const listed = await client.credential.list({
+          account: subject.classicAddress,
+        })
+        expect(listed.data.some((cred) => cred.credType === 'KYC')).toBe(true)
 
-        // The issuer deletes it, and it drops off the subject's objects.
+        // The issuer deletes it, and it drops off both reads.
         const deleted = await client.credential.delete({
           holder: subject.classicAddress,
           credType: 'KYC',
         })
-        expect(deleted.source).toBe('rippled')
+        expect(deleted.source).toBe('xrpld')
 
-        const afterDelete = await client.ledger.request<{
-          result: { account_objects: unknown[] }
-        }>({
-          command: 'account_objects',
+        const afterDelete = await client.credential.retrieve({
+          credType: 'KYC',
+          issuer: issuer.classicAddress,
           account: subject.classicAddress,
-          type: 'credential',
         })
-        expect(afterDelete.result.account_objects).toHaveLength(0)
+        expect(afterDelete.data).toBeUndefined()
       } finally {
         await client.disconnect()
       }
