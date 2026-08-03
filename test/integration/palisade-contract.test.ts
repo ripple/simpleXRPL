@@ -1,5 +1,7 @@
+import type { Payment } from 'xrpl'
+
 import { PalisadeCustody, SimpleXRPL, XrplLedger } from '../../src/index.js'
-import type { PalisadeCustodyConfig } from '../../src/index.js'
+import type { Account, PalisadeCustodyConfig } from '../../src/index.js'
 
 import { ensureFunded, TESTNET_WS } from './helpers/testnet.js'
 
@@ -53,14 +55,17 @@ function sandboxConfig(): PalisadeCustodyConfig | undefined {
     PALISADE_VAULT_ID: vaultId,
     PALISADE_WALLET_ID: walletId,
   } = env
+  // Treat blank as absent: an unset GitHub Actions secret expands to an empty
+  // string (not `undefined`), so `=== undefined` alone would let the suite run
+  // with empty credentials and fail the token exchange instead of skipping.
   if (
-    baseUrl === undefined ||
-    walletsId === undefined ||
-    walletsSecret === undefined ||
-    txId === undefined ||
-    txSecret === undefined ||
-    vaultId === undefined ||
-    walletId === undefined
+    !baseUrl ||
+    !walletsId ||
+    !walletsSecret ||
+    !txId ||
+    !txSecret ||
+    !vaultId ||
+    !walletId
   ) {
     return undefined
   }
@@ -84,8 +89,25 @@ function sandboxConfig(): PalisadeCustodyConfig | undefined {
 const config = sandboxConfig()
 const describeIfSandbox = config === undefined ? describe.skip : describe
 
-// eslint-disable-next-line n/no-process-env -- optional Payment destination from the environment
+/* eslint-disable n/no-process-env -- optional contract-test inputs from the environment */
+// A second org wallet's r-address, used as the Payment destination.
 const destAddress = process.env.PALISADE_DEST_ADDRESS
+// Opt-in flag for the mutating freeze/cancel test, which needs a wallet whose
+// approval policy keeps intents pending long enough to freeze.
+const cancelOptIn = process.env.PALISADE_CANCEL_TEST
+// Opt-in flag for the raw sign-only test. The SDK side is correct and
+// unit-tested: it polls for the async signature and sets SigningPubKey from the
+// wallet's public key. But end-to-end raw signing is blocked by Palisade, in
+// two layers we verified against the sandbox:
+//   1. raw signing must be enabled in the wallet's settings (otherwise every
+//      raw tx is a policy Violation), and
+//   2. even with it enabled, the sandbox HSM returns a signature XRPL rejects
+//      as "Invalid signature" — it fails to verify against the account's master
+//      key, and fails identically when Palisade publishes it itself
+//      (signOnly:false). That's a Palisade-side signing issue, not the SDK.
+// Enable this only against a wallet where Palisade produces a valid signature.
+const rawOptIn = process.env.PALISADE_RAW_TEST
+/* eslint-enable n/no-process-env */
 
 describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
   // Non-null: describeIfSandbox is `describe.skip` when config is undefined,
@@ -161,7 +183,280 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
     SUBMIT_TEST_TIMEOUT_MS,
   )
 
-  // FreezeTransaction-as-cancel is custodial-org only and mutates sandbox
-  // state; exercise it only against a wallet dedicated to contract testing.
-  it.todo('cancel places a reversible freeze hold on a pending intent')
+  // The typed secondary surface (`palisade.api.call`) against the live API.
+  // Read-only operations only — safe to run without mutating sandbox state.
+  describe('palisade.api (typed secondary surface)', () => {
+    it(
+      'lists org wallets via api.call, routing to the wallet-read credential',
+      async () => {
+        const custody = await PalisadeCustody.create(cfg)
+        const result = await custody.api.call(
+          'VaultService_ListGlobalWallets',
+          {
+            query: { pageSize: 100 },
+          },
+        )
+
+        // The generated route resolves, the read credential authorizes, and the
+        // response is typed: the configured primary is in the org's wallet list.
+        expect(result.wallets).toBeDefined()
+        expect(
+          result.wallets?.some(
+            (wallet) =>
+              wallet.id === cfg.primary.walletId &&
+              wallet.vaultId === cfg.primary.vaultId,
+          ),
+        ).toBe(true)
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'reads wallet balances via api.call, interpolating live path params',
+      async () => {
+        const custody = await PalisadeCustody.create(cfg)
+        const balances = await custody.api.call(
+          'BalanceService_GetWalletBalances',
+          {
+            path: {
+              vaultId: cfg.primary.vaultId,
+              walletId: cfg.primary.walletId,
+            },
+            query: { currencyCode: 'USD' },
+          },
+        )
+
+        // Path params interpolated into `/v2/vaults/{vaultId}/wallets/{walletId}
+        // /balances` and the response echoes the requested currency.
+        expect(balances.currencyCode).toBe('USD')
+      },
+      LIVE_TIMEOUT_MS,
+    )
+  })
+
+  itIfDest(
+    'submitAsync returns a handle that polls and waits to a terminal state',
+    async () => {
+      // The async native path: Palisade accepts the intent and hands back a
+      // handle to observe, rather than blocking to terminal like submitAndWait.
+      const custody = await PalisadeCustody.create(cfg)
+      const ledger = new XrplLedger(TESTNET_WS)
+      const accounts = await custody.listAccounts()
+      const account = accounts.find(
+        (acct) => acct.address === custody.primary.address,
+      ) as Account
+      const payment: Payment = {
+        TransactionType: 'Payment',
+        Account: custody.primary.address,
+        Destination: destAddress as string,
+        Amount: '1',
+      }
+      try {
+        const handle = await custody.submitAsync(payment, {
+          account,
+          ledger,
+          async: true,
+          timeoutMs: SUBMIT_TIMEOUT_MS,
+        })
+        expect(handle.kind).toBe('palisade-custody')
+        expect(typeof handle.id).toBe('string')
+        expect(handle.id.length).toBeGreaterThan(0)
+
+        // A non-blocking snapshot, then block to a terminal state.
+        const snapshot = await handle.poll()
+        expect(snapshot.source).toBe('palisade')
+        const final = await handle.wait(SUBMIT_TIMEOUT_MS)
+        expect(final.source).toBe('palisade')
+        expect(final.txHash).toMatch(/^[0-9A-F]{64}$/u)
+      } finally {
+        await ledger.disconnect()
+      }
+    },
+    SUBMIT_TEST_TIMEOUT_MS,
+  )
+
+  // Palisade signs raw transactions asynchronously — the POST to
+  // `/transactions/raw` returns before `signedTransaction` is populated — so
+  // sign() polls until the signature is ready (a sign-only tx stops at SIGNED).
+  // Opt-in: needs a raw-permitting wallet (PALISADE_RAW_TEST) and a known
+  // destination; the polling itself is covered by unit tests.
+  const itIfRaw = rawOptIn && destAddress ? it : it.skip
+  itIfRaw(
+    'raw-signs a non-native transactor and submits it through the ledger',
+    async () => {
+      // A Payment carrying InvoiceID has no native Palisade transfer slot, so
+      // it falls back to the raw sign-only path: Palisade signs asynchronously
+      // (polled to SIGNED), then the SDK submits the blob through the shared
+      // ledger — the result is xrpld-sourced, not palisade-governed. The
+      // destination is the known org wallet the native transfer test also uses,
+      // so it clears the wallet's transfer policy.
+      const custody = await PalisadeCustody.create({
+        ...cfg,
+        allowRawSigning: true,
+      })
+      const ledger = new XrplLedger(TESTNET_WS)
+      const accounts = await custody.listAccounts()
+      const account = accounts.find(
+        (acct) => acct.address === custody.primary.address,
+      ) as Account
+      const payment: Payment = {
+        TransactionType: 'Payment',
+        Account: custody.primary.address,
+        Destination: destAddress as string,
+        Amount: '1',
+        InvoiceID: 'A'.repeat(64),
+      }
+      try {
+        const result = await custody.submitAndWait(payment, {
+          account,
+          ledger,
+          timeoutMs: SUBMIT_TIMEOUT_MS,
+        })
+        expect(result.source).toBe('xrpld')
+        expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
+      } finally {
+        await ledger.disconnect()
+      }
+    },
+    SUBMIT_TEST_TIMEOUT_MS,
+  )
+
+  // FreezeTransaction-as-cancel mutates sandbox state and needs an intent that
+  // stays pending (an approval policy) — opt in with PALISADE_CANCEL_TEST and a
+  // wallet dedicated to contract testing; skipped otherwise.
+  const itIfCancel = cancelOptIn ? it : it.skip
+  itIfCancel(
+    'cancel places a reversible freeze hold on a pending intent',
+    async () => {
+      const custody = await PalisadeCustody.create(cfg)
+      const ledger = new XrplLedger(TESTNET_WS)
+      const accounts = await custody.listAccounts()
+      const account = accounts.find(
+        (acct) => acct.address === custody.primary.address,
+      ) as Account
+      const payment: Payment = {
+        TransactionType: 'Payment',
+        Account: custody.primary.address,
+        Destination: destAddress ?? custody.primary.address,
+        Amount: '1',
+      }
+      try {
+        const handle = await custody.submitAsync(payment, {
+          account,
+          ledger,
+          async: true,
+          timeoutMs: SUBMIT_TIMEOUT_MS,
+        })
+        expect(handle.cancel).toBeDefined()
+        // Freeze the still-pending intent; a terminal one would reject.
+        await (handle.cancel as () => Promise<void>)()
+        const after = await handle.poll()
+        expect(after.source).toBe('palisade')
+      } finally {
+        await ledger.disconnect()
+      }
+    },
+    SUBMIT_TEST_TIMEOUT_MS,
+  )
+
+  it(
+    'tag-based routing sends a scoped operation to its registered credential',
+    async () => {
+      // Listing wallet transactions is a `Transactions`-tagged GET. Under
+      // method-based routing (a) it goes to the wallet-read credential, which
+      // lacks transaction-read scope → 403. Registering a `Transactions`-scoped
+      // credential (b) routes it there instead, and it succeeds — proving the
+      // scope override changes which credential authorizes the call.
+      const args = {
+        path: { vaultId: cfg.primary.vaultId, walletId: cfg.primary.walletId },
+      } as const
+
+      const unscoped = await PalisadeCustody.create(cfg)
+      await expect(
+        unscoped.api.call('TransactionsService_ListWalletTransactions', args),
+      ).rejects.toThrow()
+
+      const scoped = await PalisadeCustody.create({
+        ...cfg,
+        credentials: {
+          ...cfg.credentials,
+          scoped: { Transactions: cfg.credentials.transactions },
+        },
+      })
+      const res = await scoped.api.call(
+        'TransactionsService_ListWalletTransactions',
+        args,
+      )
+      expect(res.transactions).toBeDefined()
+    },
+    LIVE_TIMEOUT_MS,
+  )
+
+  it(
+    'signs and submits a native AccountSet through Palisade',
+    async () => {
+      // AccountSet maps to Palisade's native /xrp/account-set endpoint. Set a
+      // benign Domain (non-gating, unlike a flag) so it can't affect the other
+      // tests, and confirm it reaches a terminal palisade-governed result.
+      const custody = await PalisadeCustody.create(cfg)
+      const client = await SimpleXRPL.init({
+        xrpldUrl: TESTNET_WS,
+        signers: [custody],
+        ledger: new XrplLedger(TESTNET_WS),
+      })
+      await client.connect()
+      try {
+        const result = await client.account.set({
+          domain: 'contract-test.simplexrpl.example',
+        })
+        expect(result.source).toBe('palisade')
+        expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
+      } finally {
+        await client.disconnect()
+      }
+    },
+    SUBMIT_TEST_TIMEOUT_MS,
+  )
+
+  it(
+    'places and cancels a native DEX offer through Palisade',
+    async () => {
+      // OfferCreate and OfferCancel map to Palisade's native /xrp/offer-create
+      // and /xrp/offer-cancel. The primary issues USD; rest a limit sell offer,
+      // then cancel it by sequence — both are palisade-governed native ops.
+      const custody = await PalisadeCustody.create(cfg)
+      const client = await SimpleXRPL.init({
+        xrpldUrl: TESTNET_WS,
+        signers: [custody],
+        ledger: new XrplLedger(TESTNET_WS),
+      })
+      await client.connect()
+      try {
+        const offer = await client.iou.sellOffer({
+          ticker: 'USD',
+          amount: 1,
+          orderType: 'limit',
+          price: { currency: 'XRP', amount: 1 },
+        })
+        expect(offer.source).toBe('palisade')
+        expect(offer.txHash).toMatch(/^[0-9A-F]{64}$/u)
+
+        const mine = await client.account.listOffers()
+        expect(mine.data.length).toBeGreaterThan(0)
+        const cancel = await client.iou.cancelOffer({
+          offerSequence: mine.data[mine.data.length - 1].offerSequence,
+        })
+        expect(cancel.source).toBe('palisade')
+      } finally {
+        await client.disconnect()
+      }
+    },
+    SUBMIT_TEST_TIMEOUT_MS,
+  )
+
+  // NOTE: intent polling for Palisade is covered by the submitAsync test above
+  // (handle.poll()/wait()). The client-level `client.intent.status/await`
+  // resume-by-id surface is RippleCustody-only: it requires an `IntentObserver`
+  // custodian, and Palisade's GET-transaction is wallet-scoped (no global
+  // /transactions/{id}), so an intent id alone can't address it.
 })

@@ -25,6 +25,11 @@ function isIntentObserver(
  * timed out with an {@link IntentPendingError}, or a `submitAsync` handle was
  * not retained). The SDK is a proposer/observer only — it never approves,
  * rejects, or configures policy.
+ *
+ * Only custodians that expose governance intents by id (Ripple Custody) are
+ * observable here. Palisade intents are observed through the handle returned by
+ * `submitAsync` (`poll()`/`wait()`) instead: its transactions are wallet-scoped
+ * and can't be addressed by an intent id alone.
  */
 export class IntentInspector {
   private readonly observers: ReadonlyArray<Custodian & IntentObserver>

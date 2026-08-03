@@ -101,6 +101,7 @@ export async function discoverXrplWallets(
     return {
       address: wallet.address,
       alias: wallet.name,
+      publicKey: wallet.publicKey,
       custodianRef,
       signer,
     }

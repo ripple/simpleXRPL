@@ -45,6 +45,13 @@ export interface Account extends AccountRef {
    */
   readonly ledgerId?: string
 
+  /**
+   * The account's XRPL public key (hex), when the custodian exposes it. Used to
+   * populate `SigningPubKey` on transactions signed by a backend that returns
+   * only the signature (e.g. Palisade's raw sign-only path).
+   */
+  readonly publicKey?: string
+
   /** The custodian that discovered and signs for this account. */
   readonly signer: Custodian
 

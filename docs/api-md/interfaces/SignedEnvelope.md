@@ -1,6 +1,6 @@
 # Interface: SignedEnvelope
 
-Defined in: [domain/model.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L67)
+Defined in: [domain/model.ts:74](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L74)
 
 A signed transaction ready to submit to xrpld.
 
@@ -10,7 +10,7 @@ A signed transaction ready to submit to xrpld.
 
 > `readonly` `optional` **hash**: `string`
 
-Defined in: [domain/model.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L72)
+Defined in: [domain/model.ts:79](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L79)
 
 The transaction hash, when the backend returns it.
 
@@ -20,6 +20,6 @@ The transaction hash, when the backend returns it.
 
 > `readonly` **txBlob**: `string`
 
-Defined in: [domain/model.ts:69](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L69)
+Defined in: [domain/model.ts:76](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L76)
 
 The signed transaction blob (hex).

@@ -107,33 +107,34 @@ export class PalisadeTxTracker {
     submitted: PalisadeTransaction,
     timeoutMs?: number,
   ): Promise<PalisadeTransaction> {
-    const attempts = Math.max(
-      1,
-      Math.ceil((timeoutMs ?? this.timeoutMs) / POLL_INTERVAL_MS),
-    )
-    let current = submitted
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      if (current.status === TERMINAL_SUCCESS) {
-        return current
-      }
-      if (TERMINAL_FAILURE.has(current.status)) {
-        throw new SimpleXRPLError(
-          `Palisade transaction ${current.id} ${current.status}`,
-        )
-      }
-      if (attempt + 1 < attempts) {
-        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        await new Promise((resolve) => {
-          setTimeout(resolve, POLL_INTERVAL_MS)
-        })
-        // GET returns the transaction directly (not wrapped in `{ transaction }`).
-        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        current = await this.client.get<PalisadeTransaction>(
-          `${base}/${current.id}`,
-        )
-      }
-    }
-    throw new IntentPendingError(current.id, 'palisade-custody', current.status)
+    return this.pollUntil(base, submitted, {
+      timeoutMs,
+      isDone: (tx) => tx.status === TERMINAL_SUCCESS,
+    })
+  }
+
+  /**
+   * Poll a raw (sign-only) transaction until its signature is available.
+   * Palisade signs asynchronously: the initial POST can return before the
+   * signing pipeline runs, and a sign-only request stops at `SIGNED` rather
+   * than publishing — so waiting on {@link pollUntilTerminal} would never reach
+   * `CONFIRMED`. This resolves as soon as `signedTransaction` is populated.
+   *
+   * @param base - The wallet-relative transactions base path.
+   * @param submitted - The initial raw-sign response.
+   * @param timeoutMs - Optional per-call timeout override.
+   * @returns The transaction carrying the signed blob.
+   * @throws {@link IntentPendingError} on timeout; {@link SimpleXRPLError} on failure.
+   */
+  public async pollUntilSigned(
+    base: string,
+    submitted: PalisadeTransaction,
+    timeoutMs?: number,
+  ): Promise<PalisadeTransaction> {
+    return this.pollUntil(base, submitted, {
+      timeoutMs,
+      isDone: (tx) => tx.signedTransaction !== undefined,
+    })
   }
 
   /**
@@ -147,6 +148,53 @@ export class PalisadeTxTracker {
   public async fetch(base: string, id: string): Promise<PalisadeTransaction> {
     // GET returns the transaction directly (not wrapped in `{ transaction }`).
     return this.client.get<PalisadeTransaction>(`${base}/${id}`)
+  }
+
+  /**
+   * Poll a submitted transaction until `isDone` holds, sleeping between GETs.
+   * A `REJECTED`/`FAILED` status short-circuits as an error before the timeout.
+   *
+   * @param base - The wallet-relative transactions base path.
+   * @param submitted - The initial submit response.
+   * @param options - Per-call timeout override and the completion predicate.
+   * @param options.timeoutMs - Optional per-call timeout override.
+   * @param options.isDone - Predicate marking the desired terminal state.
+   * @returns The transaction once `isDone` holds.
+   * @throws {@link IntentPendingError} on timeout; {@link SimpleXRPLError} on failure.
+   */
+  private async pollUntil(
+    base: string,
+    submitted: PalisadeTransaction,
+    options: {
+      timeoutMs: number | undefined
+      isDone: (tx: PalisadeTransaction) => boolean
+    },
+  ): Promise<PalisadeTransaction> {
+    const { timeoutMs, isDone } = options
+    const attempts = Math.max(
+      1,
+      Math.ceil((timeoutMs ?? this.timeoutMs) / POLL_INTERVAL_MS),
+    )
+    let current = submitted
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      if (TERMINAL_FAILURE.has(current.status)) {
+        throw new SimpleXRPLError(
+          `Palisade transaction ${current.id} ${current.status}`,
+        )
+      }
+      if (isDone(current)) {
+        return current
+      }
+      if (attempt + 1 < attempts) {
+        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
+        await new Promise((resolve) => {
+          setTimeout(resolve, POLL_INTERVAL_MS)
+        })
+        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
+        current = await this.fetch(base, current.id)
+      }
+    }
+    throw new IntentPendingError(current.id, 'palisade-custody', current.status)
   }
 
   /**

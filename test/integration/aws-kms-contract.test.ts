@@ -17,13 +17,19 @@ import { TESTNET_FAUCET, TESTNET_WS } from './helpers/testnet.js'
 const LIVE_TIMEOUT_MS = 120_000
 
 /**
- * Read the KMS key id from the environment.
+ * Read the KMS key id from the environment, requiring a region too — the AWS
+ * SDK errors on an empty region before it ever reaches the key.
  *
- * @returns The key id, or `undefined` if unset.
+ * @returns The key id, or `undefined` if the key id or region is unset/blank.
  */
 function kmsKeyId(): string | undefined {
-  // eslint-disable-next-line n/no-process-env -- contract tests read KMS config from the environment by design
-  return process.env.AWS_KMS_KEY_ID
+  /* eslint-disable n/no-process-env -- contract tests read KMS config from the environment by design */
+  const keyId = process.env.AWS_KMS_KEY_ID
+  const region = process.env.AWS_REGION
+  /* eslint-enable n/no-process-env */
+  // Treat blank as absent: an unset GitHub Actions secret expands to an empty
+  // string (not `undefined`), so a truthiness check skips instead of erroring.
+  return keyId && region ? keyId : undefined
 }
 
 const keyId = kmsKeyId()

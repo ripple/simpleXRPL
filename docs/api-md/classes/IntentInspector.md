@@ -1,6 +1,6 @@
 # Class: IntentInspector
 
-Defined in: [client/intent-inspector.ts:29](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L29)
+Defined in: [client/intent-inspector.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L34)
 
 Read-only observation of custodian governance intents the SDK previously
 created (TDD §10.4): resume polling or waiting on an intent by id after its
@@ -9,13 +9,18 @@ timed out with an [IntentPendingError](IntentPendingError.md), or a `submitAsync
 not retained). The SDK is a proposer/observer only — it never approves,
 rejects, or configures policy.
 
+Only custodians that expose governance intents by id (Ripple Custody) are
+observable here. Palisade intents are observed through the handle returned by
+`submitAsync` (`poll()`/`wait()`) instead: its transactions are wallet-scoped
+and can't be addressed by an intent id alone.
+
 ## Constructors
 
 ### new IntentInspector()
 
 > **new IntentInspector**(`signers`): [`IntentInspector`](IntentInspector.md)
 
-Defined in: [client/intent-inspector.ts:38](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L38)
+Defined in: [client/intent-inspector.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L43)
 
 Construct an intent inspector over the client's signers.
 
@@ -35,7 +40,7 @@ Construct an intent inspector over the client's signers.
 
 > **await**(`intentId`, `timeoutMs`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [client/intent-inspector.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L63)
+Defined in: [client/intent-inspector.ts:68](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L68)
 
 Resume blocking on an intent until it reaches a terminal state.
 
@@ -70,7 +75,7 @@ The terminal submission result.
 
 > **handleFor**(`intentId`): [`SubmissionHandle`](../interfaces/SubmissionHandle.md)
 
-Defined in: [client/intent-inspector.ts:78](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L78)
+Defined in: [client/intent-inspector.ts:83](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L83)
 
 Build a handle over an intent by id, via the first custodian that can
 observe governance intents.
@@ -97,7 +102,7 @@ A handle to poll or wait on the intent.
 
 > **status**(`intentId`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [client/intent-inspector.ts:49](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L49)
+Defined in: [client/intent-inspector.ts:54](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L54)
 
 A non-blocking snapshot of an intent's current state.
 
