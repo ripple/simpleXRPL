@@ -2683,8 +2683,7 @@ export interface components {
     }
     /** @enum {string} */
     Core_AccountLedgerProcessingDetails_Pending_Hint:
-      | 'TransientIssue'
-      | 'InternalError'
+      'TransientIssue' | 'InternalError'
     Core_AccountLedgerProcessingDetails_Preparing: {
       hint?: components['schemas']['Core_AccountLedgerProcessingDetails_Preparing_Hint']
       /**
@@ -2695,8 +2694,7 @@ export interface components {
     }
     /** @enum {string} */
     Core_AccountLedgerProcessingDetails_Preparing_Hint:
-      | 'TransientIssue'
-      | 'InternalError'
+      'TransientIssue' | 'InternalError'
     Core_AccountLedgerProcessingDetails_Recovering: {
       hint?: components['schemas']['Core_AccountLedgerProcessingDetails_Recovering_Hint']
       /**
@@ -2707,8 +2705,7 @@ export interface components {
     }
     /** @enum {string} */
     Core_AccountLedgerProcessingDetails_Recovering_Hint:
-      | 'TransientIssue'
-      | 'InternalError'
+      'TransientIssue' | 'InternalError'
     Core_AccountLedgerProcessingDetails_Tracked: {
       hint?: components['schemas']['Core_AccountLedgerProcessingDetails_Tracked_Hint']
       /**
@@ -2719,13 +2716,10 @@ export interface components {
     }
     /** @enum {string} */
     Core_AccountLedgerProcessingDetails_Tracked_Hint:
-      | 'TransientIssue'
-      | 'InternalError'
+      'TransientIssue' | 'InternalError'
     /** @enum {string} */
     Core_AccountLedgerStatus:
-      | 'Activating'
-      | 'AwaitingLedgerActivation'
-      | 'Activated'
+      'Activating' | 'AwaitingLedgerActivation' | 'Activated'
     Core_AccountProcessingDetails:
       | components['schemas']['Core_AccountProcessingDetails_Completed']
       | components['schemas']['Core_AccountProcessingDetails_Interrupted']
@@ -3065,9 +3059,7 @@ export interface components {
       | 'TransientIssue'
     /** @enum {string} */
     Core_ApiInterruptedTransactionCause:
-      | 'Cancellation'
-      | 'Internal'
-      | 'Replacement'
+      'Cancellation' | 'Internal' | 'Replacement'
     Core_ApiManifest: {
       data: components['schemas']['Core_Manifest']
       /** Format: base64 */
@@ -3356,10 +3348,7 @@ export interface components {
     }
     /** @enum {string} */
     Core_BackupProcessingStatus:
-      | 'Pending'
-      | 'Preparing'
-      | 'Completed'
-      | 'Failed'
+      'Pending' | 'Preparing' | 'Completed' | 'Failed'
     /** @enum {string} */
     Core_BackupType: 'VaultHsm' | 'VaultMpc'
     Core_BackupUpdated: {
@@ -3448,11 +3437,7 @@ export interface components {
     }
     /** @enum {string} */
     Core_BitcoinLikeVaultLedgerIdentifier:
-      | 'btc'
-      | 'ltc'
-      | 'bch'
-      | 'doge'
-      | 'dash'
+      'btc' | 'ltc' | 'bch' | 'doge' | 'dash'
     Core_BitcoinOnLedgerDataInput: {
       accountReference?: components['schemas']['Core_AccountReference']
       address?: string
@@ -4977,10 +4962,7 @@ export interface components {
     Core_LedgerTransactionFailure: 'FailedOnChain' | 'PartiallyFailedOnChain'
     /** @enum {string} */
     Core_LedgerTransactionStatus:
-      | 'Detected'
-      | 'Confirmed'
-      | 'Expired'
-      | 'Replaced'
+      'Detected' | 'Confirmed' | 'Expired' | 'Replaced'
     Core_LedgerUpdated: {
       id: string
       /**
@@ -5118,10 +5100,7 @@ export interface components {
     }
     /** @enum {string} */
     Core_ManifestProcessingStatus:
-      | 'Pending'
-      | 'Preparing'
-      | 'Completed'
-      | 'Failed'
+      'Pending' | 'Preparing' | 'Completed' | 'Failed'
     Core_ManifestUpdated: {
       /** Format: uuid */
       id: string
@@ -7174,9 +7153,7 @@ export interface components {
     }
     /** @enum {string} */
     Core_TrustedPublicKeyPurpose:
-      | 'ApiSignatures'
-      | 'TrustedCollectionSignatures'
-      | 'MessagingSignatures'
+      'ApiSignatures' | 'TrustedCollectionSignatures' | 'MessagingSignatures'
     Core_TrustedPublicKeyUpdated: {
       /** Format: base64 */
       publicKey: string
@@ -8630,11 +8607,7 @@ export interface components {
     }
     /** @enum {string} */
     CoreExtensions_InvitationStatus:
-      | 'Pending'
-      | 'DeviceRegistered'
-      | 'Expired'
-      | 'Cancelled'
-      | 'Completed'
+      'Pending' | 'DeviceRegistered' | 'Expired' | 'Cancelled' | 'Completed'
     /** @enum {string} */
     CoreExtensions_InvitationStatusQuery:
       | 'Pending'
@@ -8659,11 +8632,7 @@ export interface components {
     }
     /** @enum {string} */
     CoreExtensions_SortBy:
-      | 'Code'
-      | 'ValidUntil'
-      | 'CreatedAt'
-      | 'LastModifiedAt'
-      | 'Alias'
+      'Code' | 'ValidUntil' | 'CreatedAt' | 'LastModifiedAt' | 'Alias'
     /** @enum {string} */
     CoreExtensions_SortOrder: 'ASC' | 'DESC'
     CoreExtensions_UserEditIn: {
@@ -8763,15 +8732,12 @@ export interface components {
     }
     /** @enum {string} */
     VirtualAccounting_DepositIdentificationSourceStatus:
-      | 'Active'
-      | 'Pending'
-      | 'Inactive'
+      'Active' | 'Pending' | 'Inactive'
     /** @enum {string} */
     VirtualAccounting_DepositIdentificationSourceType: 'CustodyAccount'
     /** @enum {string} */
     VirtualAccounting_DepositIdentificationStrategy:
-      | 'MaximizeSegregation'
-      | 'MinimizeSegregation'
+      'MaximizeSegregation' | 'MinimizeSegregation'
     VirtualAccounting_DepositIdentificationStrategyBase: components['schemas']['VirtualAccounting_MaximizeSegregationDepositStrategy']
     VirtualAccounting_ExclusionList: {
       exclusionReason: string
@@ -8895,16 +8861,10 @@ export interface components {
     VirtualAccounting_TransferKind: 'Transfer'
     /** @enum {string} */
     VirtualAccounting_TransferSortBy:
-      | 'Id'
-      | 'TickerId'
-      | 'Status'
-      | 'RegisteredAt'
+      'Id' | 'TickerId' | 'Status' | 'RegisteredAt'
     /** @enum {string} */
     VirtualAccounting_TransferStatus:
-      | 'None'
-      | 'Pending'
-      | 'Failed'
-      | 'Completed'
+      'None' | 'Pending' | 'Failed' | 'Completed'
     VirtualAccounting_VaMetadata: {
       description: string
       /** Format: date-time */
@@ -8942,11 +8902,7 @@ export interface components {
     }
     /** @enum {string} */
     VirtualAccounting_VirtualAccountSortBy:
-      | 'Id'
-      | 'Alias'
-      | 'VirtualLedgerId'
-      | 'CreatedAt'
-      | 'LastUpdatedAt'
+      'Id' | 'Alias' | 'VirtualLedgerId' | 'CreatedAt' | 'LastUpdatedAt'
     VirtualAccounting_VirtualAccountUpdate: {
       alias: string
       description: string
@@ -8984,10 +8940,7 @@ export interface components {
     }
     /** @enum {string} */
     VirtualAccounting_VirtualLedgerSortBy:
-      | 'Id'
-      | 'Alias'
-      | 'CreatedAt'
-      | 'LastUpdatedAt'
+      'Id' | 'Alias' | 'CreatedAt' | 'LastUpdatedAt'
     VirtualAccounting_VirtualLedgerUpdate: {
       alias: string
       exclusionList: components['schemas']['VirtualAccounting_ExclusionList'][]
@@ -9916,10 +9869,7 @@ export interface operations {
         startingAfter?: string
         /** @description Property name used to sort the query results. */
         sortBy?:
-          | 'id'
-          | 'alias'
-          | 'metadata.createdAt'
-          | 'metadata.lastModifiedAt'
+          'id' | 'alias' | 'metadata.createdAt' | 'metadata.lastModifiedAt'
         /** @description Sort order applied to the query results. */
         sortOrder?: components['schemas']['Core_SortOrder']
         /**
@@ -11879,10 +11829,7 @@ export interface operations {
         startingAfter?: string
         /** @description Property name used to sort the query results. */
         sortBy?:
-          | 'id'
-          | 'accountId'
-          | 'metadata.createdAt'
-          | 'metadata.lastModifiedAt'
+          'id' | 'accountId' | 'metadata.createdAt' | 'metadata.lastModifiedAt'
         /** @description Sort order applied to the query results. */
         sortOrder?: components['schemas']['Core_SortOrder']
         /**
@@ -13291,10 +13238,7 @@ export interface operations {
         startingAfter?: string
         /** @description Property name used to sort the query results. */
         sortBy?:
-          | 'id'
-          | 'alias'
-          | 'metadata.createdAt'
-          | 'metadata.lastModifiedAt'
+          'id' | 'alias' | 'metadata.createdAt' | 'metadata.lastModifiedAt'
         /** @description Sort order applied to the query results. */
         sortOrder?: components['schemas']['Core_SortOrder']
       }
@@ -13556,10 +13500,7 @@ export interface operations {
         startingAfter?: string
         /** @description Property name used to sort the query results. */
         sortBy?:
-          | 'id'
-          | 'alias'
-          | 'metadata.createdAt'
-          | 'metadata.lastModifiedAt'
+          'id' | 'alias' | 'metadata.createdAt' | 'metadata.lastModifiedAt'
         /** @description Sort order applied to the query results. */
         sortOrder?: components['schemas']['Core_SortOrder']
       }
