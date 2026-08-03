@@ -1167,11 +1167,7 @@ export interface components {
     }
     /** @enum {string} */
     approvalv2ApprovalSetStatus:
-      | 'PENDING'
-      | 'MET'
-      | 'NOT_MET'
-      | 'EXPIRED'
-      | 'FAILED'
+      'PENDING' | 'MET' | 'NOT_MET' | 'EXPIRED' | 'FAILED'
     /** @enum {string} */
     approvalv2ApprovalStatus: 'PROCESSING' | 'APPROVED' | 'REJECTED'
     approvalv2ApprovalSummary: {
@@ -1402,11 +1398,7 @@ export interface components {
     }
     /** @enum {string} */
     identityv1ApprovalSetStatus:
-      | 'PENDING'
-      | 'MET'
-      | 'NOT_MET'
-      | 'EXPIRED'
-      | 'FAILED'
+      'PENDING' | 'MET' | 'NOT_MET' | 'EXPIRED' | 'FAILED'
     /** @enum {string} */
     identityv1ApprovalStatus: 'PROCESSING' | 'APPROVED' | 'REJECTED'
     identityv1ApprovalSummary: {
@@ -1476,10 +1468,7 @@ export interface components {
     }
     /** @enum {string} */
     identityv1WalletStatus:
-      | 'CREATED'
-      | 'PROVISIONING'
-      | 'PROVISIONED'
-      | 'PROVISIONING_FAILED'
+      'CREATED' | 'PROVISIONING' | 'PROVISIONED' | 'PROVISIONING_FAILED'
     protobufAny: {
       '@type'?: string
     } & {
@@ -1549,10 +1538,7 @@ export interface components {
     }
     /** @enum {string} */
     transactionsv2AddressType:
-      | 'COUNTERPARTY'
-      | 'WALLET'
-      | 'EXTERNAL'
-      | 'ALLOW_ADDRESS'
+      'COUNTERPARTY' | 'WALLET' | 'EXTERNAL' | 'ALLOW_ADDRESS'
     transactionsv2Asset: {
       /**
        * @description The asset symbol
@@ -1587,10 +1573,7 @@ export interface components {
     }
     /** @enum {string} */
     transactionsv2OfferCreateFlags:
-      | 'PASSIVE'
-      | 'IMMEDIATE_OR_CANCEL'
-      | 'FILL_OR_KILL'
-      | 'SELL'
+      'PASSIVE' | 'IMMEDIATE_OR_CANCEL' | 'FILL_OR_KILL' | 'SELL'
     transactionsv2SignerEntry: {
       /**
        * @description Wallet address of the signer. The wallet does not need to exist.
@@ -2076,8 +2059,7 @@ export interface components {
     }
     /** @enum {string} */
     v2BlockchainStatus:
-      | 'RPC_ENDPOINT_TYPE_ENABLED'
-      | 'RPC_ENDPOINT_TYPE_DISABLED'
+      'RPC_ENDPOINT_TYPE_ENABLED' | 'RPC_ENDPOINT_TYPE_DISABLED'
     v2BoolFilter: {
       /** @description Equals */
       eq?: boolean
@@ -3315,9 +3297,7 @@ export interface components {
     }
     /** @enum {string} */
     v2QuorumType:
-      | 'QUORUM_TYPE_MOBILE'
-      | 'QUORUM_TYPE_CLOUD'
-      | 'QUORUM_TYPE_MIXED'
+      'QUORUM_TYPE_MOBILE' | 'QUORUM_TYPE_CLOUD' | 'QUORUM_TYPE_MIXED'
     v2RPCEndpoint: {
       /**
        * @description The RPC endpoint URL
@@ -3349,12 +3329,7 @@ export interface components {
     v2Retryability: 'RETRYABLE' | 'NOT_RETRYABLE'
     /** @enum {string} */
     v2Role:
-      | 'ADMINISTRATOR'
-      | 'APPROVER'
-      | 'AUDITOR'
-      | 'OWNER'
-      | 'PROPOSER'
-      | 'VIEWER'
+      'ADMINISTRATOR' | 'APPROVER' | 'AUDITOR' | 'OWNER' | 'PROPOSER' | 'VIEWER'
     v2S3Config: {
       /** @description S3 bucket name */
       bucket?: string
@@ -3489,12 +3464,7 @@ export interface components {
       | 'ADDRESS'
     /** @enum {string} */
     v2Standard:
-      | 'NATIVE'
-      | 'ERC20'
-      | 'ISSUED_CURRENCY'
-      | 'ERC721'
-      | 'SPL'
-      | 'CUSTOM'
+      'NATIVE' | 'ERC20' | 'ISSUED_CURRENCY' | 'ERC721' | 'SPL' | 'CUSTOM'
     v2StringFilter: {
       /** @description Exact match */
       eq?: string
@@ -4259,10 +4229,7 @@ export interface components {
     }
     /** @enum {string} */
     xrpv2OfferCreateFlags:
-      | 'PASSIVE'
-      | 'IMMEDIATE_OR_CANCEL'
-      | 'FILL_OR_KILL'
-      | 'SELL'
+      'PASSIVE' | 'IMMEDIATE_OR_CANCEL' | 'FILL_OR_KILL' | 'SELL'
     xrpv2SignerEntry: {
       account?: string
       /** Format: int64 */

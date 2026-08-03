@@ -38,6 +38,21 @@ describe('HttpCustodyAuthPort', () => {
     expect(form.get('signature')).toBe('sig-b64')
   })
 
+  it('uses a custom client_id when provided', async () => {
+    const http = new FakeHttpPort(() => ok({ access_token: 'jwt-123' }))
+    const port = new HttpCustodyAuthPort({
+      tokenUrl: TOKEN_URL,
+      http,
+      clientId: 'my-custom-client',
+    })
+
+    await port.fetchToken(CHALLENGE)
+
+    const [request] = http.requests
+    const form = new URLSearchParams(request.body)
+    expect(form.get('client_id')).toBe('my-custom-client')
+  })
+
   it('throws CustodyAuthError on a non-2xx response', async () => {
     const http = new FakeHttpPort(() => status(401, { error: 'bad' }))
     const port = new HttpCustodyAuthPort({ tokenUrl: TOKEN_URL, http })

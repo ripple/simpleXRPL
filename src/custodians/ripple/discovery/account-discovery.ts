@@ -1,5 +1,5 @@
 import type { Account, Custodian } from '../../../domain/index.js'
-import type { operations } from '../../../generated/custody.js'
+import type { components, operations } from '../../../generated/custody.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 /** Custody's max page size for collection endpoints. */
@@ -17,10 +17,15 @@ type LedgersResponse = SuccessJson<operations['getLedgers']>
 type AccountsResponse = SuccessJson<operations['getAccounts']>
 type AddressesResponse = SuccessJson<operations['getAddresses']>
 
-/** A Custody collection page: a list of items plus an optional next cursor. */
+/**
+ * A Custody collection page: a list of items plus an optional next cursor.
+ * Custody's API returns a literal `null` for `nextStartingAfter` on the last
+ * page (not an omitted field), so the cursor must be treated as absent for
+ * both `null` and `undefined`.
+ */
 interface Page<T> {
   items: T[]
-  nextStartingAfter?: string
+  nextStartingAfter?: string | null
 }
 
 /**
@@ -39,7 +44,7 @@ async function collectPages<T>(
     // eslint-disable-next-line no-await-in-loop -- Cursor pagination is inherently sequential.
     const page = await fetchPage(cursor)
     all.push(...page.items)
-    cursor = page.nextStartingAfter
+    cursor = page.nextStartingAfter ?? undefined
   } while (cursor !== undefined && cursor !== '')
   return all
 }
@@ -78,13 +83,21 @@ interface AddressLookup {
   xrplLedgerIds: Set<string>
 }
 
+/** One external XRPL address, with the ledger id it's actually on. */
+interface ExternalAddress {
+  address: string
+  ledgerId: string
+}
+
 /**
  * List the external XRPL addresses of one Custody account.
  *
  * @param lookup - The client, domain, account, and XRPL ledger ids.
- * @returns The external r-addresses for the account.
+ * @returns The external r-addresses for the account, each with its ledger id.
  */
-async function listExternalAddresses(lookup: AddressLookup): Promise<string[]> {
+async function listExternalAddresses(
+  lookup: AddressLookup,
+): Promise<ExternalAddress[]> {
   const { client, domainId, accountId, xrplLedgerIds } = lookup
   const path = `/v1/domains/${domainId}/accounts/${accountId}/addresses`
   const addresses = await collectPages(async (startingAfter) =>
@@ -95,7 +108,31 @@ async function listExternalAddresses(lookup: AddressLookup): Promise<string[]> {
     .filter(
       (data) => data.scope === 'External' && xrplLedgerIds.has(data.ledgerId),
     )
-    .map((data) => data.address)
+    .map((data) => ({ address: data.address, ledgerId: data.ledgerId }))
+}
+
+/**
+ * Whether a Custody account has a usable XRPL ledger — either via the legacy
+ * single top-level `ledgerId` field, or (for multi-ledger Vault accounts,
+ * which report `ledgerId: null` at the top level) an `Activated` entry in
+ * `additionalDetails.ledgers`.
+ *
+ * @param apiAccount - The raw Custody API account envelope.
+ * @param xrplLedgerIds - The XRPL ledger ids in this Custody environment.
+ * @returns `true` if this account has an activated XRPL ledger.
+ */
+function hasActivatedXrplLedger(
+  apiAccount: components['schemas']['Core_ApiAccount'],
+  xrplLedgerIds: Set<string>,
+): boolean {
+  const { ledgerId } = apiAccount.data
+  if (ledgerId !== undefined && xrplLedgerIds.has(ledgerId)) {
+    return true
+  }
+  return (apiAccount.additionalDetails?.ledgers ?? []).some(
+    (entry) =>
+      entry.status === 'Activated' && xrplLedgerIds.has(entry.ledgerId),
+  )
 }
 
 /**
@@ -125,11 +162,8 @@ export async function discoverXrplAccounts(
   )
 
   const xrplAccounts = apiAccounts
+    .filter((apiAccount) => hasActivatedXrplLedger(apiAccount, xrplLedgerIds))
     .map((apiAccount) => apiAccount.data)
-    .filter(
-      (account) =>
-        account.ledgerId !== undefined && xrplLedgerIds.has(account.ledgerId),
-    )
 
   const accounts: Account[] = []
   for (const account of xrplAccounts) {
@@ -140,11 +174,12 @@ export async function discoverXrplAccounts(
       accountId: account.id,
       xrplLedgerIds,
     })
-    for (const address of addresses) {
+    for (const { address, ledgerId } of addresses) {
       accounts.push({
         address,
         alias: account.alias,
         custodianRef: account.id,
+        ledgerId,
         signer,
       })
     }

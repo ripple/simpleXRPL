@@ -8,10 +8,7 @@ import type { SignerCapabilities } from './capabilities.js'
  * The signing backend a custodian adapts.
  */
 export type CustodianKind =
-  | 'local'
-  | 'ripple-custody'
-  | 'palisade-custody'
-  | 'external'
+  'local' | 'ripple-custody' | 'palisade-custody' | 'external'
 
 /**
  * A custodian's opaque native identifier for an account: a string for
@@ -19,8 +16,7 @@ export type CustodianKind =
  * absent for local wallets. Read only by the owning custodian.
  */
 export type CustodianRef =
-  | string
-  | { readonly vaultId: string; readonly walletId: string }
+  string | { readonly vaultId: string; readonly walletId: string }
 
 /**
  * A minimal reference to an account: its r-address plus the owning custodian's
@@ -41,6 +37,13 @@ export interface AccountRef {
 export interface Account extends AccountRef {
   /** Custodian-side alias, when the backend exposes one. */
   readonly alias?: string
+
+  /**
+   * The custodian-specific ledger id backing this address, when the backend
+   * needs one disambiguated (e.g. Ripple Custody's multi-ledger Vault
+   * accounts, which carry no ledger default of their own).
+   */
+  readonly ledgerId?: string
 
   /**
    * The account's XRPL public key (hex), when the custodian exposes it. Used to

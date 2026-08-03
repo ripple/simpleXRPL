@@ -170,6 +170,29 @@ describe('buildProposeIntentBody', () => {
     })
   })
 
+  it('omits payload.ledgerId when none is given (legacy single-ledger accounts)', () => {
+    const body = buildProposeIntentBody(makeSigner(), {
+      domainId: 'domain-1',
+      authorUserId: 'user-1',
+      accountId: 'account-1',
+      transaction: PAYMENT_TX,
+    })
+
+    expect(transactionOrderPayload(body).ledgerId).toBeUndefined()
+  })
+
+  it('stamps payload.ledgerId when given (multi-ledger Vault accounts)', () => {
+    const body = buildProposeIntentBody(makeSigner(), {
+      domainId: 'domain-1',
+      authorUserId: 'user-1',
+      accountId: 'account-1',
+      ledgerId: 'xrpl',
+      transaction: PAYMENT_TX,
+    })
+
+    expect(transactionOrderPayload(body).ledgerId).toBe('xrpl')
+  })
+
   it('maps memos and sourceTag onto the XRPL parameters rather than dropping them', () => {
     const tx: Payment = {
       ...PAYMENT_TX,

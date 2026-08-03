@@ -10,7 +10,12 @@ import type { CustodyHttpPort } from './http-port.js'
 const HTTP_ERROR_THRESHOLD = 400
 // Custody's token endpoint uses the OAuth password grant (custody.js auth.service).
 const GRANT_TYPE = 'password'
-const CLIENT_ID = 'customer_api'
+/**
+ * Default OIDC client id. Per the Custody auth docs, `client_id` identifies
+ * the caller's registered Keycloak client and is deployment-specific — this
+ * is only a fallback for deployments that haven't registered their own.
+ */
+const DEFAULT_CLIENT_ID = 'customer_api'
 
 /** Construction options for {@link HttpCustodyAuthPort}. */
 export interface HttpCustodyAuthPortOptions {
@@ -18,6 +23,8 @@ export interface HttpCustodyAuthPortOptions {
   tokenUrl: string
   /** Injected transport. */
   http: CustodyHttpPort
+  /** The OIDC client id to authenticate as. Defaults to `'customer_api'`. */
+  clientId?: string
 }
 
 /**
@@ -27,11 +34,12 @@ export interface HttpCustodyAuthPortOptions {
 export class HttpCustodyAuthPort implements CustodyAuthPort {
   private readonly tokenUrl: string
   private readonly http: CustodyHttpPort
+  private readonly clientId: string
 
   /**
    * Construct an HttpCustodyAuthPort.
    *
-   * @param options - Token endpoint URL and transport port.
+   * @param options - Token endpoint URL, transport port, and optional client id.
    * @throws {@link CustodyAuthError} if the token URL is not HTTPS.
    */
   public constructor(options: HttpCustodyAuthPortOptions) {
@@ -42,6 +50,7 @@ export class HttpCustodyAuthPort implements CustodyAuthPort {
     }
     this.tokenUrl = options.tokenUrl
     this.http = options.http
+    this.clientId = options.clientId ?? DEFAULT_CLIENT_ID
   }
 
   /**
@@ -54,7 +63,7 @@ export class HttpCustodyAuthPort implements CustodyAuthPort {
   public async fetchToken(form: SignedChallenge): Promise<TokenResponse> {
     const params = new URLSearchParams({
       grant_type: GRANT_TYPE,
-      client_id: CLIENT_ID,
+      client_id: this.clientId,
       signature: form.signature,
       challenge: form.challenge,
       public_key: form.publicKey,

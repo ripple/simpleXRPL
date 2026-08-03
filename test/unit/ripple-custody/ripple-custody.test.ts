@@ -253,6 +253,7 @@ describe('RippleCustody.create', () => {
         address: PRIMARY_ADDRESS,
         alias: '',
         custodianRef: ACCOUNT_ID,
+        ledgerId: 'xrpl-1',
         signer: custody,
       },
     ])
