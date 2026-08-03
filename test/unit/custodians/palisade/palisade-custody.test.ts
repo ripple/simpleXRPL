@@ -1,4 +1,4 @@
-import { encode, Wallet } from 'xrpl'
+import { decode, encode, Wallet } from 'xrpl'
 import type { Payment, Transaction, TxResponse } from 'xrpl'
 
 import type {
@@ -324,6 +324,70 @@ describe('PalisadeCustody.sign / submitAsync', () => {
     expect(port.posts[0].body).toMatchObject({
       encodedTransaction: encode(payment),
     })
+  })
+
+  it('sign sets SigningPubKey from the account public key before signing', async () => {
+    // Palisade signs the encoded blob verbatim and leaves SigningPubKey empty,
+    // so the SDK must inject the wallet's public key (uppercased) — XRPL rejects
+    // a single-signed blob whose SigningPubKey is empty.
+    const PUBKEY =
+      '0281dc1c5f7090dc2990b5437061253acb2987ccf4a2101b24f41b5ee84152c4d1'
+    const port = fakePort({
+      wallets: {
+        wallets: [
+          {
+            id: 'w1',
+            vaultId: 'v1',
+            address: PRIMARY_ADDR,
+            name: 'primary',
+            status: 'PROVISIONED',
+            publicKey: PUBKEY,
+          },
+        ],
+      },
+      onRaw: () => ({
+        id: 'raw1',
+        status: 'SIGNED',
+        signedTransaction: 'BLOB',
+      }),
+    })
+    const custody = await makeCustody(port, true)
+    const account = (await custody.listAccounts())[0]
+    await custody.sign(payment, contextFor(account, ledgerStub()))
+    const body = port.posts[0].body as { encodedTransaction: string }
+    const decoded = decode(body.encodedTransaction)
+    expect(decoded.SigningPubKey).toBe(PUBKEY.toUpperCase())
+  })
+
+  it('sign polls until the async signature is ready', async () => {
+    // The raw POST returns before signing completes (no signedTransaction yet);
+    // the signature appears on a later GET once the tx reaches SIGNED.
+    const port = fakePort({
+      onRaw: () => ({ id: 'raw1', status: 'SIGNATURE_PENDING' }),
+      onGet: () => ({
+        id: 'raw1',
+        status: 'SIGNED',
+        signedTransaction: 'LATEBLOB',
+      }),
+    })
+    const custody = await makeCustody(port, true)
+    const account = (await custody.listAccounts())[0]
+    const envelope = await custody.sign(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    expect(envelope.txBlob).toBe('LATEBLOB')
+  })
+
+  it('sign throws when async raw signing is rejected', async () => {
+    const port = fakePort({
+      onRaw: () => ({ id: 'raw1', status: 'REJECTED' }),
+    })
+    const custody = await makeCustody(port, true)
+    const account = (await custody.listAccounts())[0]
+    await expect(
+      custody.sign(payment, contextFor(account, ledgerStub())),
+    ).rejects.toBeInstanceOf(SimpleXRPLError)
   })
 
   it('submitAsync rejects a transactor with no native path', async () => {

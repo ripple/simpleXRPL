@@ -99,10 +99,17 @@ const policyClientSecret = process.env.PALISADE_POLICY_CLIENT_SECRET
 // Opt-in flag for the mutating freeze/cancel test, which needs a wallet whose
 // approval policy keeps intents pending long enough to freeze.
 const cancelOptIn = process.env.PALISADE_CANCEL_TEST
-// Opt-in flag for the raw-signing test: Palisade signs raw transactions
-// asynchronously (the POST returns before `signedTransaction` is populated),
-// and the SDK's sign() reads it synchronously — so this only passes against a
-// wallet/tier that returns the signature inline. See notes on the test.
+// Opt-in flag for the raw sign-only test. The SDK side is correct and
+// unit-tested: it polls for the async signature and sets SigningPubKey from the
+// wallet's public key. But end-to-end raw signing is blocked by Palisade, in
+// two layers we verified against the sandbox:
+//   1. raw signing must be enabled in the wallet's settings (otherwise every
+//      raw tx is a policy Violation), and
+//   2. even with it enabled, the sandbox HSM returns a signature XRPL rejects
+//      as "Invalid signature" — it fails to verify against the account's master
+//      key, and fails identically when Palisade publishes it itself
+//      (signOnly:false). That's a Palisade-side signing issue, not the SDK.
+// Enable this only against a wallet where Palisade produces a valid signature.
 const rawOptIn = process.env.PALISADE_RAW_TEST
 /* eslint-enable n/no-process-env */
 
@@ -272,41 +279,47 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
     SUBMIT_TEST_TIMEOUT_MS,
   )
 
-  // Palisade signs raw transactions asynchronously: the POST to
-  // `/transactions/raw` returns before `signedTransaction` is populated, and
-  // sign() reads it inline (it does not poll like the native path). So this
-  // runs only when PALISADE_RAW_TEST names a wallet/tier that signs inline.
-  const itIfRaw = rawOptIn ? it : it.skip
+  // Palisade signs raw transactions asynchronously — the POST to
+  // `/transactions/raw` returns before `signedTransaction` is populated — so
+  // sign() polls until the signature is ready (a sign-only tx stops at SIGNED).
+  // Opt-in: needs a raw-permitting wallet (PALISADE_RAW_TEST) and a known
+  // destination; the polling itself is covered by unit tests.
+  const itIfRaw = rawOptIn && destAddress ? it : it.skip
   itIfRaw(
     'raw-signs a non-native transactor and submits it through the ledger',
     async () => {
-      // MPTokenIssuanceCreate has no native Palisade op, so with raw signing
-      // enabled it takes the sign-only path and submits through the shared XRPL
-      // ledger — the result is xrpld-sourced, not palisade-governed.
+      // A Payment carrying InvoiceID has no native Palisade transfer slot, so
+      // it falls back to the raw sign-only path: Palisade signs asynchronously
+      // (polled to SIGNED), then the SDK submits the blob through the shared
+      // ledger — the result is xrpld-sourced, not palisade-governed. The
+      // destination is the known org wallet the native transfer test also uses,
+      // so it clears the wallet's transfer policy.
       const custody = await PalisadeCustody.create({
         ...cfg,
         allowRawSigning: true,
       })
-      const client = await SimpleXRPL.init({
-        xrpldUrl: TESTNET_WS,
-        signers: [custody],
-        ledger: new XrplLedger(TESTNET_WS),
-      })
-      await client.connect()
+      const ledger = new XrplLedger(TESTNET_WS)
+      const accounts = await custody.listAccounts()
+      const account = accounts.find(
+        (acct) => acct.address === custody.primary.address,
+      ) as Account
+      const payment: Payment = {
+        TransactionType: 'Payment',
+        Account: custody.primary.address,
+        Destination: destAddress as string,
+        Amount: '1',
+        InvoiceID: 'A'.repeat(64),
+      }
       try {
-        const result = await client.token.issue({
-          metadata: {
-            ticker: 'RAWT',
-            name: 'Raw Path Contract Test',
-            icon: 'https://example.com/raw.png',
-            asset_class: 'other',
-            issuer_name: 'simpleXRPL contract test',
-          },
+        const result = await custody.submitAndWait(payment, {
+          account,
+          ledger,
+          timeoutMs: SUBMIT_TIMEOUT_MS,
         })
         expect(result.source).toBe('xrpld')
-        expect(result.intent.mptIssuanceId).toMatch(/^[0-9A-F]+$/u)
+        expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
       } finally {
-        await client.disconnect()
+        await ledger.disconnect()
       }
     },
     SUBMIT_TEST_TIMEOUT_MS,

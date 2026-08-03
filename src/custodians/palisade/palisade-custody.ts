@@ -193,13 +193,28 @@ export class PalisadeCustody implements Custodian {
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SignedEnvelope> {
-    const ref = this.walletRef(ctx.account)
     const filled =
       tx.Sequence === undefined ? await ctx.ledger.autofill(tx) : tx
-    const signed = await this.client.post<PalisadeTransaction>(
-      `/v2/vaults/${ref.vaultId}/wallets/${ref.walletId}/transactions/raw`,
-      buildRawTransactionBody(encode(filled), ctx.idempotencyKey),
+    // Palisade's raw sign returns only the signature and leaves SigningPubKey
+    // empty. XRPL computes TxnSignature over the transaction *including*
+    // SigningPubKey and rejects a blob with an empty one, so set the wallet's
+    // public key before signing (the same field the ExternalSigner sets).
+    const toSign =
+      ctx.account.publicKey === undefined
+        ? filled
+        : { ...filled, SigningPubKey: ctx.account.publicKey.toUpperCase() }
+    const base = this.transactionsBase(ctx.account)
+    const submitted = await this.client.post<PalisadeTransaction>(
+      `${base}/raw`,
+      buildRawTransactionBody(encode(toSign), ctx.idempotencyKey),
     )
+    // Palisade signs asynchronously: the POST can return before the signature
+    // is ready, so poll until `signedTransaction` is populated (a sign-only
+    // request stops at SIGNED, not CONFIRMED).
+    const signed =
+      submitted.signedTransaction === undefined
+        ? await this.tracker.pollUntilSigned(base, submitted, ctx.timeoutMs)
+        : submitted
     if (signed.signedTransaction === undefined) {
       throw new SimpleXRPLError(
         'Palisade raw signing returned no signed transaction',
