@@ -1,6 +1,6 @@
 # Interface: Custodian
 
-Defined in: [domain/model.ts:196](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L196)
+Defined in: [domain/model.ts:203](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L203)
 
 A signing backend. Each implementation (local, Ripple Custody, Palisade)
 adapts the canonical xrpl.js transaction to one backend's API and submission
@@ -12,7 +12,7 @@ flow, and is the unit of configuration on a client.
 
 > `readonly` **capabilities**: () => [`SignerCapabilities`](SignerCapabilities.md)
 
-Defined in: [domain/model.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L216)
+Defined in: [domain/model.ts:223](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L223)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -26,7 +26,7 @@ What this custodian can sign, consulted at dispatch time.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md)
 
-Defined in: [domain/model.ts:198](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L198)
+Defined in: [domain/model.ts:205](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L205)
 
 Which backend this custodian adapts.
 
@@ -36,7 +36,7 @@ Which backend this custodian adapts.
 
 > `readonly` **listAccounts**: () => `Promise`\<[`Account`](Account.md)[]\>
 
-Defined in: [domain/model.ts:213](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L213)
+Defined in: [domain/model.ts:220](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L220)
 
 The full account list, discovered at construction.
 
@@ -50,7 +50,7 @@ The full account list, discovered at construction.
 
 > `readonly` **primary**: [`AccountRef`](AccountRef.md)
 
-Defined in: [domain/model.ts:210](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L210)
+Defined in: [domain/model.ts:217](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L217)
 
 The custodian's primary account; it owns this account.
 
@@ -60,7 +60,7 @@ The custodian's primary account; it owns this account.
 
 > `readonly` **sign**: (`tx`, `ctx`) => `Promise`\<[`SignedEnvelope`](SignedEnvelope.md)\>
 
-Defined in: [domain/model.ts:219](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L219)
+Defined in: [domain/model.ts:226](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L226)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -81,7 +81,7 @@ Produce a signed envelope for a transaction (raw-signing paths).
 
 > `readonly` **submitAndWait**: (`tx`, `ctx`) => `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`unknown`\>\>
 
-Defined in: [domain/model.ts:229](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L229)
+Defined in: [domain/model.ts:236](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L236)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -104,7 +104,7 @@ custodian returns the transport result; the vertical attaches the typed
 
 > `readonly` **submitAsync**: (`tx`, `ctx`) => `Promise`\<[`SubmissionHandle`](SubmissionHandle.md)\>
 
-Defined in: [domain/model.ts:235](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L235)
+Defined in: [domain/model.ts:242](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L242)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -125,7 +125,7 @@ Submit and return a handle once the backend has accepted the intent.
 
 > `readonly` `optional` **tenantId**: `string`
 
-Defined in: [domain/model.ts:207](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L207)
+Defined in: [domain/model.ts:214](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L214)
 
 The backend tenant this custodian is bound to — a Custody domain id, a
 Palisade org/client identity, etc. Two signers with the same `kind` and

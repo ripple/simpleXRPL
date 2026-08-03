@@ -53,7 +53,7 @@ The owning custodian's native id, opaque to everything but that custodian.
 
 > `readonly` `optional` **metadata**: \{ `kind`: [`CustodianKind`](../type-aliases/CustodianKind.md); `tags`: readonly `string`[]; \}
 
-Defined in: [domain/model.ts:49](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L49)
+Defined in: [domain/model.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L56)
 
 Optional, advisory-only metadata.
 
@@ -67,10 +67,22 @@ Optional, advisory-only metadata.
 
 ***
 
+### publicKey?
+
+> `readonly` `optional` **publicKey**: `string`
+
+Defined in: [domain/model.ts:50](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L50)
+
+The account's XRPL public key (hex), when the custodian exposes it. Used to
+populate `SigningPubKey` on transactions signed by a backend that returns
+only the signature (e.g. Palisade's raw sign-only path).
+
+***
+
 ### signer
 
 > `readonly` **signer**: [`Custodian`](Custodian.md)
 
-Defined in: [domain/model.ts:46](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L46)
+Defined in: [domain/model.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L53)
 
 The custodian that discovered and signs for this account.

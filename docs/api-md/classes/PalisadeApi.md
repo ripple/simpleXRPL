@@ -1,6 +1,6 @@
 # Class: PalisadeApi
 
-Defined in: custodians/palisade/api.ts:84
+Defined in: [custodians/palisade/api.ts:84](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/api.ts#L84)
 
 Low-level, typed access to the full Palisade v2 API — a **secondary** surface
 beside the first-class verticals, for operations simpleXRPL doesn't model
@@ -25,7 +25,7 @@ Palisade.
 
 > **new PalisadeApi**(`readClient`, `writeClient`, `byScope`): [`PalisadeApi`](PalisadeApi.md)
 
-Defined in: custodians/palisade/api.ts:96
+Defined in: [custodians/palisade/api.ts:96](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/api.ts#L96)
 
 Construct the API surface over the authenticated clients.
 
@@ -47,7 +47,7 @@ Construct the API surface over the authenticated clients.
 
 > **call**\<`Op`\>(`operationId`, `args`?): `Promise`\<`ResponseBody`\<`Op`\>\>
 
-Defined in: custodians/palisade/api.ts:116
+Defined in: [custodians/palisade/api.ts:116](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/api.ts#L116)
 
 Call any Palisade operation by its operationId. Path/query/body and the
 response are typed from the generated schema.

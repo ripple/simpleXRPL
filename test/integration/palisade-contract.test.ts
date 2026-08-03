@@ -92,10 +92,6 @@ const describeIfSandbox = config === undefined ? describe.skip : describe
 /* eslint-disable n/no-process-env -- optional contract-test inputs from the environment */
 // A second org wallet's r-address, used as the Payment destination.
 const destAddress = process.env.PALISADE_DEST_ADDRESS
-// A credential scoped to the `Policies` permission set — enables the tag-based
-// routing (option b) test; skipped when absent.
-const policyClientId = process.env.PALISADE_POLICY_CLIENT_ID
-const policyClientSecret = process.env.PALISADE_POLICY_CLIENT_SECRET
 // Opt-in flag for the mutating freeze/cancel test, which needs a wallet whose
 // approval policy keeps intents pending long enough to freeze.
 const cancelOptIn = process.env.PALISADE_CANCEL_TEST
@@ -363,31 +359,104 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
     SUBMIT_TEST_TIMEOUT_MS,
   )
 
-  // Tag-based routing (option b) needs a credential scoped to the operation's
-  // permission set; supply PALISADE_POLICY_CLIENT_ID/SECRET to enable it.
-  const itIfPolicy = policyClientId && policyClientSecret ? it : it.skip
-  itIfPolicy(
-    'routes a scoped operation to its registered credential (tag-based)',
+  it(
+    'tag-based routing sends a scoped operation to its registered credential',
     async () => {
-      const custody = await PalisadeCustody.create({
+      // Listing wallet transactions is a `Transactions`-tagged GET. Under
+      // method-based routing (a) it goes to the wallet-read credential, which
+      // lacks transaction-read scope → 403. Registering a `Transactions`-scoped
+      // credential (b) routes it there instead, and it succeeds — proving the
+      // scope override changes which credential authorizes the call.
+      const args = {
+        path: { vaultId: cfg.primary.vaultId, walletId: cfg.primary.walletId },
+      } as const
+
+      const unscoped = await PalisadeCustody.create(cfg)
+      await expect(
+        unscoped.api.call('TransactionsService_ListWalletTransactions', args),
+      ).rejects.toThrow()
+
+      const scoped = await PalisadeCustody.create({
         ...cfg,
         credentials: {
           ...cfg.credentials,
-          scoped: {
-            Policies: {
-              clientId: policyClientId as string,
-              clientSecret: policyClientSecret as string,
-            },
-          },
+          scoped: { Transactions: cfg.credentials.transactions },
         },
       })
-      // A `Policies`-scoped GET authorizes through the registered credential,
-      // not the wallet-read one its HTTP method would otherwise select.
-      const limits = await custody.api.call(
-        'PolicyService_ListGlobalWalletLimits',
+      const res = await scoped.api.call(
+        'TransactionsService_ListWalletTransactions',
+        args,
       )
-      expect(limits.walletLimits).toBeDefined()
+      expect(res.transactions).toBeDefined()
     },
     LIVE_TIMEOUT_MS,
   )
+
+  it(
+    'signs and submits a native AccountSet through Palisade',
+    async () => {
+      // AccountSet maps to Palisade's native /xrp/account-set endpoint. Set a
+      // benign Domain (non-gating, unlike a flag) so it can't affect the other
+      // tests, and confirm it reaches a terminal palisade-governed result.
+      const custody = await PalisadeCustody.create(cfg)
+      const client = await SimpleXRPL.init({
+        xrpldUrl: TESTNET_WS,
+        signers: [custody],
+        ledger: new XrplLedger(TESTNET_WS),
+      })
+      await client.connect()
+      try {
+        const result = await client.account.set({
+          domain: 'contract-test.simplexrpl.example',
+        })
+        expect(result.source).toBe('palisade')
+        expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
+      } finally {
+        await client.disconnect()
+      }
+    },
+    SUBMIT_TEST_TIMEOUT_MS,
+  )
+
+  it(
+    'places and cancels a native DEX offer through Palisade',
+    async () => {
+      // OfferCreate and OfferCancel map to Palisade's native /xrp/offer-create
+      // and /xrp/offer-cancel. The primary issues USD; rest a limit sell offer,
+      // then cancel it by sequence — both are palisade-governed native ops.
+      const custody = await PalisadeCustody.create(cfg)
+      const client = await SimpleXRPL.init({
+        xrpldUrl: TESTNET_WS,
+        signers: [custody],
+        ledger: new XrplLedger(TESTNET_WS),
+      })
+      await client.connect()
+      try {
+        const offer = await client.iou.sellOffer({
+          ticker: 'USD',
+          amount: 1,
+          orderType: 'limit',
+          price: { currency: 'XRP', amount: 1 },
+        })
+        expect(offer.source).toBe('palisade')
+        expect(offer.txHash).toMatch(/^[0-9A-F]{64}$/u)
+
+        const mine = await client.account.listOffers()
+        expect(mine.data.length).toBeGreaterThan(0)
+        const cancel = await client.iou.cancelOffer({
+          offerSequence: mine.data[mine.data.length - 1].offerSequence,
+        })
+        expect(cancel.source).toBe('palisade')
+      } finally {
+        await client.disconnect()
+      }
+    },
+    SUBMIT_TEST_TIMEOUT_MS,
+  )
+
+  // NOTE: intent polling for Palisade is covered by the submitAsync test above
+  // (handle.poll()/wait()). The client-level `client.intent.status/await`
+  // resume-by-id surface is RippleCustody-only: it requires an `IntentObserver`
+  // custodian, and Palisade's GET-transaction is wallet-scoped (no global
+  // /transactions/{id}), so an intent id alone can't address it.
 })
