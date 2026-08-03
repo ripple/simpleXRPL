@@ -1,6 +1,6 @@
 # Interface: PalisadeWalletRef
 
-Defined in: [custodians/palisade/config.ts:4](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L4)
+Defined in: [custodians/palisade/config.ts:6](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L6)
 
 The primary wallet's Palisade coordinates.
 
@@ -10,7 +10,7 @@ The primary wallet's Palisade coordinates.
 
 > `readonly` **vaultId**: `string`
 
-Defined in: [custodians/palisade/config.ts:5](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L5)
+Defined in: [custodians/palisade/config.ts:7](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L7)
 
 ***
 
@@ -18,4 +18,4 @@ Defined in: [custodians/palisade/config.ts:5](https://github.com/ripple/simpleXR
 
 > `readonly` **walletId**: `string`
 
-Defined in: [custodians/palisade/config.ts:6](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L6)
+Defined in: [custodians/palisade/config.ts:8](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L8)

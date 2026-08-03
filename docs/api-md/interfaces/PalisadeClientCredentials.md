@@ -1,6 +1,6 @@
 # Interface: PalisadeClientCredentials
 
-Defined in: [custodians/palisade/config.ts:10](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L10)
+Defined in: [custodians/palisade/config.ts:12](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L12)
 
 OAuth2 client-credentials for a single Palisade API credential.
 
@@ -10,7 +10,7 @@ OAuth2 client-credentials for a single Palisade API credential.
 
 > `readonly` **clientId**: `string`
 
-Defined in: [custodians/palisade/config.ts:12](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L12)
+Defined in: [custodians/palisade/config.ts:14](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L14)
 
 OAuth2 client-credentials id.
 
@@ -20,6 +20,6 @@ OAuth2 client-credentials id.
 
 > `readonly` **clientSecret**: `string`
 
-Defined in: [custodians/palisade/config.ts:14](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L14)
+Defined in: [custodians/palisade/config.ts:16](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/config.ts#L16)
 
 OAuth2 client-credentials secret (held in memory only).

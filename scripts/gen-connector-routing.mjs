@@ -291,6 +291,9 @@ ${operationRows}
 native only when every step is native. **Palisade has no native MPT support**,
 so \`Token.transfer\` — which carries an MPT amount — falls back to raw there
 even though \`Payment\` is otherwise native; Ripple Custody handles MPT natively.
+\`Token.createOffer\` / \`Token.cancelOffer\` stay **native** on Palisade because
+they don't carry an MPT — an offer can't hold an MPT (it isn't DEX-tradeable),
+so they operate on XRP/IOU legs via \`OfferCreate\` / \`OfferCancel\`.
 
 ---
 

@@ -18,8 +18,11 @@ import {
   SignerCapabilityError,
   SimpleXRPLError,
 } from '../../errors.js'
+import type { PalisadeScope } from '../../generated/palisade-routes.js'
 import type { components } from '../../generated/palisade.js'
 
+import { PalisadeApi } from './api.js'
+import type { PalisadeScopedClients } from './api.js'
 import { PalisadeAuthService } from './auth/palisade-auth.service.js'
 import type {
   PalisadeClientCredentials,
@@ -54,6 +57,12 @@ export class PalisadeCustody implements Custodian {
   /** The Palisade API client identity — the tenant two instances collide on. */
   public readonly tenantId: string
 
+  /**
+   * Low-level, typed access to the full Palisade v2 API — a secondary surface
+   * beside the first-class verticals, for operations simpleXRPL doesn't model.
+   */
+  public readonly api: PalisadeApi
+
   private readonly client: PalisadeHttpClient
   private readonly allowRaw: boolean
   private readonly tracker: PalisadeTxTracker
@@ -61,14 +70,27 @@ export class PalisadeCustody implements Custodian {
   private primaryAccount: Account | undefined
 
   private constructor(
-    client: PalisadeHttpClient,
+    clients: {
+      transactions: PalisadeHttpClient
+      wallets: PalisadeHttpClient
+      byScope: PalisadeScopedClients
+    },
     options: { allowRaw: boolean; timeoutMs: number; tenantId: string },
   ) {
-    this.client = client
+    this.client = clients.transactions
     this.allowRaw = options.allowRaw
     this.tenantId = options.tenantId
-    this.tracker = new PalisadeTxTracker(client, this.kind, options.timeoutMs)
+    this.tracker = new PalisadeTxTracker(
+      clients.transactions,
+      this.kind,
+      options.timeoutMs,
+    )
     this.context = new PalisadeWalletContext([])
+    this.api = new PalisadeApi(
+      clients.wallets,
+      clients.transactions,
+      clients.byScope,
+    )
   }
 
   /**
@@ -115,11 +137,22 @@ export class PalisadeCustody implements Custodian {
     }
     const walletsClient = clientFor(config.credentials.wallets)
     const transactionsClient = clientFor(config.credentials.transactions)
-    const custodian = new PalisadeCustody(transactionsClient, {
-      allowRaw: config.allowRawSigning ?? false,
-      timeoutMs: config.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
-      tenantId: config.credentials.transactions.clientId,
-    })
+    // Per-scope clients for tag-based routing (option b) on `palisade.api`.
+    const byScope: PalisadeScopedClients = {}
+    for (const [scope, creds] of Object.entries(
+      config.credentials.scoped ?? {},
+    )) {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Object.entries widens the key to string.
+      byScope[scope as PalisadeScope] = clientFor(creds)
+    }
+    const custodian = new PalisadeCustody(
+      { transactions: transactionsClient, wallets: walletsClient, byScope },
+      {
+        allowRaw: config.allowRawSigning ?? false,
+        timeoutMs: config.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
+        tenantId: config.credentials.transactions.clientId,
+      },
+    )
     const accounts = await discoverXrplWallets(walletsClient, custodian)
     custodian.context = new PalisadeWalletContext(accounts)
     custodian.primaryAccount = resolvePrimary(accounts, config.primary)

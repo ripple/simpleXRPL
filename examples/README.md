@@ -26,6 +26,7 @@ account (and, for the Palisade samples, sandbox credentials).
 | [07-place-dex-order.ts](./07-place-dex-order.ts) | Placing DEX orders (IOU offers and generic token offers) |
 | [08-permissioned-domain.ts](./08-permissioned-domain.ts) | Creating a permissioned domain and scoping an offer to it |
 | [09-cross-custodian-workflow.ts](./09-cross-custodian-workflow.ts) | Sequencing work across two custodians — Ripple Custody + Palisade — via vertical verbs and `runMultiStep` |
+| [13-palisade-api-escape-hatch.ts](./13-palisade-api-escape-hatch.ts) | Calling any Palisade operation the verticals don't model, via the typed `palisade.api.call(operationId, …)` secondary surface |
 
 ## External signing (KMS / HSM)
 

@@ -1,4 +1,15 @@
 export { PalisadeCustody } from './palisade-custody.js'
+export { PalisadeApi } from './api.js'
+export type {
+  PalisadeCallArgs,
+  PalisadeOperationId,
+  PalisadeScopedClients,
+} from './api.js'
+export { PALISADE_ROUTES } from '../../generated/palisade-routes.js'
+export type {
+  PalisadeRoute,
+  PalisadeScope,
+} from '../../generated/palisade-routes.js'
 export type {
   PalisadeClientCredentials,
   PalisadeCredentials,

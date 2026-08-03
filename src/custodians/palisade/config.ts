@@ -1,3 +1,5 @@
+import type { PalisadeScope } from '../../generated/palisade-routes.js'
+
 import type { PalisadeHttpPort } from './transport/http-port.js'
 
 /** The primary wallet's Palisade coordinates. */
@@ -25,6 +27,13 @@ export interface PalisadeCredentials {
   readonly wallets: PalisadeClientCredentials
   /** Transactions credential — authorizes signing and submission. */
   readonly transactions: PalisadeClientCredentials
+  /**
+   * Optional per-scope credentials for the `palisade.api` surface (tag-based
+   * routing, option b). Each key is a Palisade permission scope (an operation's
+   * OpenAPI tag, e.g. `Policies` or `Webhooks`); operations in that scope route
+   * to its credential instead of falling back to the wallets/transactions pair.
+   */
+  readonly scoped?: Partial<Record<PalisadeScope, PalisadeClientCredentials>>
 }
 
 /** Configuration for {@link PalisadeCustody.create}. */
