@@ -53,14 +53,17 @@ function sandboxConfig(): PalisadeCustodyConfig | undefined {
     PALISADE_VAULT_ID: vaultId,
     PALISADE_WALLET_ID: walletId,
   } = env
+  // Treat blank as absent: an unset GitHub Actions secret expands to an empty
+  // string (not `undefined`), so `=== undefined` alone would let the suite run
+  // with empty credentials and fail the token exchange instead of skipping.
   if (
-    baseUrl === undefined ||
-    walletsId === undefined ||
-    walletsSecret === undefined ||
-    txId === undefined ||
-    txSecret === undefined ||
-    vaultId === undefined ||
-    walletId === undefined
+    !baseUrl ||
+    !walletsId ||
+    !walletsSecret ||
+    !txId ||
+    !txSecret ||
+    !vaultId ||
+    !walletId
   ) {
     return undefined
   }
