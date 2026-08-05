@@ -30,7 +30,6 @@ const DEST_ADDR = Wallet.generate().classicAddress
  * handlers keyed by a URL substring. Records POST bodies for assertions. */
 interface FakePort extends PalisadeHttpPort {
   readonly posts: Array<{ url: string; body: unknown }>
-  readonly puts: Array<{ url: string }>
 }
 
 function fakePort(handlers: {
@@ -40,7 +39,6 @@ function fakePort(handlers: {
   onRaw?: () => unknown
 }): FakePort {
   const posts: Array<{ url: string; body: unknown }> = []
-  const puts: Array<{ url: string }> = []
   const ok = (value: unknown): HttpResponse => ({
     status: 200,
     body: JSON.stringify(value),
@@ -64,10 +62,6 @@ function fakePort(handlers: {
     if (url.includes('/v2/wallets')) {
       return ok(wallets)
     }
-    if (method === 'PUT') {
-      puts.push({ url })
-      return { status: 200, body: '' }
-    }
     if (method === 'GET') {
       return ok(handlers.onGet?.())
     }
@@ -78,7 +72,7 @@ function fakePort(handlers: {
     }
     return ok(handlers.onSubmit?.(url.split('/transactions/')[1]))
   }
-  return { send, posts, puts }
+  return { send, posts }
 }
 
 function ledgerStub(response?: TxResponse): LedgerPort {
@@ -468,34 +462,7 @@ describe('PalisadeCustody.submitAsync — handle lifecycle', () => {
     await expect(handle.wait(1)).rejects.toBeInstanceOf(IntentPendingError)
   })
 
-  it('cancel issues a freeze PUT while the intent is still pending', async () => {
-    const port = fakePort({
-      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-      onGet: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-    })
-    const custody = await makeCustody(port)
-    const account = (await custody.listAccounts())[0]
-    const handle = await custody.submitAsync(
-      payment,
-      contextFor(account, ledgerStub()),
-    )
-    await handle.cancel?.()
-    expect(port.puts[0].url).toContain('/transactions/tx1/freeze')
-    expect(port.puts[0].url).toContain('reason=')
-  })
-
-  it('cancel rejects once the intent is already terminal', async () => {
-    const port = fakePort({
-      onSubmit: () => ({ id: 'tx1', status: 'SIGNATURE_PENDING' }),
-      onGet: () => ({ id: 'tx1', status: 'CONFIRMED' }),
-    })
-    const custody = await makeCustody(port)
-    const account = (await custody.listAccounts())[0]
-    const handle = await custody.submitAsync(
-      payment,
-      contextFor(account, ledgerStub()),
-    )
-    await expect(handle.cancel?.()).rejects.toBeInstanceOf(SimpleXRPLError)
-    expect(port.puts).toHaveLength(0)
-  })
+  // No `cancel` test: the handle intentionally exposes no cancel for Palisade.
+  // See TODO(palisade-cancel) in tx-tracker.ts — freezing a pending intent is
+  // rejected (PAL010.008) and there is no reject/cancel-approval endpoint.
 })

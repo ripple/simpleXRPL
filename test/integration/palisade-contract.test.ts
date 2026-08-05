@@ -92,9 +92,10 @@ const describeIfSandbox = config === undefined ? describe.skip : describe
 /* eslint-disable n/no-process-env -- optional contract-test inputs from the environment */
 // A second org wallet's r-address, used as the Payment destination.
 const destAddress = process.env.PALISADE_DEST_ADDRESS
-// Opt-in flag for the mutating freeze/cancel test, which needs a wallet whose
-// approval policy keeps intents pending long enough to freeze.
-const cancelOptIn = process.env.PALISADE_CANCEL_TEST
+// NOTE: no cancel/freeze test. `handle.cancel()` was removed for Palisade —
+// see TODO(palisade-cancel) in tx-tracker.ts. Freezing a pending intent is
+// rejected (`400 "cannot freeze/unfreeze transaction"`, PAL010.008) and the API
+// exposes no reject/cancel-approval endpoint, so it can't be tested end-to-end.
 // Opt-in flag for the raw sign-only test. The SDK side is correct and
 // unit-tested: it polls for the async signature and sets SigningPubKey from the
 // wallet's public key. But end-to-end raw signing is blocked by Palisade, in
@@ -314,44 +315,6 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
         })
         expect(result.source).toBe('xrpld')
         expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
-      } finally {
-        await ledger.disconnect()
-      }
-    },
-    SUBMIT_TEST_TIMEOUT_MS,
-  )
-
-  // FreezeTransaction-as-cancel mutates sandbox state and needs an intent that
-  // stays pending (an approval policy) — opt in with PALISADE_CANCEL_TEST and a
-  // wallet dedicated to contract testing; skipped otherwise.
-  const itIfCancel = cancelOptIn ? it : it.skip
-  itIfCancel(
-    'cancel places a reversible freeze hold on a pending intent',
-    async () => {
-      const custody = await PalisadeCustody.create(cfg)
-      const ledger = new XrplLedger(TESTNET_WS)
-      const accounts = await custody.listAccounts()
-      const account = accounts.find(
-        (acct) => acct.address === custody.primary.address,
-      ) as Account
-      const payment: Payment = {
-        TransactionType: 'Payment',
-        Account: custody.primary.address,
-        Destination: destAddress ?? custody.primary.address,
-        Amount: '1',
-      }
-      try {
-        const handle = await custody.submitAsync(payment, {
-          account,
-          ledger,
-          async: true,
-          timeoutMs: SUBMIT_TIMEOUT_MS,
-        })
-        expect(handle.cancel).toBeDefined()
-        // Freeze the still-pending intent; a terminal one would reject.
-        await (handle.cancel as () => Promise<void>)()
-        const after = await handle.poll()
-        expect(after.source).toBe('palisade')
       } finally {
         await ledger.disconnect()
       }

@@ -17,9 +17,9 @@ const TERMINAL_FAILURE: ReadonlySet<string> = new Set(['REJECTED', 'FAILED'])
 
 /**
  * Tracks a submitted Palisade transaction to a terminal status: polling,
- * handle construction, result mapping, and the freeze-as-cancel action. Split
- * out of {@link PalisadeCustody} so the submit paths stay small and the
- * transport-polling concern is exercised in isolation.
+ * handle construction, and result mapping. Split out of {@link PalisadeCustody}
+ * so the submit paths stay small and the transport-polling concern is exercised
+ * in isolation.
  */
 export class PalisadeTxTracker {
   private readonly client: PalisadeHttpClient
@@ -72,7 +72,11 @@ export class PalisadeTxTracker {
         this.toResult(
           await this.pollUntilTerminal(base, submitted, ms ?? timeoutMs),
         ),
-      cancel: async (): Promise<void> => this.cancelPending(base, submitted.id),
+      // TODO(palisade-cancel): no `cancel` yet. FreezeTransaction — the only
+      // candidate — is rejected for a pending intent (`400 "cannot
+      // freeze/unfreeze transaction"`, PAL010.008), and the API exposes no
+      // reject/cancel-approval endpoint. Wire this up if Palisade adds a real
+      // cancel path; until then we don't ship an untestable freeze-as-cancel.
     }
   }
 
@@ -195,29 +199,5 @@ export class PalisadeTxTracker {
       }
     }
     throw new IntentPendingError(current.id, 'palisade-custody', current.status)
-  }
-
-  /**
-   * Cancel a still-pending transaction. Palisade exposes no hard cancel; the
-   * closest is `FreezeTransaction`, a reversible compliance hold (custodial
-   * orgs only). Rejects once the transaction is terminal.
-   *
-   * @param base - The wallet-relative transactions base path.
-   * @param id - The transaction id.
-   * @throws {@link SimpleXRPLError} if the transaction is already terminal.
-   */
-  private async cancelPending(base: string, id: string): Promise<void> {
-    const current = await this.fetch(base, id)
-    if (
-      current.status === TERMINAL_SUCCESS ||
-      TERMINAL_FAILURE.has(current.status)
-    ) {
-      throw new SimpleXRPLError(
-        `Cannot cancel Palisade transaction ${id}: already ${current.status}`,
-      )
-    }
-    await this.client.put(`${base}/${id}/freeze`, {
-      reason: 'Cancelled via simpleXRPL',
-    })
   }
 }

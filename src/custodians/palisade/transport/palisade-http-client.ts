@@ -139,19 +139,6 @@ export class PalisadeHttpClient {
   }
 
   /**
-   * Authenticated PUT (used by parameterized actions like freeze/unfreeze,
-   * which carry their inputs as query params rather than a body).
-   *
-   * @param path - API path beginning with `/`.
-   * @param query - Optional scalar query parameters.
-   * @returns The parsed response body.
-   */
-  public async put<T>(path: string, query?: Query): Promise<T> {
-    const response = await this.send('PUT', this.buildUrl(path, query))
-    return parseJsonBody<T>(response.body)
-  }
-
-  /**
    * Authenticated request for an arbitrary operation — the low-level primitive
    * behind {@link PalisadeApi}. Appends `query` and serializes `body` as JSON.
    *
