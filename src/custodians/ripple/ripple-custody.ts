@@ -12,7 +12,11 @@ import type {
   SubmissionHandle,
   SubmissionResult,
 } from '../../domain/index.js'
-import { AccountNotFoundError, SimpleXRPLError } from '../../errors.js'
+import {
+  AccountNotFoundError,
+  SimpleXRPLError,
+  XrpldSubmitError,
+} from '../../errors.js'
 import type { components } from '../../generated/custody.js'
 
 import {
@@ -54,6 +58,16 @@ export class RippleCustody implements Custodian, IntentObserver {
 
   private constructor(state: RippleCustodyState) {
     this.state = state
+  }
+
+  /**
+   * The Custody domain this custodian is bound to — the tenant two instances
+   * collide on, which the client rejects at init.
+   *
+   * @returns The domain id.
+   */
+  public get tenantId(): string {
+    return this.state.domainId
   }
 
   /**
@@ -153,6 +167,8 @@ export class RippleCustody implements Custodian, IntentObserver {
    * @throws {@link SignerCapabilityError} if raw signing is required but disabled.
    * @throws {@link IntentPendingError} if the custodian intent doesn't reach a
    * terminal state before the timeout.
+   * @throws {@link XrpldSubmitError} on a non-`tesSUCCESS` engine result from
+   * the raw path.
    */
   public async submitAndWait(
     tx: Transaction,
@@ -163,6 +179,14 @@ export class RippleCustody implements Custodian, IntentObserver {
     }
     const envelope = await this.signRaw(tx, ctx)
     const response = await ctx.ledger.submitAndWait(envelope.txBlob)
+    const { meta } = response.result
+    const engineResult =
+      meta !== undefined && typeof meta !== 'string'
+        ? meta.TransactionResult
+        : undefined
+    if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
+      throw new XrpldSubmitError(engineResult, response)
+    }
     return {
       source: 'xrpld',
       response,

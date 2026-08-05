@@ -1,5 +1,5 @@
 import { Wallet } from 'xrpl'
-import type { OfferCancel, Payment } from 'xrpl'
+import type { OfferCancel, Payment, TxResponse } from 'xrpl'
 
 import { RippleCustody } from '../../../src/custodians/ripple/ripple-custody.js'
 import type {
@@ -14,6 +14,7 @@ import {
   IntentValidationError,
   SignerCapabilityError,
   SimpleXRPLError,
+  XrpldSubmitError,
 } from '../../../src/errors.js'
 import { makeJwt } from '../custody-auth/test-utils.js'
 import {
@@ -21,6 +22,7 @@ import {
   addressesBody,
   ledgersBody,
 } from '../custody-discovery/test-utils.js'
+import type { FakeLedger } from '../pipeline/fake-ledger.js'
 
 import {
   AUTHOR_USER_ID,
@@ -259,6 +261,12 @@ describe('RippleCustody.create', () => {
     ])
   })
 
+  it('exposes the Custody domain as its tenant id, so two signers on one domain collide', async () => {
+    const { custody } = await makeCustody()
+
+    expect(custody.tenantId).toBe(DOMAIN_ID)
+  })
+
   it('throws CustodyAuthError when the domain is not among /v1/me domains', async () => {
     await expect(
       makeCustody({
@@ -398,6 +406,24 @@ describe('RippleCustody.submitAndWait', () => {
 
     expect(result).toMatchObject({ source: 'xrpld', txHash: 'RAWHASH' })
     expect(ledger.submitted).toHaveLength(1)
+  })
+
+  it('surfaces a non-tesSUCCESS engine result from the raw path as XrpldSubmitError', async () => {
+    const { custody } = await makeCustody({}, { allowRawSigning: true })
+    const failing: FakeLedger = {
+      ...fakeLedger(),
+      submitAndWait: async (): Promise<TxResponse> =>
+        ({
+          result: { hash: 'H', meta: { TransactionResult: 'tecNO_LINE' } },
+        }) as unknown as TxResponse,
+    }
+
+    await expect(
+      custody.submitAndWait(
+        OFFER_CANCEL_TX,
+        makeContext(custody, { ledger: failing }),
+      ),
+    ).rejects.toBeInstanceOf(XrpldSubmitError)
   })
 
   it('throws IntentPendingError when the native intent never reaches a terminal state', async () => {
