@@ -4,6 +4,7 @@ import type { Transaction } from 'xrpl'
 import {
   AccountNotFoundError,
   LocalSigner,
+  SignerCapabilityError,
   XrpldSubmitError,
   SimpleXRPLError,
 } from '../../../src/index.js'
@@ -158,6 +159,18 @@ describe('LocalSigner', () => {
       await expect(
         signer.sign(tx, contextFor('rNotMine')),
       ).rejects.toBeInstanceOf(AccountNotFoundError)
+    })
+
+    it('refuses a dryRun rather than signing for real', async () => {
+      const wallet = Wallet.generate()
+      const signer = LocalSigner.fromSeed(wallet.seed as string)
+      const tx = paymentFrom(wallet.classicAddress, wallet.classicAddress)
+      await expect(
+        signer.sign(tx, {
+          ...contextFor(wallet.classicAddress),
+          dryRun: true,
+        }),
+      ).rejects.toBeInstanceOf(SignerCapabilityError)
     })
   })
 

@@ -1,7 +1,6 @@
 import { AwsKmsSigner } from '../../src/custodians/external/adapters/aws-kms.js'
 import { ExternalSigner, SimpleXRPL } from '../../src/index.js'
-
-import { TESTNET_FAUCET, TESTNET_WS } from './helpers/testnet.js'
+import { TESTNET_FAUCET, TESTNET_WS } from '../helpers/testnet.js'
 
 /**
  * AWS KMS contract test: verify the adapter end to end against a real KMS key —

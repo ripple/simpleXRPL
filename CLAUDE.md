@@ -55,11 +55,29 @@ established.
 
 ## Testing
 
+Three tiers, one Jest config each (`jest.config.{unit,integration,contract}.cjs`,
+sharing `jest.config.base.cjs`):
+
 - **Unit** (`npm test`, `test/unit/`): offline, no network. Pure Build/Validate
   functions and dispatch orchestration with in-memory ports. Target ≥85% line
   coverage (threshold currently 0 until the Build/Validate layers land).
 - **Integration** (`npm run test:integration`, `test/integration/`): live
   testnet, run with `--runInBand` to avoid sequence-number conflicts.
+- **Contract** (`npm run test:contract`, `test/contract/`): one suite per
+  custodian backend, run against that backend's live sandbox to catch wire-shape
+  drift the generated types can't see at compile time. **A new custodian's
+  sandbox tests belong here, not in `test/integration/`** — even when the suite
+  also round-trips through the testnet, as the Palisade and AWS KMS ones do.
+  - Named `<backend>.contract.test.ts`.
+  - Each suite is gated on its own credentials and self-skips when they're
+    absent, so the tier is safe to run anywhere. Add new credentials to the
+    `contract-tests` job in `.github/workflows/ci.yml`, which runs the whole
+    tier on merge to main, tags, and manual dispatch — never on PRs, since fork
+    PRs get no secrets.
+
+Helpers shared across tiers live in `test/helpers/` (e.g. `testnet.ts`, used by
+both the integration and contract tiers); tier-local helpers stay in that tier's
+own `helpers/` directory.
 
 ## Conventions
 

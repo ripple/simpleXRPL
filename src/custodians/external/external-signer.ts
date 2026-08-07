@@ -13,6 +13,7 @@ import type {
   SubmissionResult,
 } from '../../domain/index.js'
 import { XrpldSubmitError } from '../../errors.js'
+import { assertDryRunHonored } from '../context-guards.js'
 
 import type { ExternalSignerPort } from './external-signer-port.js'
 import { signTransactionExternally } from './signing.js'
@@ -102,13 +103,20 @@ export class ExternalSigner implements Custodian {
    * Sign a transaction with the external key.
    *
    * @param tx - The autofilled transaction to sign.
-   * @param _ctx - The submission context (unused; this signer owns one key).
+   * @param ctx - The submission context; only its dry-run flag is read, since
+   * this signer owns one key.
    * @returns The signed envelope (blob + hash).
+   * @throws {@link SignerCapabilityError} if the context asks for a dry-run.
    */
   public async sign(
     tx: Transaction,
-    _ctx: SubmissionContext,
+    ctx: SubmissionContext,
   ): Promise<SignedEnvelope> {
+    assertDryRunHonored(
+      ctx,
+      'ExternalSigner',
+      'Drop dryRun, or route the pre-flight through a RippleCustody account.',
+    )
     return signTransactionExternally(tx, this.publicKeyHex, this.signer)
   }
 

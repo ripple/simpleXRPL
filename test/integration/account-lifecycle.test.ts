@@ -1,10 +1,9 @@
 import { SimpleXRPL, XrplLedger } from '../../src/index.js'
-
 import {
   fundedClientWithSigners,
   TESTNET_FAUCET,
   TESTNET_WS,
-} from './helpers/testnet.js'
+} from '../helpers/testnet.js'
 
 const LIVE_TIMEOUT_MS = 120_000
 

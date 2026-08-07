@@ -1,4 +1,4 @@
-import { decode, encode, Wallet } from 'xrpl'
+import { decode, encode, encodeForSigning, Wallet } from 'xrpl'
 import type { Payment, Transaction, TxResponse } from 'xrpl'
 
 import type {
@@ -22,9 +22,13 @@ import type {
 
 const BASE_URL = 'https://palisade.example'
 const PRIMARY = { vaultId: 'v1', walletId: 'w1' }
-// Real r-addresses so the raw path's binary-codec `encode` accepts them.
+// Real r-addresses so the raw path's binary-codec encoding accepts them.
 const PRIMARY_ADDR = Wallet.generate().classicAddress
 const DEST_ADDR = Wallet.generate().classicAddress
+// Palisade returns the wallet's public key; the raw path needs it to build the
+// signing preimage, so the default fixture carries one.
+const PUBKEY =
+  '0281dc1c5f7090dc2990b5437061253acb2987ccf4a2101b24f41b5ee84152c4d1'
 
 /** A programmable Palisade transport: canned token + wallet list + per-call
  * handlers keyed by a URL substring. Records POST bodies for assertions. */
@@ -51,6 +55,7 @@ function fakePort(handlers: {
         address: PRIMARY_ADDR,
         name: 'primary',
         status: 'PROVISIONED',
+        publicKey: PUBKEY,
       },
     ],
   }
@@ -93,9 +98,14 @@ function ledgerStub(response?: TxResponse): LedgerPort {
 function contextFor(
   account: Account,
   ledger: LedgerPort,
-  extra?: { timeoutMs?: number },
+  extra?: { timeoutMs?: number; idempotencyKey?: string },
 ): SubmissionContext {
-  return { account, ledger, timeoutMs: extra?.timeoutMs }
+  return {
+    account,
+    ledger,
+    timeoutMs: extra?.timeoutMs,
+    idempotencyKey: extra?.idempotencyKey,
+  }
 }
 
 const CREDENTIALS = {
@@ -195,6 +205,61 @@ describe('PalisadeCustody.submitAndWait — native', () => {
     expect(port.posts[0].url).toContain(
       '/vaults/v1/wallets/w1/transactions/transfer',
     )
+  })
+
+  it('carries the idempotency key to the transfer op as externalId', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'CONFIRMED', hash: 'H1' }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    await custody.submitAndWait(
+      payment,
+      contextFor(account, ledgerStub(), { idempotencyKey: 'idem-1' }),
+    )
+    expect(port.posts[0].body).toMatchObject({ externalId: 'idem-1' })
+  })
+
+  it('omits externalId when no idempotency key is set', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'CONFIRMED', hash: 'H1' }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    await custody.submitAndWait(payment, contextFor(account, ledgerStub()))
+    expect(port.posts[0].body).not.toHaveProperty('externalId')
+  })
+
+  it('refuses a dryRun rather than submitting for real', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'CONFIRMED', hash: 'H1' }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    await expect(
+      custody.submitAndWait(payment, {
+        account,
+        ledger: ledgerStub(),
+        dryRun: true,
+      }),
+    ).rejects.toBeInstanceOf(SignerCapabilityError)
+    expect(port.posts).toHaveLength(0)
+  })
+
+  it('refuses a fee intent it cannot map rather than dropping it', async () => {
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'CONFIRMED', hash: 'H1' }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    await expect(
+      custody.submitAndWait(payment, {
+        account,
+        ledger: ledgerStub(),
+        fee: { maxFeeDrops: '5000' },
+      }),
+    ).rejects.toBeInstanceOf(SignerCapabilityError)
+    expect(port.posts).toHaveLength(0)
   })
 
   it('throws when the native submission is REJECTED', async () => {
@@ -314,18 +379,57 @@ describe('PalisadeCustody.sign / submitAsync', () => {
       contextFor(account, ledgerStub()),
     )
     expect(envelope.txBlob).toBe('SIGNEDBLOB')
-    // The encoded raw body carries the binary-codec hex of the tx.
+    // The raw body carries the STX-prefixed signing preimage, not `encode`
+    // output: Palisade hashes the caller's bytes as-is and adds no prefix.
+    const signed = { ...payment, SigningPubKey: PUBKEY.toUpperCase() }
     expect(port.posts[0].body).toMatchObject({
-      encodedTransaction: encode(payment),
+      encodedTransaction: encodeForSigning(signed),
     })
   })
 
+  it('sends the STX-prefixed signing preimage, not the plain encoding', async () => {
+    // Regression guard for the `Invalid signature` failure: Palisade signs the
+    // exact bytes it is given, so a plain `encode` payload is signed over the
+    // wrong preimage. The prefix must be present, and stripping it must yield
+    // the plain encoding of the same transaction.
+    const port = fakePort({
+      onRaw: () => ({
+        id: 'raw1',
+        status: 'SIGNED',
+        signedTransaction: 'BLOB',
+      }),
+    })
+    const custody = await makeCustody(port, true)
+    const account = (await custody.listAccounts())[0]
+    await custody.sign(payment, contextFor(account, ledgerStub()))
+
+    const { encodedTransaction } = port.posts[0].body as {
+      encodedTransaction: string
+    }
+    const signed = { ...payment, SigningPubKey: PUBKEY.toUpperCase() }
+    expect(encodedTransaction.slice(0, 8)).toBe('53545800')
+    expect(encodedTransaction.slice(8)).toBe(encode(signed))
+  })
+
   it('sign sets SigningPubKey from the account public key before signing', async () => {
-    // Palisade signs the encoded blob verbatim and leaves SigningPubKey empty,
-    // so the SDK must inject the wallet's public key (uppercased) — XRPL rejects
-    // a single-signed blob whose SigningPubKey is empty.
-    const PUBKEY =
-      '0281dc1c5f7090dc2990b5437061253acb2987ccf4a2101b24f41b5ee84152c4d1'
+    // SigningPubKey is part of the signing preimage, so it must be stamped
+    // before encoding — XRPL rejects a single-signed blob with an empty one.
+    const port = fakePort({
+      onRaw: () => ({
+        id: 'raw1',
+        status: 'SIGNED',
+        signedTransaction: 'BLOB',
+      }),
+    })
+    const custody = await makeCustody(port, true)
+    const account = (await custody.listAccounts())[0]
+    await custody.sign(payment, contextFor(account, ledgerStub()))
+    const body = port.posts[0].body as { encodedTransaction: string }
+    const decoded = decode(body.encodedTransaction.slice(8))
+    expect(decoded.SigningPubKey).toBe(PUBKEY.toUpperCase())
+  })
+
+  it('refuses to raw-sign when the wallet exposes no public key', async () => {
     const port = fakePort({
       wallets: {
         wallets: [
@@ -335,7 +439,6 @@ describe('PalisadeCustody.sign / submitAsync', () => {
             address: PRIMARY_ADDR,
             name: 'primary',
             status: 'PROVISIONED',
-            publicKey: PUBKEY,
           },
         ],
       },
@@ -347,10 +450,10 @@ describe('PalisadeCustody.sign / submitAsync', () => {
     })
     const custody = await makeCustody(port, true)
     const account = (await custody.listAccounts())[0]
-    await custody.sign(payment, contextFor(account, ledgerStub()))
-    const body = port.posts[0].body as { encodedTransaction: string }
-    const decoded = decode(body.encodedTransaction)
-    expect(decoded.SigningPubKey).toBe(PUBKEY.toUpperCase())
+    await expect(
+      custody.sign(payment, contextFor(account, ledgerStub())),
+    ).rejects.toBeInstanceOf(SignerCapabilityError)
+    expect(port.posts).toHaveLength(0)
   })
 
   it('sign polls until the async signature is ready', async () => {

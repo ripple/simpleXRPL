@@ -98,6 +98,7 @@
     "@xrplf/eslint-config": "^3.0.0",
     "@xrplf/prettier-config": "^1.9.1",
     "ajv": "^6.15.0",
+    "dotenv": "^17.4.2",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",

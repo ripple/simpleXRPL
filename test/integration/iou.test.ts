@@ -1,6 +1,5 @@
 import type { SimpleXRPLClient } from '../../src/index.js'
-
-import { fundedClientWithSigners } from './helpers/testnet.js'
+import { fundedClientWithSigners } from '../helpers/testnet.js'
 
 const LIVE_TIMEOUT_MS = 120_000
 

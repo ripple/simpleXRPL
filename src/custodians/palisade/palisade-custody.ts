@@ -1,4 +1,4 @@
-import { encode } from 'xrpl'
+import { encodeForSigning } from 'xrpl'
 import type { Transaction } from 'xrpl'
 
 import type {
@@ -20,6 +20,7 @@ import {
 } from '../../errors.js'
 import type { PalisadeScope } from '../../generated/palisade-routes.js'
 import type { components } from '../../generated/palisade.js'
+import { assertDryRunHonored, assertFeeHonored } from '../context-guards.js'
 
 import { PalisadeApi } from './api.js'
 import type { PalisadeScopedClients } from './api.js'
@@ -182,31 +183,45 @@ export class PalisadeCustody implements Custodian {
   }
 
   /**
-   * Raw-sign a transaction: Palisade signs the encoded blob (`signOnly`) and
-   * returns the signed transaction for submission through the shared ledger.
+   * Raw-sign a transaction: Palisade signs the payload it is given and returns
+   * the assembled signed transaction for submission through the shared ledger.
+   *
+   * The payload is `encodeForSigning` output — the STX-prefixed signing
+   * preimage — not `encode` output. Palisade hashes the caller's bytes as-is
+   * and does not add XRPL's `STX\0` (`0x53545800`) prefix itself, so a plain
+   * `encode` payload yields a signature XRPL rejects as `Invalid signature`.
+   * Palisade strips the recognized prefix before assembling `signedTransaction`.
    *
    * @param tx - The transaction to sign (network fields resolved).
    * @param ctx - The submission context (source account + ledger).
    * @returns The signed envelope.
+   * @throws {@link SignerCapabilityError} if the account exposes no public key.
    */
   public async sign(
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SignedEnvelope> {
+    this.assertContextHonored(ctx)
     const filled =
       tx.Sequence === undefined ? await ctx.ledger.autofill(tx) : tx
-    // Palisade's raw sign returns only the signature and leaves SigningPubKey
-    // empty. XRPL computes TxnSignature over the transaction *including*
-    // SigningPubKey and rejects a blob with an empty one, so set the wallet's
-    // public key before signing (the same field the ExternalSigner sets).
-    const toSign =
-      ctx.account.publicKey === undefined
-        ? filled
-        : { ...filled, SigningPubKey: ctx.account.publicKey.toUpperCase() }
+    // XRPL computes TxnSignature over the transaction *including*
+    // SigningPubKey, and it is part of the signing preimage — so it must be set
+    // before encoding, not patched in afterwards. Without it the signature is
+    // silently invalid, so fail loudly instead.
+    if (ctx.account.publicKey === undefined) {
+      throw new SignerCapabilityError(
+        `Palisade raw signing needs the wallet's public key to build the ` +
+          `signing payload, and none was discovered for ${ctx.account.address}.`,
+      )
+    }
+    const toSign = {
+      ...filled,
+      SigningPubKey: ctx.account.publicKey.toUpperCase(),
+    }
     const base = this.transactionsBase(ctx.account)
     const submitted = await this.client.post<PalisadeTransaction>(
       `${base}/raw`,
-      buildRawTransactionBody(encode(toSign), ctx.idempotencyKey),
+      buildRawTransactionBody(encodeForSigning(toSign), ctx.idempotencyKey),
     )
     // Palisade signs asynchronously: the POST can return before the signature
     // is ready, so poll until `signedTransaction` is populated (a sign-only
@@ -236,9 +251,10 @@ export class PalisadeCustody implements Custodian {
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SubmissionResult> {
+    this.assertContextHonored(ctx)
     if (PALISADE_NATIVE_TRANSACTORS.has(tx.TransactionType)) {
       try {
-        const { subPath, body } = txToNativeSubmit(tx)
+        const { subPath, body } = txToNativeSubmit(tx, ctx.idempotencyKey)
         return await this.submitNative(subPath, body, ctx)
       } catch (error) {
         if (error instanceof SignerCapabilityError && this.allowRaw) {
@@ -271,13 +287,14 @@ export class PalisadeCustody implements Custodian {
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SubmissionHandle> {
+    this.assertContextHonored(ctx)
     if (!PALISADE_NATIVE_TRANSACTORS.has(tx.TransactionType)) {
       throw new SimpleXRPLError(
         `Palisade async submission supports only natively-mapped transactors; ` +
           `${tx.TransactionType} would take the raw path — use submitAndWait.`,
       )
     }
-    const { subPath, body } = txToNativeSubmit(tx)
+    const { subPath, body } = txToNativeSubmit(tx, ctx.idempotencyKey)
     const base = this.transactionsBase(ctx.account)
     const submitted = await this.client.post<PalisadeTransaction>(
       `${base}/${subPath}`,
@@ -314,6 +331,28 @@ export class PalisadeCustody implements Custodian {
       ctx.timeoutMs,
     )
     return this.tracker.toResult(final)
+  }
+
+  /**
+   * Reject a context asking for a control Palisade cannot honor. Palisade
+   * exposes no dry-run endpoint, and its XRPL operations model no fee field the
+   * SDK's {@link FeeIntent} maps onto — so both would be silently dropped.
+   *
+   * @param ctx - The submission context.
+   * @throws {@link SignerCapabilityError} if `dryRun` or `fee` is set.
+   */
+  // eslint-disable-next-line class-methods-use-this -- reads only its argument
+  private assertContextHonored(ctx: SubmissionContext): void {
+    assertDryRunHonored(
+      ctx,
+      'Palisade',
+      'Drop dryRun, or route the pre-flight through a RippleCustody account.',
+    )
+    assertFeeHonored(
+      ctx,
+      'Palisade',
+      'Drop fee and let Palisade price the transaction, or use a RippleCustody account.',
+    )
   }
 
   /**

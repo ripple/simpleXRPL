@@ -6,6 +6,7 @@ import type { Payment, Transaction, TxResponse } from 'xrpl'
 
 import {
   ExternalSigner,
+  SignerCapabilityError,
   XrpldSubmitError,
   dispatch,
   isNativePath,
@@ -162,6 +163,17 @@ describe('ExternalSigner.sign', () => {
     expect(verify(signingData, decoded.TxnSignature as string, PUB_HEX)).toBe(
       true,
     )
+  })
+
+  it('refuses a dryRun rather than signing for real', async () => {
+    const custody = await ExternalSigner.create({ signer: fakePort() })
+    const tx = paymentFrom(custody.primary.address)
+    await expect(
+      custody.sign(tx, {
+        ...contextFor(custody.primary.address, ledgerStub()),
+        dryRun: true,
+      }),
+    ).rejects.toBeInstanceOf(SignerCapabilityError)
   })
 
   it('signs with an ed25519 key (message signed directly, no digest)', async () => {

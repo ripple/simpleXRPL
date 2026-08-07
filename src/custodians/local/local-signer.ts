@@ -17,6 +17,7 @@ import {
   XrpldSubmitError,
   SimpleXRPLError,
 } from '../../errors.js'
+import { assertDryRunHonored } from '../context-guards.js'
 
 /** Options for {@link LocalSigner.create}. */
 export interface LocalSignerCreateOptions {
@@ -187,11 +188,17 @@ export class LocalSigner implements Custodian {
    * @param ctx - The submission context naming the source account.
    * @returns The signed envelope (blob + hash).
    * @throws {@link AccountNotFoundError} if no wallet owns the context account.
+   * @throws {@link SignerCapabilityError} if the context asks for a dry-run.
    */
   public async sign(
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SignedEnvelope> {
+    assertDryRunHonored(
+      ctx,
+      'LocalSigner',
+      'Drop dryRun, or route the pre-flight through a RippleCustody account.',
+    )
     const signed = this.walletFor(ctx.account.address).sign(tx)
     return { txBlob: signed.tx_blob, hash: signed.hash }
   }

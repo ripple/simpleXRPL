@@ -2,8 +2,7 @@ import { xrpToDrops } from 'xrpl'
 import type { Payment } from 'xrpl'
 
 import { submitTransactionAsync } from '../../src/index.js'
-
-import { fundedTestnetClient } from './helpers/testnet.js'
+import { fundedTestnetClient } from '../helpers/testnet.js'
 
 const LIVE_TIMEOUT_MS = 120_000
 

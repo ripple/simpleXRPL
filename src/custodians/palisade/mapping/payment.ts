@@ -21,10 +21,15 @@ const UNSUPPORTED_FIELDS = [
  * are native; MPT amounts, cross-currency fields, and flags have no native slot.
  *
  * @param tx - The Payment transaction.
+ * @param idempotencyKey - Carried as Palisade's `externalId` dedup key, so a
+ * retried transfer resolves to the same custodian transaction.
  * @returns The Palisade transfer body.
  * @throws {@link SignerCapabilityError} for MPT/cross-currency/flag fields.
  */
-export function mapPaymentToTransfer(tx: Payment): TransferBody {
+export function mapPaymentToTransfer(
+  tx: Payment,
+  idempotencyKey?: string,
+): TransferBody {
   for (const field of UNSUPPORTED_FIELDS) {
     if (tx[field] !== undefined) {
       palisadeUnsupported('Payment', field)
@@ -41,6 +46,9 @@ export function mapPaymentToTransfer(tx: Payment): TransferBody {
   const config = paymentConfig(tx)
   if (config !== undefined) {
     body.config = config
+  }
+  if (idempotencyKey !== undefined) {
+    body.externalId = idempotencyKey
   }
   return body
 }

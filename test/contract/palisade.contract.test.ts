@@ -2,8 +2,7 @@ import type { Payment } from 'xrpl'
 
 import { PalisadeCustody, SimpleXRPL, XrplLedger } from '../../src/index.js'
 import type { Account, PalisadeCustodyConfig } from '../../src/index.js'
-
-import { ensureFunded, TESTNET_WS } from './helpers/testnet.js'
+import { ensureFunded, TESTNET_WS } from '../helpers/testnet.js'
 
 /**
  * Palisade contract tests: run the real adapter against a live Palisade
@@ -96,17 +95,14 @@ const destAddress = process.env.PALISADE_DEST_ADDRESS
 // see TODO(palisade-cancel) in tx-tracker.ts. Freezing a pending intent is
 // rejected (`400 "cannot freeze/unfreeze transaction"`, PAL010.008) and the API
 // exposes no reject/cancel-approval endpoint, so it can't be tested end-to-end.
-// Opt-in flag for the raw sign-only test. The SDK side is correct and
-// unit-tested: it polls for the async signature and sets SigningPubKey from the
-// wallet's public key. But end-to-end raw signing is blocked by Palisade, in
-// two layers we verified against the sandbox:
-//   1. raw signing must be enabled in the wallet's settings (otherwise every
-//      raw tx is a policy Violation), and
-//   2. even with it enabled, the sandbox HSM returns a signature XRPL rejects
-//      as "Invalid signature" — it fails to verify against the account's master
-//      key, and fails identically when Palisade publishes it itself
-//      (signOnly:false). That's a Palisade-side signing issue, not the SDK.
-// Enable this only against a wallet where Palisade produces a valid signature.
+// Opt-in flag for the raw sign-only test: raw signing must be enabled in the
+// wallet's settings, otherwise every raw tx comes back a policy Violation.
+//
+// The earlier "Invalid signature" failure on this path was ours, not Palisade's:
+// we sent `encode` output, but the endpoint signs the caller's bytes verbatim
+// and adds no prefix, so the signature covered the wrong preimage. Sending
+// `encodeForSigning` output (STX-prefixed) resolves it — confirmed by Palisade
+// against Testnet on both signOnly modes.
 const rawOptIn = process.env.PALISADE_RAW_TEST
 /* eslint-enable n/no-process-env */
 
@@ -315,6 +311,9 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
         })
         expect(result.source).toBe('xrpld')
         expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
+        // Emit the validated hash so a contract run leaves independently
+        // checkable evidence in the log (this path had a signing regression).
+        console.log(`raw-signed tx validated on XRPL: ${result.txHash}`)
       } finally {
         await ledger.disconnect()
       }

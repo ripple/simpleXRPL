@@ -79,10 +79,10 @@ jobs:
       - run: npm ci
       - run: npm run test:integration
 
-  # Live custodian contract tests (Palisade, AWS KMS) — gated on sandbox
-  # credentials supplied via repository/environment secrets. Runs only on merge
-  # to main, tags/releases, and manual dispatch — NOT on PRs (fork PRs don't get
-  # secrets, and we don't want an external sandbox gating every PR). Each suite
+  # Live custodian contract tests (Ripple Custody, Palisade, AWS KMS) — gated on
+  # sandbox credentials supplied via repository/environment secrets. Runs only on
+  # merge to main, tags/releases, and manual dispatch — NOT on PRs (fork PRs don't
+  # get secrets, and we don't want an external sandbox gating every PR). Each suite
   # still skips individually when its own secrets are absent.
   contract-tests:
     if: >-
@@ -106,6 +106,13 @@ jobs:
       - run: npm ci
       - name: Run custodian contract tests
         env:
+          RIPPLE_CUSTODY_GATEWAY_URL: ${{ secrets.RIPPLE_CUSTODY_GATEWAY_URL }}
+          RIPPLE_CUSTODY_AUTH_SIGNING_KEY: ${{ secrets.RIPPLE_CUSTODY_AUTH_SIGNING_KEY }}
+          RIPPLE_CUSTODY_AUTH_TOKEN_URL: ${{ secrets.RIPPLE_CUSTODY_AUTH_TOKEN_URL }}
+          RIPPLE_CUSTODY_AUTH_CLIENT_ID: ${{ secrets.RIPPLE_CUSTODY_AUTH_CLIENT_ID }}
+          RIPPLE_CUSTODY_AUTH_PUBLIC_KEY: ${{ secrets.RIPPLE_CUSTODY_AUTH_PUBLIC_KEY }}
+          RIPPLE_CUSTODY_DOMAIN_ID: ${{ secrets.RIPPLE_CUSTODY_DOMAIN_ID }}
+          RIPPLE_CUSTODY_PRIMARY_ADDRESS: ${{ secrets.RIPPLE_CUSTODY_PRIMARY_ADDRESS }}
           PALISADE_BASE_URL: ${{ secrets.PALISADE_BASE_URL }}
           PALISADE_WALLETS_CLIENT_ID: ${{ secrets.PALISADE_WALLETS_CLIENT_ID }}
           PALISADE_WALLETS_CLIENT_SECRET: ${{ secrets.PALISADE_WALLETS_CLIENT_SECRET }}
@@ -116,4 +123,4 @@ jobs:
           PALISADE_DEST_ADDRESS: ${{ secrets.PALISADE_DEST_ADDRESS }}
           AWS_KMS_KEY_ID: ${{ secrets.AWS_KMS_KEY_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: npm run test:integration -- palisade-contract aws-kms-contract
+        run: npm run test:contract

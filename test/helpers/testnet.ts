@@ -1,7 +1,7 @@
 import { Client, dropsToXrp, Wallet } from 'xrpl'
 
-import { LocalSigner, SimpleXRPL, XrplLedger } from '../../../src/index.js'
-import type { SimpleXRPLClient } from '../../../src/index.js'
+import { LocalSigner, SimpleXRPL, XrplLedger } from '../../src/index.js'
+import type { SimpleXRPLClient } from '../../src/index.js'
 
 /** Minimum XRP an account should hold before it's considered funded. */
 const MIN_FUNDED_XRP = 25

@@ -5,8 +5,7 @@ import {
   assembleSignedTransaction,
   buildSigningPreimage,
 } from '../../src/custodians/ripple/submission/raw-sign.js'
-
-import { fundedTestnetClient } from './helpers/testnet.js'
+import { fundedTestnetClient } from '../helpers/testnet.js'
 
 const LIVE_TIMEOUT_MS = 120_000
 

@@ -41,15 +41,26 @@ export interface NativeSubmit {
  * with no native slot throw {@link SignerCapabilityError} rather than being
  * dropped; the custodian turns that into the raw path when enabled.
  *
+ * `idempotencyKey` is carried as Palisade's `externalId` dedup key, but only
+ * `transfer` models that field — the `xrp/*` operation bodies have no slot for
+ * it, so a retry of one of those is not deduplicated custodian-side.
+ *
  * @param tx - The transaction to map.
+ * @param idempotencyKey - The submission's idempotency key, when set.
  * @returns The native sub-path and request body.
  * @throws {@link SignerCapabilityError} if the transactor isn't natively modeled.
  */
-export function txToNativeSubmit(tx: Transaction): NativeSubmit {
+export function txToNativeSubmit(
+  tx: Transaction,
+  idempotencyKey?: string,
+): NativeSubmit {
   // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- unlisted transactors hit `default`, by design
   switch (tx.TransactionType) {
     case 'Payment':
-      return { subPath: 'transfer', body: mapPaymentToTransfer(tx) }
+      return {
+        subPath: 'transfer',
+        body: mapPaymentToTransfer(tx, idempotencyKey),
+      }
     case 'OfferCreate':
       return { subPath: 'xrp/offer-create', body: mapOfferCreate(tx) }
     case 'OfferCancel':
