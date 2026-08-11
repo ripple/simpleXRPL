@@ -10,11 +10,16 @@ type OfferCreateBody =
   operations['TransactionsService_SubmitOfferCreate']['requestBody']['content']['application/json']
 type OfferFlag = components['schemas']['transactionsv2OfferCreateFlags']
 
-const FLAG_TABLE: ReadonlyArray<readonly [number, OfferFlag]> = [
-  [OfferCreateFlags.tfPassive, 'PASSIVE'],
-  [OfferCreateFlags.tfImmediateOrCancel, 'IMMEDIATE_OR_CANCEL'],
-  [OfferCreateFlags.tfFillOrKill, 'FILL_OR_KILL'],
-  [OfferCreateFlags.tfSell, 'SELL'],
+/** `[bit, xrpl.js flags-interface key, Palisade wire flag]`. */
+const FLAG_TABLE: ReadonlyArray<readonly [number, string, OfferFlag]> = [
+  [OfferCreateFlags.tfPassive, 'tfPassive', 'PASSIVE'],
+  [
+    OfferCreateFlags.tfImmediateOrCancel,
+    'tfImmediateOrCancel',
+    'IMMEDIATE_OR_CANCEL',
+  ],
+  [OfferCreateFlags.tfFillOrKill, 'tfFillOrKill', 'FILL_OR_KILL'],
+  [OfferCreateFlags.tfSell, 'tfSell', 'SELL'],
 ]
 
 /**

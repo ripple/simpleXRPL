@@ -16,6 +16,7 @@ import type { ListOffersResult } from '../reads/offers.js'
 
 import {
   assertClawbackEnabled,
+  assertDistributableAmount,
   buildAccountSet,
   buildFreeze,
   buildIssuedPayment,
@@ -67,9 +68,14 @@ export class IOU {
   }
 
   /**
-   * Generate a new trust-line-based IOU: the issuer enables rippling
-   * (`AccountSet`), then the hot wallet extends trust to the maximum limit
-   * (`TrustSet`). No value exists yet — use {@link IOU.transfer} to send.
+   * Generate a new trust-line-based IOU in one call: the issuer enables
+   * rippling (`AccountSet`), the hot wallet extends trust to the maximum limit
+   * (`TrustSet`), and — when `params.amount` is given — the issuer distributes
+   * that amount to the hot wallet (`Payment`), so the issuance ends with value
+   * in circulation rather than an empty trust line.
+   *
+   * Omit `params.amount` to set the trust line up only and distribute later via
+   * {@link IOU.transfer} (e.g. issuing in tranches).
    *
    * Two ways to source the issuer and hot wallet:
    * - Pass `params.holder` (a client-owned account) and, optionally, the issuer
@@ -78,12 +84,17 @@ export class IOU {
    * - Omit `params.holder` to bootstrap both from the `XRPL_ISSUER_SEED` /
    *   `XRPL_HOT_WALLET_SEED` environment seeds (the local dev flow).
    *
-   * @param params - The ticker to issue, and optionally the holder account.
+   * @param params - The ticker to issue, optionally the holder account and the
+   * amount to distribute to it.
    * @param options - Issuer source (`from`, default primary) and fee override.
-   * @returns The result, with `{ iouID }` as its intent output.
+   * @returns The result, with `{ iouID }` plus the distributed `amount` (when
+   * one was requested) as its intent output.
    * @throws {@link IntentValidationError} if the env-seed flow is used and the
-   *   required seeds aren't set.
-   * @throws {@link MultiStepFailureError} if either step fails.
+   *   required seeds aren't set, or `params.amount` is not a positive finite
+   *   number.
+   * @throws {@link MultiStepFailureError} if any step fails, carrying the steps
+   *   that already committed — a distribution failure leaves the trust line in
+   *   place, so it can be retried with {@link IOU.transfer}.
    */
   public async issue(
     params: IOUIssueParams,
@@ -98,9 +109,23 @@ export class IOU {
         account: holder,
       },
     ]
+    if (params.amount !== undefined) {
+      // Distribution must follow the TrustSet: without the limit in place the
+      // Payment fails with tecPATH_DRY (no trust line to receive into).
+      assertDistributableAmount(params.amount)
+      steps.push({
+        transaction: buildIssuedPayment(issuer.address, holder.address, {
+          currency,
+          issuer: issuer.address,
+          value: String(params.amount),
+        }),
+        account: issuer,
+      })
+    }
     const results = await runMultiStep(this.host, steps)
     return withIntent(results[results.length - 1], {
       iouID: `${currency}.${issuer.address}`,
+      amount: params.amount,
     })
   }
 

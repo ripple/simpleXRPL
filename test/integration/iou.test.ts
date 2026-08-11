@@ -121,6 +121,38 @@ describe('IOU vertical (live testnet)', () => {
   )
 
   it(
+    'issues and distributes to the hot wallet in a single call',
+    async () => {
+      // The one-call issuance: AccountSet + TrustSet + Payment. Proving the
+      // distribution lands means the caller needs no follow-up transfer to end
+      // up with value in circulation.
+      const { client, wallets } = await fundedClientWithSigners(2)
+      const [issuer, holder] = wallets
+      seedEnv(issuer.seed as string, holder.seed as string)
+      try {
+        const issued = await client.iou.issue({ ticker: 'USD', amount: 250 })
+        expect(issued.intent).toStrictEqual({
+          iouID: `USD.${issuer.classicAddress}`,
+          amount: 250,
+        })
+
+        const line = await usdLine(
+          client,
+          holder.classicAddress,
+          issuer.classicAddress,
+        )
+        expect(Number(line?.limit)).toBe(Number('9'.repeat(15)))
+        // The balance is non-zero straight out of issue() — the point of the change.
+        expect(Number(line?.balance)).toBe(250)
+      } finally {
+        clearEnv()
+        await client.disconnect()
+      }
+    },
+    LIVE_TIMEOUT_MS,
+  )
+
+  it(
     'claws back a holder balance (issuer clawback enabled)',
     async () => {
       const { client, wallets } = await fundedClientWithSigners(2)

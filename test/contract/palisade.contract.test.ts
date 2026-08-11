@@ -313,7 +313,10 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
         expect(result.txHash).toMatch(/^[0-9A-F]{64}$/u)
         // Emit the validated hash so a contract run leaves independently
         // checkable evidence in the log (this path had a signing regression).
-        console.log(`raw-signed tx validated on XRPL: ${result.txHash}`)
+        // eslint-disable-next-line no-console -- deliberate evidence in the contract-run log
+        console.log(
+          `raw-signed tx validated on XRPL: ${result.txHash as string}`,
+        )
       } finally {
         await ledger.disconnect()
       }

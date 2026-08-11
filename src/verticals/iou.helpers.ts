@@ -281,6 +281,24 @@ export function buildIssuedPayment(
 }
 
 /**
+ * Reject an issuance distribution amount the ledger would refuse. A zero,
+ * negative, or non-finite value builds a `Payment` that fails with
+ * `temBAD_AMOUNT` mid-sequence — after the trust line has already committed —
+ * so it is caught before the first step is submitted.
+ *
+ * @param amount - The caller-supplied distribution amount.
+ * @throws {@link IntentValidationError} if `amount` is not positive and finite.
+ */
+export function assertDistributableAmount(amount: number): void {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new IntentValidationError(
+      `IOU.issue amount must be a positive finite number, got ${amount}. ` +
+        'Omit amount to set up the trust line without distributing.',
+    )
+  }
+}
+
+/**
  * Build a local `Account` (r-address + in-process signer) from a wallet seed.
  *
  * @param seed - The wallet seed.

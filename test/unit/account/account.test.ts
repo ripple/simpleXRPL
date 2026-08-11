@@ -51,6 +51,32 @@ describe('Account vertical', () => {
     expect(settings.SetFlag).toBe(AccountSetAsfFlags.asfDefaultRipple)
   })
 
+  it('activate defaults the amount to the network base reserve plus a buffer', async () => {
+    const { client, txs } = await recordingClient()
+    // Report a 10 XRP base reserve; the default funding must clear it with room
+    // for the follow-up defaultRipple fee, or the new account is stuck.
+    Object.defineProperty(client.ledger, 'request', {
+      value: async () => ({
+        result: { info: { validated_ledger: { reserve_base_xrp: 10 } } },
+      }),
+    })
+    const created = client.account.create()
+    await client.account.activate({ destination: created.address })
+    // 10 XRP reserve + 1 XRP buffer = 11 XRP.
+    expect((txs[0] as Payment).Amount).toBe('11000000')
+  })
+
+  it('activate reports a server_info that does not disclose the base reserve', async () => {
+    const { client } = await recordingClient()
+    Object.defineProperty(client.ledger, 'request', {
+      value: async () => ({ result: { info: {} } }),
+    })
+    const created = client.account.create()
+    await expect(
+      client.account.activate({ destination: created.address }),
+    ).rejects.toThrow(/base reserve/u)
+  })
+
   it('fund throws when the ledger has no faucet', async () => {
     const { client } = await recordingClient()
     const created = client.account.create()
@@ -122,6 +148,15 @@ describe('Account vertical', () => {
     await expect(
       client.account.set({ requireDest: true, requireAuth: true }),
     ).rejects.toBeInstanceOf(SimpleXRPLError)
+  })
+
+  it('set rejects disabling more than one flag in a call', async () => {
+    // An AccountSet carries at most one ClearFlag; silently dropping the second
+    // would leave a flag the caller believes is off still enabled.
+    const { client } = await recordingClient()
+    await expect(
+      client.account.set({ requireDest: false, requireAuth: false }),
+    ).rejects.toThrow(/disables at most one flag/u)
   })
 
   it('set rejects an out-of-range TickSize as IntentValidationError', async () => {

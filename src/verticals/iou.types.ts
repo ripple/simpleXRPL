@@ -50,12 +50,24 @@ export interface IOUIssueParams {
    * `XRPL_HOT_WALLET_SEED` environment seeds (the local dev flow).
    */
   readonly holder?: string
+  /**
+   * How much of the new IOU the issuer distributes to the hot wallet as the
+   * final step, so one call ends with value in circulation. Omit to set the
+   * trust line up only and distribute later via {@link IOU.transfer} (e.g.
+   * issuing in tranches). Must be positive and finite.
+   */
+  readonly amount?: number
 }
 
 /** Output attached to an {@link IOU.issue} result. */
 export interface IOUIssueIntent {
   /** Currency code and issuer of the new IOU, e.g. `USD.rIssuer...`. */
   readonly iouID: string
+  /**
+   * The amount distributed to the hot wallet, or `undefined` when the issuance
+   * only set the trust line up.
+   */
+  readonly amount?: number
 }
 
 /** Parameters for {@link IOU.authorize}. */

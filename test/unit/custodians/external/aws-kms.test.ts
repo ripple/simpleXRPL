@@ -1,4 +1,4 @@
-import { createPublicKey } from 'node:crypto'
+import { createPublicKey, generateKeyPairSync } from 'node:crypto'
 
 import { GetPublicKeyCommand, SignCommand } from '@aws-sdk/client-kms'
 import type { KMSClient } from '@aws-sdk/client-kms'
@@ -117,6 +117,92 @@ describe('AwsKmsSigner', () => {
     await expect(
       signer.signDigest(Uint8Array.from(Buffer.alloc(32, 7))),
     ).rejects.toBeInstanceOf(SimpleXRPLError)
+  })
+
+  it('rejects a DER signature with trailing bytes past the two INTEGERs', async () => {
+    // A well-formed SEQUENCE followed by junk: silently ignoring the tail would
+    // accept a mangled signature and produce an invalid on-ledger transaction.
+    const valid = Buffer.from(
+      secp256k1
+        .sign(Uint8Array.from(Buffer.alloc(32, 7)), PRIV)
+        .toDERRawBytes(),
+    )
+    const client = {
+      async send(command: GetPublicKeyCommand | SignCommand) {
+        if (command instanceof GetPublicKeyCommand) {
+          return { PublicKey: spkiDer() }
+        }
+        return { Signature: Buffer.concat([valid, Buffer.from([0x00])]) }
+      },
+    } as unknown as KMSClient
+    const signer = AwsKmsSigner.create({ keyId: 'k', client })
+    await expect(
+      signer.signDigest(Uint8Array.from(Buffer.alloc(32, 7))),
+    ).rejects.toThrow('Malformed DER signature from AWS KMS')
+  })
+
+  it('rejects a DER signature whose second element is not an INTEGER', async () => {
+    const client = {
+      async send(command: GetPublicKeyCommand | SignCommand) {
+        if (command instanceof GetPublicKeyCommand) {
+          return { PublicKey: spkiDer() }
+        }
+        // SEQUENCE { INTEGER 0x01, BOOLEAN } — first INTEGER parses, second fails.
+        return {
+          Signature: Uint8Array.from([
+            0x30, 0x06, 0x02, 0x01, 0x01, 0x01, 0x01, 0x00,
+          ]),
+        }
+      },
+    } as unknown as KMSClient
+    const signer = AwsKmsSigner.create({ keyId: 'k', client })
+    await expect(
+      signer.signDigest(Uint8Array.from(Buffer.alloc(32, 7))),
+    ).rejects.toThrow('Malformed DER signature from AWS KMS')
+  })
+
+  it('reports a KMS sign response that carries no signature', async () => {
+    const client = {
+      async send(command: GetPublicKeyCommand | SignCommand) {
+        if (command instanceof GetPublicKeyCommand) {
+          return { PublicKey: spkiDer() }
+        }
+        return {}
+      },
+    } as unknown as KMSClient
+    const signer = AwsKmsSigner.create({ keyId: 'k', client })
+    await expect(
+      signer.signDigest(Uint8Array.from(Buffer.alloc(32, 7))),
+    ).rejects.toThrow('AWS KMS returned no signature')
+  })
+
+  it('reports a KMS GetPublicKey response that carries no key', async () => {
+    const client = {
+      async send() {
+        return {}
+      },
+    } as unknown as KMSClient
+    const signer = AwsKmsSigner.create({ keyId: 'k', client })
+    await expect(signer.publicKey()).rejects.toThrow(
+      'AWS KMS returned no public key',
+    )
+  })
+
+  it('rejects a non-EC KMS key', async () => {
+    // An RSA key exports a JWK with no x/y point, so it cannot be compressed to
+    // an XRPL public key — a misconfigured key spec must fail loudly at setup.
+    const rsa = generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+    }).publicKey.export({ format: 'der', type: 'spki' })
+    const client = {
+      async send() {
+        return { PublicKey: Uint8Array.from(rsa) }
+      },
+    } as unknown as KMSClient
+    const signer = AwsKmsSigner.create({ keyId: 'k', client })
+    await expect(signer.publicKey()).rejects.toThrow(
+      'AWS KMS public key is not an EC key',
+    )
   })
 
   it('drives ExternalSigner to a verifiable on-ledger signature', async () => {

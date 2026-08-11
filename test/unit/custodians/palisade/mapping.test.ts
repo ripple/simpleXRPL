@@ -1,4 +1,9 @@
-import { AccountSetAsfFlags, OfferCreateFlags, TrustSetFlags } from 'xrpl'
+import {
+  AccountSetAsfFlags,
+  OfferCreateFlags,
+  PaymentFlags,
+  TrustSetFlags,
+} from 'xrpl'
 import type { AccountSet, Clawback, OfferCreate, Payment, TrustSet } from 'xrpl'
 
 import {
@@ -62,6 +67,36 @@ describe('txToNativeSubmit — Payment → transfer', () => {
     }
     expect(() => txToNativeSubmit(tx)).toThrow(SignerCapabilityError)
   })
+
+  it('rejects Payment Flags, which the native transfer has no slot for', () => {
+    // tfPartialPayment silently dropped would change what the recipient gets,
+    // so a flagged Payment must fall back to raw signing rather than map.
+    const tx: Payment = {
+      TransactionType: 'Payment',
+      Account: 'rFrom',
+      Destination: 'rTo',
+      Amount: '1000000',
+      Flags: PaymentFlags.tfPartialPayment,
+    }
+    expect(() => txToNativeSubmit(tx)).toThrow(SignerCapabilityError)
+  })
+
+  it('carries SourceTag into the transfer config alongside DestinationTag', () => {
+    const tx: Payment = {
+      TransactionType: 'Payment',
+      Account: 'rFrom',
+      Destination: 'rTo',
+      Amount: '1000000',
+      SourceTag: 7,
+      DestinationTag: 42,
+    }
+    expect(txToNativeSubmit(tx).body).toEqual({
+      destinationAddress: 'rTo',
+      symbol: 'XRP',
+      qty: '1',
+      config: { destinationTag: '42', sourceTag: '7' },
+    })
+  })
 })
 
 describe('txToNativeSubmit — TrustSet', () => {
@@ -82,6 +117,34 @@ describe('txToNativeSubmit — TrustSet', () => {
       qualityIn: 1,
       qualityOut: 2,
       flags: ['SET_FREEZE', 'SET_DEEP_FREEZE'],
+    })
+  })
+
+  it('omits flags entirely when the TrustSet carries none', () => {
+    // A plain trustline (no Flags at all) is the common case; the body must not
+    // grow an empty `flags` array Palisade would reject.
+    const tx: TrustSet = {
+      TransactionType: 'TrustSet',
+      Account: 'rFrom',
+      LimitAmount: { currency: 'USD', issuer: 'rIssuer', value: '100' },
+    }
+    expect(txToNativeSubmit(tx).body).toEqual({
+      limitAmount: { asset: 'USD', issuer: 'rIssuer', value: '100' },
+    })
+  })
+
+  it('reads flags from the boolean flags-interface object xrpl.js also allows', () => {
+    // xrpl.js accepts `Flags` as either a bitmask or a booleans object; both
+    // must map to the same Palisade flag list.
+    const tx: TrustSet = {
+      TransactionType: 'TrustSet',
+      Account: 'rFrom',
+      LimitAmount: { currency: 'USD', issuer: 'rIssuer', value: '100' },
+      Flags: { tfSetNoRipple: true, tfSetFreeze: false },
+    }
+    expect(txToNativeSubmit(tx).body).toEqual({
+      limitAmount: { asset: 'USD', issuer: 'rIssuer', value: '100' },
+      flags: ['SET_NORIPPLE'],
     })
   })
 })
@@ -135,6 +198,20 @@ describe('txToNativeSubmit — Clawback / OfferCreate / OfferCancel', () => {
     expect(body).toEqual({
       amount: { asset: 'USD', issuer: 'rHolder', value: '25' },
     })
+  })
+
+  it('rejects an MPT clawback amount by name', () => {
+    // MPT reaches toCurrencyAmount through Clawback; the error must name the
+    // field and the two ways out, since it is a hard capability boundary.
+    const tx: Clawback = {
+      TransactionType: 'Clawback',
+      Account: 'rIssuer',
+      Amount: { mpt_issuance_id: 'ABCDEF', value: '5' },
+    }
+    expect(() => txToNativeSubmit(tx)).toThrow(SignerCapabilityError)
+    expect(() => txToNativeSubmit(tx)).toThrow(
+      /no native MPT support for Amount.*allowRawSigning/su,
+    )
   })
 
   it('maps an OfferCreate with flags, expiration, offerSequence', () => {

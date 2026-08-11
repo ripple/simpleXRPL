@@ -60,4 +60,37 @@ describe('Domain vertical', () => {
       IntentValidationError,
     )
   })
+
+  describe('create when the new domain id cannot be read back', () => {
+    // The id is mined out of the submission metadata. When the metadata isn't
+    // there — string-encoded meta, or no PermissionedDomain CreatedNode — the
+    // domain was still created, so `create` reports an empty id rather than
+    // failing. These assert that fallback stays explicit.
+    it.each([
+      ['string-encoded meta', 'AE13'],
+      ['absent meta', undefined],
+      ['metadata with no PermissionedDomain node', { AffectedNodes: [] }],
+      [
+        'a CreatedNode of another entry type',
+        {
+          AffectedNodes: [
+            {
+              CreatedNode: {
+                LedgerEntryType: 'RippleState',
+                LedgerIndex: DOMAIN_ID,
+                NewFields: {},
+              },
+            },
+          ],
+        },
+      ],
+    ])('reports an empty domain id for %s', async (_label, meta) => {
+      const { client } = await recordingClient({ meta })
+      const issuer = Wallet.generate().classicAddress
+      const result = await client.domain.create({
+        credList: [{ issuer, credType: 'KYC' }],
+      })
+      expect(result.intent).toStrictEqual({ domainID: '' })
+    })
+  })
 })

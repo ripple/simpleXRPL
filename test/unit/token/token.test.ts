@@ -9,6 +9,7 @@ import {
   type MPTokenIssuanceCreate,
   type MPTokenIssuanceDestroy,
   type MPTokenIssuanceSet,
+  type MPTokenMetadata,
   type OfferCancel,
   type OfferCreate,
   type Payment,
@@ -310,6 +311,17 @@ describe('Token vertical', () => {
       expect(tx.Flags).toBe(OfferCreateFlags.tfImmediateOrCancel)
     })
 
+    it('omits Flags when the offer sets none', async () => {
+      const { client, txs } = await tokenClient()
+      const issuer = Wallet.generate().classicAddress
+      await client.token.createOffer({
+        takerGets: { asset: XRP_ASSET, value: '1' },
+        takerPays: { asset: iou('USD', issuer), value: '10' },
+      })
+      // A plain (non-passive, non-sell) offer must not carry Flags: 0.
+      expect((txs[0] as OfferCreate).Flags).toBeUndefined()
+    })
+
     it('rejects an MPT amount in an offer', async () => {
       const { client } = await tokenClient()
       await expect(
@@ -359,5 +371,32 @@ describe('validateTokenMetadata', () => {
 
   it('reports an un-encodable raw string as a problem', () => {
     expect(validateTokenMetadata('not-json').length).toBeGreaterThan(0)
+  })
+
+  it('reports an object the encoder cannot serialize as a problem, not a crash', () => {
+    // A circular object makes the xrpl encoder throw a bare TypeError. The
+    // pre-flight check must degrade to a problem list, never propagate.
+    const circular: Record<string, unknown> = { ticker: 'TBILL' }
+    circular.self = circular
+    const problems = validateTokenMetadata(
+      circular as unknown as MPTokenMetadata,
+    )
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toMatch(/could not be encoded/u)
+  })
+})
+
+describe('Token.issue metadata that cannot be encoded', () => {
+  it('wraps the encoder failure in an IntentValidationError with its cause', async () => {
+    const { client } = await tokenClient()
+    const circular: Record<string, unknown> = { ticker: 'TBILL' }
+    circular.self = circular
+    const promise = client.token.issue({
+      metadata: circular as unknown as MPTokenMetadata,
+    })
+    await expect(promise).rejects.toBeInstanceOf(IntentValidationError)
+    await expect(promise).rejects.toThrow(/could not be encoded/u)
+    // The underlying encoder error is preserved for debugging.
+    await expect(promise).rejects.toHaveProperty('cause')
   })
 })

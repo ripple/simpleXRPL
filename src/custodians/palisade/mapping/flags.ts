@@ -27,15 +27,20 @@ export function hasFlag(
 /**
  * Collect every flag whose bit is set, in table order.
  *
+ * Palisade's wire flag names differ from xrpl.js's boolean-interface keys
+ * (`SET_FREEZE` vs `tfSetFreeze`), so the table carries both: the interface key
+ * is what the object form of `Flags` is looked up under, and the wire name is
+ * what gets emitted. Conflating the two silently drops every object-form flag.
+ *
  * @param flags - The transaction's `Flags` field.
- * @param table - Ordered `[bit, key]` pairs to test.
- * @returns The keys whose bit was set, in table order.
+ * @param table - Ordered `[bit, xrplInterfaceKey, wireFlag]` triples to test.
+ * @returns The wire flag names whose bit was set, in table order.
  */
 export function collectFlags<T extends string>(
   flags: number | object | undefined,
-  table: ReadonlyArray<readonly [number, T]>,
+  table: ReadonlyArray<readonly [number, string, T]>,
 ): T[] {
   return table
     .filter(([bit, key]) => hasFlag(flags, bit, key))
-    .map(([, key]) => key)
+    .map(([, , wireFlag]) => wireFlag)
 }

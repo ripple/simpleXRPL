@@ -10,14 +10,15 @@ type TrustSetBody =
   operations['TransactionsService_SubmitTrustSet']['requestBody']['content']['application/json']
 type TrustSetFlag = components['schemas']['transactionsv2TrustSetFlag']
 
-const FLAG_TABLE: ReadonlyArray<readonly [number, TrustSetFlag]> = [
-  [TrustSetFlags.tfSetfAuth, 'SETF_AUTH'],
-  [TrustSetFlags.tfSetNoRipple, 'SET_NORIPPLE'],
-  [TrustSetFlags.tfClearNoRipple, 'UNSET_NORIPPLE'],
-  [TrustSetFlags.tfSetFreeze, 'SET_FREEZE'],
-  [TrustSetFlags.tfClearFreeze, 'UNSET_FREEZE'],
-  [TrustSetFlags.tfSetDeepFreeze, 'SET_DEEP_FREEZE'],
-  [TrustSetFlags.tfClearDeepFreeze, 'UNSET_DEEP_FREEZE'],
+/** `[bit, xrpl.js flags-interface key, Palisade wire flag]`. */
+const FLAG_TABLE: ReadonlyArray<readonly [number, string, TrustSetFlag]> = [
+  [TrustSetFlags.tfSetfAuth, 'tfSetfAuth', 'SETF_AUTH'],
+  [TrustSetFlags.tfSetNoRipple, 'tfSetNoRipple', 'SET_NORIPPLE'],
+  [TrustSetFlags.tfClearNoRipple, 'tfClearNoRipple', 'UNSET_NORIPPLE'],
+  [TrustSetFlags.tfSetFreeze, 'tfSetFreeze', 'SET_FREEZE'],
+  [TrustSetFlags.tfClearFreeze, 'tfClearFreeze', 'UNSET_FREEZE'],
+  [TrustSetFlags.tfSetDeepFreeze, 'tfSetDeepFreeze', 'SET_DEEP_FREEZE'],
+  [TrustSetFlags.tfClearDeepFreeze, 'tfClearDeepFreeze', 'UNSET_DEEP_FREEZE'],
 ]
 
 /**

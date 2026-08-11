@@ -156,5 +156,29 @@ describe('fromLedgerAmount', () => {
     expect(() => fromLedgerAmount('10000000', iou('USD', 'rIssuer'))).toThrow(
       IntentValidationError,
     )
+    // An MPT asset given XRP drops, or an issued-currency amount: both are the
+    // wrong shape and must not be silently reinterpreted at the wrong scale.
+    expect(() => fromLedgerAmount('10000000', mpt('ABCDEF', 2))).toThrow(
+      'Expected an MPT amount',
+    )
+    expect(() =>
+      fromLedgerAmount(
+        { currency: 'USD', issuer: 'rIssuer', value: '1' },
+        mpt('ABCDEF', 2),
+      ),
+    ).toThrow('Expected an MPT amount')
   })
+})
+
+describe('MPT scale validation', () => {
+  it.each([-1, 1.5, Number.NaN])(
+    'rejects a non-negative-integer MPT scale (%p)',
+    (scale) => {
+      // A bad scale would shift the value by a nonsense exponent, producing an
+      // amount silently off by orders of magnitude.
+      expect(() =>
+        toLedgerAmount({ asset: mpt('ABCDEF', scale), value: '1' }),
+      ).toThrow(/MPT scale must be a non-negative integer/u)
+    },
+  )
 })

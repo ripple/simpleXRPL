@@ -173,6 +173,66 @@ describe('IOU.issue', () => {
       client.iou.issue({ ticker: 'A'.repeat(25) }),
     ).rejects.toBeInstanceOf(IntentValidationError)
   })
+
+  it('distributes to the hot wallet as a third step when amount is given', async () => {
+    const { client, txs, issuerAddress, holderAddress } = await issuedClient()
+
+    const result = await client.iou.issue({ ticker: 'USD', amount: 1000 })
+
+    // Three steps, in this order: the Payment must follow the TrustSet, or it
+    // fails with tecPATH_DRY for want of a trust line to receive into.
+    expect(txs.map((tx) => tx.TransactionType)).toStrictEqual([
+      'AccountSet',
+      'TrustSet',
+      'Payment',
+    ])
+    const payment = txs[2] as Payment
+    expect(payment.Account).toBe(issuerAddress)
+    expect(payment.Destination).toBe(holderAddress)
+    expect(payment.Amount).toStrictEqual({
+      currency: 'USD',
+      issuer: issuerAddress,
+      value: '1000',
+    })
+    expect(result.intent).toStrictEqual({
+      iouID: `USD.${issuerAddress}`,
+      amount: 1000,
+    })
+  })
+
+  it('distributes a hex-encoded ticker under its encoded currency code', async () => {
+    const { client, txs, issuerAddress } = await issuedClient()
+    await client.iou.issue({ ticker: 'TBILL', amount: 5 })
+    const expected = '5442494C4C'.padEnd(40, '0')
+    expect((txs[2] as Payment).Amount).toStrictEqual({
+      currency: expected,
+      issuer: issuerAddress,
+      value: '5',
+    })
+  })
+
+  it('sets the trust line up only when amount is omitted', async () => {
+    const { client, txs, issuerAddress } = await issuedClient()
+    const result = await client.iou.issue({ ticker: 'USD' })
+    expect(txs).toHaveLength(2)
+    expect(result.intent).toStrictEqual({
+      iouID: `USD.${issuerAddress}`,
+      amount: undefined,
+    })
+  })
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects a non-positive or non-finite distribution amount (%p)',
+    async (amount) => {
+      // Rejected before the first step, so a bad amount can't leave a
+      // half-applied issuance behind.
+      const { client, txs } = await issuedClient()
+      await expect(
+        client.iou.issue({ ticker: 'USD', amount }),
+      ).rejects.toBeInstanceOf(IntentValidationError)
+      expect(txs).toHaveLength(0)
+    },
+  )
 })
 
 describe('IOU.authorize', () => {
