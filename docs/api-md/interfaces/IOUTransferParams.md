@@ -1,6 +1,6 @@
 # Interface: IOUTransferParams
 
-Defined in: [verticals/iou.types.ts:102](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L102)
+Defined in: [verticals/iou.types.ts:114](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L114)
 
 Parameters for [IOU.transfer](../classes/IOU.md#transfer).
 
@@ -12,11 +12,17 @@ Parameters for [IOU.transfer](../classes/IOU.md#transfer).
 
 ### amount
 
-> `readonly` **amount**: `number`
+> `readonly` **amount**: `string`
 
-Defined in: [verticals/iou.types.ts:106](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L106)
+Defined in: [verticals/iou.types.ts:126](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L126)
 
-The amount to send.
+The amount to send, as a decimal string (e.g. `'10'`, `'0.25'`).
+
+A string, not a `number`, because that is what the ledger carries: an IOU
+`value` is a string on the wire, and the XRPL IOU format spans a range no
+IEEE754 double can address exactly. A computed `number` silently arrives
+with artifacts — `0.1 + 0.2` becomes `0.30000000000000004`, 17 significant
+digits against the IOU limit — so amounts are kept in decimal end to end.
 
 ***
 
@@ -24,7 +30,7 @@ The amount to send.
 
 > `readonly` **destination**: `string`
 
-Defined in: [verticals/iou.types.ts:104](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L104)
+Defined in: [verticals/iou.types.ts:116](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L116)
 
 The destination r-address.
 

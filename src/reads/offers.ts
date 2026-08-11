@@ -31,7 +31,7 @@ export interface OfferSummary {
   /** The offer's sequence number (pass to `cancelOffer`). */
   readonly offerSequence: number
   /** The quantity of the base asset (the IOU/token being traded). */
-  readonly amount: number
+  readonly amount: string
   /** What is paid/received for it, in `buyOffer`/`sellOffer` price form. */
   readonly price: IOUOfferPrice
   /** Resting offers are `limit`, or `passive` when the passive flag is set. */
@@ -47,15 +47,17 @@ export interface ListOffersResult {
 }
 
 /**
- * Numeric quantity of an amount (drops converted to XRP).
+ * Decimal quantity of an amount (drops converted to XRP).
+ *
+ * Kept as a string rather than run through `Number`: these values compose back
+ * into `buyOffer`/`sellOffer`, so coercing an exact ledger amount to a double
+ * here would silently change the order a caller re-places from a read.
  *
  * @param amount - The offer amount.
- * @returns The decimal quantity.
+ * @returns The decimal quantity as a string.
  */
-function quantityOf(amount: OfferAmount): number {
-  return typeof amount === 'string'
-    ? Number(dropsToXrpString(amount))
-    : Number(amount.value)
+function quantityOf(amount: OfferAmount): string {
+  return typeof amount === 'string' ? dropsToXrpString(amount) : amount.value
 }
 
 /**
@@ -66,12 +68,12 @@ function quantityOf(amount: OfferAmount): number {
  */
 function toPrice(amount: OfferAmount): IOUOfferPrice {
   if (typeof amount === 'string') {
-    return { currency: 'XRP', amount: Number(dropsToXrpString(amount)) }
+    return { currency: 'XRP', amount: dropsToXrpString(amount) }
   }
   return {
     ticker: decodeCurrency(amount.currency),
     issuer: amount.issuer,
-    amount: Number(amount.value),
+    amount: amount.value,
   }
 }
 

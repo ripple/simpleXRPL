@@ -96,7 +96,7 @@ describe('IOU vertical (live testnet)', () => {
         expect(unlocked?.freeze_peer ?? false).toBe(false)
 
         await client.iou.transfer(
-          { ticker: 'USD', destination: holder.classicAddress, amount: 50 },
+          { ticker: 'USD', destination: holder.classicAddress, amount: '50' },
           from,
         )
         // Read the holder's balance back through the SDK.
@@ -130,10 +130,10 @@ describe('IOU vertical (live testnet)', () => {
       const [issuer, holder] = wallets
       seedEnv(issuer.seed as string, holder.seed as string)
       try {
-        const issued = await client.iou.issue({ ticker: 'USD', amount: 250 })
+        const issued = await client.iou.issue({ ticker: 'USD', amount: '250' })
         expect(issued.intent).toStrictEqual({
           iouID: `USD.${issuer.classicAddress}`,
-          amount: 250,
+          amount: '250',
         })
 
         const line = await usdLine(
@@ -167,7 +167,7 @@ describe('IOU vertical (live testnet)', () => {
         const from = { from: issuer.classicAddress }
         await client.iou.issue({ ticker: 'USD' })
         await client.iou.transfer(
-          { ticker: 'USD', destination: holder.classicAddress, amount: 50 },
+          { ticker: 'USD', destination: holder.classicAddress, amount: '50' },
           from,
         )
 
@@ -179,7 +179,7 @@ describe('IOU vertical (live testnet)', () => {
         expect(Number(funded?.balance)).toBe(50)
 
         await client.iou.clawback(
-          { ticker: 'USD', holder: holder.classicAddress, amount: 50 },
+          { ticker: 'USD', holder: holder.classicAddress, amount: '50' },
           from,
         )
         const clawed = await usdLine(
@@ -210,9 +210,9 @@ describe('IOU vertical (live testnet)', () => {
         await client.iou.sellOffer(
           {
             ticker: 'USD',
-            amount: 10,
+            amount: '10',
             orderType: 'limit',
-            price: { currency: 'XRP', amount: 5 },
+            price: { currency: 'XRP', amount: '5' },
           },
           from,
         )
@@ -223,8 +223,8 @@ describe('IOU vertical (live testnet)', () => {
         expect(resting.data).toHaveLength(1)
         const [offer] = resting.data
         expect(offer.type).toBe('sell')
-        expect(offer.amount).toBe(10)
-        expect(offer.price).toEqual({ currency: 'XRP', amount: 5 })
+        expect(offer.amount).toBe('10')
+        expect(offer.price).toEqual({ currency: 'XRP', amount: '5' })
 
         // It is also visible in the USD order book.
         const book = await client.iou.listOffers({

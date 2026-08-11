@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js'
 import { AccountSetAsfFlags, Wallet, xrpToDrops } from 'xrpl'
 import type { AccountSet, DepositPreauth, Payment, SetRegularKey } from 'xrpl'
 
@@ -155,9 +156,15 @@ export class AccountVertical {
     const operator = this.host.resolveAccount()
     // Default to the base reserve plus a buffer so the new account can afford
     // the follow-up defaultRipple transaction's fee without dropping below it.
+    // Added in decimal, not floating point: `reserve_base_xrp` is a JSON number,
+    // and a fractional reserve makes IEEE754 addition produce artifacts that
+    // xrpToDrops rejects outright (a 1.03 reserve yields '2.0300000000000002',
+    // which throws "too many decimal places" and breaks every activation).
     const amountXrp =
       params.amount ??
-      String((await this.baseReserveXrp()) + ACTIVATION_BUFFER_XRP)
+      new BigNumber(await this.baseReserveXrp())
+        .plus(ACTIVATION_BUFFER_XRP)
+        .toString()
     const payment: Payment = {
       TransactionType: 'Payment',
       Account: operator.address,

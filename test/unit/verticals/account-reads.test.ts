@@ -12,9 +12,13 @@ import type {
  * A ledger that answers `account_info` with a canned snapshot.
  *
  * @param requests - Captures each ledger request for assertions.
+ * @param balanceDrops - The `Balance` to report, in drops.
  * @returns The fake ledger.
  */
-function fakeLedger(requests: LedgerRequest[]): LedgerPort {
+function fakeLedger(
+  requests: LedgerRequest[],
+  balanceDrops = '25000000',
+): LedgerPort {
   return {
     autofill: async (tx: Transaction): Promise<Transaction> => tx,
     submit: async () => ({}) as never,
@@ -25,8 +29,8 @@ function fakeLedger(requests: LedgerRequest[]): LedgerPort {
         result: {
           account_data: {
             Account: req.account,
-            // 25 XRP, in drops.
-            Balance: '25000000',
+            // 25 XRP, in drops, unless the test overrides it.
+            Balance: balanceDrops,
             Sequence: 7,
             OwnerCount: 2,
           },
@@ -46,6 +50,30 @@ async function signerClient(
     ledger: fakeLedger(requests),
   })
 }
+
+describe('Account.retrieve — drops→XRP is exact at every scale', () => {
+  // `String(dropsToXrp(drops))` silently truncated above 2^53 drops (~9.007e9
+  // XRP), because xrpl.js returns a JS number: 50000000000000001 drops read back
+  // as "50000000000", losing a whole drop with no error. Balances at that scale
+  // are real (treasury and escrow accounts) and this is the value callers
+  // reconcile against, so the conversion is done in decimal.
+  it.each([
+    ['1', '0.000001'],
+    ['25000000', '25'],
+    ['9007199254740991', '9007199254.740991'],
+    ['9007199254740993', '9007199254.740993'],
+    ['50000000000000001', '50000000000.000001'],
+    ['100000000000000001', '100000000000.000001'],
+  ])('reports %s drops as %s XRP', async (drops, xrp) => {
+    const client = await SimpleXRPL.init({
+      xrpldUrl: 'wss://x.invalid',
+      signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
+      ledger: fakeLedger([], drops),
+    })
+    const { data } = await client.account.retrieve()
+    expect(data.xrpBalance).toBe(xrp)
+  })
+})
 
 describe('Account.retrieve', () => {
   it('shapes account_info: drops→XRP, sequence, ownerCount, flags', async () => {

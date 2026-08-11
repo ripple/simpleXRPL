@@ -40,7 +40,7 @@ export interface SignRawOptions {
 
 /**
  * Guard the raw-signing path: it only applies to non-native transactors, and
- * only when explicitly enabled (TDD §12.1).
+ * only when explicitly enabled.
  *
  * @param state - The custodian's construction state.
  * @param transactor - The transactor being signed.
@@ -58,7 +58,7 @@ export function assertRawEligible(
   }
   if (!state.allowRawSigning) {
     throw new SignerCapabilityError(
-      `RippleCustody cannot sign ${transactor}: it has no native operation for it and allowRawSigning is disabled. Enable allowRawSigning, or use a different signer for this account.`,
+      `RippleCustody cannot sign ${transactor}: it has no native operation for it and allowRawSigning is disabled. Either route this account's ${transactor} through a signer that models it natively, or enable allowRawSigning — which lets Custody sign an opaque payload its transfer policies and approval rules cannot inspect.`,
     )
   }
 }

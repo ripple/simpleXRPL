@@ -44,7 +44,23 @@ export interface PalisadeCustodyConfig {
   readonly credentials: PalisadeCredentials
   /** The wallet used when an operation is called without an explicit account. */
   readonly primary: PalisadeWalletRef
-  /** Allow the raw fallback for transactors/fields Palisade can't map. */
+  /**
+   * Enable the raw-signing fallback for transactors and fields Palisade cannot map
+   * natively.
+   *
+   * **Security note.** On the raw path the custodian signs an opaque payload
+   * rather than a structured operation, so its transaction-level controls —
+   * transfer policies, allow-lists, and approval rules keyed to operation
+   * semantics — cannot inspect what is being signed. Ripple Custody types that
+   * payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+   * runs on every path, so malformed transactions are still rejected; what is
+   * lost is the custodian's ability to reason about the transaction's intent.
+   *
+   * Leave this off unless a specific transactor requires it, and prefer routing
+   * those operations through a signer that models them natively.
+   *
+   * @defaultValue `false`
+   */
   readonly allowRawSigning?: boolean
   /** How long to wait for a native submission to reach a terminal status. */
   readonly defaultTimeoutMs?: number

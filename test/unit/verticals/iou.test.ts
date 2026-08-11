@@ -177,7 +177,7 @@ describe('IOU.issue', () => {
   it('distributes to the hot wallet as a third step when amount is given', async () => {
     const { client, txs, issuerAddress, holderAddress } = await issuedClient()
 
-    const result = await client.iou.issue({ ticker: 'USD', amount: 1000 })
+    const result = await client.iou.issue({ ticker: 'USD', amount: '1000' })
 
     // Three steps, in this order: the Payment must follow the TrustSet, or it
     // fails with tecPATH_DRY for want of a trust line to receive into.
@@ -196,13 +196,13 @@ describe('IOU.issue', () => {
     })
     expect(result.intent).toStrictEqual({
       iouID: `USD.${issuerAddress}`,
-      amount: 1000,
+      amount: '1000',
     })
   })
 
   it('distributes a hex-encoded ticker under its encoded currency code', async () => {
     const { client, txs, issuerAddress } = await issuedClient()
-    await client.iou.issue({ ticker: 'TBILL', amount: 5 })
+    await client.iou.issue({ ticker: 'TBILL', amount: '5' })
     const expected = '5442494C4C'.padEnd(40, '0')
     expect((txs[2] as Payment).Amount).toStrictEqual({
       currency: expected,
@@ -221,8 +221,8 @@ describe('IOU.issue', () => {
     })
   })
 
-  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
-    'rejects a non-positive or non-finite distribution amount (%p)',
+  it.each(['0', '-1', '', 'abc', 'NaN'])(
+    'rejects a non-positive or non-numeric distribution amount (%p)',
     async (amount) => {
       // Rejected before the first step, so a bad amount can't leave a
       // half-applied issuance behind.
@@ -233,6 +233,83 @@ describe('IOU.issue', () => {
       expect(txs).toHaveLength(0)
     },
   )
+})
+
+describe('IOU amounts are validated at the API boundary', () => {
+  // Amounts are decimal strings end to end, so a caller can express anything the
+  // ledger accepts. What must not slip through is a value the ledger will refuse:
+  // IOU values carry at most 15 significant digits, and a string produced from
+  // floating-point arithmetic carries 17 (`String(0.1 + 0.2)` is
+  // '0.30000000000000004'). Unchecked that reached ripple-binary-codec and
+  // surfaced as an opaque "Decimal precision out of range" at signing time.
+  const imprecise = String(0.1 + 0.2)
+
+  it('transfer rejects an over-precise amount before submitting', async () => {
+    const { client, txs } = await issuedClient()
+    const promise = client.iou.transfer({
+      ticker: 'USD',
+      destination: Wallet.generate().classicAddress,
+      amount: imprecise,
+    })
+    await expect(promise).rejects.toBeInstanceOf(IntentValidationError)
+    await expect(promise).rejects.toThrow(/15 significant digits/u)
+    await expect(promise).rejects.toThrow(/floating-point/u)
+    expect(txs).toHaveLength(0)
+  })
+
+  it('clawback rejects an over-precise amount', async () => {
+    const { client } = await issuedClient(true)
+    await expect(
+      client.iou.clawback({
+        ticker: 'USD',
+        holder: Wallet.generate().classicAddress,
+        amount: imprecise,
+      }),
+    ).rejects.toBeInstanceOf(IntentValidationError)
+  })
+
+  it('issue rejects an over-precise distribution amount', async () => {
+    const { client, txs } = await issuedClient()
+    await expect(
+      client.iou.issue({ ticker: 'USD', amount: imprecise }),
+    ).rejects.toBeInstanceOf(IntentValidationError)
+    expect(txs).toHaveLength(0)
+  })
+
+  it('sellOffer rejects an XRP price with sub-drop precision', async () => {
+    const { client } = await issuedClient()
+    await expect(
+      client.iou.sellOffer({
+        ticker: 'USD',
+        amount: '10',
+        orderType: 'limit',
+        price: { currency: 'XRP', amount: imprecise },
+      }),
+    ).rejects.toThrow(/6 decimal places/u)
+  })
+
+  it('carries a decimal string through untouched, including sub-cent precision', async () => {
+    const { client, txs } = await issuedClient()
+    await client.iou.transfer({
+      ticker: 'USD',
+      destination: Wallet.generate().classicAddress,
+      amount: '0.1',
+    })
+    // '0.1' is not representable as a double; as a string it reaches the ledger
+    // exactly, which is the whole point of the string-typed amount.
+    expect((txs[0] as Payment).Amount).toMatchObject({ value: '0.1' })
+  })
+
+  it('accepts the full 15 significant digits the ledger allows', async () => {
+    const { client, txs } = await issuedClient()
+    const precise = '123456789.012345'
+    await client.iou.transfer({
+      ticker: 'USD',
+      destination: Wallet.generate().classicAddress,
+      amount: precise,
+    })
+    expect((txs[0] as Payment).Amount).toMatchObject({ value: precise })
+  })
 })
 
 describe('IOU.authorize', () => {
@@ -287,7 +364,7 @@ describe('IOU.clawback', () => {
       client.iou.clawback({
         ticker: 'USD',
         holder: Wallet.generate().classicAddress,
-        amount: 25,
+        amount: '25',
       }),
     ).rejects.toBeInstanceOf(IntentValidationError)
   })
@@ -301,13 +378,13 @@ describe('IOU.clawback', () => {
     const result = await client.iou.clawback({
       ticker: 'USD',
       holder,
-      amount: 25,
+      amount: '25',
     })
     const tx = txs[0] as Clawback
     expect(tx.TransactionType).toBe('Clawback')
     expect(tx.Account).toBe(issuerAddress)
     expect(tx.Amount).toEqual({ currency: 'USD', issuer: holder, value: '25' })
-    expect(result.intent).toEqual({ holder, amount: 25 })
+    expect(result.intent).toEqual({ holder, amount: '25' })
   })
 })
 
@@ -321,7 +398,7 @@ describe('IOU.transfer', () => {
     const result = await client.iou.transfer({
       ticker: 'USD',
       destination,
-      amount: 50,
+      amount: '50',
     })
     const tx = txs[0] as Payment
     expect(tx.TransactionType).toBe('Payment')
@@ -332,7 +409,7 @@ describe('IOU.transfer', () => {
       issuer: issuerAddress,
       value: '50',
     })
-    expect(result.intent).toEqual({ destination, amount: 50 })
+    expect(result.intent).toEqual({ destination, amount: '50' })
   })
 })
 
@@ -344,9 +421,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
 
     await client.iou.sellOffer({
       ticker: 'USD',
-      amount: 100,
+      amount: '100',
       orderType: 'limit',
-      price: { currency: 'XRP', amount: 50 },
+      price: { currency: 'XRP', amount: '50' },
     })
     const tx = txs[0] as OfferCreate
     expect(tx.TransactionType).toBe('OfferCreate')
@@ -367,9 +444,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
     const priceIssuer = Wallet.generate().classicAddress
     await client.iou.buyOffer({
       ticker: 'USD',
-      amount: 100,
+      amount: '100',
       orderType: 'limit',
-      price: { ticker: 'EUR', issuer: priceIssuer, amount: 90 },
+      price: { ticker: 'EUR', issuer: priceIssuer, amount: '90' },
     })
     const tx = txs[0] as OfferCreate
     expect(tx.TakerGets).toEqual({
@@ -393,9 +470,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
     const domainID = 'A'.repeat(64)
     await client.iou.buyOffer({
       ticker: 'USD',
-      amount: 1,
+      amount: '1',
       orderType: 'limit',
-      price: { currency: 'XRP', amount: 1 },
+      price: { currency: 'XRP', amount: '1' },
       domainID,
     })
     const tx = txs[0] as OfferCreate
@@ -412,9 +489,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
     const domainID = 'B'.repeat(64)
     await client.iou.buyOffer({
       ticker: 'USD',
-      amount: 1,
+      amount: '1',
       orderType: 'limit',
-      price: { currency: 'XRP', amount: 1 },
+      price: { currency: 'XRP', amount: '1' },
       domainID,
       hybrid: false,
     })
@@ -431,9 +508,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
     const domainID = 'C'.repeat(64)
     await client.iou.sellOffer({
       ticker: 'USD',
-      amount: 1,
+      amount: '1',
       orderType: 'market',
-      price: { currency: 'XRP', amount: 1 },
+      price: { currency: 'XRP', amount: '1' },
       domainID,
     })
     const tx = txs[0] as OfferCreate
@@ -453,9 +530,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
 
     await client.iou.buyOffer({
       ticker: 'USD',
-      amount: 1,
+      amount: '1',
       orderType: 'market',
-      price: { currency: 'XRP', amount: 1 },
+      price: { currency: 'XRP', amount: '1' },
     })
     expect((txs[0] as OfferCreate).Flags).toBe(
       OfferCreateFlags.tfImmediateOrCancel,
@@ -463,17 +540,17 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
 
     await client.iou.buyOffer({
       ticker: 'USD',
-      amount: 1,
+      amount: '1',
       orderType: 'fok',
-      price: { currency: 'XRP', amount: 1 },
+      price: { currency: 'XRP', amount: '1' },
     })
     expect((txs[1] as OfferCreate).Flags).toBe(OfferCreateFlags.tfFillOrKill)
 
     await client.iou.sellOffer({
       ticker: 'USD',
-      amount: 1,
+      amount: '1',
       orderType: 'passive',
-      price: { currency: 'XRP', amount: 1 },
+      price: { currency: 'XRP', amount: '1' },
     })
 
     expect((txs[2] as OfferCreate).Flags).toBe(
@@ -488,9 +565,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
     await expect(
       client.iou.sellOffer({
         ticker: 'USD',
-        amount: 1,
+        amount: '1',
         orderType: 'limit',
-        price: { mptIssuanceId: 'ID', amount: 1 },
+        price: { mptIssuanceId: 'ID', amount: '1' },
       }),
     ).rejects.toBeInstanceOf(IntentValidationError)
   })
@@ -502,9 +579,9 @@ describe('IOU.buyOffer / IOU.sellOffer / IOU.cancelOffer', () => {
 
     await client.iou.sellOffer({
       ticker: 'USD',
-      amount: 1,
+      amount: '1',
       orderType: 'limit',
-      price: { currency: 'XRP', amount: 1 },
+      price: { currency: 'XRP', amount: '1' },
       offerSequence: 3,
     })
     expect((txs[0] as OfferCreate).OfferSequence).toBe(3)

@@ -54,9 +54,9 @@ export interface IOUIssueParams {
    * How much of the new IOU the issuer distributes to the hot wallet as the
    * final step, so one call ends with value in circulation. Omit to set the
    * trust line up only and distribute later via {@link IOU.transfer} (e.g.
-   * issuing in tranches). Must be positive and finite.
+   * issuing in tranches). A positive decimal string.
    */
-  readonly amount?: number
+  readonly amount?: string
 }
 
 /** Output attached to an {@link IOU.issue} result. */
@@ -67,7 +67,7 @@ export interface IOUIssueIntent {
    * The amount distributed to the hot wallet, or `undefined` when the issuance
    * only set the trust line up.
    */
-  readonly amount?: number
+  readonly amount?: string
 }
 
 /** Parameters for {@link IOU.authorize}. */
@@ -98,8 +98,8 @@ export interface IOULockIntent {
 export interface IOUClawbackParams extends IOURef {
   /** The holder's r-address to claw the currency back from. */
   readonly holder: string
-  /** The amount to claw back. */
-  readonly amount: number
+  /** The amount to claw back, as a decimal string. */
+  readonly amount: string
 }
 
 /** Output attached to an {@link IOU.clawback} result. */
@@ -107,15 +107,23 @@ export interface IOUClawbackIntent {
   /** The holder's r-address clawed back from. */
   readonly holder: string
   /** The amount clawed back. */
-  readonly amount: number
+  readonly amount: string
 }
 
 /** Parameters for {@link IOU.transfer}. */
 export interface IOUTransferParams extends IOURef {
   /** The destination r-address. */
   readonly destination: string
-  /** The amount to send. */
-  readonly amount: number
+  /**
+   * The amount to send, as a decimal string (e.g. `'10'`, `'0.25'`).
+   *
+   * A string, not a `number`, because that is what the ledger carries: an IOU
+   * `value` is a string on the wire, and the XRPL IOU format spans a range no
+   * IEEE754 double can address exactly. A computed `number` silently arrives
+   * with artifacts — `0.1 + 0.2` becomes `0.30000000000000004`, 17 significant
+   * digits against the IOU limit — so amounts are kept in decimal end to end.
+   */
+  readonly amount: string
 }
 
 /** Output attached to an {@link IOU.transfer} result. */
@@ -123,17 +131,17 @@ export interface IOUTransferIntent {
   /** Destination r-address. */
   readonly destination: string
   /** Amount sent. */
-  readonly amount: number
+  readonly amount: string
 }
 
 /** How a DEX offer is priced. */
 export type IOUOfferPrice =
-  | { readonly currency: 'XRP'; readonly amount: number }
-  | { readonly mptIssuanceId: string; readonly amount: number }
+  | { readonly currency: 'XRP'; readonly amount: string }
+  | { readonly mptIssuanceId: string; readonly amount: string }
   | {
       readonly ticker: string
       readonly issuer: string
-      readonly amount: number
+      readonly amount: string
     }
 
 /**
@@ -145,8 +153,8 @@ export type IOUOrderType = 'limit' | 'market' | 'fok' | 'passive'
 
 /** Parameters for {@link IOU.buyOffer} and {@link IOU.sellOffer}. */
 export interface IOUOfferParams extends IOURef {
-  /** The number of units of this IOU to buy or sell. */
-  readonly amount: number
+  /** The number of units of this IOU to buy or sell, as a decimal string. */
+  readonly amount: string
   /** The order type. */
   readonly orderType: IOUOrderType
   /**
