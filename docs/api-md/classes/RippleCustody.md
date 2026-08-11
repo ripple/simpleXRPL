@@ -1,6 +1,6 @@
 # Class: RippleCustody
 
-Defined in: [custodians/ripple/ripple-custody.ts:49](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L49)
+Defined in: [custodians/ripple/ripple-custody.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L53)
 
 Ripple Custody adapter (TDD §3.3, §7.2): wraps the Custody REST API v1.
 Native transactors (NATIVE\_XRPL\_TRANSACTORS) submit as a governed
@@ -19,7 +19,7 @@ opt-in raw-signing path (`v0_SignManifest` + `Unsafe`) when
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md) = `'ripple-custody'`
 
-Defined in: [custodians/ripple/ripple-custody.ts:51](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L51)
+Defined in: [custodians/ripple/ripple-custody.ts:55](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L55)
 
 This custodian wraps the Custody REST API.
 
@@ -35,7 +35,7 @@ This custodian wraps the Custody REST API.
 
 > **get** **primary**(): [`AccountRef`](../interfaces/AccountRef.md)
 
-Defined in: [custodians/ripple/ripple-custody.ts:64](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L64)
+Defined in: [custodians/ripple/ripple-custody.ts:78](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L78)
 
 The primary account this custodian owns.
 
@@ -51,13 +51,42 @@ The custodian's primary account; it owns this account.
 
 [`Custodian`](../interfaces/Custodian.md).[`primary`](../interfaces/Custodian.md#primary)
 
+***
+
+### tenantId
+
+#### Get Signature
+
+> **get** **tenantId**(): `string`
+
+Defined in: [custodians/ripple/ripple-custody.ts:69](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L69)
+
+The Custody domain this custodian is bound to — the tenant two instances
+collide on, which the client rejects at init.
+
+##### Returns
+
+`string`
+
+The domain id.
+
+The backend tenant this custodian is bound to — a Custody domain id, a
+Palisade org/client identity, etc. Two signers with the same `kind` and
+the same `tenantId` point at the same backend tenant, which the client
+rejects at init (§3.1). `undefined` for backends with no tenant notion
+(e.g. a local wallet holder), so multiple of those may coexist freely.
+
+#### Implementation of
+
+[`Custodian`](../interfaces/Custodian.md).[`tenantId`](../interfaces/Custodian.md#tenantid)
+
 ## Methods
 
 ### capabilities()
 
 > **capabilities**(): [`SignerCapabilities`](../interfaces/SignerCapabilities.md)
 
-Defined in: [custodians/ripple/ripple-custody.ts:108](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L108)
+Defined in: [custodians/ripple/ripple-custody.ts:122](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L122)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -77,7 +106,7 @@ This custodian's capabilities.
 
 > **listAccounts**(): `Promise`\<[`Account`](../interfaces/Account.md)[]\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:121](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L121)
+Defined in: [custodians/ripple/ripple-custody.ts:135](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L135)
 
 The full account list, discovered at construction.
 
@@ -97,7 +126,7 @@ The discovered accounts.
 
 > **observeIntent**(`intentId`): [`SubmissionHandle`](../interfaces/SubmissionHandle.md)
 
-Defined in: [custodians/ripple/ripple-custody.ts:208](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L208)
+Defined in: [custodians/ripple/ripple-custody.ts:232](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L232)
 
 Build a handle over an intent this custodian previously created.
 
@@ -123,7 +152,7 @@ A handle to poll or wait on the intent's outcome.
 
 > **sign**(`tx`, `ctx`): `Promise`\<[`SignedEnvelope`](../interfaces/SignedEnvelope.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:137](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L137)
+Defined in: [custodians/ripple/ripple-custody.ts:151](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L151)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -155,7 +184,7 @@ raw signing is disabled.
 
 > **submitAndWait**(`tx`, `ctx`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:157](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L157)
+Defined in: [custodians/ripple/ripple-custody.ts:173](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L173)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -183,6 +212,11 @@ The submission result.
 [IntentPendingError](IntentPendingError.md) if the custodian intent doesn't reach a
 terminal state before the timeout.
 
+#### Throws
+
+[XrpldSubmitError](XrpldSubmitError.md) on a non-`tesSUCCESS` engine result from
+the raw path.
+
 #### Implementation of
 
 [`Custodian`](../interfaces/Custodian.md).[`submitAndWait`](../interfaces/Custodian.md#submitandwait)
@@ -193,7 +227,7 @@ terminal state before the timeout.
 
 > **submitAsync**(`tx`, `ctx`): `Promise`\<[`SubmissionHandle`](../interfaces/SubmissionHandle.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:187](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L187)
+Defined in: [custodians/ripple/ripple-custody.ts:211](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L211)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -229,7 +263,7 @@ submission there is not yet supported (use `submitAndWait`).
 
 > `static` **create**(`options`): `Promise`\<[`RippleCustody`](RippleCustody.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:79](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L79)
+Defined in: [custodians/ripple/ripple-custody.ts:93](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L93)
 
 Authenticate, resolve the intent-author's identity, and discover the
 domain's XRPL accounts.
@@ -261,7 +295,7 @@ to `options.domainId`.
 
 > `static` **fromEnv**(`options`): `Promise`\<[`RippleCustody`](RippleCustody.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:97](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L97)
+Defined in: [custodians/ripple/ripple-custody.ts:111](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L111)
 
 Build a RippleCustody from `RIPPLE_CUSTODY_*` environment variables (TDD
 §3.3).

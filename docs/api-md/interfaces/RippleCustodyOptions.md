@@ -1,6 +1,6 @@
 # Interface: RippleCustodyOptions
 
-Defined in: [custodians/ripple/construction.ts:30](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L30)
+Defined in: [custodians/ripple/construction.ts:37](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L37)
 
 Construction options for [RippleCustody.create](../classes/RippleCustody.md#create).
 
@@ -10,9 +10,25 @@ Construction options for [RippleCustody.create](../classes/RippleCustody.md#crea
 
 > `readonly` `optional` **allowRawSigning**: `boolean`
 
-Defined in: [custodians/ripple/construction.ts:40](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L40)
+Defined in: [custodians/ripple/construction.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L63)
 
-Enable the raw-signing fallback (TDD §12.1). Defaults to `false`.
+Enable the raw-signing fallback for transactors and fields this backend has
+no native operation for.
+
+**Security note.** On the raw path the custodian signs an opaque payload
+rather than a structured operation, so its transaction-level controls —
+transfer policies, allow-lists, and approval rules keyed to operation
+semantics — cannot inspect what is being signed. Ripple Custody types that
+payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+runs on every path, so malformed transactions are still rejected; what is
+lost is the custodian's ability to reason about the transaction's intent.
+
+Leave this off unless a specific transactor requires it, and prefer routing
+those operations through a signer that models them natively.
+
+#### Default Value
+
+`false`
 
 ***
 
@@ -20,7 +36,7 @@ Enable the raw-signing fallback (TDD §12.1). Defaults to `false`.
 
 > `readonly` **auth**: [`RippleCustodyAuthOptions`](RippleCustodyAuthOptions.md)
 
-Defined in: [custodians/ripple/construction.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L34)
+Defined in: [custodians/ripple/construction.ts:41](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L41)
 
 Intent-author credentials and token endpoint.
 
@@ -30,7 +46,7 @@ Intent-author credentials and token endpoint.
 
 > `readonly` `optional` **defaultDryRun**: `boolean`
 
-Defined in: [custodians/ripple/construction.ts:44](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L44)
+Defined in: [custodians/ripple/construction.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L67)
 
 Pre-flight every write through Custody's dry-run. Defaults to `false`.
 
@@ -40,7 +56,7 @@ Pre-flight every write through Custody's dry-run. Defaults to `false`.
 
 > `readonly` `optional` **defaultFee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [custodians/ripple/construction.ts:42](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L42)
+Defined in: [custodians/ripple/construction.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L65)
 
 House fee intent, falls back to `Priority: Low`.
 
@@ -50,7 +66,7 @@ House fee intent, falls back to `Priority: Low`.
 
 > `readonly` `optional` **defaultTimeoutMs**: `number`
 
-Defined in: [custodians/ripple/construction.ts:46](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L46)
+Defined in: [custodians/ripple/construction.ts:69](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L69)
 
 How long `submitAndWait` polls before throwing `IntentPendingError`.
 
@@ -60,7 +76,7 @@ How long `submitAndWait` polls before throwing `IntentPendingError`.
 
 > `readonly` **domainId**: `string`
 
-Defined in: [custodians/ripple/construction.ts:36](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L36)
+Defined in: [custodians/ripple/construction.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L43)
 
 The Custody domain this custodian operates in.
 
@@ -70,7 +86,7 @@ The Custody domain this custodian operates in.
 
 > `readonly` **gatewayUrl**: `string`
 
-Defined in: [custodians/ripple/construction.ts:32](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L32)
+Defined in: [custodians/ripple/construction.ts:39](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L39)
 
 The Custody gateway base URL.
 
@@ -80,7 +96,7 @@ The Custody gateway base URL.
 
 > `readonly` `optional` **http**: `CustodyHttpPort`
 
-Defined in: [custodians/ripple/construction.ts:48](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L48)
+Defined in: [custodians/ripple/construction.ts:71](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L71)
 
 Injectable transport; defaults to `FetchHttpPort`.
 
@@ -90,6 +106,6 @@ Injectable transport; defaults to `FetchHttpPort`.
 
 > `readonly` **primary**: `string`
 
-Defined in: [custodians/ripple/construction.ts:38](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L38)
+Defined in: [custodians/ripple/construction.ts:45](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L45)
 
 The primary account's r-address; validated against the discovered set.

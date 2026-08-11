@@ -1,6 +1,6 @@
 # Class: PalisadeCustody
 
-Defined in: [custodians/palisade/palisade-custody.ts:54](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L54)
+Defined in: [custodians/palisade/palisade-custody.ts:55](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L55)
 
 The Palisade custodian: signs and submits through Palisade's vault/wallet API.
 A transactor Palisade models natively uses its `Submit*`/transfer op; anything
@@ -18,7 +18,7 @@ handle to poll, wait on, or cancel.
 
 > `readonly` **api**: [`PalisadeApi`](PalisadeApi.md)
 
-Defined in: [custodians/palisade/palisade-custody.ts:64](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L64)
+Defined in: [custodians/palisade/palisade-custody.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L65)
 
 Low-level, typed access to the full Palisade v2 API — a secondary surface
 beside the first-class verticals, for operations simpleXRPL doesn't model.
@@ -29,7 +29,7 @@ beside the first-class verticals, for operations simpleXRPL doesn't model.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md) = `'palisade-custody'`
 
-Defined in: [custodians/palisade/palisade-custody.ts:55](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L55)
+Defined in: [custodians/palisade/palisade-custody.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L56)
 
 Which backend this custodian adapts.
 
@@ -43,7 +43,7 @@ Which backend this custodian adapts.
 
 > `readonly` **tenantId**: `string`
 
-Defined in: [custodians/palisade/palisade-custody.ts:58](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L58)
+Defined in: [custodians/palisade/palisade-custody.ts:59](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L59)
 
 The Palisade API client identity — the tenant two instances collide on.
 
@@ -59,7 +59,7 @@ The Palisade API client identity — the tenant two instances collide on.
 
 > **get** **primary**(): [`AccountRef`](../interfaces/AccountRef.md)
 
-Defined in: [custodians/palisade/palisade-custody.ts:102](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L102)
+Defined in: [custodians/palisade/palisade-custody.ts:103](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L103)
 
 The primary account this custodian owns.
 
@@ -85,7 +85,7 @@ The custodian's primary account; it owns this account.
 
 > **capabilities**(): [`SignerCapabilities`](../interfaces/SignerCapabilities.md)
 
-Defined in: [custodians/palisade/palisade-custody.ts:168](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L168)
+Defined in: [custodians/palisade/palisade-custody.ts:169](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L169)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -105,7 +105,7 @@ This custodian's signer capabilities.
 
 > **listAccounts**(): `Promise`\<[`Account`](../interfaces/Account.md)[]\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:180](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L180)
+Defined in: [custodians/palisade/palisade-custody.ts:181](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L181)
 
 The full account list, discovered at construction.
 
@@ -125,7 +125,7 @@ The accounts this custodian owns.
 
 > **sign**(`tx`, `ctx`): `Promise`\<[`SignedEnvelope`](../interfaces/SignedEnvelope.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:192](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L192)
+Defined in: [custodians/palisade/palisade-custody.ts:200](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L200)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -142,6 +142,10 @@ Produce a signed envelope for a transaction (raw-signing paths).
 
 The signed envelope.
 
+#### Throws
+
+[SignerCapabilityError](SignerCapabilityError.md) if the account exposes no public key.
+
 #### Implementation of
 
 [`Custodian`](../interfaces/Custodian.md).[`sign`](../interfaces/Custodian.md#sign)
@@ -152,7 +156,7 @@ The signed envelope.
 
 > **submitAndWait**(`tx`, `ctx`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:235](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L235)
+Defined in: [custodians/palisade/palisade-custody.ts:250](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L250)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -185,7 +189,7 @@ The submission result.
 
 > **submitAsync**(`tx`, `ctx`): `Promise`\<[`SubmissionHandle`](../interfaces/SubmissionHandle.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:270](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L270)
+Defined in: [custodians/palisade/palisade-custody.ts:286](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L286)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -216,7 +220,7 @@ A handle over the pending Palisade transaction.
 
 > `static` **create**(`config`): `Promise`\<[`PalisadeCustody`](PalisadeCustody.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:120](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L120)
+Defined in: [custodians/palisade/palisade-custody.ts:121](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L121)
 
 Build a Palisade custodian: exchange credentials, discover the org's XRPL
 wallets, and bind the configured primary.

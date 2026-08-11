@@ -1,4 +1,4 @@
-import { dropsToXrp } from 'xrpl'
+import BigNumber from 'bignumber.js'
 
 import { SimpleXRPLError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
@@ -7,6 +7,8 @@ const STANDARD_CODE_LEN = 3
 const HEX_CODE_LEN = 40
 const PRINTABLE_MIN = 0x20
 const PRINTABLE_MAX = 0x7e
+/** 1 XRP = 10^6 drops. */
+const XRP_DECIMALS = 6
 
 /**
  * Resolve the account a read targets. Reads never require a signer: pass an
@@ -58,13 +60,20 @@ export function decodeCurrency(code: string): string {
 }
 
 /**
- * Convert a drops string to a decimal XRP string.
+ * Convert a drops string to a decimal XRP string, exactly.
  *
- * @param drops - The amount in drops.
- * @returns The amount in XRP.
+ * Deliberately not `String(dropsToXrp(drops))`: xrpl.js's `dropsToXrp` returns
+ * a JS `number`, so balances above 2^53 drops (~9.007e9 XRP) lose precision
+ * *silently* — `50000000000000001` drops would read back as `50000000000` XRP,
+ * dropping a whole drop with no error. Balances at that scale are real
+ * (treasury and escrow accounts), and this feeds the values callers reconcile
+ * against, so the shift is done in decimal instead.
+ *
+ * @param drops - The amount in drops (an integer string).
+ * @returns The exact amount in XRP.
  */
 export function dropsToXrpString(drops: string): string {
-  return String(dropsToXrp(drops))
+  return new BigNumber(drops).shiftedBy(-XRP_DECIMALS).toString()
 }
 
 /** A `ledger_entry` response carrying the requested node when it exists. */

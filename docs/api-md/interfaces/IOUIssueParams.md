@@ -6,6 +6,19 @@ Parameters for [IOU.issue](../classes/IOU.md#issue).
 
 ## Properties
 
+### amount?
+
+> `readonly` `optional` **amount**: `string`
+
+Defined in: [verticals/iou.types.ts:59](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L59)
+
+How much of the new IOU the issuer distributes to the hot wallet as the
+final step, so one call ends with value in circulation. Omit to set the
+trust line up only and distribute later via [IOU.transfer](../classes/IOU.md#transfer) (e.g.
+issuing in tranches). A positive decimal string.
+
+***
+
 ### holder?
 
 > `readonly` `optional` **holder**: `string`

@@ -115,7 +115,18 @@ function parseDecimal(value: string): BigNumber {
   return parsed
 }
 
-function toDrops(value: string): string {
+/**
+ * Convert a decimal XRP string to drops.
+ *
+ * Exported for the same reason as {@link normalizeIouValue} — the IOU vertical's
+ * XRP-denominated offer prices arrive as `number` and need identical validation.
+ * Deliberately not re-exported from `./index.js`.
+ *
+ * @param value - The decimal XRP value string.
+ * @returns The amount in drops.
+ * @throws {@link IntentValidationError} if the value is not a valid XRP amount.
+ */
+export function toDrops(value: string): string {
   parseDecimal(value)
   try {
     return xrpToDrops(value)
@@ -126,7 +137,19 @@ function toDrops(value: string): string {
   }
 }
 
-function normalizeIouValue(value: string): string {
+/**
+ * Validate and canonicalize an IOU value string.
+ *
+ * Exported for the IOU vertical, whose params take `number` amounts and so need
+ * the same precision rules `toLedgerAmount` applies. Deliberately not re-exported
+ * from `./index.js` — it is internal, not public API.
+ *
+ * @param value - The decimal value string.
+ * @returns The canonical value string.
+ * @throws {@link IntentValidationError} if the value is negative, non-finite, or
+ *   exceeds the IOU significant-digit limit.
+ */
+export function normalizeIouValue(value: string): string {
   const parsed = parseDecimal(value)
   if (parsed.sd() > MAX_IOU_SIGNIFICANT_DIGITS) {
     throw new IntentValidationError(

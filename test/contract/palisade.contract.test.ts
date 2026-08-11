@@ -399,9 +399,9 @@ describeIfSandbox('PalisadeCustody (live sandbox contract)', () => {
       try {
         const offer = await client.iou.sellOffer({
           ticker: 'USD',
-          amount: 1,
+          amount: '1',
           orderType: 'limit',
-          price: { currency: 'XRP', amount: 1 },
+          price: { currency: 'XRP', amount: '1' },
         })
         expect(offer.source).toBe('palisade')
         expect(offer.txHash).toMatch(/^[0-9A-F]{64}$/u)

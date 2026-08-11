@@ -23,6 +23,7 @@ import {
   buildMaxTrustSet,
   buildOfferCreate,
   encodeCurrencyCode,
+  iouValue,
   localAccountFromSeed,
   priceToLedgerAmount,
   readIssuanceSeeds,
@@ -117,7 +118,7 @@ export class IOU {
         transaction: buildIssuedPayment(issuer.address, holder.address, {
           currency,
           issuer: issuer.address,
-          value: String(params.amount),
+          value: iouValue(params.amount, 'amount'),
         }),
         account: issuer,
       })
@@ -272,7 +273,7 @@ export class IOU {
       Amount: {
         currency: encodeCurrencyCode(params.ticker),
         issuer: params.holder,
-        value: String(params.amount),
+        value: iouValue(params.amount, 'amount'),
       },
     }
     const result = await submitTransaction(this.host, {
@@ -301,7 +302,7 @@ export class IOU {
     const amount: IssuedCurrencyAmount = {
       currency: encodeCurrencyCode(params.ticker),
       issuer: issuer.address,
-      value: String(params.amount),
+      value: iouValue(params.amount, 'amount'),
     }
     const transaction = buildIssuedPayment(
       issuer.address,
@@ -427,7 +428,7 @@ export class IOU {
     const own = {
       currency: encodeCurrencyCode(params.ticker),
       issuer: issuer.address,
-      value: String(params.amount),
+      value: iouValue(params.amount, 'amount'),
     }
     const price = priceToLedgerAmount(params.price)
     const transaction = buildOfferCreate({

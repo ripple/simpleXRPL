@@ -32,6 +32,24 @@ describe('txToNativeSubmit — Payment → transfer', () => {
     })
   })
 
+  it.each([
+    ['1', '0.000001'],
+    ['1000000', '1'],
+    ['9007199254740991', '9007199254.740991'],
+    ['50000000000000001', '50000000000.000001'],
+  ])('converts %s drops to qty %s exactly', (drops, qty) => {
+    // `String(dropsToXrp(drops))` truncated silently above 2^53 drops, and this
+    // is a write: the truncated quantity is what Palisade would be asked to
+    // send, not just what a read reports.
+    const tx: Payment = {
+      TransactionType: 'Payment',
+      Account: 'rFrom',
+      Destination: 'rTo',
+      Amount: drops,
+    }
+    expect(txToNativeSubmit(tx).body).toMatchObject({ symbol: 'XRP', qty })
+  })
+
   it('maps an IOU payment to symbol/contract/qty', () => {
     const tx: Payment = {
       TransactionType: 'Payment',
@@ -212,6 +230,20 @@ describe('txToNativeSubmit — Clawback / OfferCreate / OfferCancel', () => {
     expect(() => txToNativeSubmit(tx)).toThrow(
       /no native MPT support for Amount.*allowRawSigning/su,
     )
+  })
+
+  it('converts a large XRP offer leg to a decimal value exactly', () => {
+    // The same drops→decimal path, reached through toCurrencyAmount rather than
+    // the transfer mapping.
+    const tx: OfferCreate = {
+      TransactionType: 'OfferCreate',
+      Account: 'rFrom',
+      TakerGets: '50000000000000001',
+      TakerPays: { currency: 'USD', issuer: 'rIssuer', value: '10' },
+    }
+    expect(txToNativeSubmit(tx).body).toMatchObject({
+      takerGets: { asset: 'XRP', value: '50000000000.000001' },
+    })
   })
 
   it('maps an OfferCreate with flags, expiration, offerSequence', () => {

@@ -73,15 +73,15 @@ describe('Account.listOffers', () => {
     const { data } = await client.account.listOffers()
     expect(data[0]).toEqual({
       offerSequence: 1,
-      amount: 100,
-      price: { currency: 'XRP', amount: 50 },
+      amount: '100',
+      price: { currency: 'XRP', amount: '50' },
       orderType: 'limit',
       type: 'sell',
     })
     expect(data[1]).toEqual({
       offerSequence: 2,
-      amount: 60,
-      price: { currency: 'XRP', amount: 30 },
+      amount: '60',
+      price: { currency: 'XRP', amount: '30' },
       orderType: 'limit',
       type: 'buy',
     })
@@ -124,15 +124,15 @@ describe('IOU.listOffers', () => {
     const buy = data.find((offer) => offer.type === 'buy')
     expect(sell).toEqual({
       offerSequence: 3,
-      amount: 10,
-      price: { currency: 'XRP', amount: 5 },
+      amount: '10',
+      price: { currency: 'XRP', amount: '5' },
       orderType: 'limit',
       type: 'sell',
     })
     expect(buy).toEqual({
       offerSequence: 4,
-      amount: 4,
-      price: { currency: 'XRP', amount: 2 },
+      amount: '4',
+      price: { currency: 'XRP', amount: '2' },
       orderType: 'passive',
       type: 'buy',
     })

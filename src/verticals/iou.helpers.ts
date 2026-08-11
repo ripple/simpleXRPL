@@ -1,9 +1,9 @@
+import BigNumber from 'bignumber.js'
 import {
   AccountSetAsfFlags,
   OfferCreateFlags,
   Wallet,
   convertStringToHex,
-  xrpToDrops,
 } from 'xrpl'
 import type {
   AccountSet,
@@ -14,6 +14,9 @@ import type {
   TrustSetFlags as XrplTrustSetFlags,
 } from 'xrpl'
 
+// Deep import: these are the canonical precision rules `toLedgerAmount` applies,
+// and they are intentionally not part of the public `../amount/index.js` surface.
+import { normalizeIouValue, toDrops } from '../amount/amount.js'
 import { LocalSigner } from '../custodians/local/index.js'
 import type { Account } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
@@ -95,12 +98,12 @@ export function priceToLedgerAmount(
     )
   }
   if ('currency' in price) {
-    return xrpToDrops(price.amount)
+    return xrpDrops(price.amount, 'price.amount')
   }
   return {
     currency: encodeCurrencyCode(price.ticker),
     issuer: price.issuer,
-    value: String(price.amount),
+    value: iouValue(price.amount, 'price.amount'),
   }
 }
 
@@ -281,18 +284,68 @@ export function buildIssuedPayment(
 }
 
 /**
- * Reject an issuance distribution amount the ledger would refuse. A zero,
- * negative, or non-finite value builds a `Payment` that fails with
- * `temBAD_AMOUNT` mid-sequence — after the trust line has already committed —
- * so it is caught before the first step is submitted.
+ * Validate a caller-supplied IOU amount string and return its canonical form.
  *
- * @param amount - The caller-supplied distribution amount.
- * @throws {@link IntentValidationError} if `amount` is not positive and finite.
+ * IOU amounts are decimal strings end to end — that is what the ledger carries,
+ * and the XRPL IOU range exceeds what an IEEE754 double can address exactly. A
+ * value that still arrives with float artifacts (`String(0.1 + 0.2)`) carries 17
+ * significant digits against the IOU limit of 15; unchecked it reaches
+ * `ripple-binary-codec` and surfaces as an opaque "Decimal precision out of
+ * range" at signing time, so it is rejected here instead.
+ *
+ * @param value - The caller-supplied decimal amount string.
+ * @param field - The parameter name, for the error message.
+ * @returns The validated, canonical IOU value string.
+ * @throws {@link IntentValidationError} if the value is not a valid IOU amount.
  */
-export function assertDistributableAmount(amount: number): void {
-  if (!Number.isFinite(amount) || amount <= 0) {
+export function iouValue(value: string, field: string): string {
+  try {
+    return normalizeIouValue(value)
+  } catch (error) {
     throw new IntentValidationError(
-      `IOU.issue amount must be a positive finite number, got ${amount}. ` +
+      `${field} '${value}' is not a valid IOU amount: it must be a ` +
+        'non-negative decimal string with at most 15 significant digits. If it ' +
+        'came from floating-point arithmetic, round it before stringifying.',
+      { cause: error },
+    )
+  }
+}
+
+/**
+ * Convert a caller-supplied XRP amount string to drops, with the validation the
+ * `Amount` model applies. See {@link iouValue} for why amounts stay decimal.
+ *
+ * @param value - The caller-supplied decimal XRP amount string.
+ * @param field - The parameter name, for the error message.
+ * @returns The amount in drops.
+ * @throws {@link IntentValidationError} if the value is not a valid XRP amount.
+ */
+export function xrpDrops(value: string, field: string): string {
+  try {
+    return toDrops(value)
+  } catch (error) {
+    throw new IntentValidationError(
+      `${field} '${value}' is not a valid XRP amount: it must be a ` +
+        'non-negative decimal string with at most 6 decimal places.',
+      { cause: error },
+    )
+  }
+}
+
+/**
+ * Reject an issuance distribution amount the ledger would refuse. A zero or
+ * negative value builds a `Payment` that fails with `temBAD_AMOUNT` mid-sequence
+ * — after the trust line has already committed — so it is caught before the
+ * first step is submitted.
+ *
+ * @param value - The caller-supplied distribution amount string.
+ * @throws {@link IntentValidationError} if the amount is not positive.
+ */
+export function assertDistributableAmount(value: string): void {
+  const parsed = new BigNumber(value)
+  if (!parsed.isFinite() || parsed.isLessThanOrEqualTo(0)) {
+    throw new IntentValidationError(
+      `IOU.issue amount must be a positive decimal string, got '${value}'. ` +
         'Omit amount to set up the trust line without distributing.',
     )
   }

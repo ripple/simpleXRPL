@@ -10,7 +10,7 @@ composable back into those write operations.
 
 ### amount
 
-> `readonly` **amount**: `number`
+> `readonly` **amount**: `string`
 
 Defined in: [reads/offers.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/reads/offers.ts#L34)
 

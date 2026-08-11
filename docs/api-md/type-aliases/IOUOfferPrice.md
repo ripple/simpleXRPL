@@ -1,7 +1,7 @@
 # Type Alias: IOUOfferPrice
 
-> **IOUOfferPrice**: \{ `amount`: `number`; `currency`: `"XRP"`; \} \| \{ `amount`: `number`; `mptIssuanceId`: `string`; \} \| \{ `amount`: `number`; `issuer`: `string`; `ticker`: `string`; \}
+> **IOUOfferPrice**: \{ `amount`: `string`; `currency`: `"XRP"`; \} \| \{ `amount`: `string`; `mptIssuanceId`: `string`; \} \| \{ `amount`: `string`; `issuer`: `string`; `ticker`: `string`; \}
 
-Defined in: [verticals/iou.types.ts:118](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L118)
+Defined in: [verticals/iou.types.ts:138](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L138)
 
 How a DEX offer is priced.

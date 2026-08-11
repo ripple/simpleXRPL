@@ -45,6 +45,36 @@ See the [API reference](#) for every vertical, method, and type. Writes dispatch
 to whichever signing backend owns the account — local, Ripple Custody, or
 Palisade — with no change to the call.
 
+## Native operations and the raw-signing fallback
+
+Each custodian models a subset of XRPL transactors as **native operations**: the
+SDK hands the backend a structured, typed operation, and the backend's own
+controls — transfer policies, allow-lists, and M-of-N approval rules — can
+inspect what they are approving.
+
+For anything outside that subset, the SDK can fall back to **raw signing**: it
+builds and validates the transaction locally, then asks the backend to sign an
+opaque payload. This is off by default and must be enabled per custodian with
+`allowRawSigning: true`.
+
+> [!WARNING]
+> On the raw path the custodian cannot inspect what it is signing. Its
+> transaction-level policies and approval rules operate on operation semantics,
+> and a raw payload has none to read — Ripple Custody types it `Unsafe` for
+> exactly this reason, and additionally requires the operator to enable that
+> manifest capability server-side. Protocol validation still runs (xrpl.js
+> `validate()` executes on every path, so malformed transactions are still
+> rejected); what you lose is the custodian's ability to reason about intent.
+>
+> Treat `allowRawSigning` as a deliberate, audited exception rather than a
+> default. Where a transactor matters to your controls, prefer a signing backend
+> that models it natively.
+
+Which transactors are native differs per backend — see
+[`docs/connector-routing.md`](./docs/connector-routing.md) for the current
+matrix, and note that a transactor can be native while a specific *field* on it
+is not, in which case that call also takes the raw path.
+
 ## Development
 
 Install dependencies with `npm install`.

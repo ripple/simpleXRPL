@@ -1,8 +1,8 @@
-import { dropsToXrp } from 'xrpl'
 import type { Payment } from 'xrpl'
 
 import type { operations } from '../../../generated/palisade.js'
 
+import { dropsToDecimalXrp } from './currency.js'
 import { palisadeUnsupported } from './unsupported.js'
 
 type TransferBody =
@@ -66,7 +66,7 @@ function amountFields(amount: Payment['Amount']): {
   contract?: string
 } {
   if (typeof amount === 'string') {
-    return { symbol: 'XRP', qty: String(dropsToXrp(amount)) }
+    return { symbol: 'XRP', qty: dropsToDecimalXrp(amount) }
   }
   if ('mpt_issuance_id' in amount) {
     palisadeUnsupported('Payment', 'Amount(MPT)')

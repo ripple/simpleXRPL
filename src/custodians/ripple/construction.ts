@@ -43,7 +43,23 @@ export interface RippleCustodyOptions {
   readonly domainId: string
   /** The primary account's r-address; validated against the discovered set. */
   readonly primary: string
-  /** Enable the raw-signing fallback (TDD §12.1). Defaults to `false`. */
+  /**
+   * Enable the raw-signing fallback for transactors and fields this backend has
+   * no native operation for.
+   *
+   * **Security note.** On the raw path the custodian signs an opaque payload
+   * rather than a structured operation, so its transaction-level controls —
+   * transfer policies, allow-lists, and approval rules keyed to operation
+   * semantics — cannot inspect what is being signed. Ripple Custody types that
+   * payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+   * runs on every path, so malformed transactions are still rejected; what is
+   * lost is the custodian's ability to reason about the transaction's intent.
+   *
+   * Leave this off unless a specific transactor requires it, and prefer routing
+   * those operations through a signer that models them natively.
+   *
+   * @defaultValue `false`
+   */
   readonly allowRawSigning?: boolean
   /** House fee intent, falls back to `Priority: Low`. */
   readonly defaultFee?: FeeIntent
@@ -59,7 +75,23 @@ export interface RippleCustodyOptions {
 export interface RippleCustodyFromEnvOptions {
   /** The primary account's r-address; validated against the discovered set. */
   readonly primary: string
-  /** Enable the raw-signing fallback (TDD §12.1). Defaults to `false`. */
+  /**
+   * Enable the raw-signing fallback for transactors and fields this backend has
+   * no native operation for.
+   *
+   * **Security note.** On the raw path the custodian signs an opaque payload
+   * rather than a structured operation, so its transaction-level controls —
+   * transfer policies, allow-lists, and approval rules keyed to operation
+   * semantics — cannot inspect what is being signed. Ripple Custody types that
+   * payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+   * runs on every path, so malformed transactions are still rejected; what is
+   * lost is the custodian's ability to reason about the transaction's intent.
+   *
+   * Leave this off unless a specific transactor requires it, and prefer routing
+   * those operations through a signer that models them natively.
+   *
+   * @defaultValue `false`
+   */
   readonly allowRawSigning?: boolean
   /** House fee intent, falls back to `Priority: Low`. */
   readonly defaultFee?: FeeIntent
@@ -79,6 +111,7 @@ export interface RippleCustodyState {
   readonly domainId: string
   readonly authorUserId: string
   readonly intentSigner: IntentSigner
+  /** See the security note on {@link RippleCustodyOptions.allowRawSigning}. */
   readonly allowRawSigning: boolean
   readonly defaultFee: FeeIntent | undefined
   readonly defaultDryRun: boolean

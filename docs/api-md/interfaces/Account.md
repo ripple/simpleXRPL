@@ -1,6 +1,6 @@
 # Interface: Account
 
-Defined in: [domain/model.ts:41](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L41)
+Defined in: [domain/model.ts:37](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L37)
 
 A discovered account, keyed by r-address, with a back-reference to the
 custodian that owns and signs for it.
@@ -15,7 +15,7 @@ custodian that owns and signs for it.
 
 > `readonly` **address**: `string`
 
-Defined in: [domain/model.ts:31](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L31)
+Defined in: [domain/model.ts:27](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L27)
 
 The XRPL r-address — the canonical key the core and verticals use.
 
@@ -29,7 +29,7 @@ The XRPL r-address — the canonical key the core and verticals use.
 
 > `readonly` `optional` **alias**: `string`
 
-Defined in: [domain/model.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L43)
+Defined in: [domain/model.ts:39](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L39)
 
 Custodian-side alias, when the backend exposes one.
 
@@ -39,7 +39,7 @@ Custodian-side alias, when the backend exposes one.
 
 > `readonly` `optional` **custodianRef**: [`CustodianRef`](../type-aliases/CustodianRef.md)
 
-Defined in: [domain/model.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L34)
+Defined in: [domain/model.ts:30](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L30)
 
 The owning custodian's native id, opaque to everything but that custodian.
 
@@ -49,11 +49,23 @@ The owning custodian's native id, opaque to everything but that custodian.
 
 ***
 
+### ledgerId?
+
+> `readonly` `optional` **ledgerId**: `string`
+
+Defined in: [domain/model.ts:46](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L46)
+
+The custodian-specific ledger id backing this address, when the backend
+needs one disambiguated (e.g. Ripple Custody's multi-ledger Vault
+accounts, which carry no ledger default of their own).
+
+***
+
 ### metadata?
 
 > `readonly` `optional` **metadata**: \{ `kind`: [`CustodianKind`](../type-aliases/CustodianKind.md); `tags`: readonly `string`[]; \}
 
-Defined in: [domain/model.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L56)
+Defined in: [domain/model.ts:59](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L59)
 
 Optional, advisory-only metadata.
 
@@ -71,7 +83,7 @@ Optional, advisory-only metadata.
 
 > `readonly` `optional` **publicKey**: `string`
 
-Defined in: [domain/model.ts:50](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L50)
+Defined in: [domain/model.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L53)
 
 The account's XRPL public key (hex), when the custodian exposes it. Used to
 populate `SigningPubKey` on transactions signed by a backend that returns
@@ -83,6 +95,6 @@ only the signature (e.g. Palisade's raw sign-only path).
 
 > `readonly` **signer**: [`Custodian`](Custodian.md)
 
-Defined in: [domain/model.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L53)
+Defined in: [domain/model.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L56)
 
 The custodian that discovered and signs for this account.

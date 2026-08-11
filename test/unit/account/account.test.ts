@@ -66,6 +66,29 @@ describe('Account vertical', () => {
     expect((txs[0] as Payment).Amount).toBe('11000000')
   })
 
+  it.each([
+    [1.03, '2030000'],
+    [0.118, '1118000'],
+    [0.2, '1200000'],
+    [10, '11000000'],
+  ])(
+    'activate adds the %p XRP reserve in decimal, not floating point',
+    async (reserve, expectedDrops) => {
+      // `String(reserve + 1)` in IEEE754 yields '2.0300000000000002' for a 1.03
+      // reserve, which xrpToDrops rejects outright ("too many decimal places") —
+      // breaking every activation on a network with a fractional base reserve.
+      const { client, txs } = await recordingClient()
+      Object.defineProperty(client.ledger, 'request', {
+        value: async () => ({
+          result: { info: { validated_ledger: { reserve_base_xrp: reserve } } },
+        }),
+      })
+      const created = client.account.create()
+      await client.account.activate({ destination: created.address })
+      expect((txs[0] as Payment).Amount).toBe(expectedDrops)
+    },
+  )
+
   it('activate reports a server_info that does not disclose the base reserve', async () => {
     const { client } = await recordingClient()
     Object.defineProperty(client.ledger, 'request', {
