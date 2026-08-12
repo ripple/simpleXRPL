@@ -40,8 +40,11 @@ export interface PalisadeAuthServiceOptions {
   /** The Palisade client ID. */
   clientId: string
   /**
-   * The Palisade client secret. Held in memory only; never logged or
-   * persisted. Long-lived; rotation is the caller's responsibility (TDD §9.5).
+   * The Palisade client secret. Never logged or persisted: the service stores it
+   * in a real JS private field, so it is absent from `console.log` and
+   * `JSON.stringify` output. Note this option object itself is a plain object —
+   * logging the config you pass in will still print the secret. Long-lived;
+   * rotation is the caller's responsibility.
    */
   clientSecret: string
   /** Injectable clock for deterministic tests. Defaults to `Date.now`. */
@@ -67,13 +70,22 @@ export interface PalisadeAuthServiceOptions {
 export class PalisadeAuthService {
   private readonly authPort: PalisadeAuthPort
   private readonly clientId: string
-  private readonly clientSecret: string
   private readonly now: () => number
 
-  private accessToken: string | null = null
   private tokenExpirationMs: number | null = null
   /** Shared in-flight refresh; concurrent callers await this one promise. */
   private refreshPromise: Promise<string> | null = null
+
+  /**
+   * The Palisade client secret. A real JS private field, not a TypeScript
+   * `private`: the latter is erased at compile time, leaving an ordinary
+   * enumerable property that `console.log`, `util.inspect`, and
+   * `JSON.stringify` all print in the clear.
+   */
+  readonly #clientSecret: string
+
+  /** Cached bearer token — `#`-private for the same reason as {@link #clientSecret}. */
+  #accessToken: string | null = null
 
   /**
    * Construct a PalisadeAuthService.
@@ -83,7 +95,7 @@ export class PalisadeAuthService {
   public constructor(options: PalisadeAuthServiceOptions) {
     this.authPort = options.authPort
     this.clientId = options.clientId
-    this.clientSecret = options.clientSecret
+    this.#clientSecret = options.clientSecret
     this.now = options.now ?? Date.now
   }
 
@@ -95,8 +107,8 @@ export class PalisadeAuthService {
    * @returns A valid bearer token.
    */
   public async getToken(forceRefresh = false): Promise<string> {
-    if (!forceRefresh && this.accessToken !== null && !this.isTokenExpired()) {
-      return this.accessToken
+    if (!forceRefresh && this.#accessToken !== null && !this.isTokenExpired()) {
+      return this.#accessToken
     }
     if (!forceRefresh && this.refreshPromise !== null) {
       return this.refreshPromise
@@ -139,7 +151,7 @@ export class PalisadeAuthService {
    * @returns The current cached token, or `null` if none is cached.
    */
   public getCurrentToken(): string | null {
-    return this.accessToken
+    return this.#accessToken
   }
 
   /**
@@ -152,7 +164,7 @@ export class PalisadeAuthService {
     try {
       response = await this.authPort.exchangeCredential(
         this.clientId,
-        this.clientSecret,
+        this.#clientSecret,
       )
     } catch (error) {
       // Never surface credential material; wrap transport/auth failures uniformly.
@@ -168,7 +180,7 @@ export class PalisadeAuthService {
       )
     }
 
-    this.accessToken = token
+    this.#accessToken = token
     this.tokenExpirationMs = this.now() + validityMs(response.expiresIn)
     return token
   }

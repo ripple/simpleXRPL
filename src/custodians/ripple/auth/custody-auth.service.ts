@@ -56,8 +56,10 @@ export interface CustodyAuthServiceOptions {
   /** Token endpoint port (HTTP in production, in-memory fake in tests). */
   authPort: CustodyAuthPort
   /**
-   * Intent-author private key (PEM). Held in memory only; never logged or
-   * persisted.
+   * Intent-author private key (PEM). Never logged or persisted: the service
+   * stores it in a real JS private field, so it is absent from `console.log`
+   * and `JSON.stringify` output. Note this option object itself is a plain
+   * object — logging the options you pass in will still print the key.
    */
   privateKey: string
   /**
@@ -86,14 +88,24 @@ export interface CustodyAuthServiceOptions {
 export class CustodyAuthService {
   private readonly authPort: CustodyAuthPort
   private readonly keypair: KeypairService
-  private readonly privateKey: string
   private readonly publicKey: string
   private readonly now: () => number
 
-  private accessToken: string | null = null
   private tokenExpirationMs: number | null = null
   /** Shared in-flight refresh; concurrent callers await this one promise. */
   private refreshPromise: Promise<string> | null = null
+
+  /**
+   * The Custody signing key. A real JS private field, not a TypeScript
+   * `private`: the latter is erased at compile time, leaving an ordinary
+   * enumerable property that `console.log`, `util.inspect`, and
+   * `JSON.stringify` all print in the clear. `#`-fields are unreachable at
+   * runtime and skipped by every one of those.
+   */
+  readonly #privateKey: string
+
+  /** Cached bearer token — `#`-private for the same reason as {@link #privateKey}. */
+  #accessToken: string | null = null
 
   /**
    * Construct a CustodyAuthService.
@@ -102,11 +114,11 @@ export class CustodyAuthService {
    */
   public constructor(options: CustodyAuthServiceOptions) {
     this.authPort = options.authPort
-    this.privateKey = options.privateKey
+    this.#privateKey = options.privateKey
     this.now = options.now ?? Date.now
-    this.keypair = KeypairService.fromPrivateKey(this.privateKey)
+    this.keypair = KeypairService.fromPrivateKey(this.#privateKey)
     const derivedPublicKey = KeypairService.derivePublicKeyBase64(
-      this.privateKey,
+      this.#privateKey,
     )
     if (
       options.publicKey !== undefined &&
@@ -127,8 +139,8 @@ export class CustodyAuthService {
    * @returns A valid JWT bearer token.
    */
   public async getToken(forceRefresh = false): Promise<string> {
-    if (!forceRefresh && this.accessToken !== null && !this.isTokenExpired()) {
-      return this.accessToken
+    if (!forceRefresh && this.#accessToken !== null && !this.isTokenExpired()) {
+      return this.#accessToken
     }
     if (!forceRefresh && this.refreshPromise !== null) {
       return this.refreshPromise
@@ -171,7 +183,7 @@ export class CustodyAuthService {
    * @returns The current cached token, or `null` if none is cached.
    */
   public getCurrentToken(): string | null {
-    return this.accessToken
+    return this.#accessToken
   }
 
   /**
@@ -198,7 +210,7 @@ export class CustodyAuthService {
       )
     }
 
-    this.accessToken = token
+    this.#accessToken = token
     const exp = extractExpFromJwt(token)
     this.tokenExpirationMs =
       exp === null
@@ -214,7 +226,7 @@ export class CustodyAuthService {
    */
   private signFreshChallenge(): SignedChallenge {
     const challenge = randomUUID()
-    const signature = this.keypair.sign(this.privateKey, challenge)
+    const signature = this.keypair.sign(this.#privateKey, challenge)
     return { challenge, publicKey: this.publicKey, signature }
   }
 }
