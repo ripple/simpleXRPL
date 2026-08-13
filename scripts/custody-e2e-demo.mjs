@@ -32,7 +32,8 @@ import { Client } from 'xrpl'
 
 import { LocalSigner, RippleCustody, SimpleXRPL } from '../dist/esm/index.js'
 
-const TESTNET_WS = process.env.XRPL_TESTNET_WS ?? 'wss://s.altnet.rippletest.net:51233'
+const TESTNET_WS =
+  process.env.XRPL_TESTNET_WS ?? 'wss://s.altnet.rippletest.net:51233'
 
 /** Small section banner so a long run stays readable. */
 function heading(title) {
@@ -60,7 +61,9 @@ class DebugHttpPort {
       body: request.body,
     })
     const body = await response.text()
-    console.log(`  [debug] ${request.method} ${request.url} -> ${response.status}`)
+    console.log(
+      `  [debug] ${request.method} ${request.url} -> ${response.status}`,
+    )
     console.log(`  [debug] body: ${body.slice(0, 500)}`)
     return { status: response.status, body }
   }
@@ -132,12 +135,19 @@ async function runRippleCustodyStage() {
   const custody = await RippleCustody.fromEnv({
     primary: process.env.RIPPLE_CUSTODY_PRIMARY_ADDRESS,
     allowRawSigning: process.env.RIPPLE_CUSTODY_ALLOW_RAW === 'true',
-    http: process.env.CUSTODY_DEMO_DEBUG === 'true' ? new DebugHttpPort() : undefined,
+    http:
+      process.env.CUSTODY_DEMO_DEBUG === 'true'
+        ? new DebugHttpPort()
+        : undefined,
   })
 
   const accounts = await custody.listAccounts()
-  console.log(`discovered accounts: ${accounts.map((a) => a.address).join(', ')}`)
-  console.log(`capabilities:        ${formatCapabilities(custody.capabilities())}`)
+  console.log(
+    `discovered accounts: ${accounts.map((a) => a.address).join(', ')}`,
+  )
+  console.log(
+    `capabilities:        ${formatCapabilities(custody.capabilities())}`,
+  )
 
   const shouldSubmit = process.env.CUSTODY_DEMO_SUBMIT === 'true'
   const destination = process.env.CUSTODY_DEMO_DESTINATION

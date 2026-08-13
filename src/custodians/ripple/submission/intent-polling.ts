@@ -1,4 +1,8 @@
-import { IntentPendingError, IntentValidationError } from '../../../errors.js'
+import {
+  CustodyApiError,
+  IntentPendingError,
+  IntentValidationError,
+} from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
@@ -7,6 +11,15 @@ type IntentEntity = components['schemas']['Core_IntentEntity']
 type IntentStatus = components['schemas']['Core_IntentStatus']
 
 const POLL_INTERVAL_MS = 1000
+const HTTP_NOT_FOUND = 404
+
+/**
+ * Reported as the last state when the intent never became readable. Not a
+ * `Core_IntentStatus` — deliberately, because no status was ever observed;
+ * inventing one would misreport the intent as having reached a state it may
+ * never have been in.
+ */
+const NOT_YET_VISIBLE = 'NotYetVisible'
 
 /** Statuses that end the intent's lifecycle without executing it. */
 const TERMINAL_FAILURE_STATUSES: ReadonlySet<IntentStatus> = new Set([
@@ -101,22 +114,45 @@ export async function pollIntentUntilExecuted(
 ): Promise<IntentEntity> {
   const { client, domainId, intentId, timeoutMs } = options
   const deadline = Date.now() + timeoutMs
+  let lastStatus: IntentStatus | typeof NOT_YET_VISIBLE = NOT_YET_VISIBLE
   for (;;) {
-    // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
-    const trusted = await client.get<TrustedIntent>(
-      `/v1/domains/${domainId}/intents/${intentId}`,
-    )
-    const { status } = trusted.data.state
-    if (status === 'Executed') {
-      return trusted.data
-    }
-    if (TERMINAL_FAILURE_STATUSES.has(status)) {
-      throw new IntentValidationError(
-        describeFailure(intentId, trusted.data.state),
+    let trusted: TrustedIntent | undefined
+    try {
+      // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
+      trusted = await client.get<TrustedIntent>(
+        `/v1/domains/${domainId}/intents/${intentId}`,
       )
+    } catch (error) {
+      // A 404 here means "not readable yet", not "does not exist". Custody
+      // accepts the intent with 202 and materializes it in the read model a
+      // moment later, so polling that starts immediately after submission can
+      // race it. Treating that as fatal reported *successful* payments as
+      // failures — the intent went on to execute and move funds while the
+      // caller saw an error. Keep waiting instead; a genuinely absent intent
+      // still surfaces, as IntentPendingError once the deadline passes.
+      if (
+        !(error instanceof CustodyApiError) ||
+        error.status !== HTTP_NOT_FOUND
+      ) {
+        throw error
+      }
     }
+
+    if (trusted !== undefined) {
+      const { status } = trusted.data.state
+      lastStatus = status
+      if (status === 'Executed') {
+        return trusted.data
+      }
+      if (TERMINAL_FAILURE_STATUSES.has(status)) {
+        throw new IntentValidationError(
+          describeFailure(intentId, trusted.data.state),
+        )
+      }
+    }
+
     if (Date.now() >= deadline) {
-      throw new IntentPendingError(intentId, 'ripple-custody', status)
+      throw new IntentPendingError(intentId, 'ripple-custody', lastStatus)
     }
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
     await sleep(POLL_INTERVAL_MS)
