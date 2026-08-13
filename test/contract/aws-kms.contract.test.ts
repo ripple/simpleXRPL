@@ -2,6 +2,8 @@ import { AwsKmsSigner } from '../../src/custodians/external/adapters/aws-kms.js'
 import { ExternalSigner, SimpleXRPL } from '../../src/index.js'
 import { TESTNET_FAUCET, TESTNET_WS } from '../helpers/testnet.js'
 
+import { contractSuite } from './helpers/contract-gate.js'
+
 /**
  * AWS KMS contract test: verify the adapter end to end against a real KMS key —
  * simpleXRPL funds a KMS-derived account and submits a KMS-signed payment
@@ -32,7 +34,7 @@ function kmsKeyId(): string | undefined {
 }
 
 const keyId = kmsKeyId()
-const describeIfKms = keyId === undefined ? describe.skip : describe
+const describeIfKms = contractSuite('AWS KMS', ['AWS_KMS_KEY_ID', 'AWS_REGION'])
 
 describeIfKms('AwsKmsSigner (live KMS contract)', () => {
   it(

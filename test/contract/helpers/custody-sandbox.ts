@@ -1,3 +1,5 @@
+import { contractSuite, missingEnv } from './contract-gate.js'
+
 /**
  * The environment variables a Custody sandbox contract run needs. The first
  * four are the same knobs `RippleCustody.fromEnv` reads (TDD §3.3);
@@ -25,10 +27,8 @@ const REQUIRED_ENV = [
  * without secrets, a laptop without a sandbox) — it only executes where a
  * sandbox is actually configured.
  */
-export const hasSandboxCredentials: boolean = REQUIRED_ENV.every((key) => {
-  const value = process.env[key]
-  return value !== undefined && value !== ''
-})
+export const hasSandboxCredentials: boolean =
+  missingEnv(REQUIRED_ENV).length === 0
 
 /** The primary account r-address for the sandbox run (empty when unconfigured). */
 export const SANDBOX_PRIMARY: string =
@@ -37,7 +37,8 @@ export const SANDBOX_PRIMARY: string =
 /* eslint-enable n/no-process-env */
 
 /**
- * `describe` when the sandbox is configured, `describe.skip` otherwise — so the
- * contract suite runs only where it can actually reach a sandbox.
+ * How the Ripple Custody suite declares itself: it runs when the sandbox is
+ * configured, skips when it isn't, and fails loudly instead of skipping when
+ * `CONTRACT_REQUIRE_ALL` is set (see {@link contractSuite}).
  */
-export const describeContract = hasSandboxCredentials ? describe : describe.skip
+export const describeContract = contractSuite('Ripple Custody', REQUIRED_ENV)

@@ -82,8 +82,11 @@ jobs:
   # Live custodian contract tests (Ripple Custody, Palisade, AWS KMS) — gated on
   # sandbox credentials supplied via repository/environment secrets. Runs only on
   # merge to main, tags/releases, and manual dispatch — NOT on PRs (fork PRs don't
-  # get secrets, and we don't want an external sandbox gating every PR). Each suite
-  # still skips individually when its own secrets are absent.
+  # get secrets, and we don't want an external sandbox gating every PR).
+  #
+  # Suites self-skip when their credentials are absent so the tier stays runnable
+  # on a laptop, but CONTRACT_REQUIRE_ALL turns that into a hard failure here:
+  # all three backends are configured, so a skip means something broke.
   contract-tests:
     if: >-
       github.event_name == 'workflow_dispatch' ||
@@ -91,6 +94,12 @@ jobs:
       startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      # Required to mint the OIDC token that the AWS role assumption below
+      # exchanges for short-lived credentials. `contents: read` is otherwise the
+      # default, and must be restated once `permissions` is set explicitly.
+      id-token: write
+      contents: read
     strategy:
       matrix:
         node-version: [22.x]
@@ -104,8 +113,20 @@ jobs:
       - name: Pin npm to v10
         run: npm i -g npm@10 --registry=https://registry.npmjs.org
       - run: npm ci
+      # Short-lived credentials via OIDC. The role trusts only this repo's own
+      # branches and tags, and can do nothing beyond GetPublicKey/Sign on the
+      # single contract-test KMS key — so no long-lived AWS keys in secrets.
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_CONTRACT_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Run custodian contract tests
         env:
+          # Every backend must actually run here. A self-skipping suite exits 0,
+          # so without this a missing credential reports green with a whole
+          # custodian left unexercised — which is how Ripple Custody sat un-run.
+          CONTRACT_REQUIRE_ALL: '1'
           RIPPLE_CUSTODY_GATEWAY_URL: ${{ secrets.RIPPLE_CUSTODY_GATEWAY_URL }}
           RIPPLE_CUSTODY_AUTH_SIGNING_KEY: ${{ secrets.RIPPLE_CUSTODY_AUTH_SIGNING_KEY }}
           RIPPLE_CUSTODY_AUTH_TOKEN_URL: ${{ secrets.RIPPLE_CUSTODY_AUTH_TOKEN_URL }}

@@ -4,6 +4,8 @@ import { PalisadeCustody, SimpleXRPL, XrplLedger } from '../../src/index.js'
 import type { Account, PalisadeCustodyConfig } from '../../src/index.js'
 import { ensureFunded, TESTNET_WS } from '../helpers/testnet.js'
 
+import { contractSuite } from './helpers/contract-gate.js'
+
 /**
  * Palisade contract tests: run the real adapter against a live Palisade
  * sandbox to verify our assumptions about its API still hold.
@@ -86,7 +88,15 @@ function sandboxConfig(): PalisadeCustodyConfig | undefined {
 }
 
 const config = sandboxConfig()
-const describeIfSandbox = config === undefined ? describe.skip : describe
+const describeIfSandbox = contractSuite('Palisade', [
+  'PALISADE_BASE_URL',
+  'PALISADE_WALLETS_CLIENT_ID',
+  'PALISADE_WALLETS_CLIENT_SECRET',
+  'PALISADE_TX_CLIENT_ID',
+  'PALISADE_TX_CLIENT_SECRET',
+  'PALISADE_VAULT_ID',
+  'PALISADE_WALLET_ID',
+])
 
 /* eslint-disable n/no-process-env -- optional contract-test inputs from the environment */
 // A second org wallet's r-address, used as the Payment destination.
