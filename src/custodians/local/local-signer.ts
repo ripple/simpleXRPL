@@ -53,14 +53,19 @@ export class LocalSigner implements Custodian {
   /** This custodian signs locally. */
   public readonly kind: CustodianKind = 'local'
 
-  /** Wallets held by this signer, keyed by classic r-address. */
-  private readonly wallets: Map<string, Wallet>
-
   /** The primary account's r-address. */
   private readonly primaryAddress: string
 
+  /**
+   * Wallets held by this signer, keyed by classic r-address. Each carries a seed
+   * and private key, so this is a real JS private field: a TypeScript `private`
+   * is erased at compile time and `console.log`/`util.inspect` would walk
+   * straight into the Map and print the key material.
+   */
+  readonly #wallets: Map<string, Wallet>
+
   private constructor(wallets: Map<string, Wallet>, primaryAddress: string) {
-    this.wallets = wallets
+    this.#wallets = wallets
     this.primaryAddress = primaryAddress
   }
 
@@ -175,7 +180,7 @@ export class LocalSigner implements Custodian {
    * @returns One account per wallet, keyed by r-address.
    */
   public async listAccounts(): Promise<Account[]> {
-    return Array.from(this.wallets.keys(), (address) => ({
+    return Array.from(this.#wallets.keys(), (address) => ({
       address,
       signer: this,
     }))
@@ -262,7 +267,7 @@ export class LocalSigner implements Custodian {
   }
 
   private walletFor(address: string): Wallet {
-    const wallet = this.wallets.get(address)
+    const wallet = this.#wallets.get(address)
     if (wallet === undefined) {
       throw new AccountNotFoundError(address)
     }

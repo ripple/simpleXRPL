@@ -25,7 +25,11 @@ const canonicalize = canonicalizeImport as unknown as (
  */
 export class IntentSigner {
   private readonly keypair: KeypairService
-  private readonly privateKey: string
+  /**
+   * The intent-signing key. A real JS private field so it cannot be reached or
+   * serialized at runtime; a TypeScript `private` is only a compile-time label.
+   */
+  readonly #privateKey: string
 
   /**
    * Construct an IntentSigner.
@@ -43,7 +47,7 @@ export class IntentSigner {
       )
     }
     this.keypair = keypair
-    this.privateKey = privateKey
+    this.#privateKey = privateKey
   }
 
   /**
@@ -61,7 +65,7 @@ export class IntentSigner {
         'Failed to canonicalize Custody intent request body',
       )
     }
-    return this.keypair.sign(this.privateKey, canonical)
+    return this.keypair.sign(this.#privateKey, canonical)
   }
 
   /**
