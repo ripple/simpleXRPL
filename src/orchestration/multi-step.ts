@@ -4,6 +4,24 @@ import type { SubmissionHost, SubmitRequest } from '../pipeline/index.js'
 import { submitTransaction } from '../pipeline/index.js'
 
 /**
+ * How long each step of a multi-step operation may take before the custodian
+ * poll gives up.
+ *
+ * Deliberately far longer than the 60-second single-step default. A step of a
+ * multi-step operation is not just one transaction — it is a barrier: nothing
+ * after it runs until it lands. On a governed custodian a step routinely waits
+ * on a human pressing approve, and the steps can belong to *different* accounts
+ * (`IOU.issue` sequences issuer → holder → issuer), so an approver may not even
+ * know the next step is queued behind theirs. At 60 seconds the common outcome
+ * was that step one timed out and the remaining steps were never submitted at
+ * all, leaving a half-configured issuer.
+ *
+ * An hour is a bound, not a promise: `IntentPendingError` still ends the wait,
+ * and the intent goes on living custodian-side to be resumed by id.
+ */
+export const MULTI_STEP_STEP_TIMEOUT_MS = 3_600_000
+
+/**
  * Wrap a non-`SimpleXRPLError` so `MultiStepFailureError.failed.error` stays typed.
  *
  * @param error - The error thrown by a step's pipeline run.
@@ -45,7 +63,12 @@ export async function runMultiStep(
     let result: SubmissionResult
     try {
       // eslint-disable-next-line no-await-in-loop -- Steps commit sequentially by design; no rollback exists.
-      result = await submitTransaction(host, step)
+      result = await submitTransaction(host, {
+        ...step,
+        // `??`, not an overwrite: an explicit per-step timeout still wins, so a
+        // caller (or a future vertical) can opt a single step back out.
+        timeoutMs: step.timeoutMs ?? MULTI_STEP_STEP_TIMEOUT_MS,
+      })
     } catch (error) {
       throw new MultiStepFailureError(committed, {
         step: index,
