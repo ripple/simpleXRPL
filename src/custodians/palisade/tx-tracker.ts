@@ -182,8 +182,18 @@ export class PalisadeTxTracker {
     let current = submitted
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       if (TERMINAL_FAILURE.has(current.status)) {
+        // Include whatever context Palisade attached. The bare
+        // "<id> REJECTED" gives the caller nothing to act on — not which
+        // operation, not why — and the transaction is only readable again
+        // through credentials the caller may not have.
+        const attributes = Object.entries(current.attributes ?? {})
+          .map(([key, value]) => `${key}=${value}`)
+          .join(', ')
+        const context = [`action=${current.action}`, attributes]
+          .filter((part) => part !== '')
+          .join(', ')
         throw new SimpleXRPLError(
-          `Palisade transaction ${current.id} ${current.status}`,
+          `Palisade transaction ${current.id} ${current.status} (${context})`,
         )
       }
       if (isDone(current)) {

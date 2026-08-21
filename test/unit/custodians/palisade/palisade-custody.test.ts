@@ -262,6 +262,27 @@ describe('PalisadeCustody.submitAndWait — native', () => {
     expect(port.posts).toHaveLength(0)
   })
 
+  it('carries the action and attributes into a REJECTED error', async () => {
+    // A bare "<id> REJECTED" leaves the caller nothing to act on, and the
+    // transaction may only be re-readable through credentials they lack.
+    const port = fakePort({
+      onSubmit: () => ({
+        id: 'tx1',
+        status: 'REJECTED',
+        action: 'PALISADE_MANAGED',
+        attributes: { reason: 'policy denied' },
+      }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    const promise = custody.submitAndWait(
+      payment,
+      contextFor(account, ledgerStub()),
+    )
+    await expect(promise).rejects.toThrow(/action=PALISADE_MANAGED/u)
+    await expect(promise).rejects.toThrow(/reason=policy denied/u)
+  })
+
   it('throws when the native submission is REJECTED', async () => {
     const port = fakePort({
       onSubmit: () => ({ id: 'tx1', status: 'REJECTED' }),
