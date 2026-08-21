@@ -267,3 +267,15 @@ export interface IntentObserver {
    */
   readonly observeIntent: (intentId: string) => SubmissionHandle
 }
+
+/**
+ * The on-chain outcome of a custodian-submitted transaction, available once
+ * the ledger has confirmed it. Returned by {@link OnChainObserver.awaitOnChain}
+ * and surfaced via `client.intent.awaitOnChain`.
+ */
+export interface OnChainResult {
+  /** The XRPL transaction hash. */
+  readonly txHash: string
+  /** Present when the transaction created an MPT issuance. */
+  readonly mptIssuanceId?: string
+}

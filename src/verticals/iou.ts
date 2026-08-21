@@ -17,6 +17,7 @@ import type { ListOffersResult } from '../reads/offers.js'
 import {
   assertClawbackEnabled,
   assertDistributableAmount,
+  assertRequireAuthEnabled,
   buildAccountSet,
   buildFreeze,
   buildIssuedPayment,
@@ -184,6 +185,8 @@ export class IOU {
     options?: IOUWriteOptions,
   ): Promise<SubmissionResult<IOUAuthorizeIntent>> {
     const issuer = this.host.resolveAccount(options?.from)
+    // Fail fast rather than submit a transaction the ledger will never apply.
+    await assertRequireAuthEnabled(this.host, issuer.address)
     const transaction: TrustSet = {
       TransactionType: 'TrustSet',
       Account: issuer.address,

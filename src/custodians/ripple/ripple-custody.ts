@@ -6,6 +6,7 @@ import type {
   Custodian,
   CustodianKind,
   IntentObserver,
+  OnChainResult,
   SignedEnvelope,
   SignerCapabilities,
   SubmissionContext,
@@ -36,6 +37,7 @@ import { runDryRun } from './submission/dry-run.js'
 import { createCustodyIntentHandle } from './submission/intent-handle.js'
 import { pollIntentUntilExecuted } from './submission/intent-polling.js'
 import { signRawTransaction } from './submission/raw-flow.js'
+import { pollTransactionOnChain as pollTxOnChain } from './submission/transaction-polling.js'
 
 export type {
   RippleCustodyAuthOptions,
@@ -219,6 +221,43 @@ export class RippleCustody implements Custodian, IntentObserver {
     }
     const intentId = await this.postNativeIntent(tx, ctx)
     return this.observeIntent(intentId)
+  }
+
+  /**
+   * Poll the Custody transaction layer until the on-chain transaction linked to
+   * `intentId` is confirmed, then return its MPT issuance ID. Returns an empty
+   * string if the transaction is not confirmed within `timeoutMs`.
+   *
+   * Poll the Custody transaction layer until the XRPL transaction linked to
+   * `intentId` is confirmed on-chain, then return its outcome.
+   *
+   * @param intentId - The intent/order ID to look up.
+   * @param timeoutMs - How long to poll (defaults to the custodian's configured
+   *   intent timeout).
+   * @returns The on-chain result once confirmed, or `undefined` on timeout.
+   */
+  public async pollTransactionOnChain(
+    intentId: string,
+    timeoutMs?: number,
+  ): Promise<OnChainResult | undefined> {
+    return pollTxOnChain({
+      client: this.state.client,
+      domainId: this.state.domainId,
+      intentId,
+      timeoutMs: timeoutMs ?? this.state.defaultTimeoutMs,
+    })
+  }
+
+  /**
+   * Convenience wrapper for `Token.issue`: polls until the transaction is
+   * confirmed and returns the MPT issuance ID, or an empty string on timeout.
+   *
+   * @param intentId - The intent/order ID to look up.
+   * @returns The MPT issuance ID, or an empty string on timeout.
+   */
+  public async pollMptIssuanceId(intentId: string): Promise<string> {
+    const result = await this.pollTransactionOnChain(intentId)
+    return result?.mptIssuanceId ?? ''
   }
 
   /**

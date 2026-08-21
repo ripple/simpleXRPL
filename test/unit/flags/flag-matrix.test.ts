@@ -90,7 +90,7 @@ describe('Token issuance capability flag matrix', () => {
     expect(issueFlags(allOff)).toBeUndefined()
   })
 
-  it('defaults (no flags arg) to every capability except requireAuth', () => {
+  it('defaults (no flags arg) to all capabilities except requireAuth', () => {
     const expected =
       MPTokenIssuanceCreateFlags.tfMPTCanLock |
       MPTokenIssuanceCreateFlags.tfMPTCanEscrow |

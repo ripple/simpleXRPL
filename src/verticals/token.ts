@@ -136,13 +136,26 @@ export class Token {
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<MptIssueIntent>> {
     const account = this.host.resolveAccount(options?.from)
+
     const result = await submitTransaction(this.host, {
       transaction: buildIssuance(account.address, params),
       account,
       fee: options?.fee,
       idempotencyKey: options?.idempotencyKey,
     })
-    return withIntent(result, { mptIssuanceId: extractMptIssuanceId(result) })
+
+    // xrpld path: issuance id is in the tx metadata.
+    // custody path: poll the Custody transactions API for ledger confirmation.
+    let mptIssuanceId = extractMptIssuanceId(result)
+    const pollIssuanceId = this.host.pollMptIssuanceId
+    if (
+      mptIssuanceId === '' &&
+      result.intentId !== undefined &&
+      pollIssuanceId !== undefined
+    ) {
+      mptIssuanceId = await pollIssuanceId(result.intentId)
+    }
+    return withIntent(result, { mptIssuanceId })
   }
 
   /**

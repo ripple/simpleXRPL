@@ -1,4 +1,5 @@
 import { LocalSigner } from '../custodians/local/index.js'
+import { RippleCustody } from '../custodians/ripple/index.js'
 import type { Account, AccountSelector, Custodian } from '../domain/index.js'
 import {
   AccountNotFoundError,
@@ -70,6 +71,14 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Read-only observation of custodian governance intents (status/await). */
   public readonly intent: IntentInspector
 
+  /**
+   * Poll the Ripple Custody transaction layer until the on-chain transaction
+   * linked to `intentId` is confirmed, then return its MPT issuance ID.
+   * `undefined` when the primary signer is not a Ripple Custody instance.
+   */
+  public readonly pollMptIssuanceId:
+    ((intentId: string) => Promise<string>) | undefined
+
   /** Address to account index, rebuilt by {@link SimpleXRPLClient.refreshAccounts}. */
   private accountIndex: Map<string, Account>
 
@@ -95,6 +104,11 @@ export class SimpleXRPLClient implements SubmissionHost {
     this.domain = new Domain(this)
     this.account = new AccountVertical(this)
     this.intent = new IntentInspector(this.signers)
+    if (state.primarySigner instanceof RippleCustody) {
+      const custody = state.primarySigner
+      this.pollMptIssuanceId = async (intentId: string): Promise<string> =>
+        custody.pollMptIssuanceId(intentId)
+    }
   }
 
   /**

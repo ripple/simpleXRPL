@@ -32,3 +32,6 @@ npm-debug.log*
 .env.*
 !.env.example
 *.pem
+
+# Local demo / scratch scripts — not part of the published package
+demos/

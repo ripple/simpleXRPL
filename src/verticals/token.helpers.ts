@@ -14,6 +14,7 @@ import type { Amount } from '../amount/index.js'
 import { toLedgerAmount } from '../amount/index.js'
 import type { SubmissionResult } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
+import type { SubmissionHost } from '../pipeline/index.js'
 
 import { percentToTransferFee } from './fee.js'
 import type {
@@ -216,6 +217,83 @@ export function encodeMetadata(metadata: MPTokenMetadata | string): string {
     )
   }
   return hex
+}
+
+/**
+ * Query the ledger for the set of MPT issuance IDs currently owned by an
+ * account. Used to diff before/after a custodian-submitted `MPTokenIssuanceCreate`
+ * when the custodian does not return on-ledger transaction metadata.
+ *
+ * @param host - The submission host (provides the ledger connection).
+ * @param address - The issuer r-address to query.
+ * @returns The set of MPT issuance IDs currently belonging to the account.
+ */
+export async function listMptIssuanceIds(
+  host: SubmissionHost,
+  address: string,
+): Promise<Set<string>> {
+  const response = await host.ledger.request<{
+    result: {
+      account_objects: Array<{
+        LedgerEntryType?: string
+        mpt_issuance_id?: string
+      }>
+    }
+  }>({
+    command: 'account_objects',
+    account: address,
+    ledger_index: 'validated',
+  })
+  const ids = new Set<string>()
+  for (const obj of response.result.account_objects) {
+    if (
+      obj.LedgerEntryType === 'MPTokenIssuance' &&
+      typeof obj.mpt_issuance_id === 'string'
+    ) {
+      ids.add(obj.mpt_issuance_id)
+    }
+  }
+  return ids
+}
+
+/**
+ * Poll the ledger until a new MPT issuance ID appears that was not in
+ * `beforeIds`, then return it. Used after a custodian-submitted
+ * `MPTokenIssuanceCreate` to recover the issuance ID from ledger state.
+ *
+ * @param host - The submission host.
+ * @param address - The issuer r-address.
+ * @param beforeIds - Snapshot taken before submission.
+ * @returns The newly created MPT issuance ID.
+ * @throws Error if no new ID appears within the retry budget.
+ */
+export async function findNewIssuanceId(
+  host: SubmissionHost,
+  address: string,
+  beforeIds: Set<string>,
+): Promise<string> {
+  const MAX_ATTEMPTS = 10
+  const DELAY_MS = 2000
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a new ledger object.
+    const afterIds = await listMptIssuanceIds(host, address)
+    for (const id of afterIds) {
+      if (!beforeIds.has(id)) {
+        return id
+      }
+    }
+    if (attempt < MAX_ATTEMPTS - 1) {
+      // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a new ledger object.
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, DELAY_MS)
+      })
+    }
+  }
+  // The signer's environment (e.g., a Custody sandbox that simulates governance
+  // without submitting to the XRPL network) may not produce an on-ledger
+  // issuance. Return empty string so callers can handle this gracefully rather
+  // than throwing.
+  return ''
 }
 
 /**

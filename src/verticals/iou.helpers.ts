@@ -47,6 +47,9 @@ export const MAX_IOU_TRUST_LIMIT = '9'.repeat(MAX_IOU_TRUST_LIMIT_DIGITS)
 /** The ledger's account-level "allow trust line clawback" flag bit. */
 const LSF_ALLOW_TRUSTLINE_CLAWBACK = 0x80000000
 
+/** The ledger's account-level `asfRequireAuth` flag bit (`lsfRequireAuth`). */
+const LSF_REQUIRE_AUTH = 0x00040000
+
 /** Environment variable naming the issuing account's seed. */
 const ISSUER_SEED_ENV = 'XRPL_ISSUER_SEED'
 
@@ -404,6 +407,40 @@ export function readIssuanceSeeds(): {
  * @param issuerAddress - The issuer's r-address.
  * @throws {@link IntentValidationError} if the flag is not set.
  */
+/**
+ * Verify the issuer has `asfRequireAuth` set before authorizing a holder.
+ *
+ * Without the flag, `tfSetfAuth` has nothing to authorize: the ledger never
+ * applies the transaction, so the caller blocks until `LastLedgerSequence`
+ * lapses and then sees an opaque "latest ledger sequence is greater than..."
+ * error naming neither the flag nor the account. Worse, `asfRequireAuth` can
+ * only be set while the account owns no trust line, so a caller who finds out
+ * this late cannot fix it on that issuer at all — they need a fresh account.
+ *
+ * @param host - The client the read runs against.
+ * @param issuerAddress - The issuing account's r-address.
+ * @throws {@link IntentValidationError} if the flag is not set.
+ */
+export async function assertRequireAuthEnabled(
+  host: SubmissionHost,
+  issuerAddress: string,
+): Promise<void> {
+  const response = await host.ledger.request<{
+    result: { account_data: { Flags: number } }
+  }>({ command: 'account_info', account: issuerAddress })
+  // eslint-disable-next-line no-bitwise -- checking a single ledger flag bit
+  const enabled = (response.result.account_data.Flags & LSF_REQUIRE_AUTH) !== 0
+  if (!enabled) {
+    throw new IntentValidationError(
+      `Issuer ${issuerAddress} has not enabled asfRequireAuth, so IOU.authorize ` +
+        'has nothing to authorize and the transaction would never be applied. ' +
+        'asfRequireAuth must be set with Account.set({ requireAuth: true }) ' +
+        'before the issuer owns any trust line — on an issuer that already has ' +
+        'one, use a freshly created account instead.',
+    )
+  }
+}
+
 export async function assertClawbackEnabled(
   host: SubmissionHost,
   issuerAddress: string,

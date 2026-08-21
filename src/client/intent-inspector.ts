@@ -1,6 +1,8 @@
+import { RippleCustody } from '../custodians/ripple/index.js'
 import type {
   Custodian,
   IntentObserver,
+  OnChainResult,
   SubmissionHandle,
   SubmissionResult,
 } from '../domain/index.js'
@@ -33,6 +35,7 @@ function isIntentObserver(
  */
 export class IntentInspector {
   private readonly observers: ReadonlyArray<Custodian & IntentObserver>
+  private readonly custodyObserver: RippleCustody | undefined
 
   /**
    * Construct an intent inspector over the client's signers.
@@ -42,6 +45,9 @@ export class IntentInspector {
    */
   public constructor(signers: readonly Custodian[]) {
     this.observers = signers.filter(isIntentObserver)
+    this.custodyObserver = signers.find(
+      (s): s is RippleCustody => s instanceof RippleCustody,
+    )
   }
 
   /**
@@ -70,6 +76,35 @@ export class IntentInspector {
     timeoutMs?: number,
   ): Promise<SubmissionResult> {
     return this.handleFor(intentId).wait(timeoutMs)
+  }
+
+  /**
+   * Poll the custodian's transaction layer until the XRPL transaction linked to
+   * `intentId` is confirmed on-chain, then return its outcome.
+   *
+   * This covers the second async layer that {@link await} does not: `await`
+   * returns when the governance intent reaches `Executed` (policy approved),
+   * while `awaitOnChain` returns when the XRPL transaction is actually
+   * confirmed on the ledger. Both calls are needed to know that funds or state
+   * changes have fully landed.
+   *
+   * Only available when a Ripple Custody signer is configured.
+   *
+   * @param intentId - The intent id returned at submission.
+   * @param timeoutMs - How long to poll before giving up (custodian default if omitted).
+   * @returns The on-chain result, or `undefined` when the timeout elapses.
+   * @throws {@link SimpleXRPLError} if no Ripple Custody signer is configured.
+   */
+  public async awaitOnChain(
+    intentId: string,
+    timeoutMs?: number,
+  ): Promise<OnChainResult | undefined> {
+    if (this.custodyObserver === undefined) {
+      throw new SimpleXRPLError(
+        'awaitOnChain requires a RippleCustody signer; add one to the client to use client.intent.awaitOnChain.',
+      )
+    }
+    return this.custodyObserver.pollTransactionOnChain(intentId, timeoutMs)
   }
 
   /**

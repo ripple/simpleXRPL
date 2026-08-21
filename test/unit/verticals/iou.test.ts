@@ -34,14 +34,20 @@ interface IouFixture {
  *
  * @param clawbackEnabled - Whether `account_info` reports
  * `lsfAllowTrustLineClawback` set (default `false`).
+ * @param requireAuth - Whether it reports `lsfRequireAuth` set (default `false`).
  * @returns The fake ledger and the transactions it builds.
  */
-function fakeLedger(clawbackEnabled = false): {
+function fakeLedger(
+  clawbackEnabled = false,
+  requireAuth = false,
+): {
   ledger: LedgerPort
   txs: Transaction[]
 } {
   const txs: Transaction[] = []
-  const flags = clawbackEnabled ? 0x80000000 : 0
+  // eslint-disable-next-line no-bitwise -- compose the account's ledger flag bits
+  const flags =
+    (clawbackEnabled ? 0x80000000 : 0) | (requireAuth ? 0x00040000 : 0)
   const ledger: LedgerPort = {
     async autofill(tx: Transaction): Promise<Transaction> {
       txs.push(tx)
@@ -69,16 +75,20 @@ function fakeLedger(clawbackEnabled = false): {
  * reads. IOU operations default their acting account to this issuer.
  *
  * @param clawbackEnabled - Passed through to {@link fakeLedger}.
+ * @param requireAuth - Passed through to {@link fakeLedger}.
  * @returns The client, captured txs, and the issuer/holder addresses.
  */
-async function issuedClient(clawbackEnabled = false): Promise<IouFixture> {
+async function issuedClient(
+  clawbackEnabled = false,
+  requireAuth = false,
+): Promise<IouFixture> {
   const issuer = Wallet.generate()
   const holder = Wallet.generate()
   // eslint-disable-next-line n/no-process-env -- seeding the env vars IOU.issue reads is the point of this helper
   process.env.XRPL_ISSUER_SEED = issuer.seed
   // eslint-disable-next-line n/no-process-env -- seeding the env vars IOU.issue reads is the point of this helper
   process.env.XRPL_HOT_WALLET_SEED = holder.seed
-  const { ledger, txs } = fakeLedger(clawbackEnabled)
+  const { ledger, txs } = fakeLedger(clawbackEnabled, requireAuth)
   const client = await SimpleXRPL.init({
     xrpldUrl: 'wss://x.invalid',
     signers: [LocalSigner.fromSeed(issuer.seed as string)],
@@ -314,7 +324,7 @@ describe('IOU amounts are validated at the API boundary', () => {
 
 describe('IOU.authorize', () => {
   it('builds a TrustSet with the tfSetfAuth flag', async () => {
-    const { client, txs, issuerAddress } = await issuedClient()
+    const { client, txs, issuerAddress } = await issuedClient(false, true)
     await client.iou.issue({ ticker: 'USD' })
     txs.length = 0
 
@@ -326,6 +336,24 @@ describe('IOU.authorize', () => {
     expect(tx.LimitAmount).toMatchObject({ currency: 'USD', issuer: holder })
     expect(tx.Flags).toBe(TrustSetFlags.tfSetfAuth)
     expect(result.intent).toEqual({ holder })
+  })
+
+  it('rejects up front when the issuer has not enabled requireAuth', async () => {
+    // Without asfRequireAuth the ledger never applies the TrustSet: the caller
+    // used to block until LastLedgerSequence lapsed, then see an opaque
+    // "latest ledger sequence is greater than..." error naming neither the flag
+    // nor the account. Fail fast with something actionable instead.
+    const { client, txs } = await issuedClient()
+    const holder = Wallet.generate().classicAddress
+    const promise = client.iou.authorize({ ticker: 'USD', holder })
+
+    await expect(promise).rejects.toBeInstanceOf(IntentValidationError)
+    await expect(promise).rejects.toThrow(/asfRequireAuth/u)
+    await expect(promise).rejects.toThrow(
+      /before the issuer owns any trust line/u,
+    )
+    // Nothing submitted — the guard runs before the transaction is built.
+    expect(txs).toHaveLength(0)
   })
 })
 
