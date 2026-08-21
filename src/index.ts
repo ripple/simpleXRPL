@@ -62,6 +62,12 @@ export * from './ports/index.js'
 // seams without depending on `xrpl` directly.
 export type { SubmitResponse, Transaction, TxResponse } from 'xrpl'
 
+// `Wallet` is re-exported as a value, not just a type: `LocalSigner.create()`
+// accepts `Wallet` instances, so without this a caller cannot use the documented
+// factory — or generate an ad-hoc keypair — without adding a direct `xrpl`
+// dependency for a type this SDK already requires.
+export { Wallet } from 'xrpl'
+
 // Read-model helpers (currency decode, credential-free account resolution).
 export {
   decodeCurrency,

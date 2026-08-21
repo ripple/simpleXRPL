@@ -11,6 +11,11 @@ export default [
       // Doc samples: type-checked via tsconfig.examples.json, not linted with
       // the strict src rules (they use console + placeholder literals).
       'examples/',
+      // Local demo / scratch scripts (.gitignore'd, never published). They are
+      // in no tsconfig project, so the type-aware parser errors on them —
+      // without this, creating the demos/ directory that .gitignore invites
+      // breaks `npm run lint` outright.
+      'demos/',
       // Generated from vendored OpenAPI specs — never hand-edited or linted.
       'src/generated/',
       // Tooling configs are CommonJS / plain JS, not part of the typed project.
@@ -71,9 +76,15 @@ export default [
     // and the Palisade custodian aggregates every signing/submission path
     // (native, async, raw) plus its API wiring — both legitimately run longer
     // than the default file budget.
-    files: ['src/verticals/*.ts', 'src/custodians/palisade/palisade-custody.ts'],
+    files: [
+      'src/verticals/*.ts',
+      'src/custodians/palisade/palisade-custody.ts',
+    ],
     rules: {
-      'max-lines': ['warn', { max: 350, skipBlankLines: true, skipComments: true }],
+      'max-lines': [
+        'warn',
+        { max: 350, skipBlankLines: true, skipComments: true },
+      ],
     },
   },
   {

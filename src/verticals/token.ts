@@ -254,6 +254,23 @@ export class Token {
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
     const account = this.host.resolveAccount(options?.from)
+    // The ledger refuses to destroy an issuance that still has tokens in
+    // circulation, but it says so as `tecHAS_OBLIGATIONS` — a code that names
+    // neither the issuance nor the amount outstanding, and reads as an opaque
+    // failure to anyone who has not memorised the tec codes. Check first so the
+    // caller is told what is actually holding the destroy up.
+    const current = await retrieveToken(this.host, {
+      mptIssuanceId: params.mptIssuanceId,
+    })
+    const outstanding = current.data?.outstandingAmount
+    if (outstanding !== undefined && outstanding !== '0') {
+      throw new IntentValidationError(
+        `MPT issuance ${params.mptIssuanceId} still has ${outstanding} in ` +
+          'circulation (base units), so it cannot be destroyed. Have every ' +
+          'holder return their balance to the issuer with Token.transfer ' +
+          'first, then retry.',
+      )
+    }
     const tx: MPTokenIssuanceDestroy = {
       TransactionType: 'MPTokenIssuanceDestroy',
       Account: account.address,
