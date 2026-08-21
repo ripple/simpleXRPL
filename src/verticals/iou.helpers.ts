@@ -65,9 +65,27 @@ const HOLDER_SEED_ENV = 'XRPL_HOT_WALLET_SEED'
  *
  * @param currency - The caller-supplied currency code.
  * @returns The code to use as the transaction's `currency` field.
- * @throws {@link IntentValidationError} if the code doesn't fit in 20 bytes.
+ * @throws {@link IntentValidationError} if the code is missing/empty, or
+ *   doesn't fit in 20 bytes.
  */
 export function encodeCurrencyCode(currency: string): string {
+  // Typed `string`, so TypeScript callers cannot reach this — but the SDK ships
+  // to JavaScript consumers too, and omitting `ticker` used to reach
+  // `currency.length` and surface as a bare
+  // "TypeError: Cannot read properties of undefined (reading 'length')",
+  // naming neither the field nor the method that failed.
+  // Widened to `unknown` deliberately: the declared type says this cannot be
+  // undefined, which is exactly why the compiler would otherwise reject the
+  // check that catches JavaScript callers passing nothing.
+  const received: unknown = currency
+  if (typeof received !== 'string' || received === '') {
+    const shown =
+      received === undefined ? 'undefined' : JSON.stringify(received)
+    throw new IntentValidationError(
+      `ticker is required and must be a non-empty string, but received ` +
+        `${shown}. Pass the IOU's currency code, e.g. 'USD'.`,
+    )
+  }
   if (
     currency.length === STANDARD_CURRENCY_CODE_LENGTH ||
     HEX_CURRENCY_CODE.test(currency)
