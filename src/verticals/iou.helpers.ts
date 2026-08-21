@@ -399,15 +399,6 @@ export function readIssuanceSeeds(): {
 }
 
 /**
- * Verify the issuer has enabled `asfAllowTrustLineClawback` before allowing a
- * clawback, per the API mapping's note that the SDK "verifies canClawback was
- * set to true at token creation."
- *
- * @param host - The client the read runs against.
- * @param issuerAddress - The issuer's r-address.
- * @throws {@link IntentValidationError} if the flag is not set.
- */
-/**
  * Verify the issuer has `asfRequireAuth` set before authorizing a holder.
  *
  * Without the flag, `tfSetfAuth` has nothing to authorize: the ledger never
@@ -441,6 +432,15 @@ export async function assertRequireAuthEnabled(
   }
 }
 
+/**
+ * Verify the issuer has enabled `asfAllowTrustLineClawback` before allowing a
+ * clawback, per the API mapping's note that the SDK "verifies canClawback was
+ * set to true at token creation."
+ *
+ * @param host - The client the read runs against.
+ * @param issuerAddress - The issuer's r-address.
+ * @throws {@link IntentValidationError} if the flag is not set.
+ */
 export async function assertClawbackEnabled(
   host: SubmissionHost,
   issuerAddress: string,

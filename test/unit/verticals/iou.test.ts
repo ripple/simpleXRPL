@@ -45,7 +45,6 @@ function fakeLedger(
   txs: Transaction[]
 } {
   const txs: Transaction[] = []
-  // eslint-disable-next-line no-bitwise -- compose the account's ledger flag bits
   const flags =
     (clawbackEnabled ? 0x80000000 : 0) | (requireAuth ? 0x00040000 : 0)
   const ledger: LedgerPort = {
