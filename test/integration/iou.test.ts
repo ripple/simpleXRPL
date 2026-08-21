@@ -96,7 +96,7 @@ describe('IOU vertical (live testnet)', () => {
         expect(unlocked?.freeze_peer ?? false).toBe(false)
 
         await client.iou.transfer(
-          { ticker: 'USD', destination: holder.classicAddress, amount: '50' },
+          { ticker: 'USD', to: holder.classicAddress, amount: '50' },
           from,
         )
         // Read the holder's balance back through the SDK.
@@ -167,7 +167,7 @@ describe('IOU vertical (live testnet)', () => {
         const from = { from: issuer.classicAddress }
         await client.iou.issue({ ticker: 'USD' })
         await client.iou.transfer(
-          { ticker: 'USD', destination: holder.classicAddress, amount: '50' },
+          { ticker: 'USD', to: holder.classicAddress, amount: '50' },
           from,
         )
 

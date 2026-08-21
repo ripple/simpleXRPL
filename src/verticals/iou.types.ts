@@ -113,7 +113,7 @@ export interface IOUClawbackIntent {
 /** Parameters for {@link IOU.transfer}. */
 export interface IOUTransferParams extends IOURef {
   /** The destination r-address. */
-  readonly destination: string
+  readonly to: string
   /**
    * The amount to send, as a decimal string (e.g. `'10'`, `'0.25'`).
    *
@@ -129,7 +129,7 @@ export interface IOUTransferParams extends IOURef {
 /** Output attached to an {@link IOU.transfer} result. */
 export interface IOUTransferIntent {
   /** Destination r-address. */
-  readonly destination: string
+  readonly to: string
   /** Amount sent. */
   readonly amount: string
 }

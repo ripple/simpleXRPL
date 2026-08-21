@@ -55,7 +55,7 @@ import type {
  * The IOU (trust-line currency) vertical, exposed as `client.iou`. Write operations
  * act as the issuer ({@link IOUWriteOptions.from}, default the primary signer);
  * reads take an explicit `account` or default to the primary. Callers name
- * their own counterparty (`holder`/`destination`) per call.
+ * their own counterparty (`holder`/`to`) per call.
  */
 export class IOU {
   private readonly host: SubmissionHost
@@ -294,7 +294,7 @@ export class IOU {
    * @param params - The IOU, destination, and amount.
    * @param options - Issuer account, fee override, and idempotency key (see
    * {@link IOUWriteOptions}).
-   * @returns The submission result, with `{ destination, amount }` as the
+   * @returns The submission result, with `{ to, amount }` as the
    * intent output.
    */
   public async transfer(
@@ -307,11 +307,7 @@ export class IOU {
       issuer: issuer.address,
       value: iouValue(params.amount, 'amount'),
     }
-    const transaction = buildIssuedPayment(
-      issuer.address,
-      params.destination,
-      amount,
-    )
+    const transaction = buildIssuedPayment(issuer.address, params.to, amount)
     const result = await submitTransaction(this.host, {
       transaction,
       account: issuer,
@@ -319,7 +315,7 @@ export class IOU {
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
-      destination: params.destination,
+      to: params.to,
       amount: params.amount,
     })
   }

@@ -263,7 +263,7 @@ describe('IOU amounts are validated at the API boundary', () => {
     const send = async (ticker: unknown): Promise<unknown> =>
       client.iou.transfer({
         ticker: ticker as string,
-        destination,
+        to: destination,
         amount: '1',
       })
 
@@ -278,7 +278,7 @@ describe('IOU amounts are validated at the API boundary', () => {
     const { client, txs } = await issuedClient()
     const promise = client.iou.transfer({
       ticker: 'USD',
-      destination: Wallet.generate().classicAddress,
+      to: Wallet.generate().classicAddress,
       amount: imprecise,
     })
     await expect(promise).rejects.toBeInstanceOf(IntentValidationError)
@@ -322,7 +322,7 @@ describe('IOU amounts are validated at the API boundary', () => {
     const { client, txs } = await issuedClient()
     await client.iou.transfer({
       ticker: 'USD',
-      destination: Wallet.generate().classicAddress,
+      to: Wallet.generate().classicAddress,
       amount: '0.1',
     })
     // '0.1' is not representable as a double; as a string it reaches the ledger
@@ -335,7 +335,7 @@ describe('IOU amounts are validated at the API boundary', () => {
     const precise = '123456789.012345'
     await client.iou.transfer({
       ticker: 'USD',
-      destination: Wallet.generate().classicAddress,
+      to: Wallet.generate().classicAddress,
       amount: precise,
     })
     expect((txs[0] as Payment).Amount).toMatchObject({ value: precise })
@@ -445,7 +445,7 @@ describe('IOU.transfer', () => {
     const destination = Wallet.generate().classicAddress
     const result = await client.iou.transfer({
       ticker: 'USD',
-      destination,
+      to: destination,
       amount: '50',
     })
     const tx = txs[0] as Payment
@@ -457,7 +457,7 @@ describe('IOU.transfer', () => {
       issuer: issuerAddress,
       value: '50',
     })
-    expect(result.intent).toEqual({ destination, amount: '50' })
+    expect(result.intent).toEqual({ to: destination, amount: '50' })
   })
 })
 
