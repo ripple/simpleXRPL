@@ -4,7 +4,6 @@ import type { TransactorType } from '../../../domain/index.js'
 import { SignerCapabilityError } from '../../../errors.js'
 
 import { mapAccountSet } from './account-set.js'
-import { mapClawback } from './clawback.js'
 import { mapOfferCancel } from './offer-cancel.js'
 import { mapOfferCreate } from './offer-create.js'
 import { mapPaymentToTransfer } from './payment.js'
@@ -24,9 +23,37 @@ export const PALISADE_NATIVE_TRANSACTORS: ReadonlySet<TransactorType> = new Set(
     'OfferCancel',
     'TrustSet',
     'AccountSet',
-    'Clawback',
+    // Clawback is deliberately absent (unquoted: scripts/gen-connector-routing
+    // .mjs scrapes quoted strings from this literal, comments included).
+    // See the note below.
   ],
 )
+
+/**
+ * Why Clawback is not listed above.
+ *
+ * Two independent problems, both observed against the Palisade sandbox:
+ *
+ * 1. There is no correct field for the holder. XRPL carries the account being
+ *    clawed from in `Clawback.Amount.issuer` (counter-intuitive, but it is the
+ *    protocol's convention, and what `IOU.clawback` builds). Palisade's
+ *    `SubmitClawback` instead takes a separate `holder`, documented in its spec
+ *    as "Optional holder address for MPTokens" — while Palisade rejects MPT
+ *    amounts outright. So the holder either lands in a field Palisade reads as
+ *    the issuer, or in one scoped to a token type it will not accept.
+ *
+ * 2. Clawback cannot be enabled in the first place. `asfAllowTrustLineClawback`
+ *    must be set on the issuer before it owns any trust line, and Palisade
+ *    rejects that AccountSet outright (`REJECTED action=PALISADE_MANAGED`, no
+ *    reason exposed through the API).
+ *
+ * Omitting the transactor routes Clawback to the raw-signing path when the
+ * custodian allows it, and otherwise fails with a clear capability error —
+ * rather than silently submitting a request whose holder is in the wrong field.
+ *
+ * Re-enable only once Palisade confirms both: a field that carries an IOU
+ * clawback's holder, and that the enabling AccountSet is accepted.
+ */
 
 /** A native submission: the wallet-relative sub-path and its typed JSON body. */
 export interface NativeSubmit {
@@ -69,8 +96,6 @@ export function txToNativeSubmit(
       return { subPath: 'xrp/trust-set', body: mapTrustSet(tx) }
     case 'AccountSet':
       return { subPath: 'xrp/account-set', body: mapAccountSet(tx) }
-    case 'Clawback':
-      return { subPath: 'xrp/clawback', body: mapClawback(tx) }
     default:
       throw new SignerCapabilityError(
         `Palisade has no native operation for ${tx.TransactionType}. Enable ` +

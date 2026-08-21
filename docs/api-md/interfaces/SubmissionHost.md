@@ -18,6 +18,32 @@ The shared ledger connection for autofill and Local/raw submission.
 
 ***
 
+### pollMptIssuanceId()?
+
+> `optional` **pollMptIssuanceId**: (`intentId`) => `Promise`\<`string`\>
+
+Defined in: [pipeline/host.ts:40](https://github.com/ripple/simpleXRPL/blob/main/src/pipeline/host.ts#L40)
+
+Poll the custodian's transaction layer until the on-chain transaction linked
+to `intentId` is confirmed, then return its MPT issuance ID. Present only
+when the primary signer supports custody-side transaction observation (e.g.
+Ripple Custody). `Token.issue` uses this to deterministically recover the
+issuance ID without querying the XRPL ledger.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `intentId` | `string` | The intent/order ID to look up. |
+
+#### Returns
+
+`Promise`\<`string`\>
+
+The MPT issuance ID, or an empty string on timeout.
+
+***
+
 ### primaryAddress()
 
 > **primaryAddress**: () => `undefined` \| `string`

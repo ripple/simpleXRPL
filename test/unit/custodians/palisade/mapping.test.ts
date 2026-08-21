@@ -6,6 +6,7 @@ import {
 } from 'xrpl'
 import type { AccountSet, Clawback, OfferCreate, Payment, TrustSet } from 'xrpl'
 
+import { toCurrencyAmount } from '../../../../src/custodians/palisade/mapping/currency.js'
 import {
   buildRawTransactionBody,
   PALISADE_NATIVE_TRANSACTORS,
@@ -204,31 +205,35 @@ describe('txToNativeSubmit — AccountSet', () => {
   })
 })
 
-describe('txToNativeSubmit — Clawback / OfferCreate / OfferCancel', () => {
-  it('maps a Clawback amount (IOU)', () => {
+describe('txToNativeSubmit — Clawback (unsupported) / OfferCreate / OfferCancel', () => {
+  it('does not map Clawback natively', () => {
+    // Deliberately unsupported: Palisade has no field that carries an IOU
+    // clawback's holder, and rejects the AccountSet that enables clawback at
+    // all. Routing it native would submit a request with the holder in a field
+    // Palisade reads as the issuer.
     const tx: Clawback = {
       TransactionType: 'Clawback',
       Account: 'rIssuer',
       Amount: { currency: 'USD', issuer: 'rHolder', value: '25' },
     }
-    const { subPath, body } = txToNativeSubmit(tx)
-    expect(subPath).toBe('xrp/clawback')
-    expect(body).toEqual({
-      amount: { asset: 'USD', issuer: 'rHolder', value: '25' },
-    })
-  })
-
-  it('rejects an MPT clawback amount by name', () => {
-    // MPT reaches toCurrencyAmount through Clawback; the error must name the
-    // field and the two ways out, since it is a hard capability boundary.
-    const tx: Clawback = {
-      TransactionType: 'Clawback',
-      Account: 'rIssuer',
-      Amount: { mpt_issuance_id: 'ABCDEF', value: '5' },
-    }
+    expect(PALISADE_NATIVE_TRANSACTORS.has('Clawback')).toBe(false)
     expect(() => txToNativeSubmit(tx)).toThrow(SignerCapabilityError)
     expect(() => txToNativeSubmit(tx)).toThrow(
-      /no native MPT support for Amount.*allowRawSigning/su,
+      /no native operation for Clawback/u,
+    )
+  })
+
+  it('rejects an MPT amount by name', () => {
+    // toCurrencyAmount's MPT branch is a hard capability boundary, so the error
+    // must name the field and the two ways out. Asserted directly: it used to
+    // be reached through Clawback, and the transactors that still call it
+    // (OfferCreate, TrustSet) are typed to exclude MPT amounts outright.
+    const amount = { mpt_issuance_id: 'ABCDEF', value: '5' }
+    expect(() => toCurrencyAmount(amount, 'TakerGets')).toThrow(
+      SignerCapabilityError,
+    )
+    expect(() => toCurrencyAmount(amount, 'TakerGets')).toThrow(
+      /no native MPT support for TakerGets.*allowRawSigning/su,
     )
   })
 
@@ -287,18 +292,13 @@ describe('txToNativeSubmit — non-native', () => {
     ).toThrow(SignerCapabilityError)
   })
 
-  it('lists exactly the six natively-mapped transactors', () => {
+  it('lists exactly the five natively-mapped transactors', () => {
     const asc = (left: string, right: string): number =>
       left.localeCompare(right)
     expect(Array.from(PALISADE_NATIVE_TRANSACTORS).sort(asc)).toEqual(
-      [
-        'AccountSet',
-        'Clawback',
-        'OfferCancel',
-        'OfferCreate',
-        'Payment',
-        'TrustSet',
-      ].sort(asc),
+      ['AccountSet', 'OfferCancel', 'OfferCreate', 'Payment', 'TrustSet'].sort(
+        asc,
+      ),
     )
   })
 })

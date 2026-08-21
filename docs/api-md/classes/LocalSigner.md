@@ -36,7 +36,7 @@ This custodian signs locally.
 
 > **get** **primary**(): [`AccountRef`](../interfaces/AccountRef.md)
 
-Defined in: [custodians/local/local-signer.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L72)
+Defined in: [custodians/local/local-signer.ts:77](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L77)
 
 The primary account this signer owns.
 
@@ -58,7 +58,7 @@ The custodian's primary account; it owns this account.
 
 > **capabilities**(): [`SignerCapabilities`](../interfaces/SignerCapabilities.md)
 
-Defined in: [custodians/local/local-signer.ts:168](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L168)
+Defined in: [custodians/local/local-signer.ts:173](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L173)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -78,7 +78,7 @@ Capabilities allowing any transactor via raw signing.
 
 > **listAccounts**(): `Promise`\<[`Account`](../interfaces/Account.md)[]\>
 
-Defined in: [custodians/local/local-signer.ts:177](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L177)
+Defined in: [custodians/local/local-signer.ts:182](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L182)
 
 The full account list, discovered at construction.
 
@@ -98,7 +98,7 @@ One account per wallet, keyed by r-address.
 
 > **sign**(`tx`, `ctx`): `Promise`\<[`SignedEnvelope`](../interfaces/SignedEnvelope.md)\>
 
-Defined in: [custodians/local/local-signer.ts:193](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L193)
+Defined in: [custodians/local/local-signer.ts:198](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L198)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -133,7 +133,7 @@ The signed envelope (blob + hash).
 
 > **submitAndWait**(`tx`, `ctx`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [custodians/local/local-signer.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L216)
+Defined in: [custodians/local/local-signer.ts:221](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L221)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -167,7 +167,7 @@ The xrpld-sourced submission result.
 
 > **submitAsync**(`tx`, `ctx`): `Promise`\<[`SubmissionHandle`](../interfaces/SubmissionHandle.md)\>
 
-Defined in: [custodians/local/local-signer.ts:250](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L250)
+Defined in: [custodians/local/local-signer.ts:255](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L255)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -198,7 +198,7 @@ A pre-resolved handle over the submitted transaction.
 
 > `static` **create**(`options`): [`LocalSigner`](LocalSigner.md)
 
-Defined in: [custodians/local/local-signer.ts:93](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L93)
+Defined in: [custodians/local/local-signer.ts:98](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L98)
 
 Build a signer from pre-constructed wallets.
 
@@ -224,7 +224,7 @@ A signer holding the given wallets.
 
 > `static` **fromEnv**(`options`?): [`LocalSigner`](LocalSigner.md)
 
-Defined in: [custodians/local/local-signer.ts:118](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L118)
+Defined in: [custodians/local/local-signer.ts:123](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L123)
 
 Build a signer from `XRPL_*_SEED` environment variables (one wallet per
 seed). The primary defaults to the first seed in scan order.
@@ -251,7 +251,7 @@ A signer holding one wallet per discovered seed.
 
 > `static` **fromSeed**(`seed`): [`LocalSigner`](LocalSigner.md)
 
-Defined in: [custodians/local/local-signer.ts:82](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L82)
+Defined in: [custodians/local/local-signer.ts:87](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L87)
 
 Build a signer from a single seed.
 
