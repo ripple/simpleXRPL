@@ -212,7 +212,51 @@ async function fetchSigningKeySecret(
     throw new SimpleXRPLError('private_key or user_alias not found in secret')
   }
 
-  return { privateKeyPem: secret.private_key, publicKey: secret.public_key }
+  // Same escaped-newline hazard as the env var: a PEM stored in a JSON secret
+  // field commonly arrives with its line breaks escaped.
+  return {
+    privateKeyPem: normalizePem(secret.private_key),
+    publicKey: secret.public_key,
+  }
+}
+
+/**
+ * Strip one layer of wrapping single or double quotes.
+ *
+ * Secret stores and `.env` parsers routinely hand back a quoted value. A quoted
+ * PEM matches none of the prefixes {@link resolveSigningKey} tests, so it would
+ * otherwise fall through to being treated as a file path.
+ *
+ * @param value - The raw value.
+ * @returns `value` without a matched pair of surrounding quotes.
+ */
+function stripWrappingQuotes(value: string): string {
+  const trimmed = value.trim()
+  const quoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  return quoted && trimmed.length >= 2 ? trimmed.slice(1, -1) : trimmed
+}
+
+/**
+ * Restore real newlines in a PEM whose line breaks were escaped in transit.
+ *
+ * A PEM is inherently multi-line, but the places it travels through — GitHub
+ * Actions secrets, `.env` files, JSON string fields, shell exports — frequently
+ * turn each newline into a literal backslash-n. `createPrivateKey` then rejects
+ * the value outright, and because the algorithm can no longer be detected the
+ * failure surfaced as "unsupported private key algorithm", which points at the
+ * key's curve rather than at its formatting. This is the single most common way
+ * a valid Custody signing key fails to load, so normalize it rather than making
+ * every operator rediscover it.
+ *
+ * @param pem - PEM contents, possibly carrying escaped newlines.
+ * @returns The PEM with `\n` / `\r\n` escape sequences replaced by real
+ *   newlines, and a trailing newline ensured.
+ */
+function normalizePem(pem: string): string {
+  const withNewlines = pem.replace(/(?:\\r)?\\n/gu, '\n').trim()
+  return `${withNewlines}\n`
 }
 
 /**
@@ -223,11 +267,12 @@ async function fetchSigningKeySecret(
  * @returns The resolved private/public key pair.
  */
 async function resolveSigningKey(value: string): Promise<ResolvedSigningKey> {
-  if (value.startsWith(SECRETS_MANAGER_ARN_PREFIX)) {
-    return fetchSigningKeySecret(value)
+  const unquoted = stripWrappingQuotes(value)
+  if (unquoted.startsWith(SECRETS_MANAGER_ARN_PREFIX)) {
+    return fetchSigningKeySecret(unquoted)
   }
-  if (value.startsWith(PEM_MARKER)) {
-    return { privateKeyPem: value }
+  if (unquoted.startsWith(PEM_MARKER)) {
+    return { privateKeyPem: normalizePem(unquoted) }
   }
   // eslint-disable-next-line n/no-sync -- One-time startup config read, not on any request path.
   return { privateKeyPem: readFileSync(value, 'utf8') }
