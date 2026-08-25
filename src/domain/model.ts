@@ -46,6 +46,16 @@ export interface Account extends AccountRef {
   readonly ledgerId?: string
 
   /**
+   * The XRPL network this account record is scoped to, as the `network_id` a
+   * node reports via `server_info` (Mainnet 0, Testnet 1, Devnet 2). The client
+   * uses it to pick, among several records for one r-address, the one matching
+   * the network it is connected to. `undefined` for network-agnostic holders
+   * (a local wallet key works on any network) and for backends that expose no
+   * network id.
+   */
+  readonly networkId?: number
+
+  /**
    * The account's XRPL public key (hex), when the custodian exposes it. Used to
    * populate `SigningPubKey` on transactions signed by a backend that returns
    * only the signature (e.g. Palisade's raw sign-only path).

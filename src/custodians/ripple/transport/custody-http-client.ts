@@ -72,16 +72,22 @@ function extractHint(body: string): string | undefined {
  * @returns A {@link CustodyAuthError} for 401, else a {@link CustodyApiError}.
  */
 function toError(response: HttpResponse): SimpleXRPLError {
-  if (response.status === HTTP_UNAUTHORIZED) {
-    return new CustodyAuthError(
-      'Custody API authentication failed after token refresh',
-    )
-  }
-  return new CustodyApiError(
+  const apiError = new CustodyApiError(
     response.status,
     response.body,
     extractHint(response.body),
   )
+  if (response.status === HTTP_UNAUTHORIZED) {
+    // A 401 on `/v1/intents` is one of InvalidJwtError, InvalidSignatureError,
+    // or PermissionDeniedError — the refresh-and-replay only recovers the
+    // first. Preserve the response body as the cause so the actual error type
+    // isn't swallowed by the generic "after token refresh" message.
+    return new CustodyAuthError(
+      'Custody API authentication failed after token refresh',
+      { cause: apiError },
+    )
+  }
+  return apiError
 }
 
 /**

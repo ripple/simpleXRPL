@@ -1,8 +1,12 @@
 # Class: Token
 
-Defined in: [verticals/token.ts:48](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L48)
+Defined in: [verticals/token.ts:41](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L41)
 
-The Token vertical: the Multi-Purpose Token (MPT) family and DEX offers.
+The Token vertical: the Multi-Purpose Token (MPT) family.
+
+DEX offers are not exposed here: the MPT DEX amendment is not yet live
+on-chain, so MPTs cannot be traded on the order book. XRP/IOU offers belong
+to the IOU vertical (`client.iou.buyOffer`/`sellOffer`/`cancelOffer`).
 
 ## Constructors
 
@@ -10,7 +14,7 @@ The Token vertical: the Multi-Purpose Token (MPT) family and DEX offers.
 
 > **new Token**(`host`): [`Token`](Token.md)
 
-Defined in: [verticals/token.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L56)
+Defined in: [verticals/token.ts:49](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L49)
 
 Construct the Token vertical.
 
@@ -30,7 +34,7 @@ Construct the Token vertical.
 
 > **authorize**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:168](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L168)
+Defined in: [verticals/token.ts:146](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L146)
 
 Opt the calling account in to hold an MPT issuance.
 
@@ -38,7 +42,7 @@ Opt the calling account in to hold an MPT issuance.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptAuthorizeParams`](../interfaces/MptAuthorizeParams.md) | The issuance id. |
+| `params` | [`TokenAuthorizeParams`](../interfaces/TokenAuthorizeParams.md) | The issuance id. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns
@@ -49,53 +53,34 @@ The submission result.
 
 ***
 
-### cancelOffer()
+### clawback()
 
-> **cancelOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `offerSequence`: `number`; \}\>\>
+> **clawback**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `amount`: `string`; `holder`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:366](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L366)
+Defined in: [verticals/token.ts:311](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L311)
 
-Cancel a standing offer.
+Reclaim a holder's MPT balance back to the issuer.
 
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `params` | [`CancelOfferParams`](../interfaces/CancelOfferParams.md) | The sequence number of the offer to cancel. |
-| `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
-
-#### Returns
-
-`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `offerSequence`: `number`; \}\>\>
-
-The submission result.
-
-***
-
-### createOffer()
-
-> **createOffer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
-
-Defined in: [verticals/token.ts:329](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L329)
-
-Place an offer on the decentralized exchange.
+Requires the issuance to have been created with `canClawback` (the SDK
+default). The holder whose balance is reclaimed is named explicitly, and
+the amount's asset must be an MPT.
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`CreateOfferParams`](../interfaces/CreateOfferParams.md) | The amounts to give and receive, plus offer flags. |
-| `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
+| `params` | [`TokenClawbackParams`](../interfaces/TokenClawbackParams.md) | The holder and MPT amount to claw back. |
+| `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Issuer account, fee override, and idempotency key. |
 
 #### Returns
 
-`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`undefined`\>\>
+`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `amount`: `string`; `holder`: `string`; \}\>\>
 
-The submission result.
+The result, echoing `{ holder, amount }` as its intent output.
 
 #### Throws
 
-[IntentValidationError](IntentValidationError.md) if either amount is an MPT.
+[IntentValidationError](IntentValidationError.md) if the amount's asset is not an MPT.
 
 ***
 
@@ -103,7 +88,7 @@ The submission result.
 
 > **destroy**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:252](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L252)
+Defined in: [verticals/token.ts:230](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L230)
 
 Destroy an MPT issuance (only when no tokens are outstanding).
 
@@ -111,7 +96,7 @@ Destroy an MPT issuance (only when no tokens are outstanding).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptDestroyParams`](../interfaces/MptDestroyParams.md) | The issuance id. |
+| `params` | [`TokenDestroyParams`](../interfaces/TokenDestroyParams.md) | The issuance id. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns
@@ -126,7 +111,7 @@ The submission result.
 
 > **grantHolder**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:196](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L196)
+Defined in: [verticals/token.ts:174](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L174)
 
 Issuer grants a specific holder permission to hold this MPT (allow-listing).
 
@@ -134,7 +119,7 @@ Issuer grants a specific holder permission to hold this MPT (allow-listing).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptHolderParams`](../interfaces/MptHolderParams.md) | The issuance id and the holder to authorize. |
+| `params` | [`TokenHolderParams`](../interfaces/TokenHolderParams.md) | The issuance id and the holder to authorize. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns
@@ -147,9 +132,9 @@ The submission result.
 
 ### issue()
 
-> **issue**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`MptIssueIntent`](../interfaces/MptIssueIntent.md)\>\>
+> **issue**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`TokenIssueIntent`](../interfaces/TokenIssueIntent.md)\>\>
 
-Defined in: [verticals/token.ts:134](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L134)
+Defined in: [verticals/token.ts:112](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L112)
 
 Create a new MPT issuance.
 
@@ -172,12 +157,12 @@ https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0089-multi-purpose-token
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptIssueParams`](../interfaces/MptIssueParams.md) | Issuance settings (metadata required) and flag overrides. |
+| `params` | [`TokenIssueParams`](../interfaces/TokenIssueParams.md) | Issuance settings (metadata required) and flag overrides. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns
 
-`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`MptIssueIntent`](../interfaces/MptIssueIntent.md)\>\>
+`Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<[`TokenIssueIntent`](../interfaces/TokenIssueIntent.md)\>\>
 
 The result, with the new `mptIssuanceId` as its intent output.
 
@@ -202,7 +187,7 @@ await client.token.issue({
 
 > **list**(`params`?): `Promise`\<[`TokenListResult`](../interfaces/TokenListResult.md)\>
 
-Defined in: [verticals/token.ts:79](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L79)
+Defined in: [verticals/token.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L72)
 
 List the MPTs an account holds (default) or issued. No signer required.
 
@@ -220,33 +205,11 @@ The token ids and shaped entries, index-aligned.
 
 ***
 
-### listOffers()
-
-> **listOffers**(`params`?): `Promise`\<[`ListOffersResult`](../interfaces/ListOffersResult.md)\>
-
-Defined in: [verticals/token.ts:89](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L89)
-
-List the open DEX offers placed by an account. No signer required.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `params`? | [`TokenListOffersParams`](../interfaces/TokenListOffersParams.md) | The account (default: the primary signer's account). |
-
-#### Returns
-
-`Promise`\<[`ListOffersResult`](../interfaces/ListOffersResult.md)\>
-
-The shaped offers (composable into offer write operations).
-
-***
-
 ### lock()
 
 > **lock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `locked`: `boolean`; `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:224](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L224)
+Defined in: [verticals/token.ts:202](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L202)
 
 Lock an MPT issuance, or a specific holder's balance when `holder` is given.
 
@@ -254,7 +217,7 @@ Lock an MPT issuance, or a specific holder's balance when `holder` is given.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptLockParams`](../interfaces/MptLockParams.md) | The issuance id and optional holder. |
+| `params` | [`TokenLockParams`](../interfaces/TokenLockParams.md) | The issuance id and optional holder. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns
@@ -269,7 +232,7 @@ The submission result.
 
 > **retrieve**(`params`): `Promise`\<[`TokenRetrieveResult`](../interfaces/TokenRetrieveResult.md)\>
 
-Defined in: [verticals/token.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L67)
+Defined in: [verticals/token.ts:60](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L60)
 
 Retrieve a single MPT issuance by id (point-in-time), with flags decoded to
 booleans and XLS-89 metadata decoded. No signer required.
@@ -292,7 +255,7 @@ The issuance id and snapshot (or `undefined` data if absent).
 
 > **revokeHolder**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:210](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L210)
+Defined in: [verticals/token.ts:188](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L188)
 
 Issuer revokes a specific holder's permission to hold this MPT.
 
@@ -300,7 +263,7 @@ Issuer revokes a specific holder's permission to hold this MPT.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptHolderParams`](../interfaces/MptHolderParams.md) | The issuance id and the holder to revoke. |
+| `params` | [`TokenHolderParams`](../interfaces/TokenHolderParams.md) | The issuance id and the holder to revoke. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns
@@ -315,7 +278,7 @@ The submission result.
 
 > **transfer**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `amount`: `string`; `to`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:296](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L296)
+Defined in: [verticals/token.ts:274](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L274)
 
 Send an MPT amount to another account.
 
@@ -342,7 +305,7 @@ The result, echoing the transfer as its intent output.
 
 > **unauthorize**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:182](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L182)
+Defined in: [verticals/token.ts:160](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L160)
 
 Opt the calling account out of holding an MPT issuance (balance must be 0).
 
@@ -350,7 +313,7 @@ Opt the calling account out of holding an MPT issuance (balance must be 0).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptAuthorizeParams`](../interfaces/MptAuthorizeParams.md) | The issuance id. |
+| `params` | [`TokenAuthorizeParams`](../interfaces/TokenAuthorizeParams.md) | The issuance id. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns
@@ -365,7 +328,7 @@ The submission result.
 
 > **unlock**(`params`, `options`?): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<\{ `locked`: `boolean`; `mptIssuanceId`: `string`; \}\>\>
 
-Defined in: [verticals/token.ts:238](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L238)
+Defined in: [verticals/token.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.ts#L216)
 
 Unlock a previously locked MPT issuance or holder balance.
 
@@ -373,7 +336,7 @@ Unlock a previously locked MPT issuance or holder balance.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`MptLockParams`](../interfaces/MptLockParams.md) | The issuance id and optional holder. |
+| `params` | [`TokenLockParams`](../interfaces/TokenLockParams.md) | The issuance id and optional holder. |
 | `options`? | [`TokenWriteOptions`](../interfaces/TokenWriteOptions.md) | Source account and fee override. |
 
 #### Returns

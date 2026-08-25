@@ -1,4 +1,4 @@
-# Interface: MptHolderParams
+# Interface: TokenHolderParams
 
 Defined in: [verticals/token.types.ts:110](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L110)
 

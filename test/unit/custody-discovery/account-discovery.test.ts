@@ -85,6 +85,7 @@ describe('discoverXrplAccounts', () => {
         alias: 'treasury',
         custodianRef: 'acc-1',
         ledgerId: 'xrpl-1',
+        networkId: 0,
         signer: SIGNER,
       },
     ])
@@ -224,6 +225,7 @@ describe('discoverXrplAccounts', () => {
         alias: 'primary_account',
         custodianRef: 'acc-vault',
         ledgerId: 'xrpl-1',
+        networkId: 0,
         signer: SIGNER,
       },
     ])
@@ -290,6 +292,7 @@ describe('discoverXrplAccounts', () => {
         alias: 'multi',
         custodianRef: 'acc-1',
         ledgerId: 'xrpl-1',
+        networkId: 0,
         signer: SIGNER,
       },
       {
@@ -297,6 +300,7 @@ describe('discoverXrplAccounts', () => {
         alias: 'multi',
         custodianRef: 'acc-1',
         ledgerId: 'xrpl-1',
+        networkId: 0,
         signer: SIGNER,
       },
     ])

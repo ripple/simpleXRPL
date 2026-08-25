@@ -16,6 +16,19 @@ Faucet endpoint, used on test networks only.
 
 ***
 
+### networkId?
+
+> `readonly` `optional` **networkId**: `number`
+
+Defined in: [client/client.ts:39](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L39)
+
+The connected node's XRPL network id (`server_info` `network_id`: Mainnet
+0, Testnet 1, Devnet 2), resolved at init when a custodian record is
+network-scoped. `undefined` when no record needed it (so it was never
+probed) or the probe could not reach the node.
+
+***
+
 ### xrpldUrl
 
 > `readonly` **xrpldUrl**: `string`

@@ -1,6 +1,6 @@
 # Class: PalisadeAuthError
 
-Defined in: [errors.ts:139](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L139)
+Defined in: [errors.ts:177](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L177)
 
 Authenticating with Palisade failed (API key).
 

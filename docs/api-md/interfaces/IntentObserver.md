@@ -1,6 +1,6 @@
 # Interface: IntentObserver
 
-Defined in: [domain/model.ts:258](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L258)
+Defined in: [domain/model.ts:268](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L268)
 
 A custodian that can resume observation of a governance intent it previously
 created, addressed by the intent id (§10.4). Only backends with a governed
@@ -14,7 +14,7 @@ await an intent whose original submission has already returned.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md)
 
-Defined in: [domain/model.ts:260](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L260)
+Defined in: [domain/model.ts:270](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L270)
 
 Which backend owns the intents this observer resumes.
 
@@ -24,7 +24,7 @@ Which backend owns the intents this observer resumes.
 
 > `readonly` **observeIntent**: (`intentId`) => [`SubmissionHandle`](SubmissionHandle.md)
 
-Defined in: [domain/model.ts:268](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L268)
+Defined in: [domain/model.ts:278](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L278)
 
 Build a handle over an intent this custodian previously created.
 

@@ -1,10 +1,9 @@
 import { MPTokenAuthorizeFlags, MPTokenIssuanceSetFlags } from 'xrpl'
 import type {
+  Clawback,
   MPTokenAuthorize,
   MPTokenIssuanceDestroy,
   MPTokenIssuanceSet,
-  OfferCancel,
-  OfferCreate,
   Payment,
 } from 'xrpl'
 
@@ -13,27 +12,17 @@ import type { SubmissionResult } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
-import { listAccountOffers } from '../reads/offers.js'
-import type { ListOffersResult } from '../reads/offers.js'
-import { readAccountAddress } from '../reads/read-helpers.js'
 
-import {
-  buildIssuance,
-  extractMptIssuanceId,
-  offerFlags,
-  toDexAmount,
-} from './token.helpers.js'
+import { buildIssuance, extractMptIssuanceId } from './token.helpers.js'
 import { listTokens, retrieveToken } from './token.reads.js'
 import type {
-  CancelOfferParams,
-  CreateOfferParams,
-  MptAuthorizeParams,
-  MptDestroyParams,
-  MptHolderParams,
-  MptIssueIntent,
-  MptIssueParams,
-  MptLockParams,
-  TokenListOffersParams,
+  TokenAuthorizeParams,
+  TokenDestroyParams,
+  TokenHolderParams,
+  TokenIssueIntent,
+  TokenIssueParams,
+  TokenLockParams,
+  TokenClawbackParams,
   TokenListParams,
   TokenListResult,
   TokenRetrieveParams,
@@ -43,7 +32,11 @@ import type {
 } from './token.types.js'
 
 /**
- * The Token vertical: the Multi-Purpose Token (MPT) family and DEX offers.
+ * The Token vertical: the Multi-Purpose Token (MPT) family.
+ *
+ * DEX offers are not exposed here: the MPT DEX amendment is not yet live
+ * on-chain, so MPTs cannot be traded on the order book. XRP/IOU offers belong
+ * to the IOU vertical (`client.iou.buyOffer`/`sellOffer`/`cancelOffer`).
  */
 export class Token {
   private readonly host: SubmissionHost
@@ -78,21 +71,6 @@ export class Token {
    */
   public async list(params?: TokenListParams): Promise<TokenListResult> {
     return listTokens(this.host, params)
-  }
-
-  /**
-   * List the open DEX offers placed by an account. No signer required.
-   *
-   * @param params - The account (default: the primary signer's account).
-   * @returns The shaped offers (composable into offer write operations).
-   */
-  public async listOffers(
-    params?: TokenListOffersParams,
-  ): Promise<ListOffersResult> {
-    return listAccountOffers(
-      this.host,
-      readAccountAddress(this.host, params?.account),
-    )
   }
 
   /**
@@ -132,9 +110,9 @@ export class Token {
    * @returns The result, with the new `mptIssuanceId` as its intent output.
    */
   public async issue(
-    params: MptIssueParams,
+    params: TokenIssueParams,
     options?: TokenWriteOptions,
-  ): Promise<SubmissionResult<MptIssueIntent>> {
+  ): Promise<SubmissionResult<TokenIssueIntent>> {
     const account = this.host.resolveAccount(options?.from)
 
     const result = await submitTransaction(this.host, {
@@ -166,7 +144,7 @@ export class Token {
    * @returns The submission result.
    */
   public async authorize(
-    params: MptAuthorizeParams,
+    params: TokenAuthorizeParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
     return this.submitAuthorize(params, false, options)
@@ -180,7 +158,7 @@ export class Token {
    * @returns The submission result.
    */
   public async unauthorize(
-    params: MptAuthorizeParams,
+    params: TokenAuthorizeParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
     return this.submitAuthorize(params, true, options)
@@ -194,7 +172,7 @@ export class Token {
    * @returns The submission result.
    */
   public async grantHolder(
-    params: MptHolderParams,
+    params: TokenHolderParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
     return this.submitAuthorize(params, false, options)
@@ -208,7 +186,7 @@ export class Token {
    * @returns The submission result.
    */
   public async revokeHolder(
-    params: MptHolderParams,
+    params: TokenHolderParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
     return this.submitAuthorize(params, true, options)
@@ -222,7 +200,7 @@ export class Token {
    * @returns The submission result.
    */
   public async lock(
-    params: MptLockParams,
+    params: TokenLockParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string; locked: boolean }>> {
     return this.submitLock(params, true, options)
@@ -236,7 +214,7 @@ export class Token {
    * @returns The submission result.
    */
   public async unlock(
-    params: MptLockParams,
+    params: TokenLockParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string; locked: boolean }>> {
     return this.submitLock(params, false, options)
@@ -250,7 +228,7 @@ export class Token {
    * @returns The submission result.
    */
   public async destroy(
-    params: MptDestroyParams,
+    params: TokenDestroyParams,
     options?: TokenWriteOptions,
   ): Promise<SubmissionResult<{ mptIssuanceId: string }>> {
     const account = this.host.resolveAccount(options?.from)
@@ -319,67 +297,46 @@ export class Token {
   }
 
   /**
-   * Place an offer on the decentralized exchange.
+   * Reclaim a holder's MPT balance back to the issuer.
    *
-   * @param params - The amounts to give and receive, plus offer flags.
-   * @param options - Source account and fee override.
-   * @returns The submission result.
-   * @throws {@link IntentValidationError} if either amount is an MPT.
+   * Requires the issuance to have been created with `canClawback` (the SDK
+   * default). The holder whose balance is reclaimed is named explicitly, and
+   * the amount's asset must be an MPT.
+   *
+   * @param params - The holder and MPT amount to claw back.
+   * @param options - Issuer account, fee override, and idempotency key.
+   * @returns The result, echoing `{ holder, amount }` as its intent output.
+   * @throws {@link IntentValidationError} if the amount's asset is not an MPT.
    */
-  public async createOffer(
-    params: CreateOfferParams,
+  public async clawback(
+    params: TokenClawbackParams,
     options?: TokenWriteOptions,
-  ): Promise<SubmissionResult<undefined>> {
-    const account = this.host.resolveAccount(options?.from)
-    const tx: OfferCreate = {
-      TransactionType: 'OfferCreate',
-      Account: account.address,
-      TakerGets: toDexAmount(params.takerGets),
-      TakerPays: toDexAmount(params.takerPays),
+  ): Promise<SubmissionResult<{ holder: string; amount: string }>> {
+    const issuer = this.host.resolveAccount(options?.from)
+    const amount = toLedgerAmount(params.amount)
+    // A non-MPT amount produces a string (XRP) or an issued-currency object;
+    // narrow to the MPT shape Clawback requires, and steer IOU callers away.
+    if (typeof amount === 'string' || !('mpt_issuance_id' in amount)) {
+      throw new IntentValidationError(
+        'Token.clawback requires an MPT amount; use iou.clawback for issued currencies.',
+      )
     }
-    if (params.expiration !== undefined) {
-      tx.Expiration = params.expiration
-    }
-    if (params.offerSequence !== undefined) {
-      tx.OfferSequence = params.offerSequence
-    }
-    const flags = offerFlags(params.flags)
-    if (flags !== undefined) {
-      tx.Flags = flags
+    const transaction: Clawback = {
+      TransactionType: 'Clawback',
+      Account: issuer.address,
+      Amount: amount,
+      Holder: params.holder,
     }
     const result = await submitTransaction(this.host, {
-      transaction: tx,
-      account,
+      transaction,
+      account: issuer,
       fee: options?.fee,
       idempotencyKey: options?.idempotencyKey,
     })
-    return withIntent(result, undefined)
-  }
-
-  /**
-   * Cancel a standing offer.
-   *
-   * @param params - The sequence number of the offer to cancel.
-   * @param options - Source account and fee override.
-   * @returns The submission result.
-   */
-  public async cancelOffer(
-    params: CancelOfferParams,
-    options?: TokenWriteOptions,
-  ): Promise<SubmissionResult<{ offerSequence: number }>> {
-    const account = this.host.resolveAccount(options?.from)
-    const tx: OfferCancel = {
-      TransactionType: 'OfferCancel',
-      Account: account.address,
-      OfferSequence: params.offerSequence,
-    }
-    const result = await submitTransaction(this.host, {
-      transaction: tx,
-      account,
-      fee: options?.fee,
-      idempotencyKey: options?.idempotencyKey,
+    return withIntent(result, {
+      holder: params.holder,
+      amount: params.amount.value,
     })
-    return withIntent(result, { offerSequence: params.offerSequence })
   }
 
   /**

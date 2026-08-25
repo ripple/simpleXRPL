@@ -5,7 +5,7 @@ import type { SubmissionHost } from '../pipeline/index.js'
 import { ledgerEntryNode, readAccountAddress } from '../reads/read-helpers.js'
 
 import type {
-  MptFlags,
+  TokenFlags,
   TokenData,
   TokenListParams,
   TokenListResult,
@@ -61,7 +61,7 @@ function hasFlag(flags: number, bit: number): boolean {
  * @param flags - The raw `Flags` bitmask.
  * @returns The capability flags.
  */
-function decodeFlags(flags: number): MptFlags {
+function decodeFlags(flags: number): TokenFlags {
   return {
     canLock: hasFlag(flags, LSF_CAN_LOCK),
     requireAuth: hasFlag(flags, LSF_REQUIRE_AUTH),

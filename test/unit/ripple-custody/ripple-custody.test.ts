@@ -256,6 +256,7 @@ describe('RippleCustody.create', () => {
         alias: '',
         custodianRef: ACCOUNT_ID,
         ledgerId: 'xrpl-1',
+        networkId: 0,
         signer: custody,
       },
     ])

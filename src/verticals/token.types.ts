@@ -23,7 +23,7 @@ export interface TokenWriteOptions {
  * unset takes the SDK default below (a fully capable, transferable token).
  * These capabilities are **permanent** once the issuance is created.
  */
-export interface MptIssueFlags {
+export interface TokenIssueFlags {
   /**
    * The issuer can lock the token (globally or per-holder).
    *
@@ -63,7 +63,7 @@ export interface MptIssueFlags {
 }
 
 /** Parameters for `Token.issue`. */
-export interface MptIssueParams {
+export interface TokenIssueParams {
   /**
    * Decimal places between display value and base units.
    *
@@ -93,21 +93,21 @@ export interface MptIssueParams {
   readonly metadata: MPTokenMetadata | string
   /**
    * Capability flags. Any flag omitted (or the whole object omitted) takes the
-   * per-flag SDK default; see {@link MptIssueFlags}.
+   * per-flag SDK default; see {@link TokenIssueFlags}.
    *
    * @defaultValue `{ canLock: true, requireAuth: false, canEscrow: true, canTrade: true, canTransfer: true, canClawback: true }`
    */
-  readonly flags?: MptIssueFlags
+  readonly flags?: TokenIssueFlags
 }
 
 /** Parameters for `Token.authorize` / `Token.unauthorize` (calling account). */
-export interface MptAuthorizeParams {
+export interface TokenAuthorizeParams {
   /** The MPT issuance id. */
   readonly mptIssuanceId: string
 }
 
 /** Parameters for `Token.grantHolder` / `Token.revokeHolder` (issuer-side). */
-export interface MptHolderParams {
+export interface TokenHolderParams {
   /** The MPT issuance id. */
   readonly mptIssuanceId: string
   /** The holder to grant or revoke. */
@@ -115,7 +115,7 @@ export interface MptHolderParams {
 }
 
 /** Parameters for `Token.lock` / `Token.unlock`. */
-export interface MptLockParams {
+export interface TokenLockParams {
   /** The MPT issuance id. */
   readonly mptIssuanceId: string
   /** A specific holder to (un)lock; omit to affect the whole issuance. */
@@ -123,7 +123,7 @@ export interface MptLockParams {
 }
 
 /** Parameters for `Token.destroy`. */
-export interface MptDestroyParams {
+export interface TokenDestroyParams {
   /** The MPT issuance id. */
   readonly mptIssuanceId: string
 }
@@ -136,67 +136,22 @@ export interface TokenTransferParams {
   readonly amount: Amount
 }
 
-/** Flags for `Token.createOffer`. Every flag defaults to `false` (a plain,
- * resting limit offer that buys `TakerPays` with `TakerGets`). */
-export interface OfferFlags {
-  /**
-   * Do not consume offers that exactly match.
-   *
-   * @defaultValue `false`
-   */
-  readonly passive?: boolean
-  /**
-   * Consume matching offers immediately; never place the remainder.
-   *
-   * @defaultValue `false`
-   */
-  readonly immediateOrCancel?: boolean
-  /**
-   * Consume the full amount or cancel entirely.
-   *
-   * @defaultValue `false`
-   */
-  readonly fillOrKill?: boolean
-  /**
-   * Interpret the offer as selling `TakerGets`.
-   *
-   * @defaultValue `false`
-   */
-  readonly sell?: boolean
-}
-
-/** Parameters for `Token.createOffer`. */
-export interface CreateOfferParams {
-  /** What the account gives (XRP or IOU — MPT is not DEX-tradeable). */
-  readonly takerGets: Amount
-  /** What the account wants (XRP or IOU). */
-  readonly takerPays: Amount
-  /** Offer expiration (seconds since the Ripple epoch). */
-  readonly expiration?: number
-  /** A prior offer sequence to replace. */
-  readonly offerSequence?: number
-  /**
-   * Offer flags. Omit for a plain resting limit offer.
-   *
-   * @defaultValue No flags set — see {@link OfferFlags} (all `false`).
-   */
-  readonly flags?: OfferFlags
-}
-
-/** Parameters for `Token.cancelOffer`. */
-export interface CancelOfferParams {
-  /** The sequence number of the offer to cancel. */
-  readonly offerSequence: number
+/** Parameters for `Token.clawback`. */
+export interface TokenClawbackParams {
+  /** The holder whose balance is reclaimed to the issuer. */
+  readonly holder: string
+  /** The MPT amount to claw back (its asset must be an MPT). */
+  readonly amount: Amount
 }
 
 /** Output attached to a `Token.issue` result. */
-export interface MptIssueIntent {
+export interface TokenIssueIntent {
   /** The id of the newly created MPT issuance. */
   readonly mptIssuanceId: string
 }
 
 /** An MPT issuance's capability flags, decoded to booleans. */
-export interface MptFlags {
+export interface TokenFlags {
   /** The issuer can lock the token. */
   readonly canLock: boolean
   /** Holders must be authorized before holding. */
@@ -226,7 +181,7 @@ export interface TokenData {
   /** Secondary-transfer fee, as a percentage. */
   readonly transferFee: number
   /** Capability flags. */
-  readonly flags: MptFlags
+  readonly flags: TokenFlags
   /** Decoded XLS-89 metadata, if present and well-formed. */
   readonly metadata?: MPTokenMetadata
 }
@@ -277,14 +232,4 @@ export interface TokenListResult {
   readonly tokens: readonly string[]
   /** The shaped entries. */
   readonly data: readonly TokenListEntry[]
-}
-
-/** Parameters for {@link Token.listOffers}. */
-export interface TokenListOffersParams {
-  /**
-   * The account whose offers to list.
-   *
-   * @defaultValue The primary signer's account.
-   */
-  readonly account?: string
 }

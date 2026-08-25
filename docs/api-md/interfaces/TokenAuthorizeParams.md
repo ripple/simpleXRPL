@@ -1,4 +1,4 @@
-# Interface: MptAuthorizeParams
+# Interface: TokenAuthorizeParams
 
 Defined in: [verticals/token.types.ts:104](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L104)
 

@@ -1,3 +1,5 @@
+import { decode, decodeAccountID } from 'xrpl'
+
 import type { OnChainResult } from '../../../domain/index.js'
 import type { components } from '../../../generated/custody.js'
 import type { PollSchedule } from '../../poll-schedule.js'
@@ -23,6 +25,48 @@ async function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Recover an `MPTokenIssuanceID` from a signed `MPTokenIssuanceCreate` blob.
+ *
+ * Custody can report a transaction as `Confirmed` while leaving the structured
+ * `ledgerData` null, so the issuance id isn't always readable from `tokenData`.
+ * It is deterministic, though: the id is the creating transaction's `Sequence`
+ * (4-byte big-endian) followed by the 20-byte issuer account id. We reconstruct
+ * it from the signed `rawTransaction` when the structured field is missing.
+ *
+ * @param rawTransaction - The signed transaction blob (hex), if present.
+ * @returns The 192-bit issuance id (hex), or `undefined` when the blob is
+ *   absent, undecodable, or not an `MPTokenIssuanceCreate` bearing a sequence.
+ */
+function mptIssuanceIdFromRaw(
+  rawTransaction: string | undefined,
+): string | undefined {
+  if (rawTransaction === undefined) {
+    return undefined
+  }
+  let tx: ReturnType<typeof decode>
+  try {
+    tx = decode(rawTransaction)
+  } catch {
+    return undefined
+  }
+  if (
+    tx.TransactionType !== 'MPTokenIssuanceCreate' ||
+    typeof tx.Account !== 'string' ||
+    typeof tx.Sequence !== 'number' ||
+    tx.Sequence === 0
+  ) {
+    return undefined
+  }
+  const sequence = tx.Sequence
+  const account = tx.Account
+  const sequenceHex = sequence.toString(16).toUpperCase().padStart(8, '0')
+  const accountIdHex = Buffer.from(decodeAccountID(account))
+    .toString('hex')
+    .toUpperCase()
+  return `${sequenceHex}${accountIdHex}`
+}
+
+/**
  * Extract the on-chain result fields from a confirmed Custody transaction.
  *
  * @param tx - A confirmed Custody API transaction.
@@ -33,8 +77,11 @@ function toOnChainResult(tx: ApiTransaction): OnChainResult {
   const ledgerData = tx.ledgerTransactionData
   const txHash = ledgerData?.ledgerTransactionId ?? ''
   const onLedger = ledgerData?.ledgerData
+  // Prefer Custody's structured issuance id; fall back to reconstructing it
+  // from the signed blob, which stays populated even when `ledgerData` is null.
   const mptIssuanceId =
-    onLedger?.type === 'Xrpl' ? onLedger.tokenData?.issuanceId : undefined
+    (onLedger?.type === 'Xrpl' ? onLedger.tokenData?.issuanceId : undefined) ??
+    mptIssuanceIdFromRaw(ledgerData?.rawTransaction)
   return { txHash, ...(mptIssuanceId !== undefined && { mptIssuanceId }) }
 }
 

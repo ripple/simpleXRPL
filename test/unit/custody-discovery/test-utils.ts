@@ -84,20 +84,22 @@ export function status(code: number, body: unknown = {}): HttpResponse {
 }
 
 /**
- * Build a `getLedgers` collection body from `{ id, type }` ledger specs.
+ * Build a `getLedgers` collection body from `{ id, type, networkId }` ledger
+ * specs. `networkId` (the XRPL `server_info` network id) defaults to 0 and is
+ * read by discovery only for `type: 'XRPL'` ledgers.
  *
  * @param ledgers - The ledger specs to include.
  * @returns A ledgers collection body.
  */
 export function ledgersBody(
-  ledgers: ReadonlyArray<{ id: string; type: string }>,
+  ledgers: ReadonlyArray<{ id: string; type: string; networkId?: number }>,
 ): JsonBody {
   return {
     items: ledgers.map((ledger) => ({
       data: {
         id: ledger.id,
         alias: ledger.id,
-        parameters: { type: ledger.type },
+        parameters: { type: ledger.type, networkId: ledger.networkId ?? 0 },
         metadata: {},
       },
       signature: '',
