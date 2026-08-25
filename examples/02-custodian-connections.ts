@@ -54,7 +54,7 @@ const palisade = await PalisadeCustody.create({
 // in config rather than hard-coded. `fromEnv` reads every `RIPPLE_CUSTODY_*`
 // variable for exactly this reason:
 const rippleCustody = await RippleCustody.fromEnv({
-  primary: process.env.RIPPLE_CUSTODY_PRIMARY ?? '',
+  primary: process.env.RIPPLE_CUSTODY_PRIMARY_ADDRESS ?? '',
 })
 
 // The explicit form, if you configure it yourself rather than via the env:
@@ -65,7 +65,7 @@ const rippleCustody = await RippleCustody.fromEnv({
 //     tokenUrl: process.env.RIPPLE_CUSTODY_AUTH_TOKEN_URL ?? '',
 //   },
 //   domainId: process.env.RIPPLE_CUSTODY_DOMAIN_ID ?? '',
-//   primary: process.env.RIPPLE_CUSTODY_PRIMARY ?? '',
+//   primary: process.env.RIPPLE_CUSTODY_PRIMARY_ADDRESS ?? '',
 // })
 
 // --- Local signing (self-custody; keys held in-process) -------------------

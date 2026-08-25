@@ -94,7 +94,10 @@ function mptIssuanceIdFromRaw(
  * @returns A short reason string when dead, else `undefined` (still in flight).
  */
 function deadReason(ledgerData: LedgerTransactionData): string | undefined {
-  if (ledgerData.failure !== undefined) {
+  // `failure` is typed as the failure enum but comes back as `null` while the
+  // transaction is still in flight, so test truthiness — only a real failure
+  // string (both values are non-empty) marks the transaction dead.
+  if (ledgerData.failure) {
     return ledgerData.failure
   }
   if (TERMINAL_DEAD_STATUSES.has(ledgerData.ledgerStatus)) {
@@ -180,7 +183,10 @@ export async function pollTransactionOnChain(
       if (ledgerData?.ledgerStatus === 'Confirmed') {
         return toOnChainResult(tx)
       }
-      const dead = ledgerData === undefined ? undefined : deadReason(ledgerData)
+      // `ledgerTransactionData` is typed optional but comes back as `null` from
+      // Custody while the transaction is still in flight, so a truthiness guard
+      // covers both — keep polling rather than dereferencing a null.
+      const dead = ledgerData ? deadReason(ledgerData) : undefined
       if (dead !== undefined) {
         throw new IntentValidationError(
           `Custody transaction for intent ${intentId} will not confirm ` +

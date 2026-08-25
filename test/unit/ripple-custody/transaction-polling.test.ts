@@ -161,6 +161,48 @@ describe('pollTransactionOnChain', () => {
     expect(result).toBeUndefined()
   })
 
+  it('keeps polling when ledgerTransactionData itself is null (in flight)', async () => {
+    // Custody returns the transaction row with a top-level null
+    // `ledgerTransactionData` before the XRPL submission lands. That is not a
+    // dead transaction — it must not be dereferenced, and the poll should give
+    // up cleanly at the timeout rather than throw.
+    const { client } = makeClient(() => ok(txCollection(null)))
+
+    const result = await pollTransactionOnChain({
+      client,
+      domainId: DOMAIN_ID,
+      intentId: INTENT_ID,
+      timeoutMs: 500,
+    })
+
+    expect(result).toBeUndefined()
+  })
+
+  it('keeps polling when failure is null on an in-flight transaction', async () => {
+    // While the transaction is in flight Custody sends the row with an explicit
+    // `failure: null` (not absent). That is not an on-chain failure — it must
+    // not be read as terminal, so the poll gives up cleanly at the timeout.
+    const { client } = makeClient(() =>
+      ok(
+        txCollection({
+          ledgerStatus: 'Detected',
+          failure: null,
+          ledgerTransactionId: '',
+          ledgerData: null,
+        }),
+      ),
+    )
+
+    const result = await pollTransactionOnChain({
+      client,
+      domainId: DOMAIN_ID,
+      intentId: INTENT_ID,
+      timeoutMs: 500,
+    })
+
+    expect(result).toBeUndefined()
+  })
+
   it.each(['Expired', 'Replaced'])(
     'throws IntentValidationError at once when the transaction is %s (terminal)',
     async (ledgerStatus) => {
