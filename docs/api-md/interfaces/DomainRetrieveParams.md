@@ -1,6 +1,6 @@
 # Interface: DomainRetrieveParams
 
-Defined in: [verticals/domain.types.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L63)
+Defined in: [verticals/domain.types.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L65)
 
 Parameters for [Domain.retrieve](../classes/Domain.md#retrieve).
 
@@ -10,6 +10,6 @@ Parameters for [Domain.retrieve](../classes/Domain.md#retrieve).
 
 > `readonly` **domainID**: `string`
 
-Defined in: [verticals/domain.types.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L65)
+Defined in: [verticals/domain.types.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L67)
 
 The domain id to fetch.

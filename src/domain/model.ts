@@ -231,7 +231,7 @@ export interface SubmissionHandle {
 
 /**
  * A signing backend. Each implementation (local, Ripple Custody, Palisade)
- * adapts the canonical xrpl.js transaction to one backend's API and submission
+ * adapts the canonical xrpl transaction to one backend's API and submission
  * flow, and is the unit of configuration on a client.
  */
 export interface Custodian {
@@ -242,7 +242,7 @@ export interface Custodian {
    * The backend tenant this custodian is bound to — a Custody domain id, a
    * Palisade org/client identity, etc. Two signers with the same `kind` and
    * the same `tenantId` point at the same backend tenant, which the client
-   * rejects at init (§3.1). `undefined` for backends with no tenant notion
+   * rejects at init. `undefined` for backends with no tenant notion
    * (e.g. a local wallet holder), so multiple of those may coexist freely.
    */
   readonly tenantId?: string
@@ -281,10 +281,11 @@ export interface Custodian {
 
 /**
  * A custodian that can resume observation of a governance intent it previously
- * created, addressed by the intent id (§10.4). Only backends with a governed
- * intent lifecycle (Ripple Custody, Palisade) implement this; a local wallet
- * has no intents to observe. The client's intent inspector uses it to poll or
- * await an intent whose original submission has already returned.
+ * created, addressed by the intent id. Only backends with a resumable intent
+ * lifecycle implement this — currently Ripple Custody. Palisade hands back a
+ * live handle at submission but exposes no by-id resume, and a local wallet has
+ * no intents to observe. The client's intent inspector uses it to poll or await
+ * an intent whose original submission has already returned.
  */
 export interface IntentObserver {
   /** Which backend owns the intents this observer resumes. */

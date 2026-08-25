@@ -12,7 +12,7 @@ const XRP_DECIMALS = 6
 /**
  * Convert XRPL drops to the decimal XRP string Palisade's wire format expects.
  *
- * Deliberately not `String(dropsToXrp(drops))`: xrpl.js returns a JS `number`,
+ * Deliberately not `String(dropsToXrp(drops))`: xrpl returns a JS `number`,
  * so an amount above 2^53 drops (~9.007e9 XRP) is silently truncated. Unlike the
  * read path, this is a *write* — a truncated quantity here is what the custodian
  * would actually be asked to send.
@@ -25,7 +25,7 @@ export function dropsToDecimalXrp(drops: string): string {
 }
 
 /**
- * Map an xrpl.js amount to Palisade's `CurrencyAmount` (`{ asset, value,
+ * Map an xrpl amount to Palisade's `CurrencyAmount` (`{ asset, value,
  * issuer? }`). XRP drops become a decimal `value`; an IOU keeps its currency
  * code as `asset` and issuer as `issuer`.
  *

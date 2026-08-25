@@ -110,8 +110,8 @@ async function runLocalStage() {
 
 /**
  * Stage 2: only runs when RIPPLE_CUSTODY_* env vars are set. Mirrors the
- * construction + discovery steps from docs/using-ripple-custody.md §2-3,
- * and (opt-in only) a real native Payment via §4.
+ * construction + discovery steps from docs/using-ripple-custody.md sections 2-3,
+ * and (opt-in only) a real native Payment via section 4.
  */
 async function runRippleCustodyStage() {
   const required = [

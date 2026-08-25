@@ -6,8 +6,8 @@ import type { KeypairStrategy } from '../keypairs.types.js'
 
 /**
  * Shared ECDSA signer for the two EC curves Custody supports. Signs the raw
- * message bytes and returns a base64 DER signature. Faithful port of custody.js
- * `Secp256k1Service` / `Secp256r1Service`.
+ * message bytes and returns a base64 DER signature. Faithful port of the
+ * Ripple Custody `Secp256k1Service` / `Secp256r1Service`.
  */
 abstract class EcdsaService implements KeypairStrategy {
   /** OpenSSL curve name as Node reports it in `asymmetricKeyDetails.namedCurve`. */

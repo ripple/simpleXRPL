@@ -17,7 +17,7 @@ import {
   XrpldSubmitError,
   SimpleXRPLError,
 } from '../../errors.js'
-import { assertDryRunHonored } from '../context-guards.js'
+import { assertDryRunHonored, assertFeeHonored } from '../context-guards.js'
 import { engineResultOf } from '../on-ledger-result.js'
 
 /** Options for {@link LocalSigner.create}. */
@@ -194,7 +194,8 @@ export class LocalSigner implements Custodian {
    * @param ctx - The submission context naming the source account.
    * @returns The signed envelope (blob + hash).
    * @throws {@link AccountNotFoundError} if no wallet owns the context account.
-   * @throws {@link SignerCapabilityError} if the context asks for a dry-run.
+   * @throws {@link SignerCapabilityError} if the context asks for a dry-run or
+   *   carries a fee intent.
    */
   public async sign(
     tx: Transaction,
@@ -204,6 +205,14 @@ export class LocalSigner implements Custodian {
       ctx,
       'LocalSigner',
       'Drop dryRun, or route the pre-flight through a RippleCustody account.',
+    )
+    // The transaction reaching sign() is already autofilled by the pipeline, so
+    // a fee intent here would be silently overwritten — reject it rather than
+    // drop a financial control. (Honoring it belongs upstream, at autofill.)
+    assertFeeHonored(
+      ctx,
+      'LocalSigner',
+      'Drop fee and let autofill price the transaction, or route it through a RippleCustody account.',
     )
     const signed = this.walletFor(ctx.account.address).sign(tx)
     return { txBlob: signed.tx_blob, hash: signed.hash }
@@ -239,10 +248,10 @@ export class LocalSigner implements Custodian {
 
   /**
    * Submit asynchronously. A local transaction reaches its terminal state as
-   * soon as `submitAndWait` returns (TDD §10.1), so the returned handle is
+   * soon as `submitAndWait` returns, so the returned handle is
    * already resolved: `poll` and `wait` both yield that same result, and its
-   * `id` is the XRPL transaction hash (§10.2). No `cancel` — a submitted local
-   * transaction cannot be recalled (§10.3).
+   * `id` is the XRPL transaction hash. No `cancel` — a submitted local
+   * transaction cannot be recalled.
    *
    * @param tx - The autofilled transaction to submit.
    * @param ctx - The submission context (source account + shared ledger).

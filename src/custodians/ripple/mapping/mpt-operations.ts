@@ -28,7 +28,7 @@ function toMptIdentifier(issuanceId: string): MPTokenIdentifier {
 }
 
 /**
- * Map an xrpl.js `MPTokenAuthorize` to Custody's native operation.
+ * Map an xrpl `MPTokenAuthorize` to Custody's native operation.
  *
  * @param tx - The `MPTokenAuthorize` transaction.
  * @returns The Custody `MPTokenAuthorize` operation.
@@ -78,8 +78,8 @@ const MPT_ISSUANCE_CREATE_FLAGS: ReadonlyArray<
 ]
 
 /**
- * Map an xrpl.js `MPTokenIssuanceCreate` to Custody's native operation.
- * Custody models all 6 xrpl.js flags — no coverage gap here.
+ * Map an xrpl `MPTokenIssuanceCreate` to Custody's native operation.
+ * Custody models all 6 xrpl flags — no coverage gap here.
  *
  * @param tx - The `MPTokenIssuanceCreate` transaction.
  * @returns The Custody `MPTokenIssuanceCreate` operation.
@@ -102,7 +102,7 @@ export function mapMPTokenIssuanceCreate(
 }
 
 /**
- * Map an xrpl.js `MPTokenIssuanceDestroy` to Custody's native operation.
+ * Map an xrpl `MPTokenIssuanceDestroy` to Custody's native operation.
  *
  * @param tx - The `MPTokenIssuanceDestroy` transaction.
  * @returns The Custody `MPTokenIssuanceDestroy` operation.
@@ -117,7 +117,7 @@ export function mapMPTokenIssuanceDestroy(
 }
 
 /**
- * Map an xrpl.js `MPTokenIssuanceSet` to Custody's native operation.
+ * Map an xrpl `MPTokenIssuanceSet` to Custody's native operation.
  *
  * @param tx - The `MPTokenIssuanceSet` transaction.
  * @returns The Custody `MPTokenIssuanceSet` operation.

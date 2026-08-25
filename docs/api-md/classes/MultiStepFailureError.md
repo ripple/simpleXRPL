@@ -1,6 +1,6 @@
 # Class: MultiStepFailureError
 
-Defined in: [errors.ts:258](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L258)
+Defined in: [errors.ts:309](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L309)
 
 A multi-step operation failed partway through. simpleXRPL does not roll back; the
 already-committed steps are carried so the caller can reconcile manually.
@@ -15,7 +15,7 @@ already-committed steps are carried so the caller can reconcile manually.
 
 > **new MultiStepFailureError**(`committed`, `failed`): [`MultiStepFailureError`](MultiStepFailureError.md)
 
-Defined in: [errors.ts:273](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L273)
+Defined in: [errors.ts:324](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L324)
 
 Construct a MultiStepFailureError.
 
@@ -42,7 +42,7 @@ Construct a MultiStepFailureError.
 
 > `readonly` **committed**: readonly [`SubmissionResult`](../type-aliases/SubmissionResult.md)[]
 
-Defined in: [errors.ts:259](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L259)
+Defined in: [errors.ts:310](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L310)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [errors.ts:259](https://github.com/ripple/simpleXRPL/blob/main/src/e
 
 > `readonly` **failed**: \{ `error`: [`SimpleXRPLError`](SimpleXRPLError.md); `step`: `number`; \}
 
-Defined in: [errors.ts:260](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L260)
+Defined in: [errors.ts:311](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L311)
 
 #### error
 

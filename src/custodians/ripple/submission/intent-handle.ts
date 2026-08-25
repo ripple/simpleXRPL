@@ -44,13 +44,13 @@ function toResult(intentId: string, entity: IntentEntity): SubmissionResult {
 }
 
 /**
- * Build a {@link SubmissionHandle} over a governance intent (TDD §10.2): a
+ * Build a {@link SubmissionHandle} over a governance intent: a
  * non-blocking `poll()` snapshot and a bounded, blocking `wait()`. Shared by
  * `RippleCustody.submitAsync` (a freshly-posted intent) and the client's
  * intent inspector (an intent resumed by id).
  *
  * `cancel` is intentionally omitted for now — posting a Custody cancellation
- * intent (§10.3) is out of this iteration's scope.
+ * intent is out of this iteration's scope.
  *
  * @param options - The client, domain, custodian, intent id, and wait timeout.
  * @returns A handle to poll or wait on the intent's outcome.

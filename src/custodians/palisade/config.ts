@@ -52,7 +52,7 @@ export interface PalisadeCustodyConfig {
    * rather than a structured operation, so its transaction-level controls —
    * transfer policies, allow-lists, and approval rules keyed to operation
    * semantics — cannot inspect what is being signed. Ripple Custody types that
-   * payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+   * payload `Unsafe` for exactly this reason. xrpl protocol validation still
    * runs on every path, so malformed transactions are still rejected; what is
    * lost is the custodian's ability to reason about the transaction's intent.
    *

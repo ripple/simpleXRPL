@@ -56,7 +56,7 @@ export type {
 const HTTP_CONFLICT = 409
 
 /**
- * Ripple Custody adapter (TDD §3.3, §7.2): wraps the Custody REST API v1.
+ * Ripple Custody adapter: wraps the Custody REST API v1.
  * Native transactors ({@link NATIVE_XRPL_TRANSACTORS}) submit as a governed
  * `v0_CreateTransactionOrder` intent; everything else falls back to the
  * opt-in raw-signing path (`v0_SignManifest` + `Unsafe`) when
@@ -113,8 +113,7 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
-   * Build a RippleCustody from `RIPPLE_CUSTODY_*` environment variables (TDD
-   * §3.3).
+   * Build a RippleCustody from `RIPPLE_CUSTODY_*` environment variables.
    *
    * @param options - The primary account, optional overrides, and environment source.
    * @returns A ready RippleCustody.
@@ -139,7 +138,7 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
-   * Discover this domain's XRPL accounts, live (TDD §9.2) — not cached, so
+   * Discover this domain's XRPL accounts, live — not cached, so
    * `client.refreshAccounts()` sees additions/removals on the next call.
    *
    * @returns The discovered accounts.
@@ -149,8 +148,8 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
-   * Produce a signed, submittable envelope via the raw-signing path (TDD
-   * §7.2 RippleRaw). Only meaningful for a transactor with no native
+   * Produce a signed, submittable envelope via the raw-signing path
+   * (RippleRaw). Only meaningful for a transactor with no native
    * operation — Custody signs and submits native operations atomically as
    * one governed action, so there is no standalone signed envelope for those.
    *
@@ -168,10 +167,10 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
-   * Submit and block until the transaction reaches a terminal state (TDD
-   * §10.1): native transactors go through the governed
+   * Submit and block until the transaction reaches a terminal state:
+   * native transactors go through the governed
    * `v0_CreateTransactionOrder` intent; everything else through the
-   * raw-signing fallback, then the shared `xrpl.js` client.
+   * raw-signing fallback, then the shared `xrpl` client.
    *
    * Re-submitting a native transactor with an idempotency key the custodian has
    * already accepted is transparent: it resolves to the existing intent instead
@@ -210,8 +209,8 @@ export class RippleCustody implements Custodian, IntentObserver {
 
   /**
    * Submit and hand back a {@link SubmissionHandle} as soon as Custody has
-   * accepted the intent, without blocking on the governance outcome (TDD
-   * §10.2). Best for M-of-N approval flows that may span hours: the caller
+   * accepted the intent, without blocking on the governance outcome.
+   * Best for M-of-N approval flows that may span hours: the caller
    * polls or waits on the handle, or resumes later via `client.intent`.
    *
    * Re-submitting with an already-accepted idempotency key hands back a handle
@@ -277,7 +276,7 @@ export class RippleCustody implements Custodian, IntentObserver {
 
   /**
    * Resume observation of a native intent this custodian previously created,
-   * addressed by id (TDD §10.4) — the resume surface behind
+   * addressed by id — the resume surface behind
    * `client.intent.status` / `client.intent.await`.
    *
    * @param intentId - The client-generated intent id returned at submission.
@@ -421,7 +420,7 @@ export class RippleCustody implements Custodian, IntentObserver {
 
   /**
    * Pre-flight an intent payload through Custody's dry-run when requested,
-   * per-call or via the custodian's own default (TDD §5.2).
+   * per-call or via the custodian's own default.
    *
    * @param ctx - The submission context (carries the per-call `dryRun` override).
    * @param payload - The intent payload about to be submitted.

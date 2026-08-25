@@ -1,6 +1,6 @@
 # Interface: TokenData
 
-Defined in: [verticals/token.types.ts:170](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L170)
+Defined in: [verticals/token.types.ts:172](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L172)
 
 A shaped MPT issuance (from `ledger_entry`).
 
@@ -10,7 +10,7 @@ A shaped MPT issuance (from `ledger_entry`).
 
 > `readonly` **assetScale**: `number`
 
-Defined in: [verticals/token.types.ts:176](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L176)
+Defined in: [verticals/token.types.ts:178](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L178)
 
 Decimal places between display value and base units.
 
@@ -20,7 +20,7 @@ Decimal places between display value and base units.
 
 > `readonly` **flags**: [`TokenFlags`](TokenFlags.md)
 
-Defined in: [verticals/token.types.ts:184](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L184)
+Defined in: [verticals/token.types.ts:186](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L186)
 
 Capability flags.
 
@@ -30,7 +30,7 @@ Capability flags.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/token.types.ts:174](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L174)
+Defined in: [verticals/token.types.ts:176](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L176)
 
 The issuer r-address.
 
@@ -40,7 +40,7 @@ The issuer r-address.
 
 > `readonly` `optional` **maximumAmount**: `string`
 
-Defined in: [verticals/token.types.ts:178](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L178)
+Defined in: [verticals/token.types.ts:180](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L180)
 
 Maximum issuable amount (base units), if capped.
 
@@ -50,7 +50,7 @@ Maximum issuable amount (base units), if capped.
 
 > `readonly` `optional` **metadata**: `MPTokenMetadata`
 
-Defined in: [verticals/token.types.ts:186](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L186)
+Defined in: [verticals/token.types.ts:188](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L188)
 
 Decoded XLS-89 metadata, if present and well-formed.
 
@@ -60,7 +60,7 @@ Decoded XLS-89 metadata, if present and well-formed.
 
 > `readonly` **outstandingAmount**: `string`
 
-Defined in: [verticals/token.types.ts:180](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L180)
+Defined in: [verticals/token.types.ts:182](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L182)
 
 Amount currently in circulation (base units).
 
@@ -70,7 +70,7 @@ Amount currently in circulation (base units).
 
 > `readonly` **tokenID**: `string`
 
-Defined in: [verticals/token.types.ts:172](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L172)
+Defined in: [verticals/token.types.ts:174](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L174)
 
 The MPT issuance id.
 
@@ -80,6 +80,6 @@ The MPT issuance id.
 
 > `readonly` **transferFee**: `number`
 
-Defined in: [verticals/token.types.ts:182](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L182)
+Defined in: [verticals/token.types.ts:184](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L184)
 
 Secondary-transfer fee, as a percentage.

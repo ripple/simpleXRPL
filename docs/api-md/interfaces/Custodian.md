@@ -1,9 +1,9 @@
 # Interface: Custodian
 
-Defined in: [domain/model.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L216)
+Defined in: [domain/model.ts:237](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L237)
 
 A signing backend. Each implementation (local, Ripple Custody, Palisade)
-adapts the canonical xrpl.js transaction to one backend's API and submission
+adapts the canonical xrpl transaction to one backend's API and submission
 flow, and is the unit of configuration on a client.
 
 ## Properties
@@ -12,7 +12,7 @@ flow, and is the unit of configuration on a client.
 
 > `readonly` **capabilities**: () => [`SignerCapabilities`](SignerCapabilities.md)
 
-Defined in: [domain/model.ts:236](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L236)
+Defined in: [domain/model.ts:257](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L257)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -26,7 +26,7 @@ What this custodian can sign, consulted at dispatch time.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md)
 
-Defined in: [domain/model.ts:218](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L218)
+Defined in: [domain/model.ts:239](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L239)
 
 Which backend this custodian adapts.
 
@@ -36,7 +36,7 @@ Which backend this custodian adapts.
 
 > `readonly` **listAccounts**: () => `Promise`\<[`Account`](Account.md)[]\>
 
-Defined in: [domain/model.ts:233](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L233)
+Defined in: [domain/model.ts:254](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L254)
 
 The full account list, discovered at construction.
 
@@ -50,7 +50,7 @@ The full account list, discovered at construction.
 
 > `readonly` **primary**: [`AccountRef`](AccountRef.md)
 
-Defined in: [domain/model.ts:230](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L230)
+Defined in: [domain/model.ts:251](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L251)
 
 The custodian's primary account; it owns this account.
 
@@ -60,7 +60,7 @@ The custodian's primary account; it owns this account.
 
 > `readonly` **sign**: (`tx`, `ctx`) => `Promise`\<[`SignedEnvelope`](SignedEnvelope.md)\>
 
-Defined in: [domain/model.ts:239](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L239)
+Defined in: [domain/model.ts:260](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L260)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -81,7 +81,7 @@ Produce a signed envelope for a transaction (raw-signing paths).
 
 > `readonly` **submitAndWait**: (`tx`, `ctx`) => `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\<`unknown`\>\>
 
-Defined in: [domain/model.ts:249](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L249)
+Defined in: [domain/model.ts:270](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L270)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -104,7 +104,7 @@ custodian returns the transport result; the vertical attaches the typed
 
 > `readonly` **submitAsync**: (`tx`, `ctx`) => `Promise`\<[`SubmissionHandle`](SubmissionHandle.md)\>
 
-Defined in: [domain/model.ts:255](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L255)
+Defined in: [domain/model.ts:276](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L276)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -125,10 +125,10 @@ Submit and return a handle once the backend has accepted the intent.
 
 > `readonly` `optional` **tenantId**: `string`
 
-Defined in: [domain/model.ts:227](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L227)
+Defined in: [domain/model.ts:248](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L248)
 
 The backend tenant this custodian is bound to — a Custody domain id, a
 Palisade org/client identity, etc. Two signers with the same `kind` and
 the same `tenantId` point at the same backend tenant, which the client
-rejects at init (§3.1). `undefined` for backends with no tenant notion
+rejects at init. `undefined` for backends with no tenant notion
 (e.g. a local wallet holder), so multiple of those may coexist freely.

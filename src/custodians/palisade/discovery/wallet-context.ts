@@ -11,7 +11,7 @@ export type WalletLookup = string | { address?: string; alias?: string }
 
 /**
  * Resolved Palisade context for an account — the fields a native operation
- * needs to name the sending wallet (TDD §5.3).
+ * needs to name the sending wallet.
  */
 export interface PalisadeWalletContextEntry {
   /** The XRPL r-address. */
@@ -25,7 +25,7 @@ export interface PalisadeWalletContextEntry {
 /**
  * In-memory index over a custodian's discovered wallets. Resolves an
  * {@link WalletLookup} (r-address or alias) to its Palisade context, and
- * validates the configured primary at construction (TDD §3.4, §5.2).
+ * validates the configured primary at construction.
  *
  * A Palisade-specific sibling of the Ripple adapter's `AccountContext`: the
  * resolution logic is the same shape, but `resolve()` expects the Palisade

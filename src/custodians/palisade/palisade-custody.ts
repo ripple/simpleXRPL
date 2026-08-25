@@ -197,12 +197,20 @@ export class PalisadeCustody implements Custodian {
    * @param tx - The transaction to sign (network fields resolved).
    * @param ctx - The submission context (source account + ledger).
    * @returns The signed envelope.
-   * @throws {@link SignerCapabilityError} if the account exposes no public key.
+   * @throws {@link SignerCapabilityError} if raw signing is disabled, or the
+   *   account exposes no public key.
    */
   public async sign(
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SignedEnvelope> {
+    if (!this.allowRaw) {
+      throw new SignerCapabilityError(
+        `Palisade signs ${tx.TransactionType} only through its raw sign-only ` +
+          `path, which is disabled. Enable allowRawSigning, or use a signer ` +
+          `that models ${tx.TransactionType} natively.`,
+      )
+    }
     this.assertContextHonored(ctx)
     const filled =
       tx.Sequence === undefined ? await ctx.ledger.autofill(tx) : tx

@@ -8,7 +8,7 @@ Generate a UUIDv7 (RFC 9562): a 48-bit big-endian unix-millisecond timestamp
 followed by 74 random bits, with the version and variant fields set. The
 leading timestamp makes ids time-ordered — lexicographically sortable and
 index-friendly — which is why the SDK uses them for client-generated intent
-ids (§8): a retry reuses the same id, and ids stay ordered for the backend.
+ids: a retry reuses the same id, and ids stay ordered for the backend.
 
 ## Parameters
 

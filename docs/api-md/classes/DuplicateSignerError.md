@@ -3,7 +3,7 @@
 Defined in: [errors.ts:126](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L126)
 
 Two configured signers point at the same backend tenant — the same
-`kind` and the same `tenantId` (§3.1). The client rejects this at init so
+`kind` and the same `tenantId`. The client rejects this at init so
 one backend is never registered twice; drop the duplicate signer.
 
 ## Extends

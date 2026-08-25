@@ -10,6 +10,7 @@ import {
   AccountNotFoundError,
   IntentPendingError,
   PalisadeCustody,
+  PalisadeRejectedError,
   XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
@@ -316,12 +317,19 @@ describe('PalisadeCustody.submitAndWait — native', () => {
     })
     const custody = await makeCustody(port)
     const account = (await custody.listAccounts())[0]
-    const promise = custody.submitAndWait(
-      payment,
-      contextFor(account, ledgerStub()),
-    )
-    await expect(promise).rejects.toThrow(/action=PALISADE_MANAGED/u)
-    await expect(promise).rejects.toThrow(/reason=policy denied/u)
+    const error = await custody
+      .submitAndWait(payment, contextFor(account, ledgerStub()))
+      .catch((caught: unknown) => caught)
+    expect(error).toBeInstanceOf(PalisadeRejectedError)
+    // The typed fields let a caller branch on the failure without parsing the
+    // message string.
+    const rejected = error as PalisadeRejectedError
+    expect(rejected.transactionId).toBe('tx1')
+    expect(rejected.status).toBe('REJECTED')
+    expect(rejected.action).toBe('PALISADE_MANAGED')
+    expect(rejected.attributes).toEqual({ reason: 'policy denied' })
+    expect(rejected.message).toMatch(/action=PALISADE_MANAGED/u)
+    expect(rejected.message).toMatch(/reason=policy denied/u)
   })
 
   it('throws when the native submission is REJECTED', async () => {
@@ -332,7 +340,7 @@ describe('PalisadeCustody.submitAndWait — native', () => {
     const account = (await custody.listAccounts())[0]
     await expect(
       custody.submitAndWait(payment, contextFor(account, ledgerStub())),
-    ).rejects.toBeInstanceOf(SimpleXRPLError)
+    ).rejects.toBeInstanceOf(PalisadeRejectedError)
   })
 
   it('throws IntentPendingError when it never reaches a terminal status', async () => {
@@ -546,7 +554,19 @@ describe('PalisadeCustody.sign / submitAsync', () => {
     const account = (await custody.listAccounts())[0]
     await expect(
       custody.sign(payment, contextFor(account, ledgerStub())),
-    ).rejects.toBeInstanceOf(SimpleXRPLError)
+    ).rejects.toBeInstanceOf(PalisadeRejectedError)
+  })
+
+  it('sign refuses outright when raw signing is disabled', async () => {
+    // sign() is the raw-only path; with allowRaw off it must reject before
+    // touching the transport rather than emit an unsigned request.
+    const port = fakePort({})
+    const custody = await makeCustody(port, false)
+    const account = (await custody.listAccounts())[0]
+    await expect(
+      custody.sign(payment, contextFor(account, ledgerStub())),
+    ).rejects.toBeInstanceOf(SignerCapabilityError)
+    expect(port.posts).toHaveLength(0)
   })
 
   it('submitAsync rejects a transactor with no native path', async () => {

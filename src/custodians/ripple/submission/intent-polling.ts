@@ -65,7 +65,7 @@ function describeFailure(
 }
 
 /**
- * Fetch one intent's current entity, without polling (TDD §10.2): the
+ * Fetch one intent's current entity, without polling: the
  * non-blocking snapshot behind a handle's `poll()` and `client.intent.status`.
  * Unlike {@link pollIntentUntilExecuted}, it never loops and never throws on a
  * terminal-failure status — the caller reads `state.status` from the entity.
@@ -100,13 +100,13 @@ export interface PollIntentOptions {
 
 /**
  * Poll a submitted intent until it reaches `Executed`, or throw once it hits a
- * terminal failure or the timeout elapses (TDD §10.1). Shared by the native
+ * terminal failure or the timeout elapses. Shared by the native
  * and raw-signing paths, both of which submit one intent and wait on it the
  * same way.
  *
  * Bounded, blocking wait only — {@link IntentPendingError} on timeout is *not*
- * a failure (TDD §11): the intent keeps living custodian-side. Resuming a
- * timed-out intent from its id (`client.intent.await`) is DGE-7466's async /
+ * a failure: the intent keeps living custodian-side. Resuming a
+ * timed-out intent from its id (`client.intent.await`) is the async /
  * governance-observation surface, not this polling primitive.
  *
  * @param options - The client, domain, intent id, and timeout to poll with.

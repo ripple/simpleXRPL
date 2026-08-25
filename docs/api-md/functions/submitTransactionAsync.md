@@ -6,7 +6,7 @@ Defined in: [pipeline/pipeline.ts:84](https://github.com/ripple/simpleXRPL/blob/
 
 Like [submitTransaction](submitTransaction.md), but returns a [SubmissionHandle](../interfaces/SubmissionHandle.md) as
 soon as the custodian accepts the intent instead of blocking to a terminal
-state (TDD §10.2). For a governed custodian the handle observes the pending
+state. For a governed custodian the handle observes the pending
 intent; for Local it wraps the already-submitted transaction.
 
 ## Parameters

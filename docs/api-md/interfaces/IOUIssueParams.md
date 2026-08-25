@@ -1,6 +1,6 @@
 # Interface: IOUIssueParams
 
-Defined in: [verticals/iou.types.ts:37](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L37)
+Defined in: [verticals/iou.types.ts:39](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L39)
 
 Parameters for [IOU.issue](../classes/IOU.md#issue).
 
@@ -10,7 +10,7 @@ Parameters for [IOU.issue](../classes/IOU.md#issue).
 
 > `readonly` `optional` **amount**: `string`
 
-Defined in: [verticals/iou.types.ts:59](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L59)
+Defined in: [verticals/iou.types.ts:61](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L61)
 
 How much of the new IOU the issuer distributes to the hot wallet as the
 final step, so one call ends with value in circulation. Omit to set the
@@ -23,7 +23,7 @@ issuing in tranches). A positive decimal string.
 
 > `readonly` `optional` **holder**: `string`
 
-Defined in: [verticals/iou.types.ts:52](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L52)
+Defined in: [verticals/iou.types.ts:54](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L54)
 
 The hot-wallet (holder) r-address that extends trust to the issuer — a
 client-owned account on any connector. When set, the issuer and holder are
@@ -38,7 +38,7 @@ signer). When omitted, both are bootstrapped from the `XRPL_ISSUER_SEED` /
 
 > `readonly` **ticker**: `string`
 
-Defined in: [verticals/iou.types.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L43)
+Defined in: [verticals/iou.types.ts:45](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L45)
 
 The currency code: a 3-character ISO-4217-style code or a 40-character
 hex code. Any other code (e.g. a 5-character ticker) is auto-encoded to

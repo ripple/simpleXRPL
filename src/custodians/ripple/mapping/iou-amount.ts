@@ -11,7 +11,7 @@ import { IntentValidationError } from '../../../errors.js'
  * (10^-96). Ripple Custody's IOU amount fields (`AssetQuantity.amount`,
  * `LimitAmount.value`, and the issued-currency `Payment`/`Clawback` amounts)
  * are *integers* counted in that minimum unit — the issued-currency analogue of
- * XRP drops — not the human decimal `value` xrpl.js carries. So a token value
+ * XRP drops — not the human decimal `value` xrpl carries. So a token value
  * scales up by 10^81 to reach the integer Custody expects; forwarding the raw
  * decimal makes Custody read it as a vanishingly small fraction of the intended
  * amount.
@@ -19,7 +19,7 @@ import { IntentValidationError } from '../../../errors.js'
 const IOU_MIN_UNIT_EXPONENT = 81
 
 /**
- * Convert an xrpl.js issued-currency `value` (a human decimal string) to the
+ * Convert an xrpl issued-currency `value` (a human decimal string) to the
  * integer Ripple Custody expects for an IOU amount, by scaling it into Custody's
  * 10^-81 minimum unit.
  *

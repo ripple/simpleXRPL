@@ -12,11 +12,11 @@ const HTTP_ERROR_THRESHOLD = 400
 
 /** Construction options for {@link CustodyHttpClient}. */
 export interface CustodyHttpClientOptions {
-  /** Custody gateway base URL (must be HTTPS, §12.3). */
+  /** Custody gateway base URL (must be HTTPS). */
   gatewayUrl: string
   /** Injected transport (fetch in production, fake in tests). */
   http: CustodyHttpPort
-  /** Supplies and refreshes the bearer token (DGE-7462). */
+  /** Supplies and refreshes the bearer token. */
   auth: CustodyAuthService
 }
 
@@ -91,12 +91,12 @@ function toError(response: HttpResponse): SimpleXRPLError {
 }
 
 /**
- * Authenticated client for the Custody gateway API (TDD §7.2, §9.5).
+ * Authenticated client for the Custody gateway API.
  *
  * Injects the JWT from {@link CustodyAuthService} on every call and implements
  * the one-shot 401 recovery: a `401` triggers a single forced token refresh and
  * one replay; a second `401` surfaces as {@link CustodyAuthError}. (This is the
- * 401-retry deferred from DGE-7462, which had no HTTP client yet.)
+ * 401-retry deferred from the auth work, which had no HTTP client yet.)
  */
 export class CustodyHttpClient {
   private readonly gatewayUrl: string
@@ -176,7 +176,7 @@ export class CustodyHttpClient {
 
     let response = await attempt(false)
     if (response.status === HTTP_UNAUTHORIZED) {
-      // One refresh-and-retry with a fresh challenge-signed token (§9.5).
+      // One refresh-and-retry with a fresh challenge-signed token.
       response = await attempt(true)
     }
     if (response.status >= HTTP_ERROR_THRESHOLD) {

@@ -1,7 +1,7 @@
 import type { SubmitResponse, Transaction, TxResponse } from 'xrpl'
 
 /**
- * A raw ledger request, mirroring the shape the xrpl.js client accepts.
+ * A raw ledger request, mirroring the shape the xrpl client accepts.
  */
 export interface LedgerRequest {
   /** Command-specific parameters. */
@@ -12,7 +12,7 @@ export interface LedgerRequest {
 }
 
 /**
- * The subset of the xrpl.js client the SDK depends on, injected so the local
+ * The subset of the xrpl client the SDK depends on, injected so the local
  * and raw-signing paths can run against an in-memory ledger in tests.
  */
 export interface LedgerPort {

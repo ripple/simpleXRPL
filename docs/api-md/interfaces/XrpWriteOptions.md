@@ -1,8 +1,9 @@
-# Interface: TokenWriteOptions
+# Interface: XrpWriteOptions
 
-Defined in: [verticals/token.types.ts:7](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L7)
+Defined in: [verticals/xrp.ts:58](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L58)
 
-Per-call options shared by the token operations.
+Source account and fee overrides shared by the XRP offer operations. The
+resolved account signs the `OfferCreate`/`OfferCancel`.
 
 ## Properties
 
@@ -10,7 +11,7 @@ Per-call options shared by the token operations.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [verticals/token.types.ts:12](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L12)
+Defined in: [verticals/xrp.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L63)
 
 Fee override.
 
@@ -20,7 +21,7 @@ Fee override.
 
 > `readonly` `optional` **from**: [`AccountSelector`](../type-aliases/AccountSelector.md)
 
-Defined in: [verticals/token.types.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L9)
+Defined in: [verticals/xrp.ts:60](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L60)
 
 Source account; defaults to the primary signer's primary account.
 
@@ -30,7 +31,7 @@ Source account; defaults to the primary signer's primary account.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [verticals/token.types.ts:20](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L20)
+Defined in: [verticals/xrp.ts:71](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/xrp.ts#L71)
 
 A prior submission's `idempotencyKey` (from its result) so a retry resolves
 to the same submission instead of duplicating it. How completely this

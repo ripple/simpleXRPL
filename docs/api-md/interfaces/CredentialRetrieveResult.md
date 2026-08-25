@@ -1,6 +1,6 @@
 # Interface: CredentialRetrieveResult
 
-Defined in: [verticals/credential.types.ts:86](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L86)
+Defined in: [verticals/credential.types.ts:88](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L88)
 
 Result of [Credential.retrieve](../classes/Credential.md#retrieve).
 
@@ -14,7 +14,7 @@ Result of [Credential.retrieve](../classes/Credential.md#retrieve).
 
 > `readonly` **credType**: `string`
 
-Defined in: [verticals/credential.types.ts:54](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L54)
+Defined in: [verticals/credential.types.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L56)
 
 The credential type.
 
@@ -28,7 +28,7 @@ The credential type.
 
 > `readonly` **data**: `undefined` \| [`CredentialData`](CredentialData.md)
 
-Defined in: [verticals/credential.types.ts:88](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L88)
+Defined in: [verticals/credential.types.ts:90](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L90)
 
 The credential snapshot, or `undefined` if none exists.
 
@@ -38,7 +38,7 @@ The credential snapshot, or `undefined` if none exists.
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/credential.types.ts:58](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L58)
+Defined in: [verticals/credential.types.ts:60](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L60)
 
 The holder (subject) r-address.
 
@@ -52,7 +52,7 @@ The holder (subject) r-address.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/credential.types.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L56)
+Defined in: [verticals/credential.types.ts:58](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L58)
 
 The issuer r-address.
 

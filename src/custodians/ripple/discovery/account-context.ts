@@ -11,7 +11,7 @@ export type AccountLookup = string | { address?: string; alias?: string }
 
 /**
  * Resolved Custody context for an account — the fields an intent envelope needs
- * to name the sending account (TDD §5.3).
+ * to name the sending account.
  */
 export interface CustodyAccountContext {
   /** The XRPL r-address. */
@@ -23,7 +23,7 @@ export interface CustodyAccountContext {
 /**
  * In-memory index over a custodian's discovered accounts. Resolves an
  * {@link AccountLookup} (r-address or alias) to its Custody context, and
- * validates the configured primary at construction (TDD §3.3, §5.2).
+ * validates the configured primary at construction.
  */
 export class AccountContext {
   private readonly byAddress = new Map<string, Account>()

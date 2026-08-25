@@ -5,7 +5,7 @@ import type { components } from '../../../generated/custody.js'
 import { toDestination } from './destination.js'
 
 /**
- * Map an xrpl.js `EscrowFinish` to Custody's native `EscrowFinish` operation.
+ * Map an xrpl `EscrowFinish` to Custody's native `EscrowFinish` operation.
  *
  * @param tx - The `EscrowFinish` transaction.
  * @returns The Custody `EscrowFinish` operation.

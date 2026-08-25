@@ -1,6 +1,6 @@
 # Interface: RippleCustodyFromEnvOptions
 
-Defined in: [custodians/ripple/construction.ts:75](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L75)
+Defined in: [custodians/ripple/construction.ts:73](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L73)
 
 Construction options for [RippleCustody.fromEnv](../classes/RippleCustody.md#fromenv).
 
@@ -10,7 +10,7 @@ Construction options for [RippleCustody.fromEnv](../classes/RippleCustody.md#fro
 
 > `readonly` `optional` **allowRawSigning**: `boolean`
 
-Defined in: [custodians/ripple/construction.ts:95](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L95)
+Defined in: [custodians/ripple/construction.ts:93](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L93)
 
 Enable the raw-signing fallback for transactors and fields this backend has
 no native operation for.
@@ -19,7 +19,7 @@ no native operation for.
 rather than a structured operation, so its transaction-level controls —
 transfer policies, allow-lists, and approval rules keyed to operation
 semantics — cannot inspect what is being signed. Ripple Custody types that
-payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+payload `Unsafe` for exactly this reason. xrpl protocol validation still
 runs on every path, so malformed transactions are still rejected; what is
 lost is the custodian's ability to reason about the transaction's intent.
 
@@ -36,7 +36,7 @@ those operations through a signer that models them natively.
 
 > `readonly` `optional` **defaultDryRun**: `boolean`
 
-Defined in: [custodians/ripple/construction.ts:99](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L99)
+Defined in: [custodians/ripple/construction.ts:97](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L97)
 
 Pre-flight every write through Custody's dry-run. Defaults to `false`.
 
@@ -46,7 +46,7 @@ Pre-flight every write through Custody's dry-run. Defaults to `false`.
 
 > `readonly` `optional` **defaultFee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [custodians/ripple/construction.ts:97](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L97)
+Defined in: [custodians/ripple/construction.ts:95](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L95)
 
 House fee intent, falls back to `Priority: Low`.
 
@@ -56,7 +56,7 @@ House fee intent, falls back to `Priority: Low`.
 
 > `readonly` `optional` **defaultTimeoutMs**: `number`
 
-Defined in: [custodians/ripple/construction.ts:101](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L101)
+Defined in: [custodians/ripple/construction.ts:99](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L99)
 
 How long `submitAndWait` polls before throwing `IntentPendingError`.
 
@@ -66,7 +66,7 @@ How long `submitAndWait` polls before throwing `IntentPendingError`.
 
 > `readonly` `optional` **env**: `Readonly`\<`Record`\<`string`, `undefined` \| `string`\>\>
 
-Defined in: [custodians/ripple/construction.ts:103](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L103)
+Defined in: [custodians/ripple/construction.ts:101](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L101)
 
 Environment source to scan. Defaults to `process.env`.
 
@@ -76,7 +76,7 @@ Environment source to scan. Defaults to `process.env`.
 
 > `readonly` `optional` **http**: `CustodyHttpPort`
 
-Defined in: [custodians/ripple/construction.ts:105](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L105)
+Defined in: [custodians/ripple/construction.ts:103](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L103)
 
 Injectable transport; defaults to `FetchHttpPort`.
 
@@ -86,6 +86,6 @@ Injectable transport; defaults to `FetchHttpPort`.
 
 > `readonly` **primary**: `string`
 
-Defined in: [custodians/ripple/construction.ts:77](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L77)
+Defined in: [custodians/ripple/construction.ts:75](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L75)
 
 The primary account's r-address; validated against the discovered set.

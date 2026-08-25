@@ -30,7 +30,7 @@ Return a handle instead of blocking until the transaction is terminal.
 
 > `readonly` `optional` **customProperties**: `Record`\<`string`, `unknown`\>
 
-Defined in: [domain/model.ts:130](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L130)
+Defined in: [domain/model.ts:135](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L135)
 
 Human-readable approval metadata stamped on custody intents.
 
@@ -60,9 +60,12 @@ Optional fee override; falls back to the custodian's configured default.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [domain/model.ts:127](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L127)
+Defined in: [domain/model.ts:132](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L132)
 
-Stable, client-generated id that makes a retry resolve to the same intent.
+Stable, client-generated id that lets a retry resolve to the same
+submission rather than duplicating it. De-duplication is enforced by the
+backend and its coverage varies — see
+[SubmissionResultFields.idempotencyKey](SubmissionResultFields.md#idempotencykey).
 
 ***
 
@@ -80,6 +83,6 @@ The shared ledger connection the custodian submits through.
 
 > `readonly` `optional` **timeoutMs**: `number`
 
-Defined in: [domain/model.ts:133](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L133)
+Defined in: [domain/model.ts:138](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L138)
 
 How long to wait before handing control back to the caller.

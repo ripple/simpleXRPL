@@ -30,7 +30,9 @@ Source account; defaults to the primary signer's primary account.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [verticals/account.types.ts:50](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L50)
+Defined in: [verticals/account.types.ts:52](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L52)
 
-A prior submission's `idempotencyKey` (from its result), to retry to the
-same intent instead of creating a duplicate (§8). Auto-generated when omitted.
+A prior submission's `idempotencyKey` (from its result) so a retry resolves
+to the same submission instead of duplicating it. How completely this
+de-duplicates is set by the backend — see the note on the result's
+`idempotencyKey`. Auto-generated when omitted.

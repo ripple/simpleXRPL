@@ -63,7 +63,7 @@ function derEncodeInteger(halfHex: string): string {
  *
  * Step 3 is NOT standard Ed25519 (Ed25519 signatures are raw 64 bytes, not DER),
  * but it is what the Custody server verifies against per its openssl-examples
- * doc. Matching the server is the contract. Faithful port of custody.js
+ * doc. Matching the server is the contract. Faithful port of the Ripple Custody
  * `Ed25519Service`.
  */
 export class Ed25519Service implements KeypairStrategy {

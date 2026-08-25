@@ -28,6 +28,7 @@ verticals, core types, and error classes) is built out incrementally.
 - [PalisadeApiError](classes/PalisadeApiError.md)
 - [PalisadeAuthError](classes/PalisadeAuthError.md)
 - [PalisadeCustody](classes/PalisadeCustody.md)
+- [PalisadeRejectedError](classes/PalisadeRejectedError.md)
 - [RippleCustody](classes/RippleCustody.md)
 - [SignerCapabilityError](classes/SignerCapabilityError.md)
 - [SimpleXRPLClient](classes/SimpleXRPLClient.md)
@@ -149,9 +150,12 @@ verticals, core types, and error classes) is built out incrementally.
 - [TokenRetrieveResult](interfaces/TokenRetrieveResult.md)
 - [TokenTransferParams](interfaces/TokenTransferParams.md)
 - [TokenWriteOptions](interfaces/TokenWriteOptions.md)
+- [XrpCancelOfferParams](interfaces/XrpCancelOfferParams.md)
+- [XrpOfferParams](interfaces/XrpOfferParams.md)
 - [XrpTransferIntent](interfaces/XrpTransferIntent.md)
 - [XrpTransferOptions](interfaces/XrpTransferOptions.md)
 - [XrpTransferParams](interfaces/XrpTransferParams.md)
+- [XrpWriteOptions](interfaces/XrpWriteOptions.md)
 
 ## Type Aliases
 
@@ -174,6 +178,7 @@ verticals, core types, and error classes) is built out incrementally.
 - [SubmissionPath](type-aliases/SubmissionPath.md)
 - [SubmissionResult](type-aliases/SubmissionResult.md)
 - [TransactorType](type-aliases/TransactorType.md)
+- [XrpOfferPrice](type-aliases/XrpOfferPrice.md)
 
 ## Variables
 

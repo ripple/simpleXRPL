@@ -11,7 +11,7 @@ type PaymentCurrency = components['schemas']['Core_XrplPaymentCurrency']
 type AssetQuantity = components['schemas']['Core_Xrpl_AssetQuantity']
 
 /**
- * Map an xrpl.js issued-currency amount to Custody's `IouCurrency` union
+ * Map an xrpl issued-currency amount to Custody's `IouCurrency` union
  * (`TrustSet.limitAmount`, `OfferCreate`'s asset legs). No MPT variant exists
  * here — matches XRPL: trust lines and DEX offers are IOU-only in this union.
  *
@@ -23,7 +23,7 @@ export function toIouCurrency(amount: IssuedCurrencyAmount): IouCurrency {
 }
 
 /**
- * Map an xrpl.js clawback amount (IOU or MPT) to Custody's `ClawbackCurrency`
+ * Map an xrpl clawback amount (IOU or MPT) to Custody's `ClawbackCurrency`
  * union.
  *
  * @param amount - The IOU or MPT amount to claw back.
@@ -39,7 +39,7 @@ export function toClawbackCurrency(
 }
 
 /**
- * Map an xrpl.js payment amount (IOU or MPT) to Custody's `PaymentCurrency`
+ * Map an xrpl payment amount (IOU or MPT) to Custody's `PaymentCurrency`
  * union. Native XRP (a plain drops string) has no `currency` — callers map
  * that case separately.
  *
@@ -56,7 +56,7 @@ export function toPaymentCurrency(
 }
 
 /**
- * Map an xrpl.js `Amount` (drops string or issued-currency object) to
+ * Map an xrpl `Amount` (drops string or issued-currency object) to
  * Custody's `AssetQuantity` (`OfferCreate.takerGets`/`takerPays`) — an omitted
  * `currency` means native XRP. An issued-currency value is scaled to Custody's
  * integer minimum unit (see {@link toCustodyIouAmount}); an XRP drops string is

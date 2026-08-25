@@ -23,15 +23,27 @@ export interface Logger {
 
 /**
  * Field names a logger implementation must redact, so credentials and tokens
- * are never written to logs.
+ * are never written to logs. Covers the SDK's own credential-bearing fields
+ * (across the custodian configs and transport layers) in both camelCase and
+ * snake_case, since implementers may serialize objects from either surface.
  *
  * @internal
  */
 export const REDACTED_FIELDS: readonly string[] = [
+  // Signing material and seeds.
   'signingKey',
-  'apiKey',
+  'privateKey',
+  'privateKeyPem',
+  'private_key',
   'seed',
   'mnemonic',
+  // API credentials.
+  'apiKey',
+  'clientSecret',
+  'client_secret',
+  // Bearer tokens.
+  'accessToken',
   'access_token',
+  'refreshToken',
   'refresh_token',
 ]

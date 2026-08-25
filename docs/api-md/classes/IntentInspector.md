@@ -3,7 +3,7 @@
 Defined in: [client/intent-inspector.ts:36](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L36)
 
 Read-only observation of custodian governance intents the SDK previously
-created (TDD §10.4): resume polling or waiting on an intent by id after its
+created: resume polling or waiting on an intent by id after its
 original submission has already returned (e.g. after a `submitAndWait`
 timed out with an [IntentPendingError](IntentPendingError.md), or a `submitAsync` handle was
 not retained). The SDK is a proposer/observer only — it never approves,
@@ -75,7 +75,7 @@ The terminal submission result.
 
 > **awaitOnChain**(`intentId`, `timeoutMs`?): `Promise`\<`undefined` \| [`OnChainResult`](../interfaces/OnChainResult.md)\>
 
-Defined in: [client/intent-inspector.ts:98](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L98)
+Defined in: [client/intent-inspector.ts:107](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L107)
 
 Poll the custodian's transaction layer until the XRPL transaction linked to
 `intentId` is confirmed on-chain, then return its outcome.
@@ -88,6 +88,13 @@ changes have fully landed.
 
 Only available when a Ripple Custody signer is configured.
 
+Resolves to the on-chain result once confirmed. Returns `undefined` if the
+timeout elapses with the transaction still in flight — indeterminate, so
+re-drive the *same* idempotency key. Throws [IntentValidationError](IntentValidationError.md)
+the moment the transaction reaches a terminal non-confirmed state
+(`Expired`, `Replaced`, or an on-chain failure) — provably dead, so a retry
+needs a *fresh* key.
+
 #### Parameters
 
 | Parameter | Type | Description |
@@ -99,11 +106,16 @@ Only available when a Ripple Custody signer is configured.
 
 `Promise`\<`undefined` \| [`OnChainResult`](../interfaces/OnChainResult.md)\>
 
-The on-chain result, or `undefined` when the timeout elapses.
+The on-chain result, or `undefined` when the timeout elapses with
+  the transaction still in flight.
 
 #### Throws
 
 [SimpleXRPLError](SimpleXRPLError.md) if no Ripple Custody signer is configured.
+
+#### Throws
+
+[IntentValidationError](IntentValidationError.md) if the transaction is provably dead.
 
 ***
 
@@ -111,7 +123,7 @@ The on-chain result, or `undefined` when the timeout elapses.
 
 > **handleFor**(`intentId`): [`SubmissionHandle`](../interfaces/SubmissionHandle.md)
 
-Defined in: [client/intent-inspector.ts:118](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L118)
+Defined in: [client/intent-inspector.ts:127](https://github.com/ripple/simpleXRPL/blob/main/src/client/intent-inspector.ts#L127)
 
 Build a handle over an intent by id, via the first custodian that can
 observe governance intents.

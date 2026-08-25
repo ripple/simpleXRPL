@@ -1,8 +1,8 @@
 /**
- * Check whether a named flag is set on an xrpl.js transaction's `Flags`
+ * Check whether a named flag is set on an xrpl transaction's `Flags`
  * field: either a raw numeric bitmask, or the boolean flags-interface object
- * xrpl.js also accepts. The object form is accepted as a plain `object`
- * because xrpl.js's per-transactor `*FlagsInterface` types declare named
+ * xrpl also accepts. The object form is accepted as a plain `object`
+ * because xrpl's per-transactor `*FlagsInterface` types declare named
  * optional booleans with no index signature, so they don't structurally fit
  * `Record<string, boolean>`.
  *

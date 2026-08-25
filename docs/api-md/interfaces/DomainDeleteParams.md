@@ -1,6 +1,6 @@
 # Interface: DomainDeleteParams
 
-Defined in: [verticals/domain.types.ts:41](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L41)
+Defined in: [verticals/domain.types.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L43)
 
 Parameters for `Domain.delete`.
 
@@ -10,6 +10,6 @@ Parameters for `Domain.delete`.
 
 > `readonly` **domain**: `string`
 
-Defined in: [verticals/domain.types.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L43)
+Defined in: [verticals/domain.types.ts:45](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L45)
 
 The domain to delete.

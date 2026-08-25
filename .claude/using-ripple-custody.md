@@ -43,12 +43,12 @@ source:      rippled
 Put `RIPPLE_CUSTODY_*` (see the script's header comment for the full list)
 in `.env` to also run Stage 2 against a real Custody gateway — it prints
 what it needs and skips itself cleanly if those vars are absent. An example
-`.env` (private key referenced by path, per §2 below):
+`.env` (private key referenced by path, per section 2 below):
 
 ```bash
 RIPPLE_CUSTODY_GATEWAY_URL=https://<gateway-host>
 RIPPLE_CUSTODY_AUTH_SIGNING_KEY=./ripple-custody-signing-key.pem
-RIPPLE_CUSTODY_AUTH_TOKEN_URL=https://openid.<env>/realms/Metaco/protocol/openid-connect/token
+RIPPLE_CUSTODY_AUTH_TOKEN_URL=https://<auth-host>/realms/<realm>/protocol/openid-connect/token
 RIPPLE_CUSTODY_DOMAIN_ID=<domain-id>
 RIPPLE_CUSTODY_PRIMARY_ADDRESS=<r-address>
 ```
@@ -130,7 +130,7 @@ other wiring needed. Required env vars (`construction.ts` →
 |---|---|
 | `RIPPLE_CUSTODY_GATEWAY_URL` | Custody REST API base URL |
 | `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` | Intent-author private key (PEM or path to `.pem`) |
-| `RIPPLE_CUSTODY_AUTH_TOKEN_URL` | OAuth token endpoint — the realm-specific path, e.g. `https://openid.<env>/realms/Metaco/protocol/openid-connect/token`, not just the Keycloak host root |
+| `RIPPLE_CUSTODY_AUTH_TOKEN_URL` | OAuth token endpoint — the realm-specific path, e.g. `https://<auth-host>/realms/<realm>/protocol/openid-connect/token`, not just the auth host root |
 | `RIPPLE_CUSTODY_DOMAIN_ID` | The Custody domain to operate in |
 
 `create()`/`fromEnv()` will:
@@ -262,7 +262,7 @@ rejections before spending a real submission attempt.
 
 There's no packaged integration test for this yet (see
 [`docs/custody-integration-tests-e2e.md`](./custody-integration-tests-e2e.md)),
-but `scripts/custody-e2e-demo.mjs`'s Stage 2 does exactly what §2–§3 above
+but `scripts/custody-e2e-demo.mjs`'s Stage 2 does exactly what sections 2–3 above
 describe: construct via `fromEnv()` → `listAccounts()` → confirm the primary
 is discovered → check `capabilities()`.
 

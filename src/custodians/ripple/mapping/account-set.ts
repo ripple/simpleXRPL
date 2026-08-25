@@ -36,8 +36,8 @@ function toAccountSetFlag(field: string, flag: number): AccountSetFlag {
 }
 
 /**
- * Map an xrpl.js `AccountSet` to Custody's native `AccountSet` operation.
- * Custody models 8 of xrpl.js's `AccountSetAsfFlags` and no other field
+ * Map an xrpl `AccountSet` to Custody's native `AccountSet` operation.
+ * Custody models 8 of xrpl's `AccountSetAsfFlags` and no other field
  * (`Domain`, `EmailHash`, `MessageKey`, `WalletLocator`, `TickSize`,
  * `NFTokenMinter`, and any boolean `tf*` flag are all unsupported).
  *

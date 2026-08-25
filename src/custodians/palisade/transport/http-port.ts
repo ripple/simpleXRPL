@@ -1,5 +1,5 @@
 /**
- * Low-level HTTP I/O port for the Palisade transport (TDD §7.1).
+ * Low-level HTTP I/O port for the Palisade transport.
  *
  * Both the authenticated API client and the credential-exchange auth port talk
  * to this single narrow interface, so the whole transport — including the

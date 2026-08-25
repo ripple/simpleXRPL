@@ -8,12 +8,12 @@ import { toDestination } from './destination.js'
 import { toCustodyIouAmount } from './iou-amount.js'
 
 /**
- * Map an xrpl.js `Clawback` to Custody's native `Clawback` operation.
+ * Map an xrpl `Clawback` to Custody's native `Clawback` operation.
  *
  * @param tx - The `Clawback` transaction.
  * @returns The Custody `Clawback` operation.
  * @throws {@link SignerCapabilityError} if `Holder` is absent — Custody
- * requires it, unlike xrpl.js.
+ * requires it, unlike xrpl.
  */
 export function mapClawback(
   tx: Clawback,

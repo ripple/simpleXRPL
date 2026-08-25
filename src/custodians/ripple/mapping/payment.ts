@@ -8,7 +8,7 @@ import { toCustodyIouAmount } from './iou-amount.js'
 import { unsupported } from './unsupported.js'
 
 /**
- * Map an xrpl.js `Payment` to Custody's native operation. Custody has no
+ * Map an xrpl `Payment` to Custody's native operation. Custody has no
  * slot for cross-currency paths (`SendMax`, `Paths`, `DeliverMin`,
  * `DeliverMax`), `InvoiceID`, `CredentialIDs`, `DomainID`, or any `tf*` flag.
  *

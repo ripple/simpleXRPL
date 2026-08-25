@@ -97,7 +97,7 @@ async function step(vertical, name, fn) {
   const started = Date.now()
   let retried = false
   // Three attempts, not two: the sweep fires ~20 writes from one account in
-  // quick succession, so xrpl.js's default 4-ledger LastLedgerSequence window
+  // quick succession, so xrpl's default 4-ledger LastLedgerSequence window
   // can close before validation on a busy Testnet. Verified in isolation that
   // the affected operations succeed — this is queue pressure, not capability.
   for (let attempt = 0; attempt < 3; attempt += 1) {

@@ -10,7 +10,7 @@ the vertical `intent` output via [withIntent](withIntent.md).
 
 A stable idempotency id is generated here (a time-ordered UUIDv7) unless the
 caller supplied one, so it is fixed before the intent is created, surfaced on
-the result, and reused verbatim on a retry (§8) — resolving to the same
+the result, and reused verbatim on a retry — resolving to the same
 intent instead of a duplicate.
 
 ## Parameters

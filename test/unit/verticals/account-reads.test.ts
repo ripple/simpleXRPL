@@ -53,7 +53,7 @@ async function signerClient(
 
 describe('Account.retrieve — drops→XRP is exact at every scale', () => {
   // `String(dropsToXrp(drops))` silently truncated above 2^53 drops (~9.007e9
-  // XRP), because xrpl.js returns a JS number: 50000000000000001 drops read back
+  // XRP), because xrpl returns a JS number: 50000000000000001 drops read back
   // as "50000000000", losing a whole drop with no error. Balances at that scale
   // are real (treasury and escrow accounts) and this is the value callers
   // reconcile against, so the conversion is done in decimal.

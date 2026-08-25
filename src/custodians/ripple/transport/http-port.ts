@@ -1,5 +1,5 @@
 /**
- * Low-level HTTP I/O port for the Custody transport (TDD §7.1).
+ * Low-level HTTP I/O port for the Custody transport.
  *
  * Both the authenticated API client and the token-endpoint auth port talk to
  * this single narrow interface, so the whole transport — including the

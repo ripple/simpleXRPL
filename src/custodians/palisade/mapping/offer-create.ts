@@ -10,7 +10,7 @@ type OfferCreateBody =
   operations['TransactionsService_SubmitOfferCreate']['requestBody']['content']['application/json']
 type OfferFlag = components['schemas']['transactionsv2OfferCreateFlags']
 
-/** `[bit, xrpl.js flags-interface key, Palisade wire flag]`. */
+/** `[bit, xrpl flags-interface key, Palisade wire flag]`. */
 const FLAG_TABLE: ReadonlyArray<readonly [number, string, OfferFlag]> = [
   [OfferCreateFlags.tfPassive, 'tfPassive', 'PASSIVE'],
   [

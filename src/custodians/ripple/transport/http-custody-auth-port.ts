@@ -8,12 +8,12 @@ import type {
 import type { CustodyHttpPort } from './http-port.js'
 
 const HTTP_ERROR_THRESHOLD = 400
-// Custody's token endpoint uses the OAuth password grant (custody.js auth.service).
+// Custody's token endpoint uses the OAuth password grant.
 const GRANT_TYPE = 'password'
 /**
  * Default OIDC client id. Per the Custody auth docs, `client_id` identifies
- * the caller's registered Keycloak client and is deployment-specific — this
- * is only a fallback for deployments that haven't registered their own.
+ * the caller's registered OAuth client and is deployment-specific — this is
+ * only a fallback for deployments that haven't registered their own.
  */
 const DEFAULT_CLIENT_ID = 'customer_api'
 
@@ -28,8 +28,8 @@ export interface HttpCustodyAuthPortOptions {
 }
 
 /**
- * Production {@link CustodyAuthPort} (DGE-7462): exchanges a signed challenge for
- * a JWT by POSTing the form-encoded password grant to the Custody auth server.
+ * Production {@link CustodyAuthPort}: exchanges a signed challenge for a JWT by
+ * POSTing the form-encoded password grant to the Custody auth server.
  */
 export class HttpCustodyAuthPort implements CustodyAuthPort {
   private readonly tokenUrl: string

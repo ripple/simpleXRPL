@@ -134,7 +134,7 @@ async function validatedBalanceXrp(
  * a first transaction doesn't race the funding (see the funding-wait note in
  * the repo's testing conventions). Idempotent — a funded account is untouched.
  *
- * Mirrors how the xrpl.js integration suite faucet-funds accounts, but targets
+ * Mirrors how the xrpl integration suite faucet-funds accounts, but targets
  * a pre-existing address (e.g. a custodian-held wallet) via `destination`
  * rather than generating a fresh wallet.
  *

@@ -1,6 +1,6 @@
 # Interface: TokenIssueParams
 
-Defined in: [verticals/token.types.ts:66](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L66)
+Defined in: [verticals/token.types.ts:68](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L68)
 
 Parameters for `Token.issue`.
 
@@ -10,7 +10,7 @@ Parameters for `Token.issue`.
 
 > `readonly` `optional` **assetScale**: `number`
 
-Defined in: [verticals/token.types.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L72)
+Defined in: [verticals/token.types.ts:74](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L74)
 
 Decimal places between display value and base units.
 
@@ -24,7 +24,7 @@ Decimal places between display value and base units.
 
 > `readonly` `optional` **flags**: [`TokenIssueFlags`](TokenIssueFlags.md)
 
-Defined in: [verticals/token.types.ts:100](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L100)
+Defined in: [verticals/token.types.ts:102](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L102)
 
 Capability flags. Any flag omitted (or the whole object omitted) takes the
 per-flag SDK default; see [TokenIssueFlags](TokenIssueFlags.md).
@@ -39,7 +39,7 @@ per-flag SDK default; see [TokenIssueFlags](TokenIssueFlags.md).
 
 > `readonly` `optional` **maximumAmount**: `string`
 
-Defined in: [verticals/token.types.ts:78](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L78)
+Defined in: [verticals/token.types.ts:80](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L80)
 
 Maximum issuable amount, in base units.
 
@@ -53,7 +53,7 @@ Uncapped — the protocol maximum (no `MaximumAmount` is set).
 
 > `readonly` **metadata**: `string` \| `MPTokenMetadata`
 
-Defined in: [verticals/token.types.ts:93](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L93)
+Defined in: [verticals/token.types.ts:95](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L95)
 
 Token metadata (required): a structured object (encoded per the XLS-89
 standard) or a raw string (UTF-8 hex-encoded as-is). Either way it is
@@ -70,7 +70,7 @@ the SDK never substitutes placeholder metadata.
 
 > `readonly` `optional` **transferFee**: `number`
 
-Defined in: [verticals/token.types.ts:84](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L84)
+Defined in: [verticals/token.types.ts:86](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L86)
 
 Transfer fee on secondary sales, as a percentage (0.5 = 0.5%, range 0–50).
 

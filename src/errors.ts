@@ -120,7 +120,7 @@ export class NetworkMismatchError extends SimpleXRPLError {
 
 /**
  * Two configured signers point at the same backend tenant — the same
- * `kind` and the same `tenantId` (§3.1). The client rejects this at init so
+ * `kind` and the same `tenantId`. The client rejects this at init so
  * one backend is never registered twice; drop the duplicate signer.
  */
 export class DuplicateSignerError extends SimpleXRPLError {
@@ -198,6 +198,57 @@ export class PalisadeApiError extends SimpleXRPLError {
     this.status = status
     this.raw = raw
     this.hint = hint
+  }
+}
+
+/**
+ * A Palisade transaction reached a terminal governance-layer failure — the
+ * approval was `REJECTED`, or Palisade marked it `FAILED` — before it ever
+ * reached the ledger. Distinct from {@link XrpldSubmitError} (an on-ledger
+ * engine failure) and {@link IntentPendingError} (still in flight): this
+ * transaction is dead and will not apply. The `status` and any `attributes`
+ * Palisade attached are preserved, since the transaction may not be readable
+ * again without credentials the caller lacks.
+ */
+export class PalisadeRejectedError extends SimpleXRPLError {
+  public readonly transactionId: string
+  public readonly status: string
+  public readonly action?: string
+  public readonly attributes: Readonly<Record<string, unknown>>
+
+  /**
+   * Construct a PalisadeRejectedError.
+   *
+   * @param transactionId - The Palisade transaction id.
+   * @param status - The terminal status (`REJECTED` or `FAILED`).
+   * @param details - The transaction's action and attributes, for diagnosis.
+   * @param details.action - The Palisade action, when present.
+   * @param details.attributes - Palisade-attached attributes, when present.
+   */
+  public constructor(
+    transactionId: string,
+    status: string,
+    details?: {
+      action?: string
+      attributes?: Readonly<Record<string, unknown>>
+    },
+  ) {
+    const context = [
+      details?.action !== undefined ? `action=${details.action}` : '',
+      ...Object.entries(details?.attributes ?? {}).map(
+        ([key, value]) => `${key}=${String(value)}`,
+      ),
+    ]
+      .filter((part) => part !== '')
+      .join(', ')
+    super(
+      `Palisade transaction ${transactionId} ${status}` +
+        (context === '' ? '' : ` (${context})`),
+    )
+    this.transactionId = transactionId
+    this.status = status
+    this.action = details?.action
+    this.attributes = details?.attributes ?? {}
   }
 }
 

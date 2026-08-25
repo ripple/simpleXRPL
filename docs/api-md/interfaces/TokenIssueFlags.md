@@ -1,6 +1,6 @@
 # Interface: TokenIssueFlags
 
-Defined in: [verticals/token.types.ts:26](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L26)
+Defined in: [verticals/token.types.ts:28](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L28)
 
 Capability flags for an MPT issuance. Every flag is optional; any flag left
 unset takes the SDK default below (a fully capable, transferable token).
@@ -12,7 +12,7 @@ These capabilities are **permanent** once the issuance is created.
 
 > `readonly` `optional` **canClawback**: `boolean`
 
-Defined in: [verticals/token.types.ts:62](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L62)
+Defined in: [verticals/token.types.ts:64](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L64)
 
 The issuer can claw back the token.
 
@@ -26,7 +26,7 @@ The issuer can claw back the token.
 
 > `readonly` `optional` **canEscrow**: `boolean`
 
-Defined in: [verticals/token.types.ts:44](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L44)
+Defined in: [verticals/token.types.ts:46](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L46)
 
 The token can be used in escrows.
 
@@ -40,7 +40,7 @@ The token can be used in escrows.
 
 > `readonly` `optional` **canLock**: `boolean`
 
-Defined in: [verticals/token.types.ts:32](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L32)
+Defined in: [verticals/token.types.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L34)
 
 The issuer can lock the token (globally or per-holder).
 
@@ -54,7 +54,7 @@ The issuer can lock the token (globally or per-holder).
 
 > `readonly` `optional` **canTrade**: `boolean`
 
-Defined in: [verticals/token.types.ts:50](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L50)
+Defined in: [verticals/token.types.ts:52](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L52)
 
 The token can be traded on the DEX.
 
@@ -68,7 +68,7 @@ The token can be traded on the DEX.
 
 > `readonly` `optional` **canTransfer**: `boolean`
 
-Defined in: [verticals/token.types.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L56)
+Defined in: [verticals/token.types.ts:58](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L58)
 
 The token can be transferred between holders.
 
@@ -82,7 +82,7 @@ The token can be transferred between holders.
 
 > `readonly` `optional` **requireAuth**: `boolean`
 
-Defined in: [verticals/token.types.ts:38](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L38)
+Defined in: [verticals/token.types.ts:40](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L40)
 
 Holders must be authorized before they can hold the token (allow-listing).
 

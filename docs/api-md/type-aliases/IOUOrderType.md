@@ -2,7 +2,7 @@
 
 > **IOUOrderType**: `"limit"` \| `"market"` \| `"fok"` \| `"passive"`
 
-Defined in: [verticals/iou.types.ts:152](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L152)
+Defined in: [verticals/iou.types.ts:154](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L154)
 
 How an offer is worked, per the API mapping's `token.buysell types` tab:
 `limit` places the order untouched; `market` fills immediately or cancels;

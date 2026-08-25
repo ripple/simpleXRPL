@@ -62,7 +62,7 @@ opaque payload. This is off by default and must be enabled per custodian with
 > transaction-level policies and approval rules operate on operation semantics,
 > and a raw payload has none to read — Ripple Custody types it `Unsafe` for
 > exactly this reason, and additionally requires the operator to enable that
-> manifest capability server-side. Protocol validation still runs (xrpl.js
+> manifest capability server-side. Protocol validation still runs (xrpl's
 > `validate()` executes on every path, so malformed transactions are still
 > rejected); what you lose is the custodian's ability to reason about intent.
 >

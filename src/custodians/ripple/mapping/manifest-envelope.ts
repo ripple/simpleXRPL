@@ -9,7 +9,7 @@ const MS_PER_SECOND = 1000
 const SECONDS_PER_MINUTE = 60
 const MINUTES_PER_HOUR = 60
 const HOURS_PER_DAY = 24
-/** Default intent lifetime; matches {@link buildProposeIntentBody}'s default (TDD §10.1). */
+/** Default intent lifetime; matches {@link buildProposeIntentBody}'s default. */
 const DEFAULT_EXPIRY_MS =
   HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND
 
@@ -37,14 +37,14 @@ export interface BuildManifestEnvelopeOptions {
 }
 
 /**
- * Build and sign a `v0_SignManifest` intent envelope (TDD §7.2 RippleRaw): the
+ * Build and sign a `v0_SignManifest` intent envelope (RippleRaw): the
  * raw-signing fallback used only for transactors Custody has no native
  * operation for. Custody signs the opaque preimage under `content.type:
- * 'Unsafe'` — the `customProperties` block built by the caller (TDD §7.5) is
+ * 'Unsafe'` — the `customProperties` block built by the caller is
  * the only readable context an approver gets, since the rest is a base64 blob.
  *
- * @param intentSigner - Signs the canonicalized request (DGE-7462).
- * @param customProperties - Human-readable approval summary (TDD §7.5).
+ * @param intentSigner - Signs the canonicalized request.
+ * @param customProperties - Human-readable approval summary.
  * @param options - The domain, author, account, and preimage to sign.
  * @returns The signed `{ request, signature }` body ready to POST to `/v1/intents`.
  */

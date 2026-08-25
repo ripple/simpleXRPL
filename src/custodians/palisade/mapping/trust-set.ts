@@ -10,7 +10,7 @@ type TrustSetBody =
   operations['TransactionsService_SubmitTrustSet']['requestBody']['content']['application/json']
 type TrustSetFlag = components['schemas']['transactionsv2TrustSetFlag']
 
-/** `[bit, xrpl.js flags-interface key, Palisade wire flag]`. */
+/** `[bit, xrpl flags-interface key, Palisade wire flag]`. */
 const FLAG_TABLE: ReadonlyArray<readonly [number, string, TrustSetFlag]> = [
   [TrustSetFlags.tfSetfAuth, 'tfSetfAuth', 'SETF_AUTH'],
   [TrustSetFlags.tfSetNoRipple, 'tfSetNoRipple', 'SET_NORIPPLE'],

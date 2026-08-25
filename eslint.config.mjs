@@ -36,7 +36,7 @@ export default [
     },
     rules: {
       // Known incompatibility between this rule and flat config (it needs an
-      // .eslintrc to resolve ignores); disabled the same way xrpl.js does.
+      // .eslintrc to resolve ignores); disabled the same way xrpl does.
       'import/no-unused-modules': 'off',
       // XRPL and custodian REST APIs use snake_case field names, so interfaces
       // modeling them are allowed to be snake_case as well as PascalCase.

@@ -2,7 +2,7 @@
 
 Defined in: [custodians/ripple/construction.ts:25](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L25)
 
-Auth construction options (TDD §3.3).
+Auth construction options.
 
 ## Properties
 
@@ -10,19 +10,9 @@ Auth construction options (TDD §3.3).
 
 > `readonly` `optional` **clientId**: `string`
 
-Defined in: [custodians/ripple/construction.ts:33](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L33)
+Defined in: [custodians/ripple/construction.ts:31](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L31)
 
 The OIDC client id to authenticate as. Defaults to `'customer_api'`.
-
-***
-
-### publicKey?
-
-> `readonly` `optional` **publicKey**: `string`
-
-Defined in: [custodians/ripple/construction.ts:29](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L29)
-
-Matching public key, base64 SPKI DER. Derived from `signingKey` if omitted.
 
 ***
 
@@ -40,6 +30,6 @@ Intent-author private key: PEM contents, or a path to a `.pem` file.
 
 > `readonly` **tokenUrl**: `string`
 
-Defined in: [custodians/ripple/construction.ts:31](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L31)
+Defined in: [custodians/ripple/construction.ts:29](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/construction.ts#L29)
 
 The Custody token endpoint URL.

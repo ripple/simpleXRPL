@@ -2,7 +2,7 @@
 
 Defined in: [ports/ledger.ts:18](https://github.com/ripple/simpleXRPL/blob/main/src/ports/ledger.ts#L18)
 
-The subset of the xrpl.js client the SDK depends on, injected so the local
+The subset of the xrpl client the SDK depends on, injected so the local
 and raw-signing paths can run against an in-memory ledger in tests.
 
 ## Properties

@@ -1,6 +1,6 @@
 # Interface: IOUTransferParams
 
-Defined in: [verticals/iou.types.ts:114](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L114)
+Defined in: [verticals/iou.types.ts:116](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L116)
 
 Parameters for [IOU.transfer](../classes/IOU.md#transfer).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.transfer](../classes/IOU.md#transfer).
 
 > `readonly` **amount**: `string`
 
-Defined in: [verticals/iou.types.ts:126](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L126)
+Defined in: [verticals/iou.types.ts:128](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L128)
 
 The amount to send, as a decimal string (e.g. `'10'`, `'0.25'`).
 
@@ -46,6 +46,6 @@ the 40-character hex form.
 
 > `readonly` **to**: `string`
 
-Defined in: [verticals/iou.types.ts:116](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L116)
+Defined in: [verticals/iou.types.ts:118](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L118)
 
 The destination r-address.

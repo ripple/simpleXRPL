@@ -418,7 +418,7 @@ describe('txToOperation', () => {
     })
 
     it('throws SignerCapabilityError for MPT-denominated legs', () => {
-      // xrpl.js's own `OfferCreate.TakerGets` type has no MPT variant, but
+      // xrpl's own `OfferCreate.TakerGets` type has no MPT variant, but
       // nothing stops untyped/dynamic input from carrying one at runtime.
       const tx = {
         TransactionType: 'OfferCreate',

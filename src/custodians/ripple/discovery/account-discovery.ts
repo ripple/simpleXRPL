@@ -145,13 +145,13 @@ function hasActivatedXrplLedger(
 
 /**
  * Discover a Custody domain's XRPL accounts as SDK {@link Account}s, keyed by
- * r-address (TDD §9.2). Two-tier: list accounts on XRPL ledgers, then join each
+ * r-address. Two-tier: list accounts on XRPL ledgers, then join each
  * to its external on-ledger address(es).
  *
  * @param client - The authenticated Custody client.
  * @param domainId - The Custody domain id to discover.
- * @param signer - The custodian these accounts back-reference (TDD §4 —
- * `Account.signer`). Callers pass the `Custodian` instance being constructed
+ * @param signer - The custodian these accounts back-reference
+ * (`Account.signer`). Callers pass the `Custodian` instance being constructed
  * (e.g. `this` from a future `RippleCustody.listAccounts()`).
  * @returns One {@link Account} per discovered external XRPL r-address.
  */

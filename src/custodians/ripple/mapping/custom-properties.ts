@@ -5,7 +5,7 @@ import type { components } from '../../../generated/custody.js'
 type StringsMap = components['schemas']['Core_StringsMap']
 
 /**
- * Render an xrpl.js `Amount`-shaped value for a human approver.
+ * Render an xrpl `Amount`-shaped value for a human approver.
  *
  * @param amount - The transaction's `Amount` field (drops string, IOU, or MPT).
  * @returns A human-readable description, or `undefined` for an unrecognized shape.

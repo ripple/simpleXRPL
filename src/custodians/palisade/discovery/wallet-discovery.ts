@@ -39,9 +39,9 @@ function isAddressedXrplWallet(
 
 /**
  * List every XRPL wallet in the organization, walking Palisade's
- * `pageToken` cursor until exhausted (TDD §9.2). Filters server-side via
+ * `pageToken` cursor until exhausted. Filters server-side via
  * `blockchain: 'XRP_LEDGER'` — Palisade's wallet listing carries the address
- * directly, so no separate address-join is needed (unlike Custody, §9.2).
+ * directly, so no separate address-join is needed (unlike Custody).
  *
  * @param client - The authenticated Palisade client.
  * @returns The raw XRPL wallets across all pages.
@@ -69,8 +69,8 @@ async function listXrplWallets(
  * r-address. Only fully provisioned wallets with an address are included.
  *
  * @param client - The authenticated Palisade client.
- * @param signer - The custodian these accounts back-reference (TDD §4 —
- * `Account.signer`). Callers pass the `Custodian` instance being constructed
+ * @param signer - The custodian these accounts back-reference
+ * (`Account.signer`). Callers pass the `Custodian` instance being constructed
  * (e.g. `this` from a future `PalisadeCustody.listAccounts()`).
  * @returns One {@link Account} per discovered XRPL wallet address.
  */

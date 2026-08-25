@@ -39,7 +39,7 @@ function resolveEnableRippling(
 }
 
 /**
- * Map an xrpl.js `TrustSet` to Custody's native operation. `tfSetNoRipple` /
+ * Map an xrpl `TrustSet` to Custody's native operation. `tfSetNoRipple` /
  * `tfClearNoRipple` map to the dedicated `enableRippling` boolean; deep-freeze
  * flags and `QualityIn`/`QualityOut` have no Custody slot.
  *

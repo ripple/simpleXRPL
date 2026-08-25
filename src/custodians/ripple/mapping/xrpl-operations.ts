@@ -37,7 +37,7 @@ export const NATIVE_XRPL_TRANSACTORS: ReadonlySet<
 ])
 
 /**
- * Map a built xrpl.js transaction to Custody's native operation shape — the
+ * Map a built xrpl transaction to Custody's native operation shape — the
  * per-transactor switch. Only the 11 transactors in
  * {@link NATIVE_XRPL_TRANSACTORS} are supported; within a supported
  * transactor, fields Custody's schema has no slot for throw

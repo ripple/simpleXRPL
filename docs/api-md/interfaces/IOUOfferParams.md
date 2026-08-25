@@ -1,6 +1,6 @@
 # Interface: IOUOfferParams
 
-Defined in: [verticals/iou.types.ts:155](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L155)
+Defined in: [verticals/iou.types.ts:157](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L157)
 
 Parameters for [IOU.buyOffer](../classes/IOU.md#buyoffer) and [IOU.sellOffer](../classes/IOU.md#selloffer).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.buyOffer](../classes/IOU.md#buyoffer) and [IOU.sellOffer](..
 
 > `readonly` **amount**: `string`
 
-Defined in: [verticals/iou.types.ts:157](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L157)
+Defined in: [verticals/iou.types.ts:159](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L159)
 
 The number of units of this IOU to buy or sell, as a decimal string.
 
@@ -24,7 +24,7 @@ The number of units of this IOU to buy or sell, as a decimal string.
 
 > `readonly` `optional` **domainID**: `string`
 
-Defined in: [verticals/iou.types.ts:172](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L172)
+Defined in: [verticals/iou.types.ts:174](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L174)
 
 Restrict the offer to a permissioned domain. Omit for the open DEX. When
 set, the offer defaults to hybrid (also crosses the open DEX) unless
@@ -42,7 +42,7 @@ Unset — the offer works the open DEX only.
 
 > `readonly` `optional` **hybrid**: `boolean`
 
-Defined in: [verticals/iou.types.ts:179](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L179)
+Defined in: [verticals/iou.types.ts:181](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L181)
 
 Whether a domain-scoped offer also works the open DEX (hybrid). Only
 meaningful together with `domainID`.
@@ -57,7 +57,7 @@ meaningful together with `domainID`.
 
 > `readonly` `optional` **offerSequence**: `number`
 
-Defined in: [verticals/iou.types.ts:181](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L181)
+Defined in: [verticals/iou.types.ts:183](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L183)
 
 A prior offer sequence to replace.
 
@@ -67,7 +67,7 @@ A prior offer sequence to replace.
 
 > `readonly` **orderType**: [`IOUOrderType`](../type-aliases/IOUOrderType.md)
 
-Defined in: [verticals/iou.types.ts:159](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L159)
+Defined in: [verticals/iou.types.ts:161](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L161)
 
 The order type.
 
@@ -77,7 +77,7 @@ The order type.
 
 > `readonly` **price**: [`IOUOfferPrice`](../type-aliases/IOUOfferPrice.md)
 
-Defined in: [verticals/iou.types.ts:164](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L164)
+Defined in: [verticals/iou.types.ts:166](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L166)
 
 What's offered in payment ([IOU.buyOffer](../classes/IOU.md#buyoffer)) or wanted in return
 ([IOU.sellOffer](../classes/IOU.md#selloffer)) — XRP, an MPT, or another IOU.

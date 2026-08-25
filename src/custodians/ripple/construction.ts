@@ -21,7 +21,7 @@ import type { CustodyHttpPort } from './transport/http-port.js'
 
 const DEFAULT_TIMEOUT_MS = 60_000
 
-/** Auth construction options (TDD §3.3). */
+/** Auth construction options. */
 export interface RippleCustodyAuthOptions {
   /** Intent-author private key: PEM contents, or a path to a `.pem` file. */
   readonly signingKey: string
@@ -49,7 +49,7 @@ export interface RippleCustodyOptions {
    * rather than a structured operation, so its transaction-level controls —
    * transfer policies, allow-lists, and approval rules keyed to operation
    * semantics — cannot inspect what is being signed. Ripple Custody types that
-   * payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+   * payload `Unsafe` for exactly this reason. xrpl protocol validation still
    * runs on every path, so malformed transactions are still rejected; what is
    * lost is the custodian's ability to reason about the transaction's intent.
    *
@@ -81,7 +81,7 @@ export interface RippleCustodyFromEnvOptions {
    * rather than a structured operation, so its transaction-level controls —
    * transfer policies, allow-lists, and approval rules keyed to operation
    * semantics — cannot inspect what is being signed. Ripple Custody types that
-   * payload `Unsafe` for exactly this reason. xrpl.js protocol validation still
+   * payload `Unsafe` for exactly this reason. xrpl protocol validation still
    * runs on every path, so malformed transactions are still rejected; what is
    * lost is the custodian's ability to reason about the transaction's intent.
    *
@@ -124,12 +124,11 @@ const PEM_MARKER = '-----BEGIN'
 const SECRETS_MANAGER_ARN_PREFIX = 'arn:aws:secretsmanager:'
 
 /**
- * The Custody signing-key secret's shape in AWS Secrets Manager, per the
- * convention used elsewhere in Ripple (e.g. cbdc-wallet, ledger-object-service):
- * a JSON object, not a raw PEM string. `user_alias` identifies which Custody
- * user this keypair belongs to; it isn't consumed here since the adapter
- * resolves its author identity from `/v1/me` instead, but is validated as
- * present so a mismatched/incomplete secret fails fast.
+ * The Custody signing-key secret's shape in AWS Secrets Manager: a JSON object,
+ * not a raw PEM string. `user_alias` identifies which Custody user this keypair
+ * belongs to; it isn't consumed here since the adapter resolves its author
+ * identity from `/v1/me` instead, but is validated as present so a
+ * mismatched/incomplete secret fails fast.
  */
 interface CustodySigningKeySecret {
   readonly private_key?: string
@@ -172,11 +171,10 @@ function parseSigningKeySecret(
 }
 
 /**
- * Fetch and parse the Custody signing-key secret from AWS Secrets Manager.
- * Follows the same client/credential pattern used elsewhere in Ripple (e.g.
- * `ledger-object-service`'s `amm-caspian-fetcher` lambda): no explicit
- * credentials passed to the client — it relies on the default AWS SDK
- * credential provider chain (env vars, shared profile, or the runtime's role).
+ * Fetch and parse the Custody signing-key secret from AWS Secrets Manager. No
+ * explicit credentials are passed to the client — it relies on the default AWS
+ * SDK credential provider chain (env vars, shared profile, or the runtime's
+ * role).
  *
  * @param secretId - The secret's ARN.
  * @returns The parsed private/public key pair.
@@ -252,7 +250,7 @@ function normalizePem(pem: string): string {
 
 /**
  * Resolve `RIPPLE_CUSTODY_AUTH_SIGNING_KEY`: literal PEM contents, a path to a
- * `.pem` file, or an AWS Secrets Manager secret ARN (TDD §3.3).
+ * `.pem` file, or an AWS Secrets Manager secret ARN.
  *
  * @param value - The env var's raw value.
  * @returns The resolved private/public key pair.
@@ -292,7 +290,7 @@ function requireEnv(
 
 /**
  * Authenticate with Custody and resolve the intent-author's identity for a
- * new RippleCustody (TDD §3.3). Account discovery and primary validation
+ * new RippleCustody. Account discovery and primary validation
  * happen after this, in {@link RippleCustody.create} — they need a
  * constructed instance to back-reference.
  *
@@ -346,7 +344,7 @@ export async function buildRippleCustodyState(
 
 /**
  * Resolve `RIPPLE_CUSTODY_*` environment variables into full
- * {@link RippleCustodyOptions} (TDD §3.3's env var table).
+ * {@link RippleCustodyOptions} (env var table).
  *
  * @param options - The primary account, optional overrides, and environment source.
  * @returns The resolved create() options.

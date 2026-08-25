@@ -11,9 +11,9 @@ coverage/
 *.tsbuildinfo
 
 # NOTE: src/generated/*.ts is intentionally NOT ignored. The OpenAPI-generated
-# custodian types are committed (custody.js convention, §7.1) so the repo is
-# self-contained and API drift shows up in PR diffs. Regenerate with
-# `npm run typegen` when bumping a vendored spec.
+# custodian types are committed so the repo is self-contained and API drift
+# shows up in PR diffs. Regenerate with `npm run typegen` when bumping a
+# vendored spec.
 
 # TypeDoc output
 docs/api/
@@ -27,7 +27,7 @@ docs/api/
 # Logs
 npm-debug.log*
 
-# Local env / secrets — never commit credentials (§12.2)
+# Local env / secrets — never commit credentials
 .env
 .env.*
 !.env.example
@@ -35,3 +35,6 @@ npm-debug.log*
 
 # Local demo / scratch scripts — not part of the published package
 demos/
+
+# Internal design artifacts — not part of the published package
+design/

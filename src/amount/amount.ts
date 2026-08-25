@@ -7,7 +7,7 @@ import { IntentValidationError } from '../errors.js'
 import type { Asset } from './asset.js'
 
 /**
- * A ledger amount in the shape xrpl.js transactions consume: XRP drops (string),
+ * A ledger amount in the shape xrpl transactions consume: XRP drops (string),
  * an issued-currency amount, or an MPT amount.
  */
 export type LedgerAmount = string | IssuedCurrencyAmount | MPTAmount

@@ -5,7 +5,7 @@ import type { components } from '../../../generated/custody.js'
 type XrplMemo = components['schemas']['Core_XrplMemo']
 
 /**
- * Map an xrpl.js transaction's memos to Custody's memo list. A direct
+ * Map an xrpl transaction's memos to Custody's memo list. A direct
  * field-for-field mapping — both sides use the same hex-encoded convention —
  * so nothing here is ever dropped or rejected.
  *

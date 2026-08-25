@@ -1,6 +1,6 @@
 # Interface: IOULockParams
 
-Defined in: [verticals/iou.types.ts:86](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L86)
+Defined in: [verticals/iou.types.ts:88](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L88)
 
 Parameters for [IOU.lock](../classes/IOU.md#lock) and [IOU.unlock](../classes/IOU.md#unlock).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.lock](../classes/IOU.md#lock) and [IOU.unlock](../classes/IO
 
 > `readonly` **holder**: `string`
 
-Defined in: [verticals/iou.types.ts:88](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L88)
+Defined in: [verticals/iou.types.ts:90](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L90)
 
 The holder's r-address whose trust line is (un)locked.
 

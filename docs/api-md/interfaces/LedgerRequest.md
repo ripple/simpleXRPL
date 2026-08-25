@@ -2,7 +2,7 @@
 
 Defined in: [ports/ledger.ts:6](https://github.com/ripple/simpleXRPL/blob/main/src/ports/ledger.ts#L6)
 
-A raw ledger request, mirroring the shape the xrpl.js client accepts.
+A raw ledger request, mirroring the shape the xrpl client accepts.
 
 ## Indexable
 

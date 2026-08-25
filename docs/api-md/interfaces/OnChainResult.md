@@ -1,6 +1,6 @@
 # Interface: OnChainResult
 
-Defined in: [domain/model.ts:286](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L286)
+Defined in: [domain/model.ts:308](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L308)
 
 The on-chain outcome of a custodian-submitted transaction, available once
 the ledger has confirmed it. Returned by OnChainObserver.awaitOnChain
@@ -12,7 +12,7 @@ and surfaced via `client.intent.awaitOnChain`.
 
 > `readonly` `optional` **mptIssuanceId**: `string`
 
-Defined in: [domain/model.ts:290](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L290)
+Defined in: [domain/model.ts:312](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L312)
 
 Present when the transaction created an MPT issuance.
 
@@ -22,6 +22,6 @@ Present when the transaction created an MPT issuance.
 
 > `readonly` **txHash**: `string`
 
-Defined in: [domain/model.ts:288](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L288)
+Defined in: [domain/model.ts:310](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L310)
 
 The XRPL transaction hash.

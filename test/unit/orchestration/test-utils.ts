@@ -44,7 +44,7 @@ export interface StepCustodian {
  *
  * @param kind - The custodian kind to report.
  * @param address - The account's r-address (must be a valid classic address —
- * the real xrpl.js protocol validator runs on every submitted step).
+ * the real xrpl protocol validator runs on every submitted step).
  * @returns The account, call log, and outcome queue.
  */
 export function makeStepCustodian(
@@ -156,7 +156,7 @@ export function fakeResult(txHash: string): SubmissionResult {
 }
 
 /**
- * Generate a valid (checksum-correct) test r-address, since the real xrpl.js
+ * Generate a valid (checksum-correct) test r-address, since the real xrpl
  * protocol validator runs on every submitted transaction.
  *
  * @returns A freshly generated classic address.

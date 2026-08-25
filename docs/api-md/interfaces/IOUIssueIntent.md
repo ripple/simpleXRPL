@@ -1,6 +1,6 @@
 # Interface: IOUIssueIntent
 
-Defined in: [verticals/iou.types.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L63)
+Defined in: [verticals/iou.types.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L65)
 
 Output attached to an [IOU.issue](../classes/IOU.md#issue) result.
 
@@ -10,7 +10,7 @@ Output attached to an [IOU.issue](../classes/IOU.md#issue) result.
 
 > `readonly` `optional` **amount**: `string`
 
-Defined in: [verticals/iou.types.ts:70](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L70)
+Defined in: [verticals/iou.types.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L72)
 
 The amount distributed to the hot wallet, or `undefined` when the issuance
 only set the trust line up.
@@ -21,6 +21,6 @@ only set the trust line up.
 
 > `readonly` **iouID**: `string`
 
-Defined in: [verticals/iou.types.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L65)
+Defined in: [verticals/iou.types.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L67)
 
 Currency code and issuer of the new IOU, e.g. `USD.rIssuer...`.

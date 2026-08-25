@@ -91,6 +91,26 @@ describe('PalisadeHttpClient', () => {
     )
   })
 
+  it('preserves the underlying API error (status, body, hint) as the auth error cause', async () => {
+    // A 401 after refresh often carries a diagnostic message; the auth error
+    // must not discard it.
+    const { auth } = makeAuth()
+    const http = new FakeHttpPort(() =>
+      status(401, { message: 'token expired' }),
+    )
+    const client = new PalisadeHttpClient({ baseUrl: BASE_URL, http, auth })
+
+    const error = await client
+      .get('/v2/thing')
+      .catch((caught: unknown) => caught)
+    expect(error).toBeInstanceOf(PalisadeAuthError)
+    const cause = (error as PalisadeAuthError).cause
+    expect(cause).toBeInstanceOf(PalisadeApiError)
+    expect((cause as PalisadeApiError).status).toBe(401)
+    expect((cause as PalisadeApiError).hint).toBe('token expired')
+    expect((cause as PalisadeApiError).raw).toBe('{"message":"token expired"}')
+  })
+
   it('maps a 4xx body to PalisadeApiError preserving the rpcStatus message', async () => {
     const { auth } = makeAuth()
     const http = new FakeHttpPort(() =>

@@ -4,7 +4,7 @@ import type {
   SubmissionHandle,
   SubmissionResult,
 } from '../../domain/index.js'
-import { IntentPendingError, SimpleXRPLError } from '../../errors.js'
+import { IntentPendingError, PalisadeRejectedError } from '../../errors.js'
 import type { components } from '../../generated/palisade.js'
 import type { PollSchedule } from '../poll-schedule.js'
 import { pollDelayMs } from '../poll-schedule.js'
@@ -111,7 +111,7 @@ export class PalisadeTxTracker {
    * @param submitted - The initial submit response.
    * @param timeoutMs - Optional per-call timeout override.
    * @returns The terminal transaction.
-   * @throws {@link IntentPendingError} on timeout; {@link SimpleXRPLError} on failure.
+   * @throws {@link IntentPendingError} on timeout; {@link PalisadeRejectedError} on a REJECTED/FAILED status.
    */
   public async pollUntilTerminal(
     base: string,
@@ -135,7 +135,7 @@ export class PalisadeTxTracker {
    * @param submitted - The initial raw-sign response.
    * @param timeoutMs - Optional per-call timeout override.
    * @returns The transaction carrying the signed blob.
-   * @throws {@link IntentPendingError} on timeout; {@link SimpleXRPLError} on failure.
+   * @throws {@link IntentPendingError} on timeout; {@link PalisadeRejectedError} on a REJECTED/FAILED status.
    */
   public async pollUntilSigned(
     base: string,
@@ -171,7 +171,7 @@ export class PalisadeTxTracker {
    * @param options.timeoutMs - Optional per-call timeout override.
    * @param options.isDone - Predicate marking the desired terminal state.
    * @returns The transaction once `isDone` holds.
-   * @throws {@link IntentPendingError} on timeout; {@link SimpleXRPLError} on failure.
+   * @throws {@link IntentPendingError} on timeout; {@link PalisadeRejectedError} on a REJECTED/FAILED status.
    */
   private async pollUntil(
     base: string,
@@ -189,19 +189,14 @@ export class PalisadeTxTracker {
     let current = submitted
     for (let attempt = 0; ; attempt += 1) {
       if (TERMINAL_FAILURE.has(current.status)) {
-        // Include whatever context Palisade attached. The bare
-        // "<id> REJECTED" gives the caller nothing to act on — not which
-        // operation, not why — and the transaction is only readable again
-        // through credentials the caller may not have.
-        const attributes = Object.entries(current.attributes ?? {})
-          .map(([key, value]) => `${key}=${value}`)
-          .join(', ')
-        const context = [`action=${current.action}`, attributes]
-          .filter((part) => part !== '')
-          .join(', ')
-        throw new SimpleXRPLError(
-          `Palisade transaction ${current.id} ${current.status} (${context})`,
-        )
+        // A typed, catchable rejection carrying whatever context Palisade
+        // attached. The bare "<id> REJECTED" gives the caller nothing to act
+        // on — not which operation, not why — and the transaction is only
+        // readable again through credentials the caller may not have.
+        throw new PalisadeRejectedError(current.id, current.status, {
+          action: current.action,
+          attributes: current.attributes ?? undefined,
+        })
       }
       if (isDone(current)) {
         return current

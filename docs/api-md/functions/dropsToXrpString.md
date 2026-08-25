@@ -6,7 +6,7 @@ Defined in: [reads/read-helpers.ts:75](https://github.com/ripple/simpleXRPL/blob
 
 Convert a drops string to a decimal XRP string, exactly.
 
-Deliberately not `String(dropsToXrp(drops))`: xrpl.js's `dropsToXrp` returns
+Deliberately not `String(dropsToXrp(drops))`: xrpl's `dropsToXrp` returns
 a JS `number`, so balances above 2^53 drops (~9.007e9 XRP) lose precision
 *silently* — `50000000000000001` drops would read back as `50000000000` XRP,
 dropping a whole drop with no error. Balances at that scale are real

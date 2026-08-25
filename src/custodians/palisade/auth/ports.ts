@@ -1,5 +1,5 @@
 /**
- * Injected auth I/O port for the Palisade adapter (TDD §7.1).
+ * Injected auth I/O port for the Palisade adapter.
  *
  * Palisade authenticates via an OAuth2 client-credentials exchange —
  * `POST /v2/credentials/oauth/token` with `{ clientId, clientSecret }` returns
@@ -8,7 +8,7 @@
  * counterpart) so the token lifecycle is exercised offline with a fake, same
  * discipline as the Custody auth port.
  *
- * NOTE: the TDD's config table names this "PALISADE_API_KEY", but the actual
+ * NOTE: the design's config table names this "PALISADE_API_KEY", but the actual
  * generated API is a client-credentials exchange, not a static API-key header.
  * This port and its HTTP-backed implementation follow the real spec.
  */

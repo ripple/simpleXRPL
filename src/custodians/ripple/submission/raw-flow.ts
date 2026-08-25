@@ -128,7 +128,7 @@ async function fetchManifestSignature(
 }
 
 /**
- * Run the raw-signing path (TDD §7.2 RippleRaw): resolve the account's public
+ * Run the raw-signing path (RippleRaw): resolve the account's public
  * key, build and sign the preimage, submit the `v0_SignManifest` intent, poll
  * it to completion, then reassemble the fully signed transaction.
  *

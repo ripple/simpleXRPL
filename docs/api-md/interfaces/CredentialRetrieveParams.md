@@ -1,6 +1,6 @@
 # Interface: CredentialRetrieveParams
 
-Defined in: [verticals/credential.types.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L72)
+Defined in: [verticals/credential.types.ts:74](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L74)
 
 Parameters for [Credential.retrieve](../classes/Credential.md#retrieve).
 
@@ -10,7 +10,7 @@ Parameters for [Credential.retrieve](../classes/Credential.md#retrieve).
 
 > `readonly` `optional` **account**: `string`
 
-Defined in: [verticals/credential.types.ts:82](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L82)
+Defined in: [verticals/credential.types.ts:84](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L84)
 
 The holder (subject).
 
@@ -26,7 +26,7 @@ The primary signer's account.
 
 > `readonly` **credType**: `string`
 
-Defined in: [verticals/credential.types.ts:74](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L74)
+Defined in: [verticals/credential.types.ts:76](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L76)
 
 The credential type.
 
@@ -36,6 +36,6 @@ The credential type.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/credential.types.ts:76](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L76)
+Defined in: [verticals/credential.types.ts:78](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L78)
 
 The issuer r-address.

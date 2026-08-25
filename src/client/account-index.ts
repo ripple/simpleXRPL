@@ -7,7 +7,7 @@ import {
 
 /**
  * Reject two signers bound to the same backend tenant — the same `kind` and
- * the same defined `tenantId` (§3.1). Signers without a `tenantId` (e.g. local
+ * the same defined `tenantId`. Signers without a `tenantId` (e.g. local
  * wallet holders) have no tenant to collide on, so any number may coexist.
  *
  * @param signers - The registered custodians.

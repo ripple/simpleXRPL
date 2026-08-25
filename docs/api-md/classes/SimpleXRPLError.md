@@ -22,6 +22,7 @@ typed: distinct underlying failure modes are not flattened into one class.
 - [`CustodyApiError`](CustodyApiError.md)
 - [`PalisadeAuthError`](PalisadeAuthError.md)
 - [`PalisadeApiError`](PalisadeApiError.md)
+- [`PalisadeRejectedError`](PalisadeRejectedError.md)
 - [`IntentPendingError`](IntentPendingError.md)
 - [`XrpldSubmitError`](XrpldSubmitError.md)
 - [`MultiStepFailureError`](MultiStepFailureError.md)

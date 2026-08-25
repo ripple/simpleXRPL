@@ -1,6 +1,6 @@
 # Interface: LocalSignerFromEnvOptions
 
-Defined in: [custodians/local/local-signer.ts:32](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L32)
+Defined in: [custodians/local/local-signer.ts:33](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L33)
 
 Options for [LocalSigner.fromEnv](../classes/LocalSigner.md#fromenv).
 
@@ -10,7 +10,7 @@ Options for [LocalSigner.fromEnv](../classes/LocalSigner.md#fromenv).
 
 > `readonly` `optional` **env**: `Readonly`\<`Record`\<`string`, `undefined` \| `string`\>\>
 
-Defined in: [custodians/local/local-signer.ts:37](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L37)
+Defined in: [custodians/local/local-signer.ts:38](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L38)
 
 Environment source to scan. Defaults to `process.env`.
 
@@ -20,6 +20,6 @@ Environment source to scan. Defaults to `process.env`.
 
 > `readonly` `optional` **primary**: `string`
 
-Defined in: [custodians/local/local-signer.ts:34](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L34)
+Defined in: [custodians/local/local-signer.ts:35](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/local/local-signer.ts#L35)
 
 The primary account's r-address. Defaults to the first seed in scan order.

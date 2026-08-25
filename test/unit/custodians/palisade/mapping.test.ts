@@ -152,8 +152,8 @@ describe('txToNativeSubmit — TrustSet', () => {
     })
   })
 
-  it('reads flags from the boolean flags-interface object xrpl.js also allows', () => {
-    // xrpl.js accepts `Flags` as either a bitmask or a booleans object; both
+  it('reads flags from the boolean flags-interface object xrpl also allows', () => {
+    // xrpl accepts `Flags` as either a bitmask or a booleans object; both
     // must map to the same Palisade flag list.
     const tx: TrustSet = {
       TransactionType: 'TrustSet',

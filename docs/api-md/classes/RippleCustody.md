@@ -1,8 +1,8 @@
 # Class: RippleCustody
 
-Defined in: [custodians/ripple/ripple-custody.ts:55](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L55)
+Defined in: [custodians/ripple/ripple-custody.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L65)
 
-Ripple Custody adapter (TDD §3.3, §7.2): wraps the Custody REST API v1.
+Ripple Custody adapter: wraps the Custody REST API v1.
 Native transactors (NATIVE\_XRPL\_TRANSACTORS) submit as a governed
 `v0_CreateTransactionOrder` intent; everything else falls back to the
 opt-in raw-signing path (`v0_SignManifest` + `Unsafe`) when
@@ -19,7 +19,7 @@ opt-in raw-signing path (`v0_SignManifest` + `Unsafe`) when
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md) = `'ripple-custody'`
 
-Defined in: [custodians/ripple/ripple-custody.ts:57](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L57)
+Defined in: [custodians/ripple/ripple-custody.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L67)
 
 This custodian wraps the Custody REST API.
 
@@ -35,7 +35,7 @@ This custodian wraps the Custody REST API.
 
 > **get** **primary**(): [`AccountRef`](../interfaces/AccountRef.md)
 
-Defined in: [custodians/ripple/ripple-custody.ts:80](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L80)
+Defined in: [custodians/ripple/ripple-custody.ts:90](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L90)
 
 The primary account this custodian owns.
 
@@ -59,7 +59,7 @@ The custodian's primary account; it owns this account.
 
 > **get** **tenantId**(): `string`
 
-Defined in: [custodians/ripple/ripple-custody.ts:71](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L71)
+Defined in: [custodians/ripple/ripple-custody.ts:81](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L81)
 
 The Custody domain this custodian is bound to — the tenant two instances
 collide on, which the client rejects at init.
@@ -73,7 +73,7 @@ The domain id.
 The backend tenant this custodian is bound to — a Custody domain id, a
 Palisade org/client identity, etc. Two signers with the same `kind` and
 the same `tenantId` point at the same backend tenant, which the client
-rejects at init (§3.1). `undefined` for backends with no tenant notion
+rejects at init. `undefined` for backends with no tenant notion
 (e.g. a local wallet holder), so multiple of those may coexist freely.
 
 #### Implementation of
@@ -86,7 +86,7 @@ rejects at init (§3.1). `undefined` for backends with no tenant notion
 
 > **capabilities**(): [`SignerCapabilities`](../interfaces/SignerCapabilities.md)
 
-Defined in: [custodians/ripple/ripple-custody.ts:124](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L124)
+Defined in: [custodians/ripple/ripple-custody.ts:133](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L133)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -106,7 +106,7 @@ This custodian's capabilities.
 
 > **listAccounts**(): `Promise`\<[`Account`](../interfaces/Account.md)[]\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:137](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L137)
+Defined in: [custodians/ripple/ripple-custody.ts:146](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L146)
 
 The full account list, discovered at construction.
 
@@ -126,7 +126,7 @@ The discovered accounts.
 
 > **observeIntent**(`intentId`): [`SubmissionHandle`](../interfaces/SubmissionHandle.md)
 
-Defined in: [custodians/ripple/ripple-custody.ts:271](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L271)
+Defined in: [custodians/ripple/ripple-custody.ts:285](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L285)
 
 Build a handle over an intent this custodian previously created.
 
@@ -152,7 +152,7 @@ A handle to poll or wait on the intent's outcome.
 
 > **pollMptIssuanceId**(`intentId`): `Promise`\<`string`\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:258](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L258)
+Defined in: [custodians/ripple/ripple-custody.ts:272](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L272)
 
 Convenience wrapper for `Token.issue`: polls until the transaction is
 confirmed and returns the MPT issuance ID, or an empty string on timeout.
@@ -175,7 +175,7 @@ The MPT issuance ID, or an empty string on timeout.
 
 > **pollTransactionOnChain**(`intentId`, `timeoutMs`?): `Promise`\<`undefined` \| [`OnChainResult`](../interfaces/OnChainResult.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:239](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L239)
+Defined in: [custodians/ripple/ripple-custody.ts:253](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L253)
 
 Poll the Custody transaction layer until the on-chain transaction linked to
 `intentId` is confirmed, then return its MPT issuance ID. Returns an empty
@@ -203,7 +203,7 @@ The on-chain result once confirmed, or `undefined` on timeout.
 
 > **sign**(`tx`, `ctx`): `Promise`\<[`SignedEnvelope`](../interfaces/SignedEnvelope.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:153](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L153)
+Defined in: [custodians/ripple/ripple-custody.ts:162](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L162)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -235,7 +235,7 @@ raw signing is disabled.
 
 > **submitAndWait**(`tx`, `ctx`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:175](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L175)
+Defined in: [custodians/ripple/ripple-custody.ts:189](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L189)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -278,7 +278,7 @@ the raw path.
 
 > **submitAsync**(`tx`, `ctx`): `Promise`\<[`SubmissionHandle`](../interfaces/SubmissionHandle.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:213](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L213)
+Defined in: [custodians/ripple/ripple-custody.ts:227](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L227)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -314,7 +314,7 @@ submission there is not yet supported (use `submitAndWait`).
 
 > `static` **create**(`options`): `Promise`\<[`RippleCustody`](RippleCustody.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:95](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L95)
+Defined in: [custodians/ripple/ripple-custody.ts:105](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L105)
 
 Authenticate, resolve the intent-author's identity, and discover the
 domain's XRPL accounts.
@@ -346,10 +346,9 @@ to `options.domainId`.
 
 > `static` **fromEnv**(`options`): `Promise`\<[`RippleCustody`](RippleCustody.md)\>
 
-Defined in: [custodians/ripple/ripple-custody.ts:113](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L113)
+Defined in: [custodians/ripple/ripple-custody.ts:122](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/ripple/ripple-custody.ts#L122)
 
-Build a RippleCustody from `RIPPLE_CUSTODY_*` environment variables (TDD
-§3.3).
+Build a RippleCustody from `RIPPLE_CUSTODY_*` environment variables.
 
 #### Parameters
 

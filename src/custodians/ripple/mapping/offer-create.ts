@@ -24,7 +24,7 @@ const UNSUPPORTED_OFFER_CREATE_FLAGS: ReadonlyArray<readonly [number, string]> =
   ]
 
 /**
- * Map an xrpl.js `OfferCreate` to Custody's native operation. Custody has no
+ * Map an xrpl `OfferCreate` to Custody's native operation. Custody has no
  * slot for `Expiration`, `OfferSequence`, `DomainID`, `tfPassive`, `tfHybrid`,
  * or MPT-denominated legs.
  *

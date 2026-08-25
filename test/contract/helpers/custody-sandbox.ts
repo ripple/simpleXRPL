@@ -2,7 +2,7 @@ import { contractSuite, missingEnv } from './contract-gate.js'
 
 /**
  * The environment variables a Custody sandbox contract run needs. The first
- * four are the same knobs `RippleCustody.fromEnv` reads (TDD §3.3);
+ * four are the same knobs `RippleCustody.fromEnv` reads;
  * `RIPPLE_CUSTODY_PRIMARY_ADDRESS` is the contract harness's own — the primary
  * account's r-address, which `fromEnv` takes as an argument rather than from
  * the environment.

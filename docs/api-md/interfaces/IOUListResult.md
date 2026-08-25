@@ -1,6 +1,6 @@
 # Interface: IOUListResult
 
-Defined in: [verticals/iou.types.ts:250](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L250)
+Defined in: [verticals/iou.types.ts:252](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L252)
 
 Result of [IOU.list](../classes/IOU.md#list): `ious[i]` corresponds to `data[i]`.
 
@@ -10,7 +10,7 @@ Result of [IOU.list](../classes/IOU.md#list): `ious[i]` corresponds to `data[i]`
 
 > `readonly` **data**: readonly [`IOUTrustLine`](IOUTrustLine.md)[]
 
-Defined in: [verticals/iou.types.ts:254](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L254)
+Defined in: [verticals/iou.types.ts:256](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L256)
 
 The shaped trust lines.
 
@@ -20,6 +20,6 @@ The shaped trust lines.
 
 > `readonly` **ious**: readonly `string`[]
 
-Defined in: [verticals/iou.types.ts:252](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L252)
+Defined in: [verticals/iou.types.ts:254](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L254)
 
 The `iouID` of each line, composable into the write operations.

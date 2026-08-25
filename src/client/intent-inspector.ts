@@ -22,7 +22,7 @@ function isIntentObserver(
 
 /**
  * Read-only observation of custodian governance intents the SDK previously
- * created (TDD §10.4): resume polling or waiting on an intent by id after its
+ * created: resume polling or waiting on an intent by id after its
  * original submission has already returned (e.g. after a `submitAndWait`
  * timed out with an {@link IntentPendingError}, or a `submitAsync` handle was
  * not retained). The SDK is a proposer/observer only — it never approves,

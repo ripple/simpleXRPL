@@ -1,6 +1,6 @@
 # Interface: AcceptedCredential
 
-Defined in: [verticals/domain.types.ts:19](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L19)
+Defined in: [verticals/domain.types.ts:21](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L21)
 
 A credential accepted by a permissioned domain.
 
@@ -10,7 +10,7 @@ A credential accepted by a permissioned domain.
 
 > `readonly` **credType**: `string`
 
-Defined in: [verticals/domain.types.ts:23](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L23)
+Defined in: [verticals/domain.types.ts:25](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L25)
 
 The credential type (plain string; hex-encoded on the ledger).
 
@@ -20,6 +20,6 @@ The credential type (plain string; hex-encoded on the ledger).
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/domain.types.ts:21](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L21)
+Defined in: [verticals/domain.types.ts:23](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/domain.types.ts#L23)
 
 The issuer r-address.

@@ -1,5 +1,5 @@
 /**
- * The external-signer seam (TDD §9): a key held outside the process — in a KMS
+ * The external-signer seam: a key held outside the process — in a KMS
  * (AWS/GCP) or an HSM (PKCS#11, CloudHSM) — that signs on request without ever
  * releasing the private key. Adapters translate their provider's native calls
  * to this narrow port; the SDK owns the XRPL-specific assembly (signing digest,

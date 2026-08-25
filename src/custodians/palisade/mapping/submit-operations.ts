@@ -64,7 +64,7 @@ export interface NativeSubmit {
 }
 
 /**
- * Map a built xrpl.js transaction to its Palisade native submission. Fields
+ * Map a built xrpl transaction to its Palisade native submission. Fields
  * with no native slot throw {@link SignerCapabilityError} rather than being
  * dropped; the custodian turns that into the raw path when enabled.
  *

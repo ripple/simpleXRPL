@@ -176,6 +176,19 @@ describe('ExternalSigner.sign', () => {
     ).rejects.toBeInstanceOf(SignerCapabilityError)
   })
 
+  it('refuses a fee intent rather than silently dropping it', async () => {
+    // Like Local, the transaction is autofilled before sign(), so a fee intent
+    // would be overwritten — reject it rather than drop a financial control.
+    const custody = await ExternalSigner.create({ signer: fakePort() })
+    const tx = paymentFrom(custody.primary.address)
+    await expect(
+      custody.sign(tx, {
+        ...contextFor(custody.primary.address, ledgerStub()),
+        fee: { maxFeeDrops: '5000' },
+      }),
+    ).rejects.toBeInstanceOf(SignerCapabilityError)
+  })
+
   it('signs with an ed25519 key (message signed directly, no digest)', async () => {
     const custody = await ExternalSigner.create({ signer: fakeEd25519Port() })
     expect(custody.primary.address).toBe(deriveAddress(ED_PUB_HEX))

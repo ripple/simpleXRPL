@@ -13,7 +13,7 @@ import type {
   SubmissionResult,
 } from '../../domain/index.js'
 import { XrpldSubmitError } from '../../errors.js'
-import { assertDryRunHonored } from '../context-guards.js'
+import { assertDryRunHonored, assertFeeHonored } from '../context-guards.js'
 import { engineResultOf } from '../on-ledger-result.js'
 
 import type { ExternalSignerPort } from './external-signer-port.js'
@@ -37,7 +37,7 @@ export interface ExternalSignerOptions {
  * it is a local-family signer — it builds and signs a transaction, then submits
  * it through the shared ledger — except the private key never enters the
  * process: the SDK hands a digest to the external signer and assembles the
- * result (TDD §9). Signs any transactor via the raw path; no native operations.
+ * result. Signs any transactor via the raw path; no native operations.
  */
 export class ExternalSigner implements Custodian {
   /** This custodian signs with an external key (KMS/HSM). */
@@ -104,10 +104,11 @@ export class ExternalSigner implements Custodian {
    * Sign a transaction with the external key.
    *
    * @param tx - The autofilled transaction to sign.
-   * @param ctx - The submission context; only its dry-run flag is read, since
-   * this signer owns one key.
+   * @param ctx - The submission context; only its dry-run and fee controls are
+   * read, since this signer owns one key.
    * @returns The signed envelope (blob + hash).
-   * @throws {@link SignerCapabilityError} if the context asks for a dry-run.
+   * @throws {@link SignerCapabilityError} if the context asks for a dry-run or
+   *   carries a fee intent.
    */
   public async sign(
     tx: Transaction,
@@ -117,6 +118,14 @@ export class ExternalSigner implements Custodian {
       ctx,
       'ExternalSigner',
       'Drop dryRun, or route the pre-flight through a RippleCustody account.',
+    )
+    // The transaction reaching sign() is already autofilled by the pipeline, so
+    // a fee intent here would be silently overwritten — reject it rather than
+    // drop a financial control. (Honoring it belongs upstream, at autofill.)
+    assertFeeHonored(
+      ctx,
+      'ExternalSigner',
+      'Drop fee and let autofill price the transaction, or route it through a RippleCustody account.',
     )
     return signTransactionExternally(tx, this.publicKeyHex, this.signer)
   }

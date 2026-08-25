@@ -6,7 +6,7 @@ type ApiAccount = components['schemas']['Core_ApiAccount']
 
 /**
  * Fetch a Custody account's XRPL public key — needed to build the
- * `SigningPubKey`-stamped preimage for raw signing (TDD §7.2 RippleRaw).
+ * `SigningPubKey`-stamped preimage for raw signing (RippleRaw).
  * Custody's vault key information is a union across key strategies, and a
  * key's `publicKey` is itself optional (absent until the vault key is
  * provisioned), so both are narrowed defensively.

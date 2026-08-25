@@ -1,6 +1,6 @@
 # Interface: CredentialListParams
 
-Defined in: [verticals/credential.types.ts:92](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L92)
+Defined in: [verticals/credential.types.ts:94](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L94)
 
 Parameters for [Credential.list](../classes/Credential.md#list).
 
@@ -10,7 +10,7 @@ Parameters for [Credential.list](../classes/Credential.md#list).
 
 > `readonly` `optional` **account**: `string`
 
-Defined in: [verticals/credential.types.ts:104](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L104)
+Defined in: [verticals/credential.types.ts:106](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L106)
 
 The account whose credentials to list.
 
@@ -26,7 +26,7 @@ The primary signer's account.
 
 > `readonly` `optional` **role**: [`CredentialRole`](../type-aliases/CredentialRole.md)
 
-Defined in: [verticals/credential.types.ts:98](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L98)
+Defined in: [verticals/credential.types.ts:100](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/credential.types.ts#L100)
 
 Query as `holder` or `issuer`.
 

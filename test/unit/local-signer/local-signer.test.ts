@@ -172,6 +172,21 @@ describe('LocalSigner', () => {
         }),
       ).rejects.toBeInstanceOf(SignerCapabilityError)
     })
+
+    it('refuses a fee intent rather than silently dropping it', async () => {
+      // The pipeline autofills before sign(), so a fee here would be overwritten
+      // — a dropped maxFeeDrops is a financial control that quietly stopped
+      // applying, so reject it loudly instead.
+      const wallet = Wallet.generate()
+      const signer = LocalSigner.fromSeed(wallet.seed as string)
+      const tx = paymentFrom(wallet.classicAddress, wallet.classicAddress)
+      await expect(
+        signer.sign(tx, {
+          ...contextFor(wallet.classicAddress),
+          fee: { maxFeeDrops: '5000' },
+        }),
+      ).rejects.toBeInstanceOf(SignerCapabilityError)
+    })
   })
 
   describe('submission', () => {

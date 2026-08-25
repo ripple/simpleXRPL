@@ -28,7 +28,7 @@ export interface RunDryRunOptions {
 }
 
 /**
- * Pre-flight an intent payload through `POST /v1/intents/dry-run` (TDD §5.2):
+ * Pre-flight an intent payload through `POST /v1/intents/dry-run`:
  * runs Custody's own schema, policy, and fee/balance checks without creating a
  * real intent (no id consumed, no approvers notified). Unsigned — dry-run has
  * no `signature` field in its own right.

@@ -1,6 +1,6 @@
 /**
- * Whether a named xrpl.js flag is set — accepting either a numeric bitmask or
- * the boolean flags-interface object xrpl.js also allows. Mirrors the Custody
+ * Whether a named xrpl flag is set — accepting either a numeric bitmask or
+ * the boolean flags-interface object xrpl also allows. Mirrors the Custody
  * adapter's helper; kept local so the two adapters stay decoupled.
  *
  * @param flags - The transaction's `Flags` field.
@@ -27,7 +27,7 @@ export function hasFlag(
 /**
  * Collect every flag whose bit is set, in table order.
  *
- * Palisade's wire flag names differ from xrpl.js's boolean-interface keys
+ * Palisade's wire flag names differ from xrpl's boolean-interface keys
  * (`SET_FREEZE` vs `tfSetFreeze`), so the table carries both: the interface key
  * is what the object form of `Flags` is looked up under, and the wire name is
  * what gets emitted. Conflating the two silently drops every object-form flag.

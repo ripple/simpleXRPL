@@ -51,7 +51,7 @@ export interface SubmitRequest {
  *
  * A stable idempotency id is generated here (a time-ordered UUIDv7) unless the
  * caller supplied one, so it is fixed before the intent is created, surfaced on
- * the result, and reused verbatim on a retry (§8) — resolving to the same
+ * the result, and reused verbatim on a retry — resolving to the same
  * intent instead of a duplicate.
  *
  * @param host - The client subset the pipeline runs against.
@@ -72,7 +72,7 @@ export async function submitTransaction(
 /**
  * Like {@link submitTransaction}, but returns a {@link SubmissionHandle} as
  * soon as the custodian accepts the intent instead of blocking to a terminal
- * state (TDD §10.2). For a governed custodian the handle observes the pending
+ * state. For a governed custodian the handle observes the pending
  * intent; for Local it wraps the already-submitted transaction.
  *
  * @param host - The client subset the pipeline runs against.

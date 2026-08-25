@@ -6,7 +6,7 @@ import { toDestination } from './destination.js'
 import { unsupported } from './unsupported.js'
 
 /**
- * Map an xrpl.js `DepositPreauth` to Custody's native `DepositPreauth`
+ * Map an xrpl `DepositPreauth` to Custody's native `DepositPreauth`
  * operation. Custody only models the classic address-based
  * `Authorize`/`Unauthorize`; the credential-based variants have no native
  * slot.

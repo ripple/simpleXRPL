@@ -1,5 +1,5 @@
 /**
- * Palisade authentication layer (DGE-7468).
+ * Palisade authentication layer.
  *
  * Internal to the PalisadeCustody adapter; not part of the public SDK surface
  * (the public error classes are re-exported from the package root instead).

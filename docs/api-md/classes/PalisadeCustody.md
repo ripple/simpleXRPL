@@ -1,6 +1,6 @@
 # Class: PalisadeCustody
 
-Defined in: [custodians/palisade/palisade-custody.ts:55](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L55)
+Defined in: [custodians/palisade/palisade-custody.ts:57](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L57)
 
 The Palisade custodian: signs and submits through Palisade's vault/wallet API.
 A transactor Palisade models natively uses its `Submit*`/transfer op; anything
@@ -18,7 +18,7 @@ handle to poll, wait on, or cancel.
 
 > `readonly` **api**: [`PalisadeApi`](PalisadeApi.md)
 
-Defined in: [custodians/palisade/palisade-custody.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L65)
+Defined in: [custodians/palisade/palisade-custody.ts:67](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L67)
 
 Low-level, typed access to the full Palisade v2 API — a secondary surface
 beside the first-class verticals, for operations simpleXRPL doesn't model.
@@ -29,7 +29,7 @@ beside the first-class verticals, for operations simpleXRPL doesn't model.
 
 > `readonly` **kind**: [`CustodianKind`](../type-aliases/CustodianKind.md) = `'palisade-custody'`
 
-Defined in: [custodians/palisade/palisade-custody.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L56)
+Defined in: [custodians/palisade/palisade-custody.ts:58](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L58)
 
 Which backend this custodian adapts.
 
@@ -43,7 +43,7 @@ Which backend this custodian adapts.
 
 > `readonly` **tenantId**: `string`
 
-Defined in: [custodians/palisade/palisade-custody.ts:59](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L59)
+Defined in: [custodians/palisade/palisade-custody.ts:61](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L61)
 
 The Palisade API client identity — the tenant two instances collide on.
 
@@ -59,7 +59,7 @@ The Palisade API client identity — the tenant two instances collide on.
 
 > **get** **primary**(): [`AccountRef`](../interfaces/AccountRef.md)
 
-Defined in: [custodians/palisade/palisade-custody.ts:103](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L103)
+Defined in: [custodians/palisade/palisade-custody.ts:105](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L105)
 
 The primary account this custodian owns.
 
@@ -85,7 +85,7 @@ The custodian's primary account; it owns this account.
 
 > **capabilities**(): [`SignerCapabilities`](../interfaces/SignerCapabilities.md)
 
-Defined in: [custodians/palisade/palisade-custody.ts:169](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L169)
+Defined in: [custodians/palisade/palisade-custody.ts:171](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L171)
 
 What this custodian can sign, consulted at dispatch time.
 
@@ -105,7 +105,7 @@ This custodian's signer capabilities.
 
 > **listAccounts**(): `Promise`\<[`Account`](../interfaces/Account.md)[]\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:181](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L181)
+Defined in: [custodians/palisade/palisade-custody.ts:183](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L183)
 
 The full account list, discovered at construction.
 
@@ -125,7 +125,7 @@ The accounts this custodian owns.
 
 > **sign**(`tx`, `ctx`): `Promise`\<[`SignedEnvelope`](../interfaces/SignedEnvelope.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:200](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L200)
+Defined in: [custodians/palisade/palisade-custody.ts:203](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L203)
 
 Produce a signed envelope for a transaction (raw-signing paths).
 
@@ -144,7 +144,8 @@ The signed envelope.
 
 #### Throws
 
-[SignerCapabilityError](SignerCapabilityError.md) if the account exposes no public key.
+[SignerCapabilityError](SignerCapabilityError.md) if raw signing is disabled, or the
+  account exposes no public key.
 
 #### Implementation of
 
@@ -156,7 +157,7 @@ The signed envelope.
 
 > **submitAndWait**(`tx`, `ctx`): `Promise`\<[`SubmissionResult`](../type-aliases/SubmissionResult.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:250](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L250)
+Defined in: [custodians/palisade/palisade-custody.ts:260](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L260)
 
 Submit and block until the transaction reaches a terminal state. The
 custodian returns the transport result; the vertical attaches the typed
@@ -189,7 +190,7 @@ The submission result.
 
 > **submitAsync**(`tx`, `ctx`): `Promise`\<[`SubmissionHandle`](../interfaces/SubmissionHandle.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:286](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L286)
+Defined in: [custodians/palisade/palisade-custody.ts:296](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L296)
 
 Submit and return a handle once the backend has accepted the intent.
 
@@ -220,7 +221,7 @@ A handle over the pending Palisade transaction.
 
 > `static` **create**(`config`): `Promise`\<[`PalisadeCustody`](PalisadeCustody.md)\>
 
-Defined in: [custodians/palisade/palisade-custody.ts:121](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L121)
+Defined in: [custodians/palisade/palisade-custody.ts:123](https://github.com/ripple/simpleXRPL/blob/main/src/custodians/palisade/palisade-custody.ts#L123)
 
 Build a Palisade custodian: exchange credentials, discover the org's XRPL
 wallets, and bind the configured primary.

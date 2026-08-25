@@ -1,6 +1,6 @@
 # Interface: IOURetrieveParams
 
-Defined in: [verticals/iou.types.ts:214](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L214)
+Defined in: [verticals/iou.types.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L216)
 
 Parameters for [IOU.retrieve](../classes/IOU.md#retrieve).
 
@@ -14,7 +14,7 @@ Parameters for [IOU.retrieve](../classes/IOU.md#retrieve).
 
 > `readonly` `optional` **account**: `string`
 
-Defined in: [verticals/iou.types.ts:222](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L222)
+Defined in: [verticals/iou.types.ts:224](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L224)
 
 The holder account to read from.
 
@@ -30,7 +30,7 @@ The primary signer's account.
 
 > `readonly` **issuer**: `string`
 
-Defined in: [verticals/iou.types.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L216)
+Defined in: [verticals/iou.types.ts:218](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L218)
 
 The IOU issuer's r-address.
 

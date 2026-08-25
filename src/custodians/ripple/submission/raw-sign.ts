@@ -14,8 +14,8 @@ function base64ToUpperHex(base64: string): string {
 }
 
 /**
- * Build the canonical signing preimage an external signer must sign over (TDD
- * §7.2 RippleRaw): stamp `SigningPubKey` on the autofilled transaction, then
+ * Build the canonical signing preimage an external signer must sign over
+ * (RippleRaw): stamp `SigningPubKey` on the autofilled transaction, then
  * serialize it exactly as `Wallet.sign()` would before hashing/signing.
  * `SigningPubKey` has to be present in the preimage itself — XRPL includes it
  * in what gets signed, not just in the final blob.
@@ -40,7 +40,7 @@ export function buildSigningPreimage(
 
 /**
  * Reassemble a fully signed, submittable transaction from Custody's returned
- * signature (TDD §7.2 RippleRaw): stamp `TxnSignature`, re-serialize, and hash
+ * signature (RippleRaw): stamp `TxnSignature`, re-serialize, and hash
  * — the same shape `Wallet.sign()` returns, so it drops straight into
  * {@link LedgerPort.submitAndWait}.
  *

@@ -16,7 +16,7 @@ export interface PalisadeHttpClientOptions {
   baseUrl: string
   /** Injected transport (fetch in production, fake in tests). */
   http: PalisadeHttpPort
-  /** Supplies and refreshes the bearer token (DGE-7468). */
+  /** Supplies and refreshes the bearer token. */
   auth: PalisadeAuthService
 }
 
@@ -40,7 +40,7 @@ function parseJsonBody<T>(body: string): T {
 
 /**
  * Pull the `rpcStatus.message` diagnostic out of an error body, if present.
- * This is Palisade's equivalent of Custody's `processing.hint` (§11).
+ * This is Palisade's equivalent of Custody's `processing.hint`.
  *
  * @param body - The raw error response text.
  * @returns The message string, or `undefined` if absent/unparseable.
@@ -69,16 +69,21 @@ function extractMessage(body: string): string | undefined {
  * @returns A {@link PalisadeAuthError} for 401, else a {@link PalisadeApiError}.
  */
 function toError(response: HttpResponse): SimpleXRPLError {
-  if (response.status === HTTP_UNAUTHORIZED) {
-    return new PalisadeAuthError(
-      'Palisade API authentication failed after token refresh',
-    )
-  }
-  return new PalisadeApiError(
+  const apiError = new PalisadeApiError(
     response.status,
     response.body,
     extractMessage(response.body),
   )
+  if (response.status === HTTP_UNAUTHORIZED) {
+    // Preserve the status, body, and hint on the underlying API error rather
+    // than discarding them behind a bare auth error — a 401 after refresh often
+    // carries a diagnostic message the caller needs.
+    return new PalisadeAuthError(
+      'Palisade API authentication failed after token refresh',
+      { cause: apiError },
+    )
+  }
+  return apiError
 }
 
 /**

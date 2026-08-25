@@ -1,6 +1,6 @@
 # Interface: AccountRetrieveResult
 
-Defined in: [verticals/account.types.ts:136](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L136)
+Defined in: [verticals/account.types.ts:138](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L138)
 
 Result of [AccountVertical.retrieve](../classes/AccountVertical.md#retrieve).
 
@@ -10,6 +10,6 @@ Result of [AccountVertical.retrieve](../classes/AccountVertical.md#retrieve).
 
 > `readonly` **data**: [`AccountData`](AccountData.md)
 
-Defined in: [verticals/account.types.ts:138](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L138)
+Defined in: [verticals/account.types.ts:140](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/account.types.ts#L140)
 
 The point-in-time account snapshot.
