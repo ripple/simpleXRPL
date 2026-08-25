@@ -16,9 +16,9 @@ Amount sent.
 
 ***
 
-### destination
+### to
 
-> `readonly` **destination**: `string`
+> `readonly` **to**: `string`
 
 Defined in: [verticals/iou.types.ts:132](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L132)
 

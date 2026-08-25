@@ -253,12 +253,70 @@ describe('Token vertical', () => {
   })
 
   describe('destroy', () => {
+    /**
+     * A client whose `ledger_entry` read reports a given outstanding amount.
+     *
+     * @param outstandingAmount - Base-unit amount still in circulation.
+     * @returns The client and the transactions it builds.
+     */
+    async function clientWithOutstanding(
+      outstandingAmount: string,
+    ): Promise<TokenFixture> {
+      const txs: Transaction[] = []
+      const ledger: LedgerPort = {
+        async autofill(tx: Transaction): Promise<Transaction> {
+          txs.push(tx)
+          return { ...tx, Sequence: 1, Fee: '12', LastLedgerSequence: 100 }
+        },
+        submit: async (): Promise<SubmitResponse> =>
+          ({ result: {} }) as unknown as SubmitResponse,
+        submitAndWait: async (): Promise<TxResponse> =>
+          ({ result: { hash: 'HASH' } }) as unknown as TxResponse,
+        request: async <T>(): Promise<T> =>
+          ({
+            result: {
+              node: {
+                Issuer: 'rIssuer',
+                AssetScale: 2,
+                OutstandingAmount: outstandingAmount,
+                Flags: 0,
+              },
+            },
+          }) as T,
+      }
+      const client = await SimpleXRPL.init({
+        xrpldUrl: 'wss://x.invalid',
+        signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
+        ledger,
+      })
+      return { client, txs }
+    }
+
     it('builds MPTokenIssuanceDestroy', async () => {
       const { client, txs } = await tokenClient()
       await client.token.destroy({ mptIssuanceId: MPT_ID })
       const tx = txs[0] as MPTokenIssuanceDestroy
       expect(tx.TransactionType).toBe('MPTokenIssuanceDestroy')
       expect(tx.MPTokenIssuanceID).toBe(MPT_ID)
+    })
+
+    it('refuses to destroy an issuance with tokens still in circulation', async () => {
+      // The ledger would reject this as tecHAS_OBLIGATIONS, which names neither
+      // the issuance nor the amount outstanding.
+      const { client, txs } = await clientWithOutstanding('10000')
+      await expect(
+        client.token.destroy({ mptIssuanceId: MPT_ID }),
+      ).rejects.toThrow(/still has 10000 in circulation/u)
+      expect(txs).toHaveLength(0)
+    })
+
+    it('destroys when nothing is outstanding', async () => {
+      const { client, txs } = await clientWithOutstanding('0')
+      await client.token.destroy({ mptIssuanceId: MPT_ID })
+      expect(txs).toHaveLength(1)
+      expect((txs[0] as MPTokenIssuanceDestroy).TransactionType).toBe(
+        'MPTokenIssuanceDestroy',
+      )
     })
   })
 

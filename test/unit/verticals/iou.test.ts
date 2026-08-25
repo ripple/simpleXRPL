@@ -45,7 +45,6 @@ function fakeLedger(
   txs: Transaction[]
 } {
   const txs: Transaction[] = []
-  // eslint-disable-next-line no-bitwise -- compose the account's ledger flag bits
   const flags =
     (clawbackEnabled ? 0x80000000 : 0) | (requireAuth ? 0x00040000 : 0)
   const ledger: LedgerPort = {
@@ -254,11 +253,32 @@ describe('IOU amounts are validated at the API boundary', () => {
   // surfaced as an opaque "Decimal precision out of range" at signing time.
   const imprecise = String(0.1 + 0.2)
 
+  it('rejects a missing or empty ticker with a named field, not a TypeError', async () => {
+    // Typed `string`, so this is unreachable from TypeScript — but JavaScript
+    // consumers used to get a bare
+    // "TypeError: Cannot read properties of undefined (reading 'length')"
+    // from deep inside encodeCurrencyCode, naming neither field nor method.
+    const { client, txs } = await issuedClient()
+    const destination = Wallet.generate().classicAddress
+    const send = async (ticker: unknown): Promise<unknown> =>
+      client.iou.transfer({
+        ticker: ticker as string,
+        to: destination,
+        amount: '1',
+      })
+
+    await expect(send(undefined)).rejects.toBeInstanceOf(IntentValidationError)
+    await expect(send(undefined)).rejects.toThrow(/ticker is required/u)
+    await expect(send('')).rejects.toBeInstanceOf(IntentValidationError)
+    await expect(send('')).rejects.toThrow(/ticker is required/u)
+    expect(txs).toHaveLength(0)
+  })
+
   it('transfer rejects an over-precise amount before submitting', async () => {
     const { client, txs } = await issuedClient()
     const promise = client.iou.transfer({
       ticker: 'USD',
-      destination: Wallet.generate().classicAddress,
+      to: Wallet.generate().classicAddress,
       amount: imprecise,
     })
     await expect(promise).rejects.toBeInstanceOf(IntentValidationError)
@@ -302,7 +322,7 @@ describe('IOU amounts are validated at the API boundary', () => {
     const { client, txs } = await issuedClient()
     await client.iou.transfer({
       ticker: 'USD',
-      destination: Wallet.generate().classicAddress,
+      to: Wallet.generate().classicAddress,
       amount: '0.1',
     })
     // '0.1' is not representable as a double; as a string it reaches the ledger
@@ -315,7 +335,7 @@ describe('IOU amounts are validated at the API boundary', () => {
     const precise = '123456789.012345'
     await client.iou.transfer({
       ticker: 'USD',
-      destination: Wallet.generate().classicAddress,
+      to: Wallet.generate().classicAddress,
       amount: precise,
     })
     expect((txs[0] as Payment).Amount).toMatchObject({ value: precise })
@@ -425,7 +445,7 @@ describe('IOU.transfer', () => {
     const destination = Wallet.generate().classicAddress
     const result = await client.iou.transfer({
       ticker: 'USD',
-      destination,
+      to: destination,
       amount: '50',
     })
     const tx = txs[0] as Payment
@@ -437,7 +457,7 @@ describe('IOU.transfer', () => {
       issuer: issuerAddress,
       value: '50',
     })
-    expect(result.intent).toEqual({ destination, amount: '50' })
+    expect(result.intent).toEqual({ to: destination, amount: '50' })
   })
 })
 

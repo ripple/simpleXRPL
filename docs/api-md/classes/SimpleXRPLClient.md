@@ -1,6 +1,6 @@
 # Class: SimpleXRPLClient
 
-Defined in: [client/client.ts:42](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L42)
+Defined in: [client/client.ts:43](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L43)
 
 The runtime client. Binds a set of pre-constructed custodians to a network,
 flattens their discovered accounts into a single address to custodian index,
@@ -20,7 +20,7 @@ its custodian through the acted-on account at call time.
 
 > `readonly` **account**: [`AccountVertical`](AccountVertical.md)
 
-Defined in: [client/client.ts:68](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L68)
+Defined in: [client/client.ts:69](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L69)
 
 Account settings, regular key, and deposit preauthorization.
 
@@ -30,7 +30,7 @@ Account settings, regular key, and deposit preauthorization.
 
 > `readonly` **credential**: [`Credential`](Credential.md)
 
-Defined in: [client/client.ts:62](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L62)
+Defined in: [client/client.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L63)
 
 On-ledger credentials (issue, accept, delete).
 
@@ -40,7 +40,7 @@ On-ledger credentials (issue, accept, delete).
 
 > `readonly` **domain**: [`Domain`](Domain.md)
 
-Defined in: [client/client.ts:65](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L65)
+Defined in: [client/client.ts:66](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L66)
 
 Permissioned domains (create, update, delete).
 
@@ -50,7 +50,7 @@ Permissioned domains (create, update, delete).
 
 > `readonly` **intent**: [`IntentInspector`](IntentInspector.md)
 
-Defined in: [client/client.ts:71](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L71)
+Defined in: [client/client.ts:72](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L72)
 
 Read-only observation of custodian governance intents (status/await).
 
@@ -60,7 +60,7 @@ Read-only observation of custodian governance intents (status/await).
 
 > `readonly` **iou**: [`IOU`](IOU.md)
 
-Defined in: [client/client.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L56)
+Defined in: [client/client.ts:57](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L57)
 
 Issued-currency (IOU) operations: issue, transfer, authorize, lock, offers.
 
@@ -70,9 +70,25 @@ Issued-currency (IOU) operations: issue, transfer, authorize, lock, offers.
 
 > `readonly` **network**: [`NetworkInfo`](../interfaces/NetworkInfo.md)
 
-Defined in: [client/client.ts:44](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L44)
+Defined in: [client/client.ts:45](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L45)
 
 The network this client is bound to.
+
+***
+
+### pollMptIssuanceId
+
+> `readonly` **pollMptIssuanceId**: `undefined` \| (`intentId`) => `Promise`\<`string`\>
+
+Defined in: [client/client.ts:79](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L79)
+
+Poll the Ripple Custody transaction layer until the on-chain transaction
+linked to `intentId` is confirmed, then return its MPT issuance ID.
+`undefined` when the primary signer is not a Ripple Custody instance.
+
+#### Implementation of
+
+[`SubmissionHost`](../interfaces/SubmissionHost.md).[`pollMptIssuanceId`](../interfaces/SubmissionHost.md#pollmptissuanceid)
 
 ***
 
@@ -80,7 +96,7 @@ The network this client is bound to.
 
 > `readonly` **primarySigner**: `undefined` \| [`Custodian`](../interfaces/Custodian.md)
 
-Defined in: [client/client.ts:50](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L50)
+Defined in: [client/client.ts:51](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L51)
 
 The default signer, used when an operation is called without an explicit account.
 
@@ -90,7 +106,7 @@ The default signer, used when an operation is called without an explicit account
 
 > `readonly` **signers**: readonly [`Custodian`](../interfaces/Custodian.md)[]
 
-Defined in: [client/client.ts:47](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L47)
+Defined in: [client/client.ts:48](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L48)
 
 The registered custodians (0..N).
 
@@ -100,7 +116,7 @@ The registered custodians (0..N).
 
 > `readonly` **token**: [`Token`](Token.md)
 
-Defined in: [client/client.ts:59](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L59)
+Defined in: [client/client.ts:60](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L60)
 
 Multi-Purpose Token (MPT) family and DEX offers.
 
@@ -110,7 +126,7 @@ Multi-Purpose Token (MPT) family and DEX offers.
 
 > `readonly` **xrp**: [`XRP`](XRP.md)
 
-Defined in: [client/client.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L53)
+Defined in: [client/client.ts:54](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L54)
 
 Native-XRP value transfers.
 
@@ -122,7 +138,7 @@ Native-XRP value transfers.
 
 > **get** **accounts**(): `ReadonlyMap`\<`string`, [`Account`](../interfaces/Account.md)\>
 
-Defined in: [client/client.ts:105](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L105)
+Defined in: [client/client.ts:119](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L119)
 
 All discovered accounts, keyed by r-address.
 
@@ -140,7 +156,7 @@ The address to account index.
 
 > **get** **ledger**(): [`LedgerPort`](../interfaces/LedgerPort.md)
 
-Defined in: [client/client.ts:115](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L115)
+Defined in: [client/client.ts:129](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L129)
 
 The ledger connection for reads, autofill, and Local/raw submission.
 Created lazily from `network.xrpldUrl` when none was injected.
@@ -163,7 +179,7 @@ The shared ledger connection for autofill and Local/raw submission.
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [client/client.ts:258](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L258)
+Defined in: [client/client.ts:272](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L272)
 
 Open the ledger connection. Optional — the ledger connects lazily on first
 use (reads, autofill, submission), so most callers never need to call this;
@@ -179,7 +195,7 @@ it's useful only to pre-warm the connection. Idempotent.
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [client/client.ts:263](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L263)
+Defined in: [client/client.ts:277](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L277)
 
 Close the ledger connection (no-op for a ledger that manages its own).
 
@@ -193,7 +209,7 @@ Close the ledger connection (no-op for a ledger that manages its own).
 
 > **primaryAddress**(): `undefined` \| `string`
 
-Defined in: [client/client.ts:202](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L202)
+Defined in: [client/client.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L216)
 
 The primary signer's account address, or `undefined` on a no-signer client.
 Read methods use this as the default account to query; it never throws, so
@@ -215,7 +231,7 @@ The primary account's r-address, or `undefined`.
 
 > **refreshAccounts**(): `Promise`\<`void`\>
 
-Defined in: [client/client.ts:178](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L178)
+Defined in: [client/client.ts:192](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L192)
 
 Re-discover every custodian's accounts and rebuild the index. New accounts
 become addressable; accounts removed upstream are gone on next lookup.
@@ -234,7 +250,7 @@ become addressable; accounts removed upstream are gone on next lookup.
 
 > **registerLocalAccount**(`seed`): [`Account`](../interfaces/Account.md)
 
-Defined in: [client/client.ts:189](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L189)
+Defined in: [client/client.ts:203](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L203)
 
 Register a locally-signed account at runtime so subsequent operations can act on
 it. Used by `Account.create` to make a freshly generated account usable
@@ -262,7 +278,7 @@ The registered account.
 
 > **requireSigner**(): [`Custodian`](../interfaces/Custodian.md)
 
-Defined in: [client/client.ts:244](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L244)
+Defined in: [client/client.ts:258](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L258)
 
 Return the primary signer, or throw if the client has none.
 
@@ -282,7 +298,7 @@ The primary signer.
 
 > **resolveAccount**(`selector`?): [`Account`](../interfaces/Account.md)
 
-Defined in: [client/client.ts:216](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L216)
+Defined in: [client/client.ts:230](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L230)
 
 Resolve the account an operation acts on.
 
@@ -317,7 +333,7 @@ The resolved account.
 
 > `static` **init**(`config`): `Promise`\<[`SimpleXRPLClient`](SimpleXRPLClient.md)\>
 
-Defined in: [client/client.ts:132](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L132)
+Defined in: [client/client.ts:146](https://github.com/ripple/simpleXRPL/blob/main/src/client/client.ts#L146)
 
 Bind custodians to a network and discover their accounts. The only entry
 point; the runtime client is never constructed via `new`.

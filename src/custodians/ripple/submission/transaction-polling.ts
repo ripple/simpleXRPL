@@ -1,12 +1,15 @@
 import type { OnChainResult } from '../../../domain/index.js'
 import type { components } from '../../../generated/custody.js'
+import type { PollSchedule } from '../../poll-schedule.js'
+import { pollDelayMs } from '../../poll-schedule.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 type ApiTransaction = components['schemas']['Core_ApiTransaction']
 type TransactionsCollection =
   components['schemas']['Core_TransactionsCollection']
 
-const POLL_INTERVAL_MS = 5000
+/** Poll cadence for ledger confirmation, backing off. See {@link pollDelayMs}. */
+const POLL_SCHEDULE: PollSchedule = { initialMs: 5000, maxMs: 30_000 }
 
 /**
  * Wait for `ms` milliseconds.
@@ -67,7 +70,7 @@ export async function pollTransactionOnChain(
   const { client, domainId, intentId, timeoutMs } = options
   const deadline = Date.now() + timeoutMs
 
-  for (;;) {
+  for (let attempt = 0; ; attempt += 1) {
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for ledger confirmation.
     const collection = await client.get<TransactionsCollection>(
       `/v1/domains/${domainId}/transactions`,
@@ -81,10 +84,11 @@ export async function pollTransactionOnChain(
       }
     }
 
-    if (Date.now() >= deadline) {
+    const delay = pollDelayMs(attempt, POLL_SCHEDULE)
+    if (Date.now() + delay >= deadline) {
       return undefined
     }
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for ledger confirmation.
-    await sleep(POLL_INTERVAL_MS)
+    await sleep(delay)
   }
 }

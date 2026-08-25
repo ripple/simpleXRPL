@@ -1,3 +1,4 @@
+import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import { resolveFromEnvOptions } from '../../../src/custodians/ripple/construction.js'
 import { SimpleXRPLError } from '../../../src/errors.js'
 import { generateTestKey } from '../custody-auth/test-utils.js'
@@ -43,6 +44,65 @@ describe('resolveFromEnvOptions', () => {
     expect(options.auth.publicKey).toBeUndefined()
     expect(options.auth.clientId).toBeUndefined()
     expect(send).not.toHaveBeenCalled()
+  })
+
+  it('restores a PEM whose newlines were escaped in transit', async () => {
+    // How a multi-line PEM most often arrives from a GitHub Actions secret or a
+    // .env file. Left alone it fails to parse, and the resulting error blames
+    // the key's algorithm rather than its formatting.
+    const escaped = SIGNING_KEY_PEM.replace(/\n/gu, String.raw`\n`)
+    expect(escaped).not.toBe(SIGNING_KEY_PEM)
+
+    const options = await resolveFromEnvOptions({
+      primary: 'rPrimary',
+      env: envWith(escaped),
+    })
+
+    expect(options.auth.signingKey).toBe(SIGNING_KEY_PEM)
+    expect(KeypairService.detectKeyType(options.auth.signingKey)).toBe(
+      'ed25519',
+    )
+  })
+
+  it('restores a PEM whose newlines were escaped as CRLF', async () => {
+    const escaped = SIGNING_KEY_PEM.replace(/\n/gu, String.raw`\r\n`)
+    const options = await resolveFromEnvOptions({
+      primary: 'rPrimary',
+      env: envWith(escaped),
+    })
+    expect(options.auth.signingKey).toBe(SIGNING_KEY_PEM)
+  })
+
+  it('strips wrapping quotes so a quoted PEM is not mistaken for a file path', async () => {
+    const options = await resolveFromEnvOptions({
+      primary: 'rPrimary',
+      env: envWith(`"${SIGNING_KEY_PEM}"`),
+    })
+    expect(options.auth.signingKey).toBe(SIGNING_KEY_PEM)
+  })
+
+  it('strips wrapping quotes from a Secrets Manager ARN', async () => {
+    send.mockResolvedValueOnce({ SecretString: JSON.stringify(SECRET_JSON) })
+    const options = await resolveFromEnvOptions({
+      primary: 'rPrimary',
+      env: envWith(`'${SECRET_ARN}'`),
+    })
+    expect(options.auth.signingKey).toBe(SIGNING_KEY_PEM)
+    expect(send).toHaveBeenCalledTimes(1)
+  })
+
+  it('restores escaped newlines in a PEM stored in a Secrets Manager secret', async () => {
+    send.mockResolvedValueOnce({
+      SecretString: JSON.stringify({
+        ...SECRET_JSON,
+        private_key: SIGNING_KEY_PEM.replace(/\n/gu, String.raw`\n`),
+      }),
+    })
+    const options = await resolveFromEnvOptions({
+      primary: 'rPrimary',
+      env: envWith(SECRET_ARN),
+    })
+    expect(options.auth.signingKey).toBe(SIGNING_KEY_PEM)
   })
 
   it('reads an explicit RIPPLE_CUSTODY_AUTH_CLIENT_ID', async () => {

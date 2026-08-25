@@ -4,13 +4,20 @@ import {
   IntentValidationError,
 } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
+import type { PollSchedule } from '../../poll-schedule.js'
+import { pollDelayMs } from '../../poll-schedule.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 type TrustedIntent = components['schemas']['Core_TrustedIntent']
 type IntentEntity = components['schemas']['Core_IntentEntity']
 type IntentStatus = components['schemas']['Core_IntentStatus']
 
-const POLL_INTERVAL_MS = 1000
+/**
+ * Poll cadence: responsive at first, then backing off so a long governance wait
+ * (a multi-step step may wait on a human approval for the best part of an hour)
+ * costs a manageable number of requests. See {@link pollDelayMs}.
+ */
+const POLL_SCHEDULE: PollSchedule = { initialMs: 1000, maxMs: 30_000 }
 const HTTP_NOT_FOUND = 404
 
 /**
@@ -115,7 +122,7 @@ export async function pollIntentUntilExecuted(
   const { client, domainId, intentId, timeoutMs } = options
   const deadline = Date.now() + timeoutMs
   let lastStatus: IntentStatus | typeof NOT_YET_VISIBLE = NOT_YET_VISIBLE
-  for (;;) {
+  for (let attempt = 0; ; attempt += 1) {
     let trusted: TrustedIntent | undefined
     try {
       // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
@@ -151,10 +158,11 @@ export async function pollIntentUntilExecuted(
       }
     }
 
-    if (Date.now() >= deadline) {
+    const delay = pollDelayMs(attempt, POLL_SCHEDULE)
+    if (Date.now() + delay >= deadline) {
       throw new IntentPendingError(intentId, 'ripple-custody', lastStatus)
     }
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
-    await sleep(POLL_INTERVAL_MS)
+    await sleep(delay)
   }
 }

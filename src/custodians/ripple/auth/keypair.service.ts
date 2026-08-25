@@ -66,14 +66,24 @@ export class KeypairService {
    *
    * @param privateKey - The intent-author private key (PEM string or DER buffer).
    * @returns A service bound to the detected algorithm.
-   * @throws {@link CustodyAuthError} if the algorithm cannot be determined.
+   * @throws {@link CustodyAuthError} if the key cannot be parsed, or parses
+   *   but uses an algorithm Custody does not support.
    */
   public static fromPrivateKey(privateKey: string | Buffer): KeypairService {
     const algorithm = KeypairService.detectKeyType(privateKey)
     if (algorithm === 'unknown') {
+      // Distinguish the two ways detection fails. Collapsing both into one
+      // "unsupported algorithm" message sent at least one CI investigation
+      // looking at the key's curve when the real problem was that the PEM's
+      // newlines had been escaped in transit and it never parsed at all.
       throw new CustodyAuthError(
-        'Unsupported or unrecognized private key algorithm. Expected a ' +
-          'PEM/DER secp256k1, secp256r1, or ed25519 key.',
+        tryParsePrivateKey(privateKey) === null
+          ? 'Could not parse the intent-author private key. Expected PEM or ' +
+              'DER contents; check the value is a complete key and that its ' +
+              'newlines survived any environment-variable or secret-store ' +
+              'round-trip.'
+          : 'Unsupported private key algorithm. Expected a secp256k1, ' +
+              'secp256r1 (prime256v1), or ed25519 key.',
       )
     }
     return new KeypairService(algorithm)

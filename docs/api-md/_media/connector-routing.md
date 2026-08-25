@@ -17,7 +17,7 @@ is rejected.
 | Transactor | Local | Ripple Custody | Palisade |
 | ------ | ------ | ------ | ------ |
 | `AccountSet` | signs locally | **native** | **native** |
-| `Clawback` | signs locally | **native** | **native** |
+| `Clawback` | signs locally | **native** | raw fallback¹ |
 | `CredentialAccept` | signs locally | raw fallback¹ | raw fallback¹ |
 | `CredentialCreate` | signs locally | raw fallback¹ | raw fallback¹ |
 | `CredentialDelete` | signs locally | raw fallback¹ | raw fallback¹ |
@@ -69,7 +69,7 @@ operation in-process. Read operations emit no transactor and are omitted.
 | `IOU.authorize()` | `TrustSet` | **native** | **native** |
 | `IOU.lock()` | `TrustSet` | **native** | **native** |
 | `IOU.unlock()` | `TrustSet` | **native** | **native** |
-| `IOU.clawback()` | `Clawback` | **native** | **native** |
+| `IOU.clawback()` | `Clawback` | **native** | raw fallback¹ |
 | `IOU.transfer()` | `Payment` | **native** | **native** |
 | `IOU.buyOffer()` | `OfferCreate` | **native** | **native** |
 | `IOU.sellOffer()` | `OfferCreate` | **native** | **native** |

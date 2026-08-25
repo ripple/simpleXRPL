@@ -2,7 +2,7 @@
 
 > **validateTokenMetadata**(`metadata`): `string`[]
 
-Defined in: [verticals/token.helpers.ts:172](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.helpers.ts#L172)
+Defined in: [verticals/token.helpers.ts:173](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.helpers.ts#L173)
 
 Check MPT metadata against the XLS-89 standard without throwing — the
 pre-flight companion to `Token.issue`. Accepts a structured object or a raw

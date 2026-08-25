@@ -1,6 +1,7 @@
 import {
   createPublicKey,
   createVerify,
+  generateKeyPairSync,
   verify as cryptoVerify,
 } from 'node:crypto'
 
@@ -25,9 +26,25 @@ describe('KeypairService.detectKeyType', () => {
     expect(KeypairService.detectKeyType('not a key')).toBe('unknown')
   })
 
-  it('fromPrivateKey throws CustodyAuthError on an unrecognized key', () => {
+  it('fromPrivateKey names formatting, not the curve, when the key will not parse', () => {
+    // The two failure modes must read differently: an escaped-newline PEM used
+    // to surface as "unsupported algorithm", which points at the curve and
+    // hides the real cause.
     expect(() => KeypairService.fromPrivateKey('garbage')).toThrow(
-      /Unsupported or unrecognized private key/u,
+      /Could not parse the intent-author private key/u,
+    )
+    expect(() => KeypairService.fromPrivateKey('garbage')).toThrow(
+      /newlines survived/u,
+    )
+  })
+
+  it('fromPrivateKey names the algorithm when the key parses but is unsupported', () => {
+    const rsa = generateKeyPairSync('rsa', { modulusLength: 2048 })
+      .privateKey.export({ type: 'pkcs8', format: 'pem' })
+      .toString()
+    expect(KeypairService.detectKeyType(rsa)).toBe('unknown')
+    expect(() => KeypairService.fromPrivateKey(rsa)).toThrow(
+      /Unsupported private key algorithm/u,
     )
   })
 })

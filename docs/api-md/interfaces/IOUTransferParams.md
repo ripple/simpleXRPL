@@ -26,16 +26,6 @@ digits against the IOU limit — so amounts are kept in decimal end to end.
 
 ***
 
-### destination
-
-> `readonly` **destination**: `string`
-
-Defined in: [verticals/iou.types.ts:116](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L116)
-
-The destination r-address.
-
-***
-
 ### ticker
 
 > `readonly` **ticker**: `string`
@@ -49,3 +39,13 @@ the 40-character hex form.
 #### Inherited from
 
 [`IOURef`](IOURef.md).[`ticker`](IOURef.md#ticker)
+
+***
+
+### to
+
+> `readonly` **to**: `string`
+
+Defined in: [verticals/iou.types.ts:116](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/iou.types.ts#L116)
+
+The destination r-address.

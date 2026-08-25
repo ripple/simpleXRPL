@@ -6,12 +6,19 @@ import type {
 } from '../../domain/index.js'
 import { IntentPendingError, SimpleXRPLError } from '../../errors.js'
 import type { components } from '../../generated/palisade.js'
+import type { PollSchedule } from '../poll-schedule.js'
+import { pollDelayMs } from '../poll-schedule.js'
 
 import type { PalisadeHttpClient } from './transport/palisade-http-client.js'
 
 type PalisadeTransaction = components['schemas']['transactionsv2Transaction']
 
-const POLL_INTERVAL_MS = 1500
+/**
+ * Poll cadence: responsive for the first few seconds, then backing off so an
+ * hour-long governance wait costs on the order of a hundred requests rather
+ * than thousands. See {@link pollDelayMs}.
+ */
+const POLL_SCHEDULE: PollSchedule = { initialMs: 1500, maxMs: 30_000 }
 const TERMINAL_SUCCESS = 'CONFIRMED'
 const TERMINAL_FAILURE: ReadonlySet<string> = new Set(['REJECTED', 'FAILED'])
 
@@ -175,29 +182,44 @@ export class PalisadeTxTracker {
     },
   ): Promise<PalisadeTransaction> {
     const { timeoutMs, isDone } = options
-    const attempts = Math.max(
-      1,
-      Math.ceil((timeoutMs ?? this.timeoutMs) / POLL_INTERVAL_MS),
-    )
+    // Deadline-based rather than a fixed attempt count: with a backing-off
+    // delay, "number of polls" no longer maps to elapsed time, and the caller's
+    // budget is expressed in time.
+    const deadline = Date.now() + (timeoutMs ?? this.timeoutMs)
     let current = submitted
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
+    for (let attempt = 0; ; attempt += 1) {
       if (TERMINAL_FAILURE.has(current.status)) {
+        // Include whatever context Palisade attached. The bare
+        // "<id> REJECTED" gives the caller nothing to act on — not which
+        // operation, not why — and the transaction is only readable again
+        // through credentials the caller may not have.
+        const attributes = Object.entries(current.attributes ?? {})
+          .map(([key, value]) => `${key}=${value}`)
+          .join(', ')
+        const context = [`action=${current.action}`, attributes]
+          .filter((part) => part !== '')
+          .join(', ')
         throw new SimpleXRPLError(
-          `Palisade transaction ${current.id} ${current.status}`,
+          `Palisade transaction ${current.id} ${current.status} (${context})`,
         )
       }
       if (isDone(current)) {
         return current
       }
-      if (attempt + 1 < attempts) {
-        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        await new Promise((resolve) => {
-          setTimeout(resolve, POLL_INTERVAL_MS)
-        })
-        // eslint-disable-next-line no-await-in-loop -- sequential poll by design
-        current = await this.fetch(base, current.id)
+      const delay = pollDelayMs(attempt, POLL_SCHEDULE)
+      if (Date.now() + delay >= deadline) {
+        throw new IntentPendingError(
+          current.id,
+          'palisade-custody',
+          current.status,
+        )
       }
+      // eslint-disable-next-line no-await-in-loop -- sequential poll by design
+      await new Promise((resolve) => {
+        setTimeout(resolve, delay)
+      })
+      // eslint-disable-next-line no-await-in-loop -- sequential poll by design
+      current = await this.fetch(base, current.id)
     }
-    throw new IntentPendingError(current.id, 'palisade-custody', current.status)
   }
 }

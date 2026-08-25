@@ -1,7 +1,10 @@
 import type { Transaction } from 'xrpl'
 
 import { MultiStepFailureError, SimpleXRPLError } from '../../../src/index.js'
-import { runMultiStep } from '../../../src/orchestration/index.js'
+import {
+  MULTI_STEP_STEP_TIMEOUT_MS,
+  runMultiStep,
+} from '../../../src/orchestration/multi-step.js'
 
 import {
   fakeResult,
@@ -24,6 +27,48 @@ describe('runMultiStep', () => {
   it('returns an empty result list for zero steps', async () => {
     const host = makeFakeHost([])
     await expect(runMultiStep(host, [])).resolves.toEqual([])
+  })
+
+  it('gives every step the long multi-step timeout, not the 60s default', async () => {
+    // Each step is a barrier: nothing after it runs until it lands. On a
+    // governed custodian that wait includes a human approval, so the
+    // single-step default would strand the remaining steps unsubmitted.
+    const first = makeStepCustodian('ripple-custody', testAddress())
+    const second = makeStepCustodian('ripple-custody', testAddress())
+    first.queue(fakeResult('HASH1'))
+    second.queue(fakeResult('HASH2'))
+    const host = makeFakeHost([first.account, second.account])
+
+    await runMultiStep(host, [
+      {
+        transaction: accountSetTx(first.account.address),
+        account: first.account,
+      },
+      {
+        transaction: accountSetTx(second.account.address),
+        account: second.account,
+      },
+    ])
+
+    expect(MULTI_STEP_STEP_TIMEOUT_MS).toBe(3_600_000)
+    expect(first.calls[0].ctx.timeoutMs).toBe(MULTI_STEP_STEP_TIMEOUT_MS)
+    expect(second.calls[0].ctx.timeoutMs).toBe(MULTI_STEP_STEP_TIMEOUT_MS)
+  })
+
+  it('lets an explicit per-step timeout override the multi-step default', async () => {
+    const only = makeStepCustodian('ripple-custody', testAddress())
+    only.queue(fakeResult('HASH1'))
+    const host = makeFakeHost([only.account])
+
+    await runMultiStep(host, [
+      {
+        transaction: accountSetTx(only.account.address),
+        account: only.account,
+        timeoutMs: 5_000,
+      },
+    ])
+
+    expect(only.calls[0].ctx.timeoutMs).toBe(5_000)
   })
 
   it('runs every step and returns the results in order', async () => {
