@@ -14,6 +14,7 @@ import type {
 } from '../../domain/index.js'
 import {
   AccountNotFoundError,
+  IntentPendingError,
   XrpldSubmitError,
   SignerCapabilityError,
   SimpleXRPLError,
@@ -21,6 +22,7 @@ import {
 import type { PalisadeScope } from '../../generated/palisade-routes.js'
 import type { components } from '../../generated/palisade.js'
 import { assertDryRunHonored, assertFeeHonored } from '../context-guards.js'
+import { assertOnLedgerSuccess, engineResultOf } from '../on-ledger-result.js'
 
 import { PalisadeApi } from './api.js'
 import type { PalisadeScopedClients } from './api.js'
@@ -330,6 +332,20 @@ export class PalisadeCustody implements Custodian {
       submitted,
       ctx.timeoutMs,
     )
+    // Palisade's `CONFIRMED` means the transaction reached the ledger, not that
+    // it achieved its intent — a `tec` (on-ledger, fee burned) can wear it too.
+    // Palisade surfaces no engine result, so confirm `tesSUCCESS` off the ledger
+    // by hash; a `tec` throws here rather than being reported as success. A
+    // `CONFIRMED` transaction without a hash is indeterminate, not success.
+    if (final.hash === undefined) {
+      throw new IntentPendingError(final.id, 'palisade-custody', final.status)
+    }
+    await assertOnLedgerSuccess({
+      ledger: ctx.ledger,
+      txHash: final.hash,
+      custodian: 'palisade-custody',
+      intentId: final.id,
+    })
     return this.tracker.toResult(final)
   }
 
@@ -380,11 +396,7 @@ export class PalisadeCustody implements Custodian {
   ): Promise<SubmissionResult> {
     const envelope = await this.sign(tx, ctx)
     const response = await ctx.ledger.submitAndWait(envelope.txBlob)
-    const { meta } = response.result
-    const engineResult =
-      meta !== undefined && typeof meta !== 'string'
-        ? meta.TransactionResult
-        : undefined
+    const engineResult = engineResultOf(response)
     if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
       throw new XrpldSubmitError(engineResult, response)
     }

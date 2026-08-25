@@ -5,6 +5,7 @@ import type { components } from '../../../generated/custody.js'
 
 import { toIouCurrency } from './currency.js'
 import { collectFlags, hasFlag } from './flags.js'
+import { toCustodyIouAmount } from './iou-amount.js'
 import { unsupported } from './unsupported.js'
 
 type TrustSetFlag = components['schemas']['Core_Xrpl_TrustSetFlag']
@@ -71,7 +72,7 @@ export function mapTrustSet(
     flags: collectFlags(tx.Flags, TRUST_SET_FLAGS),
     limitAmount: {
       currency: toIouCurrency(tx.LimitAmount),
-      value: tx.LimitAmount.value,
+      value: toCustodyIouAmount(tx.LimitAmount.value),
     },
     enableRippling,
   }

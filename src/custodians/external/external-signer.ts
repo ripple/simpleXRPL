@@ -14,6 +14,7 @@ import type {
 } from '../../domain/index.js'
 import { XrpldSubmitError } from '../../errors.js'
 import { assertDryRunHonored } from '../context-guards.js'
+import { engineResultOf } from '../on-ledger-result.js'
 
 import type { ExternalSignerPort } from './external-signer-port.js'
 import { signTransactionExternally } from './signing.js'
@@ -135,11 +136,7 @@ export class ExternalSigner implements Custodian {
   ): Promise<SubmissionResult> {
     const envelope = await this.sign(tx, ctx)
     const response = await ctx.ledger.submitAndWait(envelope.txBlob)
-    const { meta } = response.result
-    const engineResult =
-      meta !== undefined && typeof meta !== 'string'
-        ? meta.TransactionResult
-        : undefined
+    const engineResult = engineResultOf(response)
     if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
       throw new XrpldSubmitError(engineResult, response)
     }

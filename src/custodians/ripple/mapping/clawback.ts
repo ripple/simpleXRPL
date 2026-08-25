@@ -5,6 +5,7 @@ import type { components } from '../../../generated/custody.js'
 
 import { toClawbackCurrency } from './currency.js'
 import { toDestination } from './destination.js'
+import { toCustodyIouAmount } from './iou-amount.js'
 
 /**
  * Map an xrpl.js `Clawback` to Custody's native `Clawback` operation.
@@ -22,10 +23,15 @@ export function mapClawback(
       'RippleCustody requires Clawback.Holder to identify the account being clawed back from.',
     )
   }
+  // An MPT `value` is already an integer count of base units; only an
+  // issued-currency decimal needs scaling into Custody's minimum unit.
   return {
     type: 'Clawback',
     currency: toClawbackCurrency(tx.Amount),
     holder: toDestination(tx.Holder),
-    value: tx.Amount.value,
+    value:
+      'mpt_issuance_id' in tx.Amount
+        ? tx.Amount.value
+        : toCustodyIouAmount(tx.Amount.value),
   }
 }

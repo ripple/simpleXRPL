@@ -13,6 +13,7 @@ import type {
   TrustSet,
 } from 'xrpl'
 
+import { toCustodyIouAmount } from '../../../src/custodians/ripple/mapping/iou-amount.js'
 import {
   NATIVE_XRPL_TRANSACTORS,
   txToOperation,
@@ -121,7 +122,7 @@ describe('txToOperation', () => {
         type: 'Clawback',
         currency: { code: 'USD', issuer: 'rHolder', type: 'Currency' },
         holder: { address: 'rHolder', type: 'Address' },
-        value: '10',
+        value: toCustodyIouAmount('10'),
       })
     })
 
@@ -361,7 +362,7 @@ describe('txToOperation', () => {
         flags: [],
         takerGets: { amount: '1000000' },
         takerPays: {
-          amount: '10',
+          amount: toCustodyIouAmount('10'),
           currency: { code: 'USD', issuer: 'rIssuer', type: 'Currency' },
         },
       })
@@ -457,7 +458,7 @@ describe('txToOperation', () => {
       expect(txToOperation(tx)).toEqual({
         type: 'Payment',
         destination: { address: 'rTo', type: 'Address' },
-        amount: '10',
+        amount: toCustodyIouAmount('10'),
         currency: { code: 'USD', issuer: 'rIssuer', type: 'Currency' },
         destinationTag: undefined,
       })
@@ -519,7 +520,7 @@ describe('txToOperation', () => {
         flags: [],
         limitAmount: {
           currency: { code: 'USD', issuer: 'rIssuer', type: 'Currency' },
-          value: '100',
+          value: toCustodyIouAmount('100'),
         },
         enableRippling: false,
       })
@@ -551,7 +552,7 @@ describe('txToOperation', () => {
         flags: ['tfSetFreeze', 'tfClearFreeze', 'tfSetfAuth'],
         limitAmount: {
           currency: { code: 'USD', issuer: 'rIssuer', type: 'Currency' },
-          value: '100',
+          value: toCustodyIouAmount('100'),
         },
         enableRippling: undefined,
       })

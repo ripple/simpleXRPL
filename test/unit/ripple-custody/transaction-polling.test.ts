@@ -241,4 +241,24 @@ describe('pollTransactionOnChain', () => {
       pollTransactionOnChain({ client, ...options, timeoutMs: 60_000 }),
     ).rejects.toThrow(IntentValidationError)
   })
+
+  it('treats a recorded failure as dead even when the status is Confirmed', async () => {
+    // Custody can mark a transaction Confirmed (it reached the ledger) while
+    // also recording a failure on it — a tec representation. The failure wins:
+    // it must not be reported as the clean success the caller asked for.
+    const { client } = makeClient(() =>
+      ok(
+        txCollection({
+          ledgerStatus: 'Confirmed',
+          failure: 'FailedOnChain',
+          ledgerTransactionId: 'HASH7',
+          ledgerData: null,
+        }),
+      ),
+    )
+
+    await expect(
+      pollTransactionOnChain({ client, ...options, timeoutMs: 60_000 }),
+    ).rejects.toThrow(IntentValidationError)
+  })
 })

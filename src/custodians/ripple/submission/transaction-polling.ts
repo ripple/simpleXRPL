@@ -17,6 +17,12 @@ type LedgerTransactionStatus =
 /** Poll cadence for ledger confirmation, backing off. See {@link pollDelayMs}. */
 const POLL_SCHEDULE: PollSchedule = { initialMs: 5000, maxMs: 30_000 }
 
+/** Radix for hex-encoding the sequence when reconstructing an issuance id. */
+const HEX_RADIX = 16
+
+/** Hex-digit width of the 4-byte big-endian sequence prefix of an issuance id. */
+const SEQUENCE_HEX_WIDTH = 8
+
 /**
  * Ledger statuses a transaction can never leave for `Confirmed`: it aged out of
  * every ledger it could have applied in (`Expired`), or another transaction on
@@ -75,7 +81,10 @@ function mptIssuanceIdFromRaw(
   }
   const sequence = tx.Sequence
   const account = tx.Account
-  const sequenceHex = sequence.toString(16).toUpperCase().padStart(8, '0')
+  const sequenceHex = sequence
+    .toString(HEX_RADIX)
+    .toUpperCase()
+    .padStart(SEQUENCE_HEX_WIDTH, '0')
   const accountIdHex = Buffer.from(decodeAccountID(account))
     .toString('hex')
     .toUpperCase()
@@ -180,9 +189,10 @@ export async function pollTransactionOnChain(
     if (collection.count > 0) {
       const tx = collection.items[0]
       const ledgerData = tx.ledgerTransactionData
-      if (ledgerData?.ledgerStatus === 'Confirmed') {
-        return toOnChainResult(tx)
-      }
+      // Check for a dead outcome *before* honoring `Confirmed`: Custody can mark
+      // a transaction `Confirmed` (it reached the ledger) while also recording a
+      // `failure` on it — not the clean success the caller asked for. A recorded
+      // failure wins.
       // `ledgerTransactionData` is typed optional but comes back as `null` from
       // Custody while the transaction is still in flight, so a truthiness guard
       // covers both — keep polling rather than dereferencing a null.
@@ -193,6 +203,9 @@ export async function pollTransactionOnChain(
             `on-chain (${dead}) — it is terminal. Retry only with a fresh ` +
             `idempotency key.`,
         )
+      }
+      if (ledgerData?.ledgerStatus === 'Confirmed') {
+        return toOnChainResult(tx)
       }
     }
 

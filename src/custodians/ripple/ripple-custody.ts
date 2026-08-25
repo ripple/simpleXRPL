@@ -16,10 +16,12 @@ import type {
 import {
   AccountNotFoundError,
   CustodyApiError,
+  IntentPendingError,
   SimpleXRPLError,
   XrpldSubmitError,
 } from '../../errors.js'
 import type { components } from '../../generated/custody.js'
+import { assertOnLedgerSuccess, engineResultOf } from '../on-ledger-result.js'
 
 import {
   buildRippleCustodyState,
@@ -194,11 +196,7 @@ export class RippleCustody implements Custodian, IntentObserver {
     }
     const envelope = await this.signRaw(tx, ctx)
     const response = await ctx.ledger.submitAndWait(envelope.txBlob)
-    const { meta } = response.result
-    const engineResult =
-      meta !== undefined && typeof meta !== 'string'
-        ? meta.TransactionResult
-        : undefined
+    const engineResult = engineResultOf(response)
     if (engineResult !== undefined && engineResult !== 'tesSUCCESS') {
       throw new XrpldSubmitError(engineResult, response)
     }
@@ -306,20 +304,44 @@ export class RippleCustody implements Custodian, IntentObserver {
     tx: Transaction,
     ctx: SubmissionContext,
   ): Promise<SubmissionResult> {
+    const timeoutMs = ctx.timeoutMs ?? this.state.defaultTimeoutMs
     const intentId = await this.postNativeIntent(tx, ctx)
+    // The intent reaching `Executed` only means Custody submitted the XRPL
+    // transaction — a separate, on-chain layer decides whether it actually
+    // applied. Stopping here reported a `tec` (on-ledger, fee burned, intent
+    // *not* achieved) as success, so drive on to the on-chain outcome.
     const executed = await pollIntentUntilExecuted({
       client: this.state.client,
       domainId: this.state.domainId,
       intentId,
-      timeoutMs: ctx.timeoutMs ?? this.state.defaultTimeoutMs,
+      timeoutMs,
+    })
+    const onChain = await pollTxOnChain({
+      client: this.state.client,
+      domainId: this.state.domainId,
+      intentId,
+      timeoutMs,
+    })
+    // `undefined` is the indeterminate outcome: the transaction never reached a
+    // terminal ledger state within the budget. It may yet confirm, so surface it
+    // as pending rather than success — a retry must re-drive the same intent.
+    if (onChain === undefined) {
+      throw new IntentPendingError(intentId, 'ripple-custody', 'Executed')
+    }
+    // Custody exposes no raw engine result, so confirm `tesSUCCESS` straight off
+    // the ledger by hash. A `tec` on-ledger transaction throws here.
+    await assertOnLedgerSuccess({
+      ledger: ctx.ledger,
+      txHash: onChain.txHash,
+      custodian: 'ripple-custody',
+      intentId,
     })
     return {
       source: 'custody',
-      // Resolving the on-ledger txHash from the executed intent is a later
-      // refinement; the raw executed entity is exposed verbatim in the meantime.
       response: executed,
       intent: undefined,
       intentId,
+      txHash: onChain.txHash,
     }
   }
 

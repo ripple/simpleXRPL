@@ -3,6 +3,8 @@ import type { IssuedCurrencyAmount, MPTAmount } from 'xrpl'
 import { SignerCapabilityError } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
 
+import { toCustodyIouAmount } from './iou-amount.js'
+
 type IouCurrency = components['schemas']['Core_XrplIouCurrency']
 type ClawbackCurrency = components['schemas']['Core_XrplClawbackCurrency']
 type PaymentCurrency = components['schemas']['Core_XrplPaymentCurrency']
@@ -56,7 +58,9 @@ export function toPaymentCurrency(
 /**
  * Map an xrpl.js `Amount` (drops string or issued-currency object) to
  * Custody's `AssetQuantity` (`OfferCreate.takerGets`/`takerPays`) — an omitted
- * `currency` means native XRP.
+ * `currency` means native XRP. An issued-currency value is scaled to Custody's
+ * integer minimum unit (see {@link toCustodyIouAmount}); an XRP drops string is
+ * already an integer and passes through unchanged.
  *
  * @param amount - The drops string or issued-currency amount.
  * @returns The Custody asset quantity.
@@ -67,7 +71,10 @@ export function toAssetQuantity(
   if (typeof amount === 'string') {
     return { amount }
   }
-  return { amount: amount.value, currency: toIouCurrency(amount) }
+  return {
+    amount: toCustodyIouAmount(amount.value),
+    currency: toIouCurrency(amount),
+  }
 }
 
 /**
