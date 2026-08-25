@@ -123,7 +123,12 @@ export interface SubmissionContext {
   /** Return a handle instead of blocking until the transaction is terminal. */
   readonly async?: boolean
 
-  /** Stable, client-generated id that makes a retry resolve to the same intent. */
+  /**
+   * Stable, client-generated id that lets a retry resolve to the same
+   * submission rather than duplicating it. De-duplication is enforced by the
+   * backend and its coverage varies — see
+   * {@link SubmissionResultFields.idempotencyKey}.
+   */
   readonly idempotencyKey?: string
 
   /** Human-readable approval metadata stamped on custody intents. */
@@ -159,9 +164,25 @@ export interface SubmissionResultFields<T> {
   readonly txHash?: string
 
   /**
-   * The stable, client-generated id (a UUIDv7) this submission carried (§8).
-   * Re-submitting with the same id resolves to the same intent rather than
-   * creating a duplicate; pass it back as an operation's `idempotencyKey` to retry.
+   * The stable, client-generated id (a UUIDv7) this submission carried.
+   * Re-submitting with the same id lets a retry resolve to the same submission
+   * rather than creating a duplicate; pass it back as an operation's
+   * `idempotencyKey` to retry safely.
+   *
+   * How completely the key de-duplicates depends on the backend:
+   * - **Local (`xrpld`):** no custodian de-duplication layer. A re-submit with
+   *   the same key builds a distinct transaction — safety rests on the
+   *   operation being idempotent and on `LastLedgerSequence` bounding it, so
+   *   wait for a transaction to reach a terminal on-ledger state before
+   *   retrying.
+   * - **Ripple Custody:** de-duplicated at the intent layer for every
+   *   operation. A re-submit with a used key resolves to the existing intent
+   *   transparently (the SDK absorbs the custodian's conflict response).
+   * - **Palisade:** de-duplicated only on the payment path (`xrp.transfer`,
+   *   `iou.transfer`) — the sole operation whose wire schema carries the key.
+   *   Other operations (account settings, trust lines, offers) are NOT
+   *   de-duplicated custodian-side, so re-submitting one can apply it twice;
+   *   retry those only once the prior attempt is known to be provably dead.
    */
   readonly idempotencyKey?: string
 }

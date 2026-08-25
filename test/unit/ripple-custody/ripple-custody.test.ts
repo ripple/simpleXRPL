@@ -35,6 +35,7 @@ import {
   intentBody,
   meBody,
   ok,
+  status,
 } from './test-utils.js'
 
 const PRIMARY_ADDRESS = Wallet.generate().classicAddress
@@ -48,8 +49,33 @@ interface Routes {
   account?: () => HttpResponse
   intentCreate?: (body: unknown) => HttpResponse
   intentGet?: () => HttpResponse
+  transactions?: () => HttpResponse
   manifestGet?: () => HttpResponse
   dryRun?: (body: unknown) => HttpResponse
+}
+
+/**
+ * A one-item transactions collection linking a Confirmed on-ledger transaction
+ * to the submitted intent — the default the native submit path polls for.
+ *
+ * @param hash - The on-ledger transaction hash to report.
+ * @returns A `Core_TransactionsCollection`-shaped body.
+ */
+function confirmedTxCollection(hash = 'FAKEHASH'): Record<string, unknown> {
+  return {
+    count: 1,
+    items: [
+      {
+        id: 'tx-1',
+        orderReference: { id: 'intent-1', domainId: DOMAIN_ID },
+        ledgerTransactionData: {
+          ledgerStatus: 'Confirmed',
+          ledgerTransactionId: hash,
+          ledgerData: null,
+        },
+      },
+    ],
+  }
 }
 
 /** One routing rule: matches a request, then produces its response. */
@@ -103,6 +129,14 @@ function buildRoutes(routes: Routes): Route[] {
           routes.intentCreate ??
           ((): HttpResponse => ok({ requestId: 'req-1' }))
         )(JSON.parse(request.body ?? '{}')),
+    },
+    {
+      test: (request): boolean => request.url.includes('/transactions'),
+      respond: (): HttpResponse =>
+        (
+          routes.transactions ??
+          ((): HttpResponse => ok(confirmedTxCollection()))
+        )(),
     },
     {
       test: (request): boolean =>
@@ -365,19 +399,65 @@ describe('RippleCustody.sign', () => {
 })
 
 describe('RippleCustody.submitAndWait', () => {
-  it('submits a native transactor as a governed intent and polls to Executed', async () => {
+  it('submits a native transactor as a governed intent, confirms on-chain, and returns the on-ledger hash', async () => {
     const { custody, http } = await makeCustody()
 
     const result = await custody.submitAndWait(PAYMENT_TX, makeContext(custody))
 
     expect(result.source).toBe('custody')
     expect(result.intentId).toBeTruthy()
+    // Success now carries the real on-ledger hash, not just the executed intent.
+    expect(result.txHash).toBe('FAKEHASH')
     expect(
       http.requests.some(
         (request) =>
           request.method === 'POST' && request.url.endsWith('/v1/intents'),
       ),
     ).toBe(true)
+    // It drove past the governance intent to the on-chain transaction layer.
+    expect(
+      http.requests.some((request) => request.url.includes('/transactions')),
+    ).toBe(true)
+  })
+
+  it('throws XrpldSubmitError when a native transactor lands on-ledger with a tec', async () => {
+    // Custody confirms the transaction on-chain, but the ledger reports a tec:
+    // on-ledger, fee burned, intent not achieved — never a success.
+    const { custody } = await makeCustody()
+    const ledger = fakeLedger('FAKEHASH', { txResult: 'tecUNFUNDED_PAYMENT' })
+
+    await expect(
+      custody.submitAndWait(PAYMENT_TX, makeContext(custody, { ledger })),
+    ).rejects.toBeInstanceOf(XrpldSubmitError)
+  })
+
+  it('throws IntentPendingError when the on-chain transaction never confirms', async () => {
+    // The intent executed, but the linked transaction stays in flight: an
+    // indeterminate outcome, surfaced as pending rather than success.
+    const { custody } = await makeCustody({
+      transactions: () =>
+        ok({
+          count: 1,
+          items: [
+            {
+              id: 'tx-1',
+              orderReference: { id: 'intent-1', domainId: DOMAIN_ID },
+              ledgerTransactionData: {
+                ledgerStatus: 'Detected',
+                ledgerTransactionId: '',
+                ledgerData: null,
+              },
+            },
+          ],
+        }),
+    })
+
+    await expect(
+      custody.submitAndWait(
+        PAYMENT_TX,
+        makeContext(custody, { timeoutMs: 500 }),
+      ),
+    ).rejects.toBeInstanceOf(IntentPendingError)
   })
 
   it('throws IntentValidationError when the native intent is rejected', async () => {
@@ -425,6 +505,29 @@ describe('RippleCustody.submitAndWait', () => {
         makeContext(custody, { ledger: failing }),
       ),
     ).rejects.toBeInstanceOf(XrpldSubmitError)
+  })
+
+  it('absorbs a 409 on the intent POST and resolves the existing intent (same-key re-drive)', async () => {
+    // Re-driving an already-accepted idempotency key: Custody returns 409, and
+    // the SDK observes the existing (Executed) intent rather than throwing.
+    const { custody } = await makeCustody({
+      intentCreate: () => status(409, { message: 'intent already exists' }),
+    })
+
+    const result = await custody.submitAndWait(PAYMENT_TX, makeContext(custody))
+
+    expect(result.source).toBe('custody')
+    expect(result.intentId).toBeTruthy()
+  })
+
+  it('re-throws a non-409 error from the intent POST', async () => {
+    const { custody } = await makeCustody({
+      intentCreate: () => status(500, { message: 'boom' }),
+    })
+
+    await expect(
+      custody.submitAndWait(PAYMENT_TX, makeContext(custody)),
+    ).rejects.toThrow(SimpleXRPLError)
   })
 
   it('throws IntentPendingError when the native intent never reaches a terminal state', async () => {
@@ -491,6 +594,18 @@ describe('RippleCustody.submitAsync', () => {
 
     expect(result.source).toBe('custody')
     expect(result.intentId).toBe(handle.id)
+  })
+
+  it('absorbs a 409 on the intent POST and returns a handle over the existing intent', async () => {
+    const { custody } = await makeCustody({
+      intentCreate: () => status(409, { message: 'intent already exists' }),
+      intentGet: () => ok(intentBody('intent-1', 'Open')),
+    })
+
+    const handle = await custody.submitAsync(PAYMENT_TX, makeContext(custody))
+
+    expect(handle.kind).toBe('ripple-custody')
+    expect(handle.id).toBeTruthy()
   })
 
   it('throws for the raw-signing path (async not supported there)', async () => {

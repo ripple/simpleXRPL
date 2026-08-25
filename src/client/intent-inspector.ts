@@ -90,10 +90,19 @@ export class IntentInspector {
    *
    * Only available when a Ripple Custody signer is configured.
    *
+   * Resolves to the on-chain result once confirmed. Returns `undefined` if the
+   * timeout elapses with the transaction still in flight — indeterminate, so
+   * re-drive the *same* idempotency key. Throws {@link IntentValidationError}
+   * the moment the transaction reaches a terminal non-confirmed state
+   * (`Expired`, `Replaced`, or an on-chain failure) — provably dead, so a retry
+   * needs a *fresh* key.
+   *
    * @param intentId - The intent id returned at submission.
    * @param timeoutMs - How long to poll before giving up (custodian default if omitted).
-   * @returns The on-chain result, or `undefined` when the timeout elapses.
+   * @returns The on-chain result, or `undefined` when the timeout elapses with
+   *   the transaction still in flight.
    * @throws {@link SimpleXRPLError} if no Ripple Custody signer is configured.
+   * @throws {@link IntentValidationError} if the transaction is provably dead.
    */
   public async awaitOnChain(
     intentId: string,

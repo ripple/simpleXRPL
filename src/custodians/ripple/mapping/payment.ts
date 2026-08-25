@@ -4,6 +4,7 @@ import type { components } from '../../../generated/custody.js'
 
 import { toPaymentCurrency } from './currency.js'
 import { toDestination } from './destination.js'
+import { toCustodyIouAmount } from './iou-amount.js'
 import { unsupported } from './unsupported.js'
 
 /**
@@ -43,10 +44,15 @@ export function mapPayment(
       destinationTag: tx.DestinationTag,
     }
   }
+  // An MPT `value` is already an integer count of base units; only an
+  // issued-currency decimal needs scaling into Custody's minimum unit.
   return {
     type: 'Payment',
     destination: toDestination(tx.Destination),
-    amount: amount.value,
+    amount:
+      'mpt_issuance_id' in amount
+        ? amount.value
+        : toCustodyIouAmount(amount.value),
     currency: toPaymentCurrency(amount),
     destinationTag: tx.DestinationTag,
   }

@@ -7,6 +7,7 @@ import {
   toIouCurrency,
   toPaymentCurrency,
 } from '../../../src/custodians/ripple/mapping/currency.js'
+import { toCustodyIouAmount } from '../../../src/custodians/ripple/mapping/iou-amount.js'
 import { SignerCapabilityError } from '../../../src/errors.js'
 
 const IOU: IssuedCurrencyAmount = {
@@ -65,9 +66,9 @@ describe('toAssetQuantity', () => {
     expect(toAssetQuantity('1000')).toEqual({ amount: '1000' })
   })
 
-  it('maps an issued-currency amount to an asset quantity with currency', () => {
+  it('maps an issued-currency amount to an asset quantity, scaling the value', () => {
     expect(toAssetQuantity(IOU)).toEqual({
-      amount: '10',
+      amount: toCustodyIouAmount('10'),
       currency: { code: 'USD', issuer: 'rIssuer', type: 'Currency' },
     })
   })

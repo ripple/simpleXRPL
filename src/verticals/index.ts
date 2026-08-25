@@ -1,8 +1,12 @@
 export { XRP } from './xrp.js'
 export type {
+  XrpCancelOfferParams,
+  XrpOfferParams,
+  XrpOfferPrice,
   XrpTransferIntent,
   XrpTransferOptions,
   XrpTransferParams,
+  XrpWriteOptions,
 } from './xrp.js'
 export { IOU } from './iou.js'
 export type {

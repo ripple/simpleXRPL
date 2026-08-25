@@ -17,6 +17,7 @@ import {
 import type {
   Account,
   LedgerPort,
+  LedgerRequest,
   SubmissionContext,
 } from '../../../../src/index.js'
 
@@ -80,7 +81,20 @@ function fakePort(handlers: {
   return { send, posts }
 }
 
-function ledgerStub(response?: TxResponse): LedgerPort {
+/**
+ * Overrides for how the stub answers the on-ledger `tx` lookup: `validated`
+ * (the validation flag, defaults to `true`) and `txResult` (the engine result,
+ * defaults to `tesSUCCESS`).
+ */
+interface OnLedgerStub {
+  readonly validated?: boolean
+  readonly txResult?: string
+}
+
+function ledgerStub(
+  response?: TxResponse,
+  onLedger: OnLedgerStub = {},
+): LedgerPort {
   return {
     autofill: async (tx: Transaction): Promise<Transaction> => ({
       ...tx,
@@ -91,7 +105,18 @@ function ledgerStub(response?: TxResponse): LedgerPort {
     submit: async () => ({}) as never,
     submitAndWait: async () =>
       response ?? ({ result: { hash: 'RAWHASH' } } as unknown as TxResponse),
-    request: async <T>() => ({}) as T,
+    async request<T>(req: LedgerRequest): Promise<T> {
+      if (req.command === 'tx') {
+        return {
+          result: {
+            hash: 'H1',
+            validated: onLedger.validated ?? true,
+            meta: { TransactionResult: onLedger.txResult ?? 'tesSUCCESS' },
+          },
+        } as unknown as T
+      }
+      return {} as T
+    },
   }
 }
 
@@ -205,6 +230,22 @@ describe('PalisadeCustody.submitAndWait — native', () => {
     expect(port.posts[0].url).toContain(
       '/vaults/v1/wallets/w1/transactions/transfer',
     )
+  })
+
+  it('throws XrpldSubmitError when a CONFIRMED transaction lands on-ledger with a tec', async () => {
+    // Palisade reports CONFIRMED (it reached the ledger), but the ledger's own
+    // engine result is a tec: on-ledger, fee burned, intent not achieved.
+    const port = fakePort({
+      onSubmit: () => ({ id: 'tx1', status: 'CONFIRMED', hash: 'H1' }),
+    })
+    const custody = await makeCustody(port)
+    const account = (await custody.listAccounts())[0]
+    await expect(
+      custody.submitAndWait(
+        payment,
+        contextFor(account, ledgerStub(undefined, { txResult: 'tecNO_LINE' })),
+      ),
+    ).rejects.toBeInstanceOf(XrpldSubmitError)
   })
 
   it('carries the idempotency key to the transfer op as externalId', async () => {
