@@ -1,6 +1,7 @@
 import { decode, decodeAccountID } from 'xrpl'
 
 import type { OnChainResult } from '../../../domain/index.js'
+import { IntentValidationError } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
 import type { PollSchedule } from '../../poll-schedule.js'
 import { pollDelayMs } from '../../poll-schedule.js'
@@ -9,9 +10,24 @@ import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 type ApiTransaction = components['schemas']['Core_ApiTransaction']
 type TransactionsCollection =
   components['schemas']['Core_TransactionsCollection']
+type LedgerTransactionData = components['schemas']['Core_LedgerTransactionData']
+type LedgerTransactionStatus =
+  components['schemas']['Core_LedgerTransactionStatus']
 
 /** Poll cadence for ledger confirmation, backing off. See {@link pollDelayMs}. */
 const POLL_SCHEDULE: PollSchedule = { initialMs: 5000, maxMs: 30_000 }
+
+/**
+ * Ledger statuses a transaction can never leave for `Confirmed`: it aged out of
+ * every ledger it could have applied in (`Expired`), or another transaction on
+ * the same account sequence superseded it (`Replaced`). Either way it is dead —
+ * polling on would only burn the full timeout waiting for a confirmation that
+ * can no longer come.
+ */
+const TERMINAL_DEAD_STATUSES: ReadonlySet<LedgerTransactionStatus> = new Set([
+  'Expired',
+  'Replaced',
+])
 
 /**
  * Wait for `ms` milliseconds.
@@ -67,6 +83,27 @@ function mptIssuanceIdFromRaw(
 }
 
 /**
+ * Classify a transaction's ledger state as provably dead, if it is. A dead
+ * transaction has been permanently rejected by the ledger — it recorded an
+ * on-chain `failure` (`FailedOnChain`, or `PartiallyFailedOnChain`, which is
+ * not the clean success the caller asked for either), or it reached a terminal
+ * `Expired`/`Replaced` status — so it can never become `Confirmed` no matter
+ * how long we keep polling.
+ *
+ * @param ledgerData - The transaction's `ledgerTransactionData`.
+ * @returns A short reason string when dead, else `undefined` (still in flight).
+ */
+function deadReason(ledgerData: LedgerTransactionData): string | undefined {
+  if (ledgerData.failure !== undefined) {
+    return ledgerData.failure
+  }
+  if (TERMINAL_DEAD_STATUSES.has(ledgerData.ledgerStatus)) {
+    return ledgerData.ledgerStatus
+  }
+  return undefined
+}
+
+/**
  * Extract the on-chain result fields from a confirmed Custody transaction.
  *
  * @param tx - A confirmed Custody API transaction.
@@ -107,9 +144,22 @@ export interface PollTransactionOptions {
  * for ledger confirmation and reads the result directly from the Custody API —
  * no separate XRPL ledger query needed.
  *
+ * The wait has three outcomes, mirroring the on-ledger reality:
+ * - **Confirmed** — the transaction is on the ledger; its hash is returned.
+ * - **Provably dead** — the transaction reached a terminal non-confirmed state
+ *   (`Expired`, `Replaced`, or an on-chain `failure`). Polling on would only
+ *   waste the timeout, so this throws {@link IntentValidationError} at once. It
+ *   will never apply, so a retry is a genuinely new attempt and must use a
+ *   fresh idempotency key.
+ * - **Indeterminate** — still in flight when the timeout elapses; returns
+ *   `undefined`. The transaction may yet confirm, so a retry must re-drive the
+ *   *same* idempotency key rather than start a new attempt.
+ *
  * @param options - The client, domain, intent id, and polling timeout.
  * @returns The on-chain result once confirmed, or `undefined` when the timeout
- *   elapses before confirmation.
+ *   elapses with the transaction still in flight.
+ * @throws {@link IntentValidationError} if the transaction reaches a terminal
+ *   non-confirmed state (provably dead).
  */
 export async function pollTransactionOnChain(
   options: PollTransactionOptions,
@@ -126,8 +176,17 @@ export async function pollTransactionOnChain(
 
     if (collection.count > 0) {
       const tx = collection.items[0]
-      if (tx.ledgerTransactionData?.ledgerStatus === 'Confirmed') {
+      const ledgerData = tx.ledgerTransactionData
+      if (ledgerData?.ledgerStatus === 'Confirmed') {
         return toOnChainResult(tx)
+      }
+      const dead = ledgerData === undefined ? undefined : deadReason(ledgerData)
+      if (dead !== undefined) {
+        throw new IntentValidationError(
+          `Custody transaction for intent ${intentId} will not confirm ` +
+            `on-chain (${dead}) — it is terminal. Retry only with a fresh ` +
+            `idempotency key.`,
+        )
       }
     }
 

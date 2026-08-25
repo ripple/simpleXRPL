@@ -35,6 +35,7 @@ import {
   intentBody,
   meBody,
   ok,
+  status,
 } from './test-utils.js'
 
 const PRIMARY_ADDRESS = Wallet.generate().classicAddress
@@ -427,6 +428,29 @@ describe('RippleCustody.submitAndWait', () => {
     ).rejects.toBeInstanceOf(XrpldSubmitError)
   })
 
+  it('absorbs a 409 on the intent POST and resolves the existing intent (same-key re-drive)', async () => {
+    // Re-driving an already-accepted idempotency key: Custody returns 409, and
+    // the SDK observes the existing (Executed) intent rather than throwing.
+    const { custody } = await makeCustody({
+      intentCreate: () => status(409, { message: 'intent already exists' }),
+    })
+
+    const result = await custody.submitAndWait(PAYMENT_TX, makeContext(custody))
+
+    expect(result.source).toBe('custody')
+    expect(result.intentId).toBeTruthy()
+  })
+
+  it('re-throws a non-409 error from the intent POST', async () => {
+    const { custody } = await makeCustody({
+      intentCreate: () => status(500, { message: 'boom' }),
+    })
+
+    await expect(
+      custody.submitAndWait(PAYMENT_TX, makeContext(custody)),
+    ).rejects.toThrow(SimpleXRPLError)
+  })
+
   it('throws IntentPendingError when the native intent never reaches a terminal state', async () => {
     jest.useFakeTimers()
     try {
@@ -491,6 +515,18 @@ describe('RippleCustody.submitAsync', () => {
 
     expect(result.source).toBe('custody')
     expect(result.intentId).toBe(handle.id)
+  })
+
+  it('absorbs a 409 on the intent POST and returns a handle over the existing intent', async () => {
+    const { custody } = await makeCustody({
+      intentCreate: () => status(409, { message: 'intent already exists' }),
+      intentGet: () => ok(intentBody('intent-1', 'Open')),
+    })
+
+    const handle = await custody.submitAsync(PAYMENT_TX, makeContext(custody))
+
+    expect(handle.kind).toBe('ripple-custody')
+    expect(handle.id).toBeTruthy()
   })
 
   it('throws for the raw-signing path (async not supported there)', async () => {

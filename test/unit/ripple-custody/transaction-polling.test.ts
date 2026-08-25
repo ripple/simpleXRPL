@@ -1,4 +1,5 @@
 import { pollTransactionOnChain } from '../../../src/custodians/ripple/submission/transaction-polling.js'
+import { IntentValidationError } from '../../../src/errors.js'
 
 import { DOMAIN_ID, makeClient, ok } from './test-utils.js'
 
@@ -141,7 +142,7 @@ describe('pollTransactionOnChain', () => {
     const { client } = makeClient(() =>
       ok(
         txCollection({
-          ledgerStatus: 'Pending',
+          ledgerStatus: 'Detected',
           ledgerTransactionId: '',
           ledgerData: null,
         }),
@@ -158,5 +159,44 @@ describe('pollTransactionOnChain', () => {
     })
 
     expect(result).toBeUndefined()
+  })
+
+  it.each(['Expired', 'Replaced'])(
+    'throws IntentValidationError at once when the transaction is %s (terminal)',
+    async (ledgerStatus) => {
+      const { client, http } = makeClient(() =>
+        ok(
+          txCollection({
+            ledgerStatus,
+            ledgerTransactionId: '',
+            ledgerData: null,
+          }),
+        ),
+      )
+
+      // A generous timeout: if it polled to the deadline this would hang, so
+      // reaching the throw proves the short-circuit fired on the first read.
+      await expect(
+        pollTransactionOnChain({ client, ...options, timeoutMs: 60_000 }),
+      ).rejects.toThrow(IntentValidationError)
+      expect(http.requests).toHaveLength(1)
+    },
+  )
+
+  it('throws IntentValidationError when the transaction records an on-chain failure', async () => {
+    const { client } = makeClient(() =>
+      ok(
+        txCollection({
+          ledgerStatus: 'Detected',
+          failure: 'FailedOnChain',
+          ledgerTransactionId: 'HASH6',
+          ledgerData: null,
+        }),
+      ),
+    )
+
+    await expect(
+      pollTransactionOnChain({ client, ...options, timeoutMs: 60_000 }),
+    ).rejects.toThrow(IntentValidationError)
   })
 })

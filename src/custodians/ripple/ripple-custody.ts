@@ -15,6 +15,7 @@ import type {
 } from '../../domain/index.js'
 import {
   AccountNotFoundError,
+  CustodyApiError,
   SimpleXRPLError,
   XrpldSubmitError,
 } from '../../errors.js'
@@ -44,6 +45,13 @@ export type {
   RippleCustodyFromEnvOptions,
   RippleCustodyOptions,
 } from './construction.js'
+
+/**
+ * HTTP status Custody returns when an intent with the posted id already exists.
+ * The intent id is the caller's idempotency key, so a 409 is the custodian's
+ * de-duplication firing on a same-key re-drive — expected, not an error.
+ */
+const HTTP_CONFLICT = 409
 
 /**
  * Ripple Custody adapter (TDD §3.3, §7.2): wraps the Custody REST API v1.
@@ -163,6 +171,11 @@ export class RippleCustody implements Custodian, IntentObserver {
    * `v0_CreateTransactionOrder` intent; everything else through the
    * raw-signing fallback, then the shared `xrpl.js` client.
    *
+   * Re-submitting a native transactor with an idempotency key the custodian has
+   * already accepted is transparent: it resolves to the existing intent instead
+   * of failing or creating a duplicate. Use this to safely re-drive a call
+   * whose result you never saw.
+   *
    * @param tx - The fully autofilled transaction to submit.
    * @param ctx - The submission context.
    * @returns The submission result.
@@ -202,6 +215,10 @@ export class RippleCustody implements Custodian, IntentObserver {
    * accepted the intent, without blocking on the governance outcome (TDD
    * §10.2). Best for M-of-N approval flows that may span hours: the caller
    * polls or waits on the handle, or resumes later via `client.intent`.
+   *
+   * Re-submitting with an already-accepted idempotency key hands back a handle
+   * over the existing intent rather than creating a duplicate (the custodian's
+   * conflict response is absorbed).
    *
    * @param tx - The fully autofilled transaction to submit.
    * @param ctx - The submission context.
@@ -311,9 +328,16 @@ export class RippleCustody implements Custodian, IntentObserver {
    * intent. Shared by the sync ({@link submitNative}) and async
    * ({@link submitAsync}) paths, which differ only in how they wait afterward.
    *
+   * The intent id is derived from the caller's idempotency key, so re-driving a
+   * key the custodian has already accepted is safe: Custody answers the second
+   * POST with `409 Conflict`, which this treats as "already submitted" and
+   * absorbs, returning the existing intent id. The caller's wait/observe then
+   * resolves that original intent rather than creating a duplicate — so a retry
+   * with the same key can never double-apply. Any other error is re-thrown.
+   *
    * @param tx - The transaction to map and submit.
    * @param ctx - The submission context.
-   * @returns The client-generated intent id Custody accepted.
+   * @returns The client-generated intent id Custody accepted (or already had).
    */
   private async postNativeIntent(
     tx: Transaction,
@@ -334,7 +358,19 @@ export class RippleCustody implements Custodian, IntentObserver {
       body.request.payload,
       body.request.customProperties,
     )
-    await this.state.client.post('/v1/intents', body)
+    try {
+      await this.state.client.post('/v1/intents', body)
+    } catch (error) {
+      // A 409 means this idempotency key already created an intent: the
+      // de-duplication working as intended, not a failure. Absorb it and fall
+      // through to return the existing intent id.
+      if (
+        !(error instanceof CustodyApiError) ||
+        error.status !== HTTP_CONFLICT
+      ) {
+        throw error
+      }
+    }
     return body.request.id
   }
 
