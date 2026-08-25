@@ -317,9 +317,12 @@ describe('PalisadeCustody.submitAndWait — native', () => {
     })
     const custody = await makeCustody(port)
     const account = (await custody.listAccounts())[0]
-    const error = await custody
-      .submitAndWait(payment, contextFor(account, ledgerStub()))
-      .catch((caught: unknown) => caught)
+    let error: unknown
+    try {
+      await custody.submitAndWait(payment, contextFor(account, ledgerStub()))
+    } catch (caught) {
+      error = caught
+    }
     expect(error).toBeInstanceOf(PalisadeRejectedError)
     // The typed fields let a caller branch on the failure without parsing the
     // message string.

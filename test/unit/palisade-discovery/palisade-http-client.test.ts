@@ -100,9 +100,12 @@ describe('PalisadeHttpClient', () => {
     )
     const client = new PalisadeHttpClient({ baseUrl: BASE_URL, http, auth })
 
-    const error = await client
-      .get('/v2/thing')
-      .catch((caught: unknown) => caught)
+    let error: unknown
+    try {
+      await client.get('/v2/thing')
+    } catch (caught) {
+      error = caught
+    }
     expect(error).toBeInstanceOf(PalisadeAuthError)
     const cause = (error as PalisadeAuthError).cause
     expect(cause).toBeInstanceOf(PalisadeApiError)

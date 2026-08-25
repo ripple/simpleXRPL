@@ -233,18 +233,14 @@ export class PalisadeRejectedError extends SimpleXRPLError {
       attributes?: Readonly<Record<string, unknown>>
     },
   ) {
-    const context = [
-      details?.action !== undefined ? `action=${details.action}` : '',
+    const parts = [
+      details?.action === undefined ? '' : `action=${details.action}`,
       ...Object.entries(details?.attributes ?? {}).map(
         ([key, value]) => `${key}=${String(value)}`,
       ),
-    ]
-      .filter((part) => part !== '')
-      .join(', ')
-    super(
-      `Palisade transaction ${transactionId} ${status}` +
-        (context === '' ? '' : ` (${context})`),
-    )
+    ].filter((part) => part.length > 0)
+    const context = parts.length === 0 ? '' : ` (${parts.join(', ')})`
+    super(`Palisade transaction ${transactionId} ${status}${context}`)
     this.transactionId = transactionId
     this.status = status
     this.action = details?.action
