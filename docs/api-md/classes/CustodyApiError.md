@@ -1,6 +1,6 @@
 # Class: CustodyApiError
 
-Defined in: [errors.ts:116](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L116)
+Defined in: [errors.ts:154](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L154)
 
 A Ripple Custody API call returned an error. The diagnostic `hint` and full
 response body are preserved for the caller to surface.
@@ -15,7 +15,7 @@ response body are preserved for the caller to surface.
 
 > **new CustodyApiError**(`status`, `raw`, `hint`?): [`CustodyApiError`](CustodyApiError.md)
 
-Defined in: [errors.ts:128](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L128)
+Defined in: [errors.ts:166](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L166)
 
 Construct a CustodyApiError.
 
@@ -41,7 +41,7 @@ Construct a CustodyApiError.
 
 > `readonly` `optional` **hint**: `string`
 
-Defined in: [errors.ts:118](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L118)
+Defined in: [errors.ts:156](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L156)
 
 ***
 
@@ -61,7 +61,7 @@ Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/err
 
 > `readonly` **raw**: `unknown`
 
-Defined in: [errors.ts:119](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L119)
+Defined in: [errors.ts:157](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L157)
 
 ***
 
@@ -69,4 +69,4 @@ Defined in: [errors.ts:119](https://github.com/ripple/simpleXRPL/blob/main/src/e
 
 > `readonly` **status**: `number`
 
-Defined in: [errors.ts:117](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L117)
+Defined in: [errors.ts:155](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L155)

@@ -81,6 +81,44 @@ export class AmbiguousAccountError extends SimpleXRPLError {
 }
 
 /**
+ * An account exists at a custodian, but only on XRPL network(s) other than the
+ * one the client is connected to. The SDK refuses to route a transaction to the
+ * wrong network (which would silently strand it), so point the client's
+ * `xrpldUrl` at a node on a matching network, or register the address on this
+ * network at the custodian.
+ */
+export class NetworkMismatchError extends SimpleXRPLError {
+  public readonly account: string
+  public readonly clientNetworkId: number | undefined
+  public readonly availableNetworkIds: readonly number[]
+
+  /**
+   * Construct a NetworkMismatchError.
+   *
+   * @param account - The r-address that has no record on the client's network.
+   * @param clientNetworkId - The network id the client is connected to, or
+   *   `undefined` when it could not be determined.
+   * @param availableNetworkIds - The network ids the account does exist on.
+   */
+  public constructor(
+    account: string,
+    clientNetworkId: number | undefined,
+    availableNetworkIds: readonly number[],
+  ) {
+    const on = availableNetworkIds.join(', ')
+    super(
+      `Account ${account} is not available on the client's XRPL network ` +
+        `(network id ${clientNetworkId ?? 'unknown'}); it exists on network ` +
+        `id(s) [${on}]. Point the client's xrpldUrl at a node on a matching ` +
+        `network, or register the address on this network at the custodian.`,
+    )
+    this.account = account
+    this.clientNetworkId = clientNetworkId
+    this.availableNetworkIds = availableNetworkIds
+  }
+}
+
+/**
  * Two configured signers point at the same backend tenant — the same
  * `kind` and the same `tenantId` (§3.1). The client rejects this at init so
  * one backend is never registered twice; drop the duplicate signer.

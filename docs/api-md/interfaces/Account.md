@@ -65,7 +65,7 @@ accounts, which carry no ledger default of their own).
 
 > `readonly` `optional` **metadata**: \{ `kind`: [`CustodianKind`](../type-aliases/CustodianKind.md); `tags`: readonly `string`[]; \}
 
-Defined in: [domain/model.ts:59](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L59)
+Defined in: [domain/model.ts:69](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L69)
 
 Optional, advisory-only metadata.
 
@@ -79,11 +79,26 @@ Optional, advisory-only metadata.
 
 ***
 
+### networkId?
+
+> `readonly` `optional` **networkId**: `number`
+
+Defined in: [domain/model.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L56)
+
+The XRPL network this account record is scoped to, as the `network_id` a
+node reports via `server_info` (Mainnet 0, Testnet 1, Devnet 2). The client
+uses it to pick, among several records for one r-address, the one matching
+the network it is connected to. `undefined` for network-agnostic holders
+(a local wallet key works on any network) and for backends that expose no
+network id.
+
+***
+
 ### publicKey?
 
 > `readonly` `optional` **publicKey**: `string`
 
-Defined in: [domain/model.ts:53](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L53)
+Defined in: [domain/model.ts:63](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L63)
 
 The account's XRPL public key (hex), when the custodian exposes it. Used to
 populate `SigningPubKey` on transactions signed by a backend that returns
@@ -95,6 +110,6 @@ only the signature (e.g. Palisade's raw sign-only path).
 
 > `readonly` **signer**: [`Custodian`](Custodian.md)
 
-Defined in: [domain/model.ts:56](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L56)
+Defined in: [domain/model.ts:66](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L66)
 
 The custodian that discovered and signs for this account.

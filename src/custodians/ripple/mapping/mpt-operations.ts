@@ -49,19 +49,32 @@ export function mapMPTokenAuthorize(
   }
 }
 
-/** `MPTokenIssuanceCreateFlags` bit values, in the exact order Custody's enum lists them. */
+/**
+ * `MPTokenIssuanceCreateFlags` bit values, in the exact order the Custody
+ * gateway emits them when it reconstructs the operation to verify the intent
+ * signature.
+ *
+ * This order is load-bearing, not cosmetic. Every intent is signed over the
+ * JCS-canonicalized request (RFC 8785), and JCS preserves array order — it only
+ * sorts object keys. The gateway decodes our `flags` array to a bitmask, then
+ * re-encodes it to a string array in *this* fixed order before it canonicalizes
+ * and verifies. If our array is in any other order the two canonical forms
+ * differ and the gateway rejects the intent with `InvalidSignatureError`. The
+ * order is a hand-maintained server enum (it matches no sort of the bit values),
+ * so it is pinned here empirically and must be kept in lockstep with the gateway.
+ */
 const MPT_ISSUANCE_CREATE_FLAGS: ReadonlyArray<
   readonly [
     number,
     components['schemas']['Core_Xrpl_MPTokenIssuanceCreateFlag'],
   ]
 > = [
-  [MPTokenIssuanceCreateFlags.tfMPTRequireAuth, 'tfMPTRequireAuth'],
-  [MPTokenIssuanceCreateFlags.tfMPTCanClawback, 'tfMPTCanClawback'],
   [MPTokenIssuanceCreateFlags.tfMPTCanTransfer, 'tfMPTCanTransfer'],
-  [MPTokenIssuanceCreateFlags.tfMPTCanEscrow, 'tfMPTCanEscrow'],
   [MPTokenIssuanceCreateFlags.tfMPTCanLock, 'tfMPTCanLock'],
+  [MPTokenIssuanceCreateFlags.tfMPTRequireAuth, 'tfMPTRequireAuth'],
   [MPTokenIssuanceCreateFlags.tfMPTCanTrade, 'tfMPTCanTrade'],
+  [MPTokenIssuanceCreateFlags.tfMPTCanClawback, 'tfMPTCanClawback'],
+  [MPTokenIssuanceCreateFlags.tfMPTCanEscrow, 'tfMPTCanEscrow'],
 ]
 
 /**

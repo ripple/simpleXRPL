@@ -29,6 +29,33 @@ export interface NetworkInfo {
 
   /** Faucet endpoint, used on test networks only. */
   readonly faucetUrl?: string
+
+  /**
+   * The connected node's XRPL network id (`server_info` `network_id`: Mainnet
+   * 0, Testnet 1, Devnet 2), resolved at init when a custodian record is
+   * network-scoped. `undefined` when no record needed it (so it was never
+   * probed) or the probe could not reach the node.
+   */
+  readonly networkId?: number
+}
+
+/**
+ * Ask a node for its XRPL network id via `server_info`. Best-effort: a node
+ * that can't be reached or that omits the field yields `undefined`, so account
+ * binding can fall back rather than fail on the probe alone.
+ *
+ * @param ledger - The ledger connection to query.
+ * @returns The node's network id, or `undefined` if unavailable.
+ */
+async function queryNetworkId(ledger: LedgerPort): Promise<number | undefined> {
+  try {
+    const info = await ledger.request<{
+      result: { info: { network_id?: number } }
+    }>({ command: 'server_info' })
+    return info.result.info.network_id
+  } catch {
+    return undefined
+  }
 }
 
 /**
@@ -56,7 +83,7 @@ export class SimpleXRPLClient implements SubmissionHost {
   /** Issued-currency (IOU) operations: issue, transfer, authorize, lock, offers. */
   public readonly iou: IOU
 
-  /** Multi-Purpose Token (MPT) family and DEX offers. */
+  /** Multi-Purpose Token (MPT) family. */
   public readonly token: Token
 
   /** On-ledger credentials (issue, accept, delete). */
@@ -142,6 +169,8 @@ export class SimpleXRPLClient implements SubmissionHost {
    * @returns A ready client.
    * @throws {@link DuplicateSignerError} if two signers share a kind and tenant id.
    * @throws {@link AmbiguousAccountError} if an r-address is claimed by two custodians.
+   * @throws {@link NetworkMismatchError} if a signer's primary account exists only
+   *   on XRPL networks other than the one `xrpldUrl` points at.
    */
   public static async init(
     config: SimpleXRPLConfig,
@@ -152,13 +181,27 @@ export class SimpleXRPLClient implements SubmissionHost {
       signers,
       config.primarySigner,
     )
-    const accountIndex = await buildAccountIndex(signers)
+    // Materialize the ledger lazily: a setup with no network-scoped account
+    // never connects, so no-signer and local-only clients stay offline at init.
+    let ledger = config.ledger
+    async function resolveNetworkId(): Promise<number | undefined> {
+      ledger ??= new XrplLedger(config.xrpldUrl, config.faucetUrl)
+      return queryNetworkId(ledger)
+    }
+    const { index, networkId } = await buildAccountIndex(
+      signers,
+      resolveNetworkId,
+    )
     return new SimpleXRPLClient({
-      network: { xrpldUrl: config.xrpldUrl, faucetUrl: config.faucetUrl },
+      network: {
+        xrpldUrl: config.xrpldUrl,
+        faucetUrl: config.faucetUrl,
+        networkId,
+      },
       signers,
       primarySigner,
-      accountIndex,
-      ledger: config.ledger,
+      accountIndex: index,
+      ledger,
     })
   }
 
@@ -188,9 +231,14 @@ export class SimpleXRPLClient implements SubmissionHost {
    * become addressable; accounts removed upstream are gone on next lookup.
    *
    * @throws {@link AmbiguousAccountError} if an r-address is claimed by two custodians.
+   * @throws {@link NetworkMismatchError} if a signer's primary account exists only
+   *   on XRPL networks other than the connected one.
    */
   public async refreshAccounts(): Promise<void> {
-    this.accountIndex = await buildAccountIndex(this.signers)
+    const { index } = await buildAccountIndex(this.signers, async () =>
+      queryNetworkId(this.ledger),
+    )
+    this.accountIndex = index
   }
 
   /**

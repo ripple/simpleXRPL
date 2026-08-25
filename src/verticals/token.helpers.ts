@@ -1,27 +1,16 @@
 import {
   encodeMPTokenMetadata,
   MPTokenIssuanceCreateFlags,
-  OfferCreateFlags,
   validateMPTokenMetadata,
 } from 'xrpl'
-import type {
-  IssuedCurrencyAmount,
-  MPTokenIssuanceCreate,
-  MPTokenMetadata,
-} from 'xrpl'
+import type { MPTokenIssuanceCreate, MPTokenMetadata } from 'xrpl'
 
-import type { Amount } from '../amount/index.js'
-import { toLedgerAmount } from '../amount/index.js'
 import type { SubmissionResult } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 
 import { percentToTransferFee } from './fee.js'
-import type {
-  MptIssueParams,
-  MptIssueFlags,
-  OfferFlags,
-} from './token.types.js'
+import type { TokenIssueParams, TokenIssueFlags } from './token.types.js'
 
 /** Default decimal places for a new issuance when `assetScale` is omitted. */
 const DEFAULT_ASSET_SCALE = 2
@@ -36,7 +25,7 @@ const DEFAULT_ASSET_SCALE = 2
  */
 export function buildIssuance(
   account: string,
-  params: MptIssueParams,
+  params: TokenIssueParams,
 ): MPTokenIssuanceCreate {
   const tx: MPTokenIssuanceCreate = {
     TransactionType: 'MPTokenIssuanceCreate',
@@ -83,7 +72,7 @@ function combineFlags(
  * `{ canClawback: false }`). Note MPT capability flags are permanent once the
  * issuance is created.
  */
-export const DEFAULT_ISSUE_FLAGS: Required<MptIssueFlags> = {
+export const DEFAULT_ISSUE_FLAGS: Required<TokenIssueFlags> = {
   canLock: true,
   requireAuth: false,
   canEscrow: true,
@@ -99,7 +88,7 @@ export const DEFAULT_ISSUE_FLAGS: Required<MptIssueFlags> = {
  * @param flags - The caller's capability-flag overrides, if any.
  * @returns The combined flag number, or `undefined` when none are enabled.
  */
-export function issueFlags(flags?: MptIssueFlags): number | undefined {
+export function issueFlags(flags?: TokenIssueFlags): number | undefined {
   const merged = { ...DEFAULT_ISSUE_FLAGS, ...flags }
   return combineFlags([
     [merged.canLock, MPTokenIssuanceCreateFlags.tfMPTCanLock],
@@ -109,42 +98,6 @@ export function issueFlags(flags?: MptIssueFlags): number | undefined {
     [merged.canTransfer, MPTokenIssuanceCreateFlags.tfMPTCanTransfer],
     [merged.canClawback, MPTokenIssuanceCreateFlags.tfMPTCanClawback],
   ])
-}
-
-/**
- * Map offer flag booleans to the combined flag value.
- *
- * @param flags - The offer flags, if any.
- * @returns The combined flag number, or `undefined` when none are set.
- */
-export function offerFlags(flags?: OfferFlags): number | undefined {
-  if (flags === undefined) {
-    return undefined
-  }
-  return combineFlags([
-    [flags.passive, OfferCreateFlags.tfPassive],
-    [flags.immediateOrCancel, OfferCreateFlags.tfImmediateOrCancel],
-    [flags.fillOrKill, OfferCreateFlags.tfFillOrKill],
-    [flags.sell, OfferCreateFlags.tfSell],
-  ])
-}
-
-/**
- * Convert an amount for a DEX offer, rejecting MPT (not DEX-tradeable).
- *
- * @param amount - The offer amount.
- * @returns The ledger amount (XRP drops string or issued-currency amount).
- * @throws {@link IntentValidationError} if the amount's asset is an MPT.
- */
-export function toDexAmount(amount: Amount): IssuedCurrencyAmount | string {
-  if (amount.asset.kind === 'mpt') {
-    throw new IntentValidationError('Offers do not support MPT amounts')
-  }
-  const ledger = toLedgerAmount(amount)
-  if (typeof ledger !== 'string' && 'mpt_issuance_id' in ledger) {
-    throw new IntentValidationError('Offers do not support MPT amounts')
-  }
-  return ledger
 }
 
 /**

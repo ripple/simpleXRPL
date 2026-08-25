@@ -1,6 +1,6 @@
 # Class: PalisadeApiError
 
-Defined in: [errors.ts:146](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L146)
+Defined in: [errors.ts:184](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L184)
 
 A Palisade API call returned an error. The diagnostic `hint` (the
 `rpcStatus.message` Palisade's equivalent of Custody's `processing.hint`)
@@ -16,7 +16,7 @@ and full response body are preserved for the caller to surface.
 
 > **new PalisadeApiError**(`status`, `raw`, `hint`?): [`PalisadeApiError`](PalisadeApiError.md)
 
-Defined in: [errors.ts:158](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L158)
+Defined in: [errors.ts:196](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L196)
 
 Construct a PalisadeApiError.
 
@@ -42,7 +42,7 @@ Construct a PalisadeApiError.
 
 > `readonly` `optional` **hint**: `string`
 
-Defined in: [errors.ts:148](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L148)
+Defined in: [errors.ts:186](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L186)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [errors.ts:9](https://github.com/ripple/simpleXRPL/blob/main/src/err
 
 > `readonly` **raw**: `unknown`
 
-Defined in: [errors.ts:149](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L149)
+Defined in: [errors.ts:187](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L187)
 
 ***
 
@@ -70,4 +70,4 @@ Defined in: [errors.ts:149](https://github.com/ripple/simpleXRPL/blob/main/src/e
 
 > `readonly` **status**: `number`
 
-Defined in: [errors.ts:147](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L147)
+Defined in: [errors.ts:185](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L185)

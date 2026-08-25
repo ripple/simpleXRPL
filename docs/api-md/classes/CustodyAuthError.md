@@ -1,6 +1,6 @@
 # Class: CustodyAuthError
 
-Defined in: [errors.ts:110](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L110)
+Defined in: [errors.ts:148](https://github.com/ripple/simpleXRPL/blob/main/src/errors.ts#L148)
 
 Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
 

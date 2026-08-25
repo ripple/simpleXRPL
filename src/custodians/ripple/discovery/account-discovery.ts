@@ -50,29 +50,33 @@ async function collectPages<T>(
 }
 
 /**
- * Resolve which ledger ids in this Custody environment are XRPL ledgers, by
- * matching the ledger-parameters discriminator (`type === 'XRPL'`). Avoids
- * hardcoding an environment-specific id.
+ * Resolve the XRPL ledgers in this Custody environment, mapping each ledger id
+ * to the XRPL `network_id` it runs on (Mainnet 0, Testnet 1, Devnet 2). Ledgers
+ * are matched by the parameters discriminator (`type === 'XRPL'`), which also
+ * narrows `parameters` so `networkId` is readable — avoiding a hardcoded,
+ * environment-specific id. The network id lets the client pick the ledger
+ * matching the node it is connected to when one address is registered on
+ * several ledgers.
  *
  * @param client - The authenticated Custody client.
- * @returns The set of XRPL ledger ids.
+ * @returns A map from XRPL ledger id to its network id.
  */
-async function resolveXrplLedgerIds(
+async function resolveXrplLedgers(
   client: CustodyHttpClient,
-): Promise<Set<string>> {
+): Promise<Map<string, number>> {
   const ledgers = await collectPages(async (startingAfter) =>
     client.get<LedgersResponse>('/v1/ledgers', {
       limit: PAGE_LIMIT,
       startingAfter,
     }),
   )
-  const ids = new Set<string>()
+  const byId = new Map<string, number>()
   for (const ledger of ledgers) {
     if (ledger.data.parameters.type === 'XRPL') {
-      ids.add(ledger.data.id)
+      byId.set(ledger.data.id, ledger.data.parameters.networkId)
     }
   }
-  return ids
+  return byId
 }
 
 /** Inputs for listing one account's external XRPL addresses. */
@@ -80,35 +84,40 @@ interface AddressLookup {
   client: CustodyHttpClient
   domainId: string
   accountId: string
-  xrplLedgerIds: Set<string>
+  xrplLedgers: Map<string, number>
 }
 
-/** One external XRPL address, with the ledger id it's actually on. */
+/** One external XRPL address, with the ledger id and network id it's on. */
 interface ExternalAddress {
   address: string
   ledgerId: string
+  networkId: number
 }
 
 /**
  * List the external XRPL addresses of one Custody account.
  *
- * @param lookup - The client, domain, account, and XRPL ledger ids.
- * @returns The external r-addresses for the account, each with its ledger id.
+ * @param lookup - The client, domain, account, and XRPL ledgers.
+ * @returns The external r-addresses for the account, each with its ledger id
+ *   and network id.
  */
 async function listExternalAddresses(
   lookup: AddressLookup,
 ): Promise<ExternalAddress[]> {
-  const { client, domainId, accountId, xrplLedgerIds } = lookup
+  const { client, domainId, accountId, xrplLedgers } = lookup
   const path = `/v1/domains/${domainId}/accounts/${accountId}/addresses`
   const addresses = await collectPages(async (startingAfter) =>
     client.get<AddressesResponse>(path, { limit: PAGE_LIMIT, startingAfter }),
   )
   return addresses
     .map((entry) => entry.data)
-    .filter(
-      (data) => data.scope === 'External' && xrplLedgerIds.has(data.ledgerId),
-    )
-    .map((data) => ({ address: data.address, ledgerId: data.ledgerId }))
+    .flatMap((data) => {
+      const networkId = xrplLedgers.get(data.ledgerId)
+      if (data.scope !== 'External' || networkId === undefined) {
+        return []
+      }
+      return [{ address: data.address, ledgerId: data.ledgerId, networkId }]
+    })
 }
 
 /**
@@ -118,20 +127,19 @@ async function listExternalAddresses(
  * `additionalDetails.ledgers`.
  *
  * @param apiAccount - The raw Custody API account envelope.
- * @param xrplLedgerIds - The XRPL ledger ids in this Custody environment.
+ * @param xrplLedgers - The XRPL ledgers in this Custody environment.
  * @returns `true` if this account has an activated XRPL ledger.
  */
 function hasActivatedXrplLedger(
   apiAccount: components['schemas']['Core_ApiAccount'],
-  xrplLedgerIds: Set<string>,
+  xrplLedgers: Map<string, number>,
 ): boolean {
   const { ledgerId } = apiAccount.data
-  if (ledgerId !== undefined && xrplLedgerIds.has(ledgerId)) {
+  if (ledgerId !== undefined && xrplLedgers.has(ledgerId)) {
     return true
   }
   return (apiAccount.additionalDetails?.ledgers ?? []).some(
-    (entry) =>
-      entry.status === 'Activated' && xrplLedgerIds.has(entry.ledgerId),
+    (entry) => entry.status === 'Activated' && xrplLedgers.has(entry.ledgerId),
   )
 }
 
@@ -152,7 +160,7 @@ export async function discoverXrplAccounts(
   domainId: string,
   signer: Custodian,
 ): Promise<Account[]> {
-  const xrplLedgerIds = await resolveXrplLedgerIds(client)
+  const xrplLedgers = await resolveXrplLedgers(client)
 
   const apiAccounts = await collectPages(async (startingAfter) =>
     client.get<AccountsResponse>(`/v1/domains/${domainId}/accounts`, {
@@ -162,7 +170,7 @@ export async function discoverXrplAccounts(
   )
 
   const xrplAccounts = apiAccounts
-    .filter((apiAccount) => hasActivatedXrplLedger(apiAccount, xrplLedgerIds))
+    .filter((apiAccount) => hasActivatedXrplLedger(apiAccount, xrplLedgers))
     .map((apiAccount) => apiAccount.data)
 
   const accounts: Account[] = []
@@ -172,14 +180,15 @@ export async function discoverXrplAccounts(
       client,
       domainId,
       accountId: account.id,
-      xrplLedgerIds,
+      xrplLedgers,
     })
-    for (const { address, ledgerId } of addresses) {
+    for (const { address, ledgerId, networkId } of addresses) {
       accounts.push({
         address,
         alias: account.alias,
         custodianRef: account.id,
         ledgerId,
+        networkId,
         signer,
       })
     }

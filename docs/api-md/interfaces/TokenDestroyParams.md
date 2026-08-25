@@ -1,4 +1,4 @@
-# Interface: MptDestroyParams
+# Interface: TokenDestroyParams
 
 Defined in: [verticals/token.types.ts:126](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L126)
 

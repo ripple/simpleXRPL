@@ -1,4 +1,4 @@
-# Interface: MptIssueParams
+# Interface: TokenIssueParams
 
 Defined in: [verticals/token.types.ts:66](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L66)
 
@@ -22,12 +22,12 @@ Decimal places between display value and base units.
 
 ### flags?
 
-> `readonly` `optional` **flags**: [`MptIssueFlags`](MptIssueFlags.md)
+> `readonly` `optional` **flags**: [`TokenIssueFlags`](TokenIssueFlags.md)
 
 Defined in: [verticals/token.types.ts:100](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L100)
 
 Capability flags. Any flag omitted (or the whole object omitted) takes the
-per-flag SDK default; see [MptIssueFlags](MptIssueFlags.md).
+per-flag SDK default; see [TokenIssueFlags](TokenIssueFlags.md).
 
 #### Default Value
 

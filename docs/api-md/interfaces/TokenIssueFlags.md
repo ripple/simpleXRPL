@@ -1,4 +1,4 @@
-# Interface: MptIssueFlags
+# Interface: TokenIssueFlags
 
 Defined in: [verticals/token.types.ts:26](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L26)
 

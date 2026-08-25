@@ -2,16 +2,14 @@ import {
   MPTokenAuthorizeFlags,
   MPTokenIssuanceCreateFlags,
   MPTokenIssuanceSetFlags,
-  OfferCreateFlags,
   Wallet,
   encodeMPTokenMetadata,
+  type Clawback,
   type MPTokenAuthorize,
   type MPTokenIssuanceCreate,
   type MPTokenIssuanceDestroy,
   type MPTokenIssuanceSet,
   type MPTokenMetadata,
-  type OfferCancel,
-  type OfferCreate,
   type Payment,
   type SubmitResponse,
   type Transaction,
@@ -20,7 +18,6 @@ import {
 
 import {
   IntentValidationError,
-  iou,
   LocalSigner,
   mpt,
   SimpleXRPL,
@@ -349,53 +346,32 @@ describe('Token vertical', () => {
     })
   })
 
-  describe('createOffer / cancelOffer', () => {
-    it('builds OfferCreate with XRP/IOU amounts and flags', async () => {
+  describe('clawback', () => {
+    it('builds a Clawback with the holder and a scaled MPT amount', async () => {
       const { client, txs } = await tokenClient()
-      const issuer = Wallet.generate().classicAddress
-      await client.token.createOffer({
-        takerGets: { asset: XRP_ASSET, value: '1' },
-        takerPays: { asset: iou('USD', issuer), value: '10' },
-        flags: { immediateOrCancel: true },
+      const holder = Wallet.generate().classicAddress
+      const result = await client.token.clawback({
+        holder,
+        amount: { asset: mpt(MPT_ID, 2), value: '10.5' },
       })
-      const tx = txs[0] as OfferCreate
-      expect(tx.TransactionType).toBe('OfferCreate')
-      expect(tx.TakerGets).toBe('1000000')
-      expect(tx.TakerPays).toStrictEqual({
-        currency: 'USD',
-        issuer,
-        value: '10',
+      expect(result.intent).toStrictEqual({ holder, amount: '10.5' })
+      const tx = txs[0] as Clawback
+      expect(tx.TransactionType).toBe('Clawback')
+      expect(tx.Holder).toBe(holder)
+      expect(tx.Amount).toStrictEqual({
+        mpt_issuance_id: MPT_ID,
+        value: '1050',
       })
-      expect(tx.Flags).toBe(OfferCreateFlags.tfImmediateOrCancel)
     })
 
-    it('omits Flags when the offer sets none', async () => {
-      const { client, txs } = await tokenClient()
-      const issuer = Wallet.generate().classicAddress
-      await client.token.createOffer({
-        takerGets: { asset: XRP_ASSET, value: '1' },
-        takerPays: { asset: iou('USD', issuer), value: '10' },
-      })
-      // A plain (non-passive, non-sell) offer must not carry Flags: 0.
-      expect((txs[0] as OfferCreate).Flags).toBeUndefined()
-    })
-
-    it('rejects an MPT amount in an offer', async () => {
+    it('rejects a non-MPT amount', async () => {
       const { client } = await tokenClient()
       await expect(
-        client.token.createOffer({
-          takerGets: { asset: mpt('MPT-1', 0), value: '1' },
-          takerPays: { asset: XRP_ASSET, value: '1' },
+        client.token.clawback({
+          holder: 'rHolder',
+          amount: { asset: XRP_ASSET, value: '10' },
         }),
       ).rejects.toBeInstanceOf(IntentValidationError)
-    })
-
-    it('builds OfferCancel with the offer sequence', async () => {
-      const { client, txs } = await tokenClient()
-      await client.token.cancelOffer({ offerSequence: 42 })
-      const tx = txs[0] as OfferCancel
-      expect(tx.TransactionType).toBe('OfferCancel')
-      expect(tx.OfferSequence).toBe(42)
     })
   })
 })

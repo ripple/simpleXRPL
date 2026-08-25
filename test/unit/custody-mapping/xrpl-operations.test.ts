@@ -253,7 +253,7 @@ describe('txToOperation', () => {
   })
 
   describe('MPTokenIssuanceCreate', () => {
-    it('maps every field and all 6 flags', () => {
+    it('maps every field and all 6 flags in the gateway canonical order', () => {
       const tx: MPTokenIssuanceCreate = {
         TransactionType: 'MPTokenIssuanceCreate',
         Account: 'rFrom',
@@ -264,15 +264,19 @@ describe('txToOperation', () => {
         // All 6 flags combined: 4 | 64 | 32 | 8 | 2 | 16 = 126
         Flags: 126,
       }
+      // The flag order is load-bearing: the gateway re-encodes the bitmask to
+      // this exact sequence before it verifies the intent signature over the
+      // JCS-canonicalized request (which preserves array order). Any other
+      // order canonicalizes differently and is rejected as InvalidSignature.
       expect(txToOperation(tx)).toEqual({
         type: 'MPTokenIssuanceCreate',
         flags: [
-          'tfMPTRequireAuth',
-          'tfMPTCanClawback',
           'tfMPTCanTransfer',
-          'tfMPTCanEscrow',
           'tfMPTCanLock',
+          'tfMPTRequireAuth',
           'tfMPTCanTrade',
+          'tfMPTCanClawback',
+          'tfMPTCanEscrow',
         ],
         assetScale: 2,
         transferFee: 100,

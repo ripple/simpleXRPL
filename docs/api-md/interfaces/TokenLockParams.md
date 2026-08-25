@@ -1,4 +1,4 @@
-# Interface: MptLockParams
+# Interface: TokenLockParams
 
 Defined in: [verticals/token.types.ts:118](https://github.com/ripple/simpleXRPL/blob/main/src/verticals/token.types.ts#L118)
 

@@ -5,13 +5,9 @@ import {
 } from 'xrpl'
 import type { AccountSet } from 'xrpl'
 
-import type {
-  AccountSetParams,
-  MptIssueFlags,
-  OfferFlags,
-} from '../../../src/index.js'
+import type { AccountSetParams, TokenIssueFlags } from '../../../src/index.js'
 import { orderTypeFlags } from '../../../src/verticals/iou.helpers.js'
-import { issueFlags, offerFlags } from '../../../src/verticals/token.helpers.js'
+import { issueFlags } from '../../../src/verticals/token.helpers.js'
 import { recordingClient } from '../helpers/recording-ledger.js'
 
 // A full matrix over every SDK-exposed flag: each named flag must map to the
@@ -51,7 +47,7 @@ describe('Account.set flag matrix', () => {
 
 describe('Token issuance capability flag matrix', () => {
   const flags: ReadonlyArray<
-    [keyof MptIssueFlags, MPTokenIssuanceCreateFlags]
+    [keyof TokenIssueFlags, MPTokenIssuanceCreateFlags]
   > = [
     ['canLock', MPTokenIssuanceCreateFlags.tfMPTCanLock],
     ['requireAuth', MPTokenIssuanceCreateFlags.tfMPTRequireAuth],
@@ -60,7 +56,7 @@ describe('Token issuance capability flag matrix', () => {
     ['canTransfer', MPTokenIssuanceCreateFlags.tfMPTCanTransfer],
     ['canClawback', MPTokenIssuanceCreateFlags.tfMPTCanClawback],
   ]
-  const allOff: Required<MptIssueFlags> = {
+  const allOff: Required<TokenIssueFlags> = {
     canLock: false,
     requireAuth: false,
     canEscrow: false,
@@ -74,7 +70,7 @@ describe('Token issuance capability flag matrix', () => {
   })
 
   it('combines every capability into one mask', () => {
-    const all: Required<MptIssueFlags> = {
+    const all: Required<TokenIssueFlags> = {
       canLock: true,
       requireAuth: true,
       canEscrow: true,
@@ -115,19 +111,5 @@ describe('Offer flag matrix', () => {
 
   it.each(orderTypes)('sell %s → its flag | tfSell', (orderType, bit) => {
     expect(orderTypeFlags(orderType, true)).toBe(bit | OfferCreateFlags.tfSell)
-  })
-
-  const offerBits: ReadonlyArray<[keyof OfferFlags, OfferCreateFlags]> = [
-    ['passive', OfferCreateFlags.tfPassive],
-    ['immediateOrCancel', OfferCreateFlags.tfImmediateOrCancel],
-    ['fillOrKill', OfferCreateFlags.tfFillOrKill],
-    ['sell', OfferCreateFlags.tfSell],
-  ]
-  it.each(offerBits)('token offer flag %s → its bit', (name, bit) => {
-    expect(offerFlags({ [name]: true })).toBe(bit)
-  })
-
-  it('token offerFlags returns undefined when none set', () => {
-    expect(offerFlags({})).toBeUndefined()
   })
 })

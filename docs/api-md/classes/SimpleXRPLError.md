@@ -16,6 +16,7 @@ typed: distinct underlying failure modes are not flattened into one class.
 - [`NoSignerError`](NoSignerError.md)
 - [`AccountNotFoundError`](AccountNotFoundError.md)
 - [`AmbiguousAccountError`](AmbiguousAccountError.md)
+- [`NetworkMismatchError`](NetworkMismatchError.md)
 - [`DuplicateSignerError`](DuplicateSignerError.md)
 - [`CustodyAuthError`](CustodyAuthError.md)
 - [`CustodyApiError`](CustodyApiError.md)

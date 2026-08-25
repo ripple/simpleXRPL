@@ -1,6 +1,6 @@
 # Interface: SubmissionContext
 
-Defined in: [domain/model.ts:100](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L100)
+Defined in: [domain/model.ts:110](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L110)
 
 Per-submission context threaded through the pipeline to the custodian.
 
@@ -10,7 +10,7 @@ Per-submission context threaded through the pipeline to the custodian.
 
 > `readonly` **account**: [`Account`](Account.md)
 
-Defined in: [domain/model.ts:102](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L102)
+Defined in: [domain/model.ts:112](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L112)
 
 The resolved source account the transaction acts on.
 
@@ -20,7 +20,7 @@ The resolved source account the transaction acts on.
 
 > `readonly` `optional` **async**: `boolean`
 
-Defined in: [domain/model.ts:114](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L114)
+Defined in: [domain/model.ts:124](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L124)
 
 Return a handle instead of blocking until the transaction is terminal.
 
@@ -30,7 +30,7 @@ Return a handle instead of blocking until the transaction is terminal.
 
 > `readonly` `optional` **customProperties**: `Record`\<`string`, `unknown`\>
 
-Defined in: [domain/model.ts:120](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L120)
+Defined in: [domain/model.ts:130](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L130)
 
 Human-readable approval metadata stamped on custody intents.
 
@@ -40,7 +40,7 @@ Human-readable approval metadata stamped on custody intents.
 
 > `readonly` `optional` **dryRun**: `boolean`
 
-Defined in: [domain/model.ts:111](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L111)
+Defined in: [domain/model.ts:121](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L121)
 
 Pre-flight the write through the backend's dry-run, where supported.
 
@@ -50,7 +50,7 @@ Pre-flight the write through the backend's dry-run, where supported.
 
 > `readonly` `optional` **fee**: [`FeeIntent`](FeeIntent.md)
 
-Defined in: [domain/model.ts:108](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L108)
+Defined in: [domain/model.ts:118](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L118)
 
 Optional fee override; falls back to the custodian's configured default.
 
@@ -60,7 +60,7 @@ Optional fee override; falls back to the custodian's configured default.
 
 > `readonly` `optional` **idempotencyKey**: `string`
 
-Defined in: [domain/model.ts:117](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L117)
+Defined in: [domain/model.ts:127](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L127)
 
 Stable, client-generated id that makes a retry resolve to the same intent.
 
@@ -70,7 +70,7 @@ Stable, client-generated id that makes a retry resolve to the same intent.
 
 > `readonly` **ledger**: [`LedgerPort`](LedgerPort.md)
 
-Defined in: [domain/model.ts:105](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L105)
+Defined in: [domain/model.ts:115](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L115)
 
 The shared ledger connection the custodian submits through.
 
@@ -80,6 +80,6 @@ The shared ledger connection the custodian submits through.
 
 > `readonly` `optional` **timeoutMs**: `number`
 
-Defined in: [domain/model.ts:123](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L123)
+Defined in: [domain/model.ts:133](https://github.com/ripple/simpleXRPL/blob/main/src/domain/model.ts#L133)
 
 How long to wait before handing control back to the caller.
