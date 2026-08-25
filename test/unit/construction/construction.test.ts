@@ -41,7 +41,6 @@ describe('resolveFromEnvOptions', () => {
       env: envWith(SIGNING_KEY_PEM),
     })
     expect(options.auth.signingKey).toBe(SIGNING_KEY_PEM)
-    expect(options.auth.publicKey).toBeUndefined()
     expect(options.auth.clientId).toBeUndefined()
     expect(send).not.toHaveBeenCalled()
   })
@@ -125,25 +124,10 @@ describe('resolveFromEnvOptions', () => {
     })
 
     expect(options.auth.signingKey).toBe(SECRET_JSON.private_key)
-    expect(options.auth.publicKey).toBe(SECRET_JSON.public_key)
     expect(send).toHaveBeenCalledTimes(1)
     expect(send.mock.calls[0][0].input).toStrictEqual({
       SecretId: SECRET_ARN,
     })
-  })
-
-  it("prefers RIPPLE_CUSTODY_AUTH_PUBLIC_KEY over the secret's public_key", async () => {
-    send.mockResolvedValueOnce({ SecretString: JSON.stringify(SECRET_JSON) })
-
-    const options = await resolveFromEnvOptions({
-      primary: 'rPrimary',
-      env: {
-        ...envWith(SECRET_ARN),
-        RIPPLE_CUSTODY_AUTH_PUBLIC_KEY: 'explicit-override-key',
-      },
-    })
-
-    expect(options.auth.publicKey).toBe('explicit-override-key')
   })
 
   it('throws when the Secrets Manager secret has no SecretString', async () => {

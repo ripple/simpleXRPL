@@ -25,8 +25,6 @@ const DEFAULT_TIMEOUT_MS = 60_000
 export interface RippleCustodyAuthOptions {
   /** Intent-author private key: PEM contents, or a path to a `.pem` file. */
   readonly signingKey: string
-  /** Matching public key, base64 SPKI DER. Derived from `signingKey` if omitted. */
-  readonly publicKey?: string
   /** The Custody token endpoint URL. */
   readonly tokenUrl: string
   /** The OIDC client id to authenticate as. Defaults to `'customer_api'`. */
@@ -134,15 +132,13 @@ const SECRETS_MANAGER_ARN_PREFIX = 'arn:aws:secretsmanager:'
  * present so a mismatched/incomplete secret fails fast.
  */
 interface CustodySigningKeySecret {
-  readonly public_key?: string
   readonly private_key?: string
   readonly user_alias?: string
 }
 
-/** A resolved signing key, with an optional public key from the same source. */
+/** A resolved signing key. The public key is derived from it, never carried. */
 interface ResolvedSigningKey {
   readonly privateKeyPem: string
-  readonly publicKey?: string
 }
 
 /**
@@ -164,10 +160,6 @@ function parseSigningKeySecret(
     return undefined
   }
   return {
-    public_key:
-      'public_key' in parsed && typeof parsed.public_key === 'string'
-        ? parsed.public_key
-        : undefined,
     private_key:
       'private_key' in parsed && typeof parsed.private_key === 'string'
         ? parsed.private_key
@@ -216,7 +208,6 @@ async function fetchSigningKeySecret(
   // field commonly arrives with its line breaks escaped.
   return {
     privateKeyPem: normalizePem(secret.private_key),
-    publicKey: secret.public_key,
   }
 }
 
@@ -323,7 +314,6 @@ export async function buildRippleCustodyState(
       clientId: options.auth.clientId,
     }),
     privateKey: options.auth.signingKey,
-    publicKey: options.auth.publicKey,
   })
   const client = new CustodyHttpClient({
     gatewayUrl: options.gatewayUrl,
@@ -374,7 +364,6 @@ export async function resolveFromEnvOptions(
     gatewayUrl: requireEnv(env, 'RIPPLE_CUSTODY_GATEWAY_URL'),
     auth: {
       signingKey: signingKey.privateKeyPem,
-      publicKey: env.RIPPLE_CUSTODY_AUTH_PUBLIC_KEY ?? signingKey.publicKey,
       tokenUrl: requireEnv(env, 'RIPPLE_CUSTODY_AUTH_TOKEN_URL'),
       clientId: env.RIPPLE_CUSTODY_AUTH_CLIENT_ID,
     },

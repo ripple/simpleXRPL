@@ -48,7 +48,6 @@ what it needs and skips itself cleanly if those vars are absent. An example
 ```bash
 RIPPLE_CUSTODY_GATEWAY_URL=https://<gateway-host>
 RIPPLE_CUSTODY_AUTH_SIGNING_KEY=./ripple-custody-signing-key.pem
-RIPPLE_CUSTODY_AUTH_PUBLIC_KEY=<base64-spki-der-public-key>
 RIPPLE_CUSTODY_AUTH_TOKEN_URL=https://openid.<env>/realms/Metaco/protocol/openid-connect/token
 RIPPLE_CUSTODY_DOMAIN_ID=<domain-id>
 RIPPLE_CUSTODY_PRIMARY_ADDRESS=<r-address>
@@ -133,7 +132,6 @@ other wiring needed. Required env vars (`construction.ts` →
 | `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` | Intent-author private key (PEM or path to `.pem`) |
 | `RIPPLE_CUSTODY_AUTH_TOKEN_URL` | OAuth token endpoint — the realm-specific path, e.g. `https://openid.<env>/realms/Metaco/protocol/openid-connect/token`, not just the Keycloak host root |
 | `RIPPLE_CUSTODY_DOMAIN_ID` | The Custody domain to operate in |
-| `RIPPLE_CUSTODY_AUTH_PUBLIC_KEY` | Optional — derived from the signing key if omitted |
 
 `create()`/`fromEnv()` will:
 1. Authenticate against `tokenUrl` and mint a JWT.

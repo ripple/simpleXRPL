@@ -62,11 +62,6 @@ export interface CustodyAuthServiceOptions {
    * object — logging the options you pass in will still print the key.
    */
   privateKey: string
-  /**
-   * Registered public key (base64 DER / SPKI). Optional: derived from
-   * `privateKey` when omitted.
-   */
-  publicKey?: string
   /** Injectable clock for deterministic tests. Defaults to `Date.now`. */
   now?: () => number
 }
@@ -110,25 +105,18 @@ export class CustodyAuthService {
   /**
    * Construct a CustodyAuthService.
    *
-   * @param options - The auth port, private key, and optional public key/clock.
+   * @param options - The auth port, private key, and optional clock.
    */
   public constructor(options: CustodyAuthServiceOptions) {
     this.authPort = options.authPort
     this.#privateKey = options.privateKey
     this.now = options.now ?? Date.now
     this.keypair = KeypairService.fromPrivateKey(this.#privateKey)
-    const derivedPublicKey = KeypairService.derivePublicKeyBase64(
-      this.#privateKey,
-    )
-    if (
-      options.publicKey !== undefined &&
-      options.publicKey !== derivedPublicKey
-    ) {
-      throw new CustodyAuthError(
-        'Supplied publicKey does not match the derived public key for privateKey',
-      )
-    }
-    this.publicKey = options.publicKey ?? derivedPublicKey
+    // The public key is always derived from the private key, never supplied:
+    // an independently-provided public key can only drift out of sync with the
+    // private key (a rotation updating one but not the other), so deriving it
+    // removes that failure mode entirely.
+    this.publicKey = KeypairService.derivePublicKeyBase64(this.#privateKey)
   }
 
   /**

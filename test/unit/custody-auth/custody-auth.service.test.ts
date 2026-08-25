@@ -45,7 +45,7 @@ function jwtExpiringIn(clockMs: number, secondsFromNow: number): string {
 }
 
 describe('CustodyAuthService token lifecycle', () => {
-  it('derives the public key when none is supplied', () => {
+  it('derives the public key from the private key', () => {
     expect(
       () =>
         new CustodyAuthService({
@@ -53,17 +53,6 @@ describe('CustodyAuthService token lifecycle', () => {
           privateKey: KEY,
         }),
     ).not.toThrow()
-  })
-
-  it('rejects a supplied publicKey that does not match privateKey', () => {
-    expect(
-      () =>
-        new CustodyAuthService({
-          authPort: new FakeAuthPort('t'),
-          privateKey: KEY,
-          publicKey: 'not-the-derived-key',
-        }),
-    ).toThrow(/does not match/u)
   })
 
   it('fetches once then serves the cached token while valid', async () => {

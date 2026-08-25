@@ -119,7 +119,7 @@ export class KeypairService {
 
   /**
    * Derive the registered public key (base64 DER / SPKI) from the private key.
-   * Used when the caller omits `auth.publicKey`.
+   * The public key is always derived here rather than supplied by the caller.
    *
    * @param privateKeyPem - PEM-encoded private key.
    * @returns The matching public key, base64-encoded SPKI DER.
