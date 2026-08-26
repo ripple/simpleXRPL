@@ -38,12 +38,12 @@ const result = await client.token.issue({
 console.log('issued MPT:', result.intent.mptIssuanceId)
 
 // Read the issuance back (no signer required): flags are decoded to booleans,
-// the transfer fee to a percentage, and XLS-89 metadata is parsed.
+// and XLS-89 metadata is parsed.
 const token = await client.token.retrieve({
   mptIssuanceId: result.intent.mptIssuanceId,
 })
-console.log('transfer fee (%):', token.data?.transferFee)
-console.log('can claw back:', token.data?.flags.canClawback)
+
+console.log('can clawback:', token.data?.flags.canClawback)
 console.log('metadata:', token.data?.metadata?.name)
 
 await client.disconnect()

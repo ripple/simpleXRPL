@@ -68,7 +68,7 @@ operation in-process. Read operations emit no transactor and are omitted.
 | `XRP.buyOffer()` | `OfferCreate` | **native** | **native** |
 | `XRP.sellOffer()` | `OfferCreate` | **native** | **native** |
 | `XRP.cancelOffer()` | `OfferCancel` | raw fallback¹ | **native** |
-| `IOU.issue()` | `TrustSet`, `AccountSet` | **native** | **native** |
+| `IOU.issue()` | `TrustSet`, `AccountSet`, `Payment` | **native** | **native** |
 | `IOU.authorize()` | `TrustSet` | **native** | **native** |
 | `IOU.lock()` | `TrustSet` | **native** | **native** |
 | `IOU.unlock()` | `TrustSet` | **native** | **native** |

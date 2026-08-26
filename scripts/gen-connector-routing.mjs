@@ -86,7 +86,7 @@ const OPERATIONS = [
   ['XRP.buyOffer', ['OfferCreate']],
   ['XRP.sellOffer', ['OfferCreate']],
   ['XRP.cancelOffer', ['OfferCancel']],
-  ['IOU.issue', ['TrustSet', 'AccountSet']],
+  ['IOU.issue', ['TrustSet', 'AccountSet', 'Payment']],
   ['IOU.authorize', ['TrustSet']],
   ['IOU.lock', ['TrustSet']],
   ['IOU.unlock', ['TrustSet']],
