@@ -1,6 +1,6 @@
 {
   "name": "simplexrpl",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A high-level TypeScript SDK for the XRP Ledger, scoped to the institutional / Web2 audience.",
   "license": "ISC",
   "author": "Ripple",
@@ -53,8 +53,9 @@
     "typegen": "run-s typegen:custody typegen:palisade",
     "typegen:custody": "openapi-typescript openapi/custody-v1.35-openapi.json -o src/generated/custody.ts && prettier --write src/generated/custody.ts",
     "typegen:palisade": "openapi-typescript openapi/palisade-api.yaml -o src/generated/palisade.ts && node scripts/gen-palisade-routes.mjs && prettier --write src/generated/palisade.ts src/generated/palisade-routes.ts",
+    "gen:version": "node scripts/gen-version.mjs",
     "prebuild": "npm run clean",
-    "build": "run-s build:cjs build:esm fixup",
+    "build": "run-s gen:version build:cjs build:esm fixup",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
     "fixup": "node scripts/fixup-dist.mjs",

@@ -111,16 +111,17 @@ describe('txToOperation', () => {
   })
 
   describe('Clawback', () => {
-    it('maps an IOU clawback', () => {
+    it('maps an IOU clawback, deriving the holder from Amount.issuer', () => {
+      // A native XRPL issued-currency Clawback carries the holder in
+      // Amount.issuer and sets no top-level Holder; the token issuer is Account.
       const tx: Clawback = {
         TransactionType: 'Clawback',
         Account: 'rIssuer',
-        Holder: 'rHolder',
         Amount: { currency: 'USD', issuer: 'rHolder', value: '10' },
       }
       expect(txToOperation(tx)).toEqual({
         type: 'Clawback',
-        currency: { code: 'USD', issuer: 'rHolder', type: 'Currency' },
+        currency: { code: 'USD', issuer: 'rIssuer', type: 'Currency' },
         holder: { address: 'rHolder', type: 'Address' },
         value: toCustodyIouAmount('10'),
       })
@@ -141,11 +142,11 @@ describe('txToOperation', () => {
       })
     })
 
-    it('throws when Holder is absent', () => {
+    it('throws when an MPT clawback omits Holder', () => {
       const tx: Clawback = {
         TransactionType: 'Clawback',
         Account: 'rIssuer',
-        Amount: { currency: 'USD', issuer: 'rHolder', value: '10' },
+        Amount: { mpt_issuance_id: MPT_ID, value: '10' },
       }
       expect(() => txToOperation(tx)).toThrow(SignerCapabilityError)
       expect(() => txToOperation(tx)).toThrow(/Holder/u)

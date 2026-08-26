@@ -35,7 +35,7 @@ function parseJsonBody<T>(body: string): T {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Empty body for void-returning endpoints.
     return undefined as T
   }
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Generated-contract assertion (7467).
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Generated-contract assertion.
   return JSON.parse(body) as T
 }
 

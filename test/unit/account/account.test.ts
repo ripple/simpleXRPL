@@ -51,6 +51,14 @@ describe('Account vertical', () => {
     expect(settings.SetFlag).toBe(AccountSetAsfFlags.asfDefaultRipple)
   })
 
+  it('activate rejects a malformed amount as IntentValidationError', async () => {
+    const { client } = await recordingClient()
+    const created = client.account.create()
+    await expect(
+      client.account.activate({ destination: created.address, amount: 'abc' }),
+    ).rejects.toBeInstanceOf(IntentValidationError)
+  })
+
   it('activate defaults the amount to the network base reserve plus a buffer', async () => {
     const { client, txs } = await recordingClient()
     // Report a 10 XRP base reserve; the default funding must clear it with room

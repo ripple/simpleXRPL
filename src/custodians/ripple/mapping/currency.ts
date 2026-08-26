@@ -26,16 +26,23 @@ export function toIouCurrency(amount: IssuedCurrencyAmount): IouCurrency {
  * Map an xrpl clawback amount (IOU or MPT) to Custody's `ClawbackCurrency`
  * union.
  *
+ * For an issued currency the reference's `issuer` is the *token issuer* — the
+ * account performing the clawback, i.e. `Clawback.Account` — not the holder. On
+ * a native XRPL `Clawback` the holder is what sits in `Amount.issuer`, so the
+ * token issuer must be passed in separately rather than read off the amount.
+ *
  * @param amount - The IOU or MPT amount to claw back.
+ * @param tokenIssuer - The token issuer (`Clawback.Account`); ignored for MPT.
  * @returns The Custody currency reference.
  */
 export function toClawbackCurrency(
   amount: IssuedCurrencyAmount | MPTAmount,
+  tokenIssuer: string,
 ): ClawbackCurrency {
   if ('mpt_issuance_id' in amount) {
     return { issuanceId: amount.mpt_issuance_id, type: 'MultiPurposeToken' }
   }
-  return { code: amount.currency, issuer: amount.issuer, type: 'Currency' }
+  return { code: amount.currency, issuer: tokenIssuer, type: 'Currency' }
 }
 
 /**

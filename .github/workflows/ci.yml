@@ -35,6 +35,13 @@ jobs:
           npm run typegen
           git diff --exit-code src/generated \
             || (echo "::error::src/generated is stale — run 'npm run typegen' and commit." && exit 1)
+      # src/version.ts is generated from package.json at build; regenerate and
+      # fail if the committed copy drifts from the declared version.
+      - name: Verify generated version is up to date
+        run: |
+          npm run gen:version
+          git diff --exit-code src/version.ts \
+            || (echo "::error::src/version.ts is stale — run 'npm run gen:version' and commit." && exit 1)
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check

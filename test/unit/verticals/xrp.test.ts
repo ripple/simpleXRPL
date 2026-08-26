@@ -2,6 +2,7 @@ import { OfferCreateFlags, Wallet } from 'xrpl'
 import type {
   OfferCancel,
   OfferCreate,
+  Payment,
   SubmitResponse,
   Transaction,
   TxResponse,
@@ -205,5 +206,31 @@ describe('XRP.buyOffer / XRP.sellOffer / XRP.cancelOffer', () => {
     expect(tx.Account).toBe(address)
     expect(tx.OfferSequence).toBe(7)
     expect(result.intent).toEqual({ offerSequence: 7 })
+  })
+})
+
+describe('XRP.transfer', () => {
+  it('builds a Payment with the amount converted to drops', async () => {
+    const { client, txs, address } = await xrpClient()
+
+    const to = Wallet.generate().classicAddress
+    const result = await client.xrp.transfer({ to, amount: '2.5' })
+    const tx = txs[0] as Payment
+    expect(tx.TransactionType).toBe('Payment')
+    expect(tx.Account).toBe(address)
+    expect(tx.Destination).toBe(to)
+    expect(tx.Amount).toBe('2500000')
+    expect(result.intent).toEqual({ to, amount: '2.5' })
+  })
+
+  it('rejects a malformed amount as IntentValidationError', async () => {
+    const { client } = await xrpClient()
+
+    await expect(
+      client.xrp.transfer({
+        to: Wallet.generate().classicAddress,
+        amount: 'abc',
+      }),
+    ).rejects.toBeInstanceOf(IntentValidationError)
   })
 })

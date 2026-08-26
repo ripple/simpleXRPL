@@ -28,16 +28,18 @@ describe('toIouCurrency', () => {
 })
 
 describe('toClawbackCurrency', () => {
-  it('maps an IOU amount to a Currency reference', () => {
-    expect(toClawbackCurrency(IOU)).toEqual({
+  it('maps an IOU amount to a Currency reference using the passed token issuer', () => {
+    // The token issuer comes from the arg (Clawback.Account), not the amount's
+    // issuer — which on a native Clawback is the holder, not the token issuer.
+    expect(toClawbackCurrency(IOU, 'rTokenIssuer')).toEqual({
       code: 'USD',
-      issuer: 'rIssuer',
+      issuer: 'rTokenIssuer',
       type: 'Currency',
     })
   })
 
   it('maps an MPT amount to a MultiPurposeToken reference', () => {
-    expect(toClawbackCurrency(MPT)).toEqual({
+    expect(toClawbackCurrency(MPT, 'rIssuer')).toEqual({
       issuanceId: 'ABCDEF',
       type: 'MultiPurposeToken',
     })

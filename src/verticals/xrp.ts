@@ -1,4 +1,3 @@
-import { xrpToDrops } from 'xrpl'
 import type { OfferCancel, Payment } from 'xrpl'
 
 import type {
@@ -151,7 +150,7 @@ export class XRP {
       TransactionType: 'Payment',
       Account: account.address,
       Destination: params.to,
-      Amount: xrpToDrops(params.amount),
+      Amount: xrpDrops(params.amount, 'amount'),
     }
     const result = await submitTransaction(this.host, {
       transaction,

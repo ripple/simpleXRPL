@@ -1,7 +1,8 @@
 import BigNumber from 'bignumber.js'
-import { AccountSetAsfFlags, Wallet, xrpToDrops } from 'xrpl'
+import { AccountSetAsfFlags, Wallet } from 'xrpl'
 import type { AccountSet, DepositPreauth, Payment, SetRegularKey } from 'xrpl'
 
+import { toDrops } from '../amount/amount.js'
 import type { SubmissionResult } from '../domain/index.js'
 import { SimpleXRPLError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
@@ -158,7 +159,7 @@ export class AccountVertical {
     // the follow-up defaultRipple transaction's fee without dropping below it.
     // Added in decimal, not floating point: `reserve_base_xrp` is a JSON number,
     // and a fractional reserve makes IEEE754 addition produce artifacts that
-    // xrpToDrops rejects outright (a 1.03 reserve yields '2.0300000000000002',
+    // toDrops rejects outright (a 1.03 reserve yields '2.0300000000000002',
     // which throws "too many decimal places" and breaks every activation).
     const amountXrp =
       params.amount ??
@@ -169,7 +170,7 @@ export class AccountVertical {
       TransactionType: 'Payment',
       Account: operator.address,
       Destination: params.destination,
-      Amount: xrpToDrops(amountXrp),
+      Amount: toDrops(amountXrp),
     }
     await submitTransaction(this.host, {
       transaction: payment,
