@@ -41,7 +41,6 @@ import {
   XrplLedger,
   iou,
   mpt,
-  XRP_ASSET,
 } from '../dist/esm/index.js'
 
 const TESTNET_WS =
@@ -471,27 +470,6 @@ async function sweepVerticals(client, issuer, holder) {
     await step('token', 'token.destroy', async () =>
       client.token.destroy({ mptIssuanceId: throwawayId }, from),
     )
-  }
-
-  await step('token', 'token.createOffer', async () =>
-    client.token.createOffer(
-      {
-        takerGets: { asset: XRP_ASSET, value: '1' },
-        takerPays: { asset: iou('USD', issuer), value: '10' },
-      },
-      asHolder,
-    ),
-  )
-  const holderOffers = await step('token', 'token.listOffers', async () =>
-    client.token.listOffers({ account: holder }),
-  )
-  const tokenSeq = holderOffers?.data?.[0]?.offerSequence
-  if (tokenSeq !== undefined) {
-    await step('token', 'token.cancelOffer', async () =>
-      client.token.cancelOffer({ offerSequence: tokenSeq }, asHolder),
-    )
-  } else {
-    skip('token', 'token.cancelOffer', 'no resting offer sequence found')
   }
 
   // ── credential ───────────────────────────────────────────────────────────

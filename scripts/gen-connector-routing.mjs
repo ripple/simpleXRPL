@@ -83,6 +83,9 @@ const universe = [
 // emit no transactor and `Account.create` is local key generation — both omitted.
 const OPERATIONS = [
   ['XRP.transfer', ['Payment']],
+  ['XRP.buyOffer', ['OfferCreate']],
+  ['XRP.sellOffer', ['OfferCreate']],
+  ['XRP.cancelOffer', ['OfferCancel']],
   ['IOU.issue', ['TrustSet', 'AccountSet']],
   ['IOU.authorize', ['TrustSet']],
   ['IOU.lock', ['TrustSet']],
@@ -101,8 +104,7 @@ const OPERATIONS = [
   ['Token.unlock', ['MPTokenIssuanceSet']],
   ['Token.destroy', ['MPTokenIssuanceDestroy']],
   ['Token.transfer', ['Payment'], true],
-  ['Token.createOffer', ['OfferCreate']],
-  ['Token.cancelOffer', ['OfferCancel']],
+  ['Token.clawback', ['Clawback'], true],
   ['Domain.create', ['PermissionedDomainSet']],
   ['Domain.setCredentials', ['PermissionedDomainSet']],
   ['Domain.delete', ['PermissionedDomainDelete']],
@@ -228,7 +230,19 @@ const operationRows = OPERATIONS.map(
     )} | ${opCell(PALISADE, MPT_NATIVE.palisade, transactors, carriesMpt)} |`,
 ).join('\n')
 
-const verticalRows = [...byVertical.entries()]
+// Group by vertical from OPERATIONS (not the raw source scan) so an operation's
+// transactors are attributed to the vertical that exposes the method even when
+// the builder lives in a shared helper — e.g. `xrp.buyOffer`/`sellOffer` emit
+// `OfferCreate` through `iou.helpers`, which the literal scan would miscredit to
+// `iou` alone. Read-only verticals contribute nothing here (they emit no op).
+const opsByVertical = new Map()
+for (const [operation, transactors] of OPERATIONS) {
+  const vertical = operation.split('.')[0].toLowerCase()
+  const set = opsByVertical.get(vertical) ?? new Set()
+  for (const t of transactors) set.add(t)
+  opsByVertical.set(vertical, set)
+}
+const verticalRows = [...opsByVertical.entries()]
   .sort(([a], [b]) => a.localeCompare(b))
   .map(
     ([vertical, set]) =>
@@ -289,11 +303,14 @@ ${operationRows}
 (\`allowRawSigning\`); otherwise the operation is rejected with
 \`SignerCapabilityError\`. A multi-transactor operation (e.g. \`IOU.issue\`) is
 native only when every step is native. **Palisade has no native MPT support**,
-so \`Token.transfer\` — which carries an MPT amount — falls back to raw there
-even though \`Payment\` is otherwise native; Ripple Custody handles MPT natively.
-\`Token.createOffer\` / \`Token.cancelOffer\` stay **native** on Palisade because
-they don't carry an MPT — an offer can't hold an MPT (it isn't DEX-tradeable),
-so they operate on XRP/IOU legs via \`OfferCreate\` / \`OfferCancel\`.
+so the MPT-carrying operations \`Token.transfer\` and \`Token.clawback\` fall back
+to raw there even though \`Payment\` and \`Clawback\` are otherwise native; Ripple
+Custody handles MPT natively. The DEX offer operations
+(\`buyOffer\` / \`sellOffer\` / \`cancelOffer\` on \`iou\` and \`xrp\`) never carry an
+MPT — MPTs aren't DEX-tradeable — so they route purely on their \`OfferCreate\` /
+\`OfferCancel\` legs: \`buyOffer\` / \`sellOffer\` are native on both custodians,
+while \`cancelOffer\` is native on Palisade but falls back to raw on Ripple
+Custody, which doesn't natively model \`OfferCancel\`.
 
 ---
 

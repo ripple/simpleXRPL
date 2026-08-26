@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     tags:
-      - '**'
+      - "**"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
@@ -86,9 +86,6 @@ jobs:
   #
   # Suites self-skip when their credentials are absent so the tier stays runnable
   # on a laptop, but CONTRACT_REQUIRE_ALL turns that into a hard failure here.
-  # Palisade and AWS KMS are configured and required; Ripple Custody is
-  # temporarily excluded for the beta release (see the run step below) — its
-  # suite passes locally, so we don't gate the release on it for now.
   contract-tests:
     if: >-
       github.event_name == 'workflow_dispatch' ||
@@ -128,11 +125,10 @@ jobs:
           # Every backend must actually run here. A self-skipping suite exits 0,
           # so without this a missing credential reports green with a whole
           # custodian left unexercised — which is how Ripple Custody sat un-run.
-          CONTRACT_REQUIRE_ALL: '1'
+          CONTRACT_REQUIRE_ALL: "1"
           RIPPLE_CUSTODY_GATEWAY_URL: ${{ secrets.RIPPLE_CUSTODY_GATEWAY_URL }}
           RIPPLE_CUSTODY_AUTH_SIGNING_KEY: ${{ secrets.RIPPLE_CUSTODY_AUTH_SIGNING_KEY }}
           RIPPLE_CUSTODY_AUTH_TOKEN_URL: ${{ secrets.RIPPLE_CUSTODY_AUTH_TOKEN_URL }}
-          RIPPLE_CUSTODY_AUTH_CLIENT_ID: ${{ secrets.RIPPLE_CUSTODY_AUTH_CLIENT_ID }}
           RIPPLE_CUSTODY_DOMAIN_ID: ${{ secrets.RIPPLE_CUSTODY_DOMAIN_ID }}
           RIPPLE_CUSTODY_PRIMARY_ADDRESS: ${{ secrets.RIPPLE_CUSTODY_PRIMARY_ADDRESS }}
           PALISADE_BASE_URL: ${{ secrets.PALISADE_BASE_URL }}
@@ -145,10 +141,4 @@ jobs:
           PALISADE_DEST_ADDRESS: ${{ secrets.PALISADE_DEST_ADDRESS }}
           AWS_KMS_KEY_ID: ${{ secrets.AWS_KMS_KEY_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-        # Skip the Ripple Custody suite for the beta release — it passes locally.
-        # Ignoring the path means the suite never loads, so its credential gate
-        # never runs and CONTRACT_REQUIRE_ALL still enforces the other backends.
-        # Re-enable by dropping the --testPathIgnorePatterns argument.
-        run: >-
-          npm run test:contract --
-          --testPathIgnorePatterns /node_modules/ ripple-custody.contract.test.ts
+        run: npm run test:contract
