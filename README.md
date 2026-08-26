@@ -6,9 +6,11 @@ Web2 audience. simpleXRPL collapses the distance between a business intent
 the XRPL transactions that realize it — without forcing the caller to learn
 transactor-specific details, flag combinations, or signing-backend differences.
 
-Writes dispatch to one of three signing backends behind a single `Custodian`
-abstraction: **local** (`xrpl` wallets), **Ripple Custody**, and **Palisade**.
-Reads go straight through `xrpl`.
+Writes dispatch to one of four signing backends behind a single `Custodian`
+abstraction: **local** (`xrpl` wallets), **Ripple Custody**, **Palisade**, and
+**external signers** — keys held in a KMS or HSM that never leave the secure
+boundary (a built-in AWS KMS adapter ships at `simplexrpl/aws-kms`; other devices
+implement the same `ExternalSigner` seam). Reads go straight through `xrpl`.
 
 The SDK ships six business-intent verticals — `xrp`, `iou`, `token`,
 `credential`, `domain`, and `account` — behind a single `SimpleXRPL.init(...)`
@@ -24,6 +26,12 @@ entry point.
 simpleXRPL is **Node-targeted** and not intended to run in the browser. For
 browser-based reads or local signing, use the [`xrpl`](https://www.npmjs.com/package/xrpl)
 package directly.
+
+## Installation
+
+```bash
+npm install simplexrpl
+```
 
 ## Quick start
 
@@ -41,9 +49,10 @@ const client = await SimpleXRPL.init({
 await client.xrp.transfer({ to: 'rDestination...', amount: '10' })
 ```
 
-See the [API reference](#) for every vertical, method, and type. Writes dispatch
-to whichever signing backend owns the account — local, Ripple Custody, or
-Palisade — with no change to the call.
+See the [API reference](./docs/api-md/README.md) for every vertical, method, and
+type, and [`examples/`](./examples) for runnable, type-checked samples. Writes
+dispatch to whichever signing backend owns the account — local, Ripple Custody,
+Palisade, or an external signer — with no change to the call.
 
 ## Native operations and the raw-signing fallback
 
@@ -72,30 +81,28 @@ opaque payload. This is off by default and must be enabled per custodian with
 
 Which transactors are native differs per backend — see
 [`docs/connector-routing.md`](./docs/connector-routing.md) for the current
-matrix, and note that a transactor can be native while a specific *field* on it
+matrix, and note that a transactor can be native while a specific _field_ on it
 is not, in which case that call also takes the raw path.
 
 ## Development
 
 Install dependencies with `npm install`.
 
-
-
 The package ships a **dual ESM + CJS build** and is type-checked with `tsc`;
 tests run on Jest via `ts-jest`.
 
-| Script                     | What it does                                                            |
-| -------------------------- | ----------------------------------------------------------------------- |
+| Script                     | What it does                                                              |
+| -------------------------- | ------------------------------------------------------------------------- |
 | `npm run typegen`          | Regenerate committed custodian types from the vendored specs (`openapi/`) |
-| `npm run typecheck`        | `tsc --noEmit` over the public surface                                  |
-| `npm run build`            | Clean, then emit `dist/esm` + `dist/cjs` and stamp `type` markers        |
-| `npm test`                 | Unit tier (offline)                                                     |
-| `npm run test:integration` | Live tier (testnet, `--runInBand`)                                      |
-| `npm run lint`             | ESLint (type-aware)                                                     |
-| `npm run format`           | Prettier write                                                          |
-| `npm run docgen`           | TypeDoc reference (HTML) into `docs/api`                                 |
-| `npm run docgen:md`        | TypeDoc reference (Markdown) into `docs/api-md`                          |
-| `npm run docgen:routing`   | Generate the connector routing table into `docs/connector-routing.md`   |
+| `npm run typecheck`        | `tsc --noEmit` over the public surface                                    |
+| `npm run build`            | Clean, then emit `dist/esm` + `dist/cjs` and stamp `type` markers         |
+| `npm test`                 | Unit tier (offline)                                                       |
+| `npm run test:integration` | Live tier (testnet, `--runInBand`)                                        |
+| `npm run lint`             | ESLint (type-aware)                                                       |
+| `npm run format`           | Prettier write                                                            |
+| `npm run docgen`           | TypeDoc reference (HTML) into `docs/api`                                  |
+| `npm run docgen:md`        | TypeDoc reference (Markdown) into `docs/api-md`                           |
+| `npm run docgen:routing`   | Generate the connector routing table into `docs/connector-routing.md`     |
 
 ### Custodian types are generated, not hand-authored
 

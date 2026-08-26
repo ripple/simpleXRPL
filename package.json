@@ -8,6 +8,10 @@
     "type": "git",
     "url": "git+https://github.com/ripple/simpleXRPL.git"
   },
+  "homepage": "https://github.com/ripple/simpleXRPL#readme",
+  "bugs": {
+    "url": "https://github.com/ripple/simpleXRPL/issues"
+  },
   "keywords": [
     "xrp",
     "xrpl",
