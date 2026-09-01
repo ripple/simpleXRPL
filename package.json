@@ -55,7 +55,7 @@
   "scripts": {
     "clean": "rimraf dist coverage tsconfig.*.tsbuildinfo",
     "typegen": "run-s typegen:custody typegen:palisade",
-    "typegen:custody": "openapi-typescript openapi/custody-v1.35-openapi.json -o src/generated/custody.ts && prettier --write src/generated/custody.ts",
+    "typegen:custody": "openapi-typescript openapi/custody-v1.35-openapi.json -o src/generated/custody.ts && node scripts/gen-custody-routes.mjs && prettier --write src/generated/custody.ts src/generated/custody-routes.ts",
     "typegen:palisade": "openapi-typescript openapi/palisade-api.yaml -o src/generated/palisade.ts && node scripts/gen-palisade-routes.mjs && prettier --write src/generated/palisade.ts src/generated/palisade-routes.ts",
     "gen:version": "node scripts/gen-version.mjs",
     "prebuild": "npm run clean",

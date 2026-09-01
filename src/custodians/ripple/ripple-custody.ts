@@ -23,6 +23,7 @@ import {
 import type { components } from '../../generated/custody.js'
 import { assertOnLedgerSuccess, engineResultOf } from '../on-ledger-result.js'
 
+import { CustodyApi } from './api.js'
 import {
   buildRippleCustodyState,
   resolveFromEnvOptions,
@@ -66,10 +67,19 @@ export class RippleCustody implements Custodian, IntentObserver {
   /** This custodian wraps the Custody REST API. */
   public readonly kind: CustodianKind = 'ripple-custody'
 
+  /**
+   * Low-level typed access to the full Custody v1 API, for endpoints the
+   * verticals don't model: `api.call` for reads and plain-body writes, and
+   * `api.propose` for governed intents (signed with the intent-author key).
+   */
+  public readonly api: CustodyApi
+
   private readonly state: RippleCustodyState
 
   private constructor(state: RippleCustodyState) {
     this.state = state
+    // `state` carries the intentSigner + domain/author the propose surface needs.
+    this.api = new CustodyApi(state.client, state)
   }
 
   /**
@@ -238,12 +248,9 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
-   * Poll the Custody transaction layer until the on-chain transaction linked to
-   * `intentId` is confirmed, then return its MPT issuance ID. Returns an empty
-   * string if the transaction is not confirmed within `timeoutMs`.
-   *
    * Poll the Custody transaction layer until the XRPL transaction linked to
-   * `intentId` is confirmed on-chain, then return its outcome.
+   * `intentId` is confirmed on-chain, then return its outcome — or `undefined`
+   * if it isn't confirmed within `timeoutMs`.
    *
    * @param intentId - The intent/order ID to look up.
    * @param timeoutMs - How long to poll (defaults to the custodian's configured
