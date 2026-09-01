@@ -8,23 +8,12 @@ import type { IntentSigner } from '../auth/intent-signer.js'
 import { buildCustomProperties } from './custom-properties.js'
 import { toFeeStrategy } from './fee-strategy.js'
 import { toMemos } from './memos.js'
+import { buildProposeEnvelope } from './propose-envelope.js'
 import { txToOperation } from './xrpl-operations.js'
 
 type ProposeIntentBody = components['schemas']['Core_ProposeIntentBody']
 type TransactionOrderParametersXrpl =
   components['schemas']['Core_TransactionOrderParameters_XRPL']
-
-const MS_PER_SECOND = 1000
-const SECONDS_PER_MINUTE = 60
-const MINUTES_PER_HOUR = 60
-const HOURS_PER_DAY = 24
-/**
- * Default intent lifetime: ~1 day, meant to be overridable per call or at
- * client init. No override knob yet — that lands with a later async/governance
- * refinement.
- */
-const DEFAULT_EXPIRY_MS =
-  HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND
 
 /** Inputs for building one signed `v0_CreateTransactionOrder` intent envelope. */
 export interface BuildEnvelopeOptions {
@@ -82,23 +71,23 @@ export function buildProposeIntentBody(
     type: 'XRPL',
   }
 
+  // The payload carries its own id, which must match the envelope id — the
+  // caller's idempotency key resolves a retry to the same intent. Resolve it
+  // once here (falling back to a fresh id) so both stay in sync, since
+  // `buildProposeEnvelope` would otherwise generate the envelope id on its own.
   const intentId = options.idempotencyKey ?? uuidV7()
-  const request = {
-    author: { id: options.authorUserId, domainId: options.domainId },
-    expiryAt: new Date(Date.now() + DEFAULT_EXPIRY_MS).toISOString(),
-    targetDomainId: options.domainId,
-    id: intentId,
+
+  return buildProposeEnvelope(intentSigner, {
+    domainId: options.domainId,
+    authorUserId: options.authorUserId,
     payload: {
       id: intentId,
       accountId: options.accountId,
       ledgerId: options.ledgerId,
       parameters,
       customProperties,
-      type: 'v0_CreateTransactionOrder' as const,
+      type: 'v0_CreateTransactionOrder',
     },
-    customProperties,
-    type: 'Propose' as const,
-  }
-
-  return intentSigner.signEnvelope({ request })
+    overrides: { id: intentId, customProperties },
+  })
 }
