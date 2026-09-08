@@ -130,6 +130,15 @@ describe('CustodyApi.call', () => {
       api.call('getIntent', { path: { domainId: 'D' } }),
     ).rejects.toThrow(/Missing path parameter 'intentId'/u)
   })
+
+  it('throws when a required path parameter is null (not a "null" segment)', async () => {
+    const { api } = apiOn()
+
+    await expect(
+      // @ts-expect-error -- null path param, to exercise the runtime guard
+      api.call('getIntent', { path: { domainId: 'D', intentId: null } }),
+    ).rejects.toThrow(/Missing path parameter 'intentId'/u)
+  })
 })
 
 describe('CustodyApi.propose', () => {

@@ -58,7 +58,9 @@ export interface CustodyCallArgs<Op extends CustodyOperationId> {
 function fillPath(template: string, params?: Record<string, unknown>): string {
   return template.replace(/\{(?<key>\w+)\}/gu, (_match, key: string) => {
     const value = params?.[key]
-    if (value === undefined) {
+    // Treat null like undefined: without this it would stringify to the literal
+    // "null" and silently produce a malformed path.
+    if (value === undefined || value === null) {
       throw new SimpleXRPLError(
         `Missing path parameter '${key}' for Custody route ${template}`,
       )
