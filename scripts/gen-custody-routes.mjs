@@ -20,6 +20,7 @@ const spec = JSON.parse(
 
 const METHODS = ['get', 'post', 'put', 'patch', 'delete']
 const entries = []
+const seen = new Set()
 let skipped = 0
 for (const [path, item] of Object.entries(spec.paths ?? {})) {
   for (const method of METHODS) {
@@ -32,6 +33,16 @@ for (const [path, item] of Object.entries(spec.paths ?? {})) {
       skipped += 1
       continue
     }
+    // operationId keys both the generated `operations` type and CUSTODY_ROUTES,
+    // so a duplicate would silently collide into one object key. Fail loudly
+    // instead — a duplicate is a spec ambiguity that must be resolved upstream.
+    if (seen.has(op.operationId)) {
+      throw new Error(
+        `Duplicate operationId '${op.operationId}' (at ${method.toUpperCase()} ${path}); ` +
+          'operationIds must be unique to key CUSTODY_ROUTES.',
+      )
+    }
+    seen.add(op.operationId)
     entries.push([op.operationId, method.toUpperCase(), path])
   }
 }

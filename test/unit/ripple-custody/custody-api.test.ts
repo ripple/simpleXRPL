@@ -1,7 +1,10 @@
+import type { Payment } from 'xrpl'
+
 import { CustodyApi } from '../../../src/custodians/ripple/api.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
 import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
+import { buildProposeIntentBody } from '../../../src/custodians/ripple/mapping/envelope.js'
 import { CustodyHttpClient } from '../../../src/custodians/ripple/transport/custody-http-client.js'
 import type { components } from '../../../src/generated/custody.js'
 import {
@@ -83,6 +86,20 @@ describe('CustodyApi.call', () => {
     await api.call('getAllDomainsAddresses', { query: { address: 'rAddr' } })
 
     expect(http.requests[0]?.url).toBe(`${GATEWAY}/v1/addresses?address=rAddr`)
+  })
+
+  it('serializes an array query param as repeated keys', async () => {
+    const { api, http } = apiOn({ items: [], count: 0 })
+
+    // `lock` is an array query param (Core_LockStatus[]); it must not be dropped.
+    await api.call('getAccounts', {
+      path: { domainId: 'D' },
+      query: { lock: ['Locked', 'Archived'] },
+    })
+
+    expect(http.requests[0]?.url).toBe(
+      `${GATEWAY}/v1/domains/D/accounts?lock=Locked&lock=Archived`,
+    )
   })
 
   it('routes a POST with a JSON body', async () => {
@@ -171,6 +188,31 @@ describe('CustodyApi.propose', () => {
     await api.propose(RELEASE_PAYLOAD)
 
     expect(proposedBody(http).request).not.toHaveProperty('description')
+  })
+
+  it('defaults the envelope id to a payload that carries its own id', async () => {
+    const { api, http } = apiOn()
+    const signer = new IntentSigner(KeypairService.fromPrivateKey(KEY), KEY)
+    const payment: Payment = {
+      TransactionType: 'Payment',
+      Account: 'rFrom',
+      Destination: 'rTo',
+      Amount: '1',
+    }
+    // v0_CreateTransactionOrder carries its own id; Custody expects the envelope
+    // id to match it, so a caller who doesn't override id must still get them
+    // in sync rather than a fresh random envelope id.
+    const order = buildProposeIntentBody(signer, {
+      domainId: DOMAIN,
+      authorUserId: AUTHOR,
+      accountId: 'account-1',
+      transaction: payment,
+      idempotencyKey: 'order-id-1',
+    }).request.payload
+
+    await api.propose(order)
+
+    expect(proposedBody(http).request.id).toBe('order-id-1')
   })
 
   it('returns the Custody intent acknowledgement', async () => {

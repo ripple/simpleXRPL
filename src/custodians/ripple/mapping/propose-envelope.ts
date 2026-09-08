@@ -39,7 +39,9 @@ export interface ProposeEnvelopeInput extends ProposeEnvelopeContext {
 export interface ProposeEnvelopeOverrides {
   /**
    * The intent's id — the caller's idempotency key. A retry with the same id
-   * resolves to the same intent. Falls back to a fresh {@link uuidV7}.
+   * resolves to the same intent. When omitted, defaults to the payload's own
+   * `id` if it carries one (keeping envelope and payload ids in sync), else a
+   * fresh {@link uuidV7}.
    */
   readonly id?: string
   /** ISO-8601 expiry; defaults to ~1 day out ({@link DEFAULT_INTENT_EXPIRY_MS}). */
@@ -52,6 +54,19 @@ export interface ProposeEnvelopeOverrides {
   readonly description?: string
   /** Envelope-level custom properties; defaults to `{}`. */
   readonly customProperties?: StringsMap
+}
+
+/**
+ * The payload's own `id`, when it carries one. Some intent payloads embed an id
+ * Custody expects to match the envelope id; most carry none.
+ *
+ * @param payload - The intent payload.
+ * @returns The payload's `id`, or `undefined` when it has none.
+ */
+function payloadId(payload: ProposeUserIntentPayload): string | undefined {
+  return 'id' in payload && typeof payload.id === 'string'
+    ? payload.id
+    : undefined
 }
 
 /**
@@ -80,7 +95,11 @@ export function buildProposeEnvelope(
       overrides.expiryAt ??
       new Date(Date.now() + DEFAULT_INTENT_EXPIRY_MS).toISOString(),
     targetDomainId: overrides.targetDomainId ?? input.domainId,
-    id: overrides.id ?? uuidV7(),
+    // Some payloads carry their own id (e.g. v0_CreateTransactionOrder), which
+    // Custody expects to match the envelope id. Default to it so the two never
+    // diverge; an explicit override still wins, and idless payloads get a fresh
+    // id.
+    id: overrides.id ?? payloadId(input.payload) ?? uuidV7(),
     payload: input.payload,
     customProperties: overrides.customProperties ?? {},
     type: 'Propose' as const,

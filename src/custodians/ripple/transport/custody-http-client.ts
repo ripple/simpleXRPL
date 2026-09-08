@@ -24,6 +24,25 @@ export interface CustodyHttpClientOptions {
 type Query = Record<string, unknown>
 
 /**
+ * Append one scalar query value. `undefined`/`null` and non-scalars (nested
+ * objects) are dropped; everything else is coerced to a string.
+ *
+ * @param params - The accumulating search params.
+ * @param key - The query parameter name.
+ * @param value - The candidate value.
+ */
+function appendScalar(
+  params: URLSearchParams,
+  key: string,
+  value: unknown,
+): void {
+  if (value !== undefined && value !== null && typeof value !== 'object') {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- narrowed to primitives above
+    params.append(key, String(value))
+  }
+}
+
+/**
  * Parse a JSON response body into its OpenAPI-generated type.
  *
  * @param body - The raw response text (empty for void endpoints).
@@ -224,10 +243,15 @@ export class CustodyHttpClient {
     }
     const params = new URLSearchParams()
     for (const [key, value] of Object.entries(query)) {
-      // Custody query params are scalars; skip null/undefined and non-scalars.
-      if (value !== undefined && value !== null && typeof value !== 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string -- narrowed to primitives above
-        params.append(key, String(value))
+      // Some Custody query params are arrays (e.g. `lock`, `intentTypes`) — those
+      // serialize as repeated params (?k=a&k=b). Scalars append once; null,
+      // undefined, and nested objects are dropped.
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          appendScalar(params, key, item)
+        }
+      } else {
+        appendScalar(params, key, value)
       }
     }
     const queryString = params.toString()
