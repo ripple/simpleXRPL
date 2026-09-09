@@ -20,9 +20,27 @@ export interface CustodyHttpClientOptions {
   auth: CustodyAuthService
 }
 
-/** A scalar query value; `undefined` entries are dropped. */
-type QueryValue = string | number | undefined
-type Query = Record<string, QueryValue>
+/** A query value; `undefined`/`null`/non-scalar entries are dropped. */
+type Query = Record<string, unknown>
+
+/**
+ * Append one scalar query value. `undefined`/`null` and non-scalars (nested
+ * objects) are dropped; everything else is coerced to a string.
+ *
+ * @param params - The accumulating search params.
+ * @param key - The query parameter name.
+ * @param value - The candidate value.
+ */
+function appendScalar(
+  params: URLSearchParams,
+  key: string,
+  value: unknown,
+): void {
+  if (value !== undefined && value !== null && typeof value !== 'object') {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- narrowed to primitives above
+    params.append(key, String(value))
+  }
+}
 
 /**
  * Parse a JSON response body into its OpenAPI-generated type.
@@ -149,6 +167,32 @@ export class CustodyHttpClient {
   }
 
   /**
+   * Authenticated request for an arbitrary operation — the low-level primitive
+   * behind {@link CustodyApi}. Appends `query` and serializes `body` as JSON.
+   *
+   * @param method - The HTTP method.
+   * @param path - API path beginning with `/` (path params already filled in).
+   * @param options - Optional query parameters and/or JSON body.
+   * @param options.query - Scalar query parameters.
+   * @param options.body - The JSON request payload.
+   * @returns The parsed response body.
+   */
+  public async invoke<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    path: string,
+    options?: { query?: Query; body?: unknown },
+  ): Promise<T> {
+    const body =
+      options?.body === undefined ? undefined : JSON.stringify(options.body)
+    const response = await this.send(
+      method,
+      this.buildUrl(path, options?.query),
+      body,
+    )
+    return parseJsonBody<T>(response.body)
+  }
+
+  /**
    * Send with bearer injection and a single 401 refresh-and-replay.
    *
    * @param method - The HTTP method.
@@ -158,7 +202,7 @@ export class CustodyHttpClient {
    * @throws {@link CustodyAuthError} or {@link CustodyApiError} on failure.
    */
   private async send(
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     url: string,
     body?: string,
   ): Promise<HttpResponse> {
@@ -199,8 +243,15 @@ export class CustodyHttpClient {
     }
     const params = new URLSearchParams()
     for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined) {
-        params.append(key, String(value))
+      // Some Custody query params are arrays (e.g. `lock`, `intentTypes`) — those
+      // serialize as repeated params (?k=a&k=b). Scalars append once; null,
+      // undefined, and nested objects are dropped.
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          appendScalar(params, key, item)
+        }
+      } else {
+        appendScalar(params, key, value)
       }
     }
     const queryString = params.toString()

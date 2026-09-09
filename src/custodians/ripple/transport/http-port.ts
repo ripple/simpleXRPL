@@ -8,7 +8,7 @@
 
 /** A raw HTTP request. `body` is already serialized (JSON or form-encoded). */
 export interface HttpRequest {
-  method: 'GET' | 'POST'
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   url: string
   headers: Record<string, string>
   body?: string

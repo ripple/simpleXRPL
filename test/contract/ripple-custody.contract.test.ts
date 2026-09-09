@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import type { AccountSet } from 'xrpl'
 
 import {
@@ -7,12 +9,42 @@ import {
 import type { RippleCustodyState } from '../../src/custodians/ripple/construction.js'
 import { buildProposeIntentBody } from '../../src/custodians/ripple/mapping/envelope.js'
 import { runDryRun } from '../../src/custodians/ripple/submission/dry-run.js'
+import type { Account } from '../../src/domain/index.js'
+import { IntentValidationError } from '../../src/errors.js'
 import { RippleCustody, SimpleXRPL } from '../../src/index.js'
 import { TESTNET_FAUCET, TESTNET_WS, ensureFunded } from '../helpers/testnet.js'
 
 import { SANDBOX_PRIMARY, describeContract } from './helpers/custody-sandbox.js'
 
 const LIVE_TIMEOUT_MS = 120_000
+
+/** A no-op AccountSet on the sandbox primary — the benign shape the dry-run and
+ * propose contract checks both reuse (it never executes without approval). */
+const PRIMARY_ACCOUNT_SET: AccountSet = {
+  TransactionType: 'AccountSet',
+  Account: SANDBOX_PRIMARY,
+  SetFlag: 8,
+}
+
+/**
+ * Resolve the discovered sandbox primary's Custody ids for a native intent.
+ *
+ * @param accounts - The discovered accounts.
+ * @returns The primary's Custody account UUID and (optional) ledger id.
+ * @throws {@link Error} if the primary wasn't discovered or lacks a Custody id.
+ */
+function requirePrimary(accounts: Account[]): {
+  accountId: string
+  ledgerId?: string
+} {
+  const primary = accounts.find(
+    (account) => account.address === SANDBOX_PRIMARY,
+  )
+  if (primary === undefined || typeof primary.custodianRef !== 'string') {
+    throw new Error('sandbox primary account was not discovered')
+  }
+  return { accountId: primary.custodianRef, ledgerId: primary.ledgerId }
+}
 
 /**
  * The three-step custody issuance (AccountSet + TrustSet + Payment), each polled
@@ -161,4 +193,102 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     },
     ISSUE_TEST_TIMEOUT_MS,
   )
+
+  describe('api passthrough (call + propose)', () => {
+    it(
+      'api.call resolves getMe and the response parses to the expected shape',
+      async () => {
+        // A plain GET through the generic passthrough: proves the route map and
+        // generated response type still match the live server.
+        const me = await custody.api.call('getMe')
+        expect(me.domains.some((domain) => domain.id === state.domainId)).toBe(
+          true,
+        )
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.call interpolates a path param and lists accounts',
+      async () => {
+        // Exercises live `{domainId}` interpolation + a query param, and that the
+        // collection response shape parses.
+        const accounts = await custody.api.call('getAccounts', {
+          path: { domainId: state.domainId },
+          query: { limit: 5 },
+        })
+        expect(Array.isArray(accounts.items)).toBe(true)
+        expect(typeof accounts.count).toBe('number')
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.propose signs an envelope the sandbox accepts',
+      async () => {
+        const { accountId, ledgerId } = requirePrimary(
+          await custody.listAccounts(),
+        )
+        const intentId = randomUUID()
+        // Reuse the vetted create-transaction-order payload builder to get a
+        // valid payload, then drive it through the *generic* propose surface —
+        // exercising envelope-signing + the createIntent route end to end.
+        const envelope = buildProposeIntentBody(state.intentSigner, {
+          domainId: state.domainId,
+          authorUserId: state.authorUserId,
+          accountId,
+          ledgerId,
+          transaction: PRIMARY_ACCOUNT_SET,
+          idempotencyKey: intentId,
+        })
+        // A `requestId` back means the sandbox verified the signature and parsed
+        // the envelope — the contract this guards. A shape or canonicalization
+        // drift surfaces as CustodyApiError/CustodyAuthError and fails the test.
+        // The intent sits unapproved and lapses at this short expiry.
+        const response = await custody.api.propose(envelope.request.payload, {
+          id: intentId,
+          expiryAt: new Date(Date.now() + 120_000).toISOString(),
+        })
+        expect(typeof response.requestId).toBe('string')
+        expect(response.requestId).toBeTruthy()
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'the sandbox accepts and validates a release-quarantine payload shape',
+      async () => {
+        const { accountId } = requirePrimary(await custody.listAccounts())
+        // A fresh sandbox has no quarantined transfers to release, so dry-run a
+        // synthetic one: the goal is to prove the server accepts and *processes*
+        // the `v0_ReleaseQuarantinedTransfers` payload shape, not to release
+        // anything. It parses our transferId and reaches its existence check —
+        // a business-level rejection (IntentValidationError naming our id),
+        // rather than rejecting the request outright (CustodyApiError), which is
+        // what a wire-shape drift would produce. Non-mutating: dry-run creates
+        // no intent, and the transfer doesn't exist regardless.
+        const transferId = randomUUID()
+        let caught: unknown
+        try {
+          await runDryRun(state.client, {
+            domainId: state.domainId,
+            authorUserId: state.authorUserId,
+            payload: {
+              accountId,
+              transferIds: [transferId],
+              type: 'v0_ReleaseQuarantinedTransfers',
+            },
+            customProperties: {},
+          })
+        } catch (error) {
+          caught = error
+        }
+        // Shape accepted + processed: a business rejection that echoes the
+        // transferId we sent, not an API/transport error.
+        expect(caught).toBeInstanceOf(IntentValidationError)
+        expect((caught as Error).message).toContain(transferId)
+      },
+      LIVE_TIMEOUT_MS,
+    )
+  })
 })
