@@ -136,6 +136,13 @@ export interface SubmissionContext {
 
   /** How long to wait before handing control back to the caller. */
   readonly timeoutMs?: number
+
+  /**
+   * Per-call override for auto-releasing quarantined transfers a token movement
+   * produces (Ripple Custody only). Falls back to the custodian's configured
+   * default when omitted; a backend without the feature ignores it.
+   */
+  readonly autoReleaseQuarantine?: boolean
 }
 
 /**
@@ -185,6 +192,15 @@ export interface SubmissionResultFields<T> {
    *   retry those only once the prior attempt is known to be provably dead.
    */
   readonly idempotencyKey?: string
+
+  /**
+   * Release intents auto-proposed for transfers this transaction produced that
+   * compliance quarantined (Ripple Custody, when auto-release is enabled). Each
+   * is a governed intent still subject to the account's approval policy — the
+   * ids let the caller track them to execution. Absent/empty when the feature
+   * is off, the transactor moves no tokens, or nothing was quarantined.
+   */
+  readonly quarantineReleaseIntentIds?: readonly string[]
 }
 
 /**
@@ -308,6 +324,12 @@ export interface IntentObserver {
 export interface OnChainResult {
   /** The XRPL transaction hash. */
   readonly txHash: string
+  /**
+   * The Custody transaction's own id (a UUID), distinct from the intent id.
+   * Keys transfer/compliance lookups (e.g. quarantine detection). Present for
+   * the Ripple Custody path; absent otherwise.
+   */
+  readonly transactionId?: string
   /** Present when the transaction created an MPT issuance. */
   readonly mptIssuanceId?: string
 }
