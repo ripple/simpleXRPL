@@ -194,6 +194,52 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     ISSUE_TEST_TIMEOUT_MS,
   )
 
+  it(
+    'issues an MPT through Custody and recovers the issuance id from the ledger',
+    async () => {
+      // Ripple Custody confirms an MPTokenIssuanceCreate but returns no issuance
+      // id in its own transaction record (ledgerData/rawTransaction are null).
+      // The SDK recovers it from the on-chain tx metadata by hash — this asserts
+      // that recovery end to end: without it, mptIssuanceId would be ''.
+      await ensureFunded(SANDBOX_PRIMARY)
+
+      const issuer = await RippleCustody.fromEnv({
+        primary: SANDBOX_PRIMARY,
+        defaultTimeoutMs: ISSUE_TIMEOUT_MS,
+      })
+      const client = await SimpleXRPL.init({
+        xrpldUrl: TESTNET_WS,
+        faucetUrl: TESTNET_FAUCET,
+        signers: [issuer],
+      })
+      await client.connect()
+      try {
+        const result = await client.token.issue({
+          metadata: {
+            ticker: 'TBILL',
+            name: 'Acme 3-Month T-Bill',
+            icon: 'https://acme.example/tbill.png',
+            asset_class: 'rwa',
+            asset_subclass: 'treasury',
+            issuer_name: 'Acme Capital',
+          },
+        })
+        // The id is recovered from the ledger even though Custody omits it —
+        // a 48-hex-char MPTokenIssuanceID, not the empty string.
+        expect(result.intent.mptIssuanceId).toMatch(/^[0-9A-F]{48}$/u)
+
+        // And it resolves on the ledger as an issuance owned by the primary.
+        const read = await client.token.retrieve({
+          mptIssuanceId: result.intent.mptIssuanceId,
+        })
+        expect(read.data?.issuer).toBe(SANDBOX_PRIMARY)
+      } finally {
+        await client.disconnect()
+      }
+    },
+    ISSUE_TEST_TIMEOUT_MS,
+  )
+
   describe('api passthrough (call + propose)', () => {
     it(
       'api.call resolves getMe and the response parses to the expected shape',
