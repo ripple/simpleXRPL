@@ -5,4 +5,4 @@
  * The simpleXRPL package version, generated from `package.json` at build.
  * Exposed so callers can report the SDK version in diagnostics.
  */
-export const VERSION = '0.1.0'
+export const VERSION = '0.2.0'

@@ -1,6 +1,6 @@
 {
   "name": "simplexrpl",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A high-level TypeScript SDK for the XRP Ledger, scoped to the institutional / Web2 audience.",
   "license": "ISC",
   "author": "Ripple",
