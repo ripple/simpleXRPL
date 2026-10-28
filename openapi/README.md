@@ -8,16 +8,15 @@ rather than a silent drift.
 
 | File                         | Upstream source                                                              | Pinned version |
 | ---------------------------- | ---------------------------------------------------------------------------- | -------------- |
-| `custody-v1.35-openapi.json` | `ripplenet-docs/products/custody/@v1.35/api/reference/openapi.json`          | Custody v1.35  |
+| `custody-v1.43-openapi.json` | `ripplenet-docs/products/custody/@v1.43/reference/api/openapi.json`          | Custody v1.43  |
 | `palisade-api.yaml`          | `ripplenet-docs/products/wallet/api-docs/palisade-api/palisade-api.yaml`     | Palisade v2.0  |
-
-`intent-structure.md` is a companion file the Custody spec `$ref`s for a tag
-description; it must travel with the spec or `openapi-typescript` can't bundle.
 
 ## Bumping a version
 
 1. Drop the new spec (plus any files it `$ref`s) in here under a version-stamped
    filename.
-2. Update the `typegen:*` paths in `package.json` and the table above.
+2. Update the spec path in the `typegen:*` scripts in `package.json`,
+   `scripts/gen-*-routes.mjs`, and `test/unit/custody-contract/spec-validator.ts`,
+   and the table above.
 3. Run `npm run typegen && npm run typecheck` — any mapping drift shows up as a
    type error to resolve before merging.

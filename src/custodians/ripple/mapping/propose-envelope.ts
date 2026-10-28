@@ -2,7 +2,7 @@ import type { components } from '../../../generated/custody.js'
 import { uuidV7 } from '../../../ids/index.js'
 import type { IntentSigner } from '../auth/intent-signer.js'
 
-type ProposeIntentBody = components['schemas']['Core_ProposeIntentBody']
+type ProposeIntentBody = components['schemas']['Core_UserSigned']
 type ProposeUserIntentPayload =
   components['schemas']['Core_ProposeUserIntentPayload']
 type UserReference = components['schemas']['Core_UserReference']
@@ -70,7 +70,7 @@ function payloadId(payload: ProposeUserIntentPayload): string | undefined {
 }
 
 /**
- * Wrap an intent payload in a signed `Core_ProposeIntentBody`: fill the envelope
+ * Wrap an intent payload in a signed `Core_UserSigned`: fill the envelope
  * scaffolding (author, expiry, target domain, id, custom properties) from the
  * context and any overrides, then sign the canonicalized request with the
  * intent-author key. The generic core shared by {@link buildProposeIntentBody}

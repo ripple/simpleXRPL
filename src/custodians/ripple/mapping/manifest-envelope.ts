@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import type { components } from '../../../generated/custody.js'
 import type { IntentSigner } from '../auth/intent-signer.js'
 
-type ProposeIntentBody = components['schemas']['Core_ProposeIntentBody']
+type ProposeIntentBody = components['schemas']['Core_UserSigned']
 
 const MS_PER_SECOND = 1000
 const SECONDS_PER_MINUTE = 60

@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const spec = JSON.parse(
-  readFileSync(join(ROOT, 'openapi/custody-v1.35-openapi.json'), 'utf8'),
+  readFileSync(join(ROOT, 'openapi/custody-v1.43-openapi.json'), 'utf8'),
 )
 
 const METHODS = ['get', 'post', 'put', 'patch', 'delete']

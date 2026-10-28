@@ -31,11 +31,20 @@ export const CUSTODY_ROUTES = {
     path: '/v1/domains/{domainId}/compliance/providers',
   },
   createChannel: { method: 'POST', path: '/v1/domains/{domainId}/channels' },
+  createDepositWallet: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/deposit-wallet',
+  },
   CreateDomainPayload: {
     method: 'POST',
     path: '/v1/domains/{domainId}/compliance/domain',
   },
   createIntent: { method: 'POST', path: '/v1/intents' },
+  createInternalTransfer: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/internal-transfers',
+  },
+  createOmnibus: { method: 'POST', path: '/v1/domains/{domainId}/omnibus' },
   CreatePolicyPayload: {
     method: 'POST',
     path: '/v1/domains/{domainId}/compliance/policy',
@@ -44,9 +53,17 @@ export const CUSTODY_ROUTES = {
     method: 'POST',
     path: '/v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/relationships',
   },
+  createTenant: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants',
+  },
   CreateTravelRuleTransfer: {
     method: 'POST',
     path: '/v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages',
+  },
+  createWithdrawal: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/withdrawals',
   },
   deleteChannel: {
     method: 'DELETE',
@@ -63,6 +80,10 @@ export const CUSTODY_ROUTES = {
   dryRunTransaction: {
     method: 'POST',
     path: '/v1/domains/{domainId}/transactions/dry-run',
+  },
+  EventController_getEvents: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sponsor/events',
   },
   forceUpdateAccountBalances: {
     method: 'POST',
@@ -134,6 +155,10 @@ export const CUSTODY_ROUTES = {
     method: 'GET',
     path: '/v1/domains/{domainId}/accounts/{accountId}/compliance-configuration',
   },
+  getDepositWallet: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/deposit-wallet',
+  },
   getDomain: { method: 'GET', path: '/v1/domains/{domainId}' },
   getDomains: { method: 'GET', path: '/v1/domains' },
   getEndpoint: {
@@ -155,6 +180,14 @@ export const CUSTODY_ROUTES = {
     path: '/v1/domains/{domainId}/intents/{intentId}',
   },
   getIntents: { method: 'GET', path: '/v1/domains/{domainId}/intents' },
+  getInternalTransfer: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/internal-transfers/{operationId}',
+  },
+  getInternalTransfers: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/internal-transfers',
+  },
   getKnownUserRoles: {
     method: 'GET',
     path: '/v1/domains/{domainId}/users/roles',
@@ -175,6 +208,15 @@ export const CUSTODY_ROUTES = {
     path: '/v1/domains/{domainId}/accounts/{accountId}/manifests',
   },
   getMe: { method: 'GET', path: '/v1/me' },
+  getOmnibus: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}',
+  },
+  getOmnibusByDomain: { method: 'GET', path: '/v1/domains/{domainId}/omnibus' },
+  getOmnibusHierarchy: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/hierarchy',
+  },
   getOrder: {
     method: 'GET',
     path: '/v1/domains/{domainId}/transactions/orders/{transactionOrderId}',
@@ -204,7 +246,16 @@ export const CUSTODY_ROUTES = {
     method: 'GET',
     path: '/v1/domains/{domainId}/compliance/providers/{provider}/screening-rules',
   },
+  getSweepThresholds: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sweep-thresholds',
+  },
   getSystemProperties: { method: 'GET', path: '/v1/properties' },
+  getSystemSigningInfo: { method: 'GET', path: '/v1/system-signing/info' },
+  getTenant: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}',
+  },
   getTicker: { method: 'GET', path: '/v1/tickers/{tickerId}' },
   getTickers: { method: 'GET', path: '/v1/tickers' },
   getTransaction: {
@@ -249,18 +300,44 @@ export const CUSTODY_ROUTES = {
   getUsers: { method: 'GET', path: '/v1/domains/{domainId}/users' },
   getVault: { method: 'GET', path: '/v1/vaults/{vaultId}' },
   getVaults: { method: 'GET', path: '/v1/vaults' },
+  HealthController_liveness: { method: 'GET', path: '/v1/health' },
+  HealthController_readiness: { method: 'GET', path: '/v1/ready' },
   intentDryRun: { method: 'POST', path: '/v1/intents/dry-run' },
   listComplianceConfigurations: {
     method: 'GET',
     path: '/v1/domains/{domainId}/compliance-configurations',
   },
+  listDepositWallets: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/deposit-wallets',
+  },
   ListRelationships: {
     method: 'GET',
     path: '/v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/relationships',
   },
+  listTenants: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants',
+  },
+  lockTenant: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/lock',
+  },
+  MovementReportController_generateMovementReport: {
+    method: 'POST',
+    path: '/v1/exports/movement',
+  },
+  OmnibusPositionReportController_generateOmnibusPositionReport: {
+    method: 'POST',
+    path: '/v1/exports/position/omnibus',
+  },
   PauseProviderConnection: {
     method: 'PUT',
     path: '/v1/domains/{domainId}/compliance/providers/{provider}/pause-connection',
+  },
+  PositionReportController_generatePositionReport: {
+    method: 'POST',
+    path: '/v1/exports/position',
   },
   PresentEncryptedPIIToTransfer: {
     method: 'POST',
@@ -280,6 +357,70 @@ export const CUSTODY_ROUTES = {
   },
   rejectIntent: { method: 'POST', path: '/v1/intents/reject' },
   runGenesis: { method: 'POST', path: '/v1/genesis' },
+  SponsorController_createSponsor: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/account/{accountId}/sponsor',
+  },
+  SponsorController_deleteSponsor: {
+    method: 'DELETE',
+    path: '/v1/domains/{domainId}/account/{accountId}/sponsor',
+  },
+  SponsorController_getSponsor: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/account/{accountId}/sponsor',
+  },
+  SponsorController_updateSponsor: {
+    method: 'PUT',
+    path: '/v1/domains/{domainId}/account/{accountId}/sponsor',
+  },
+  SponsorListController_addSponsoredAccount: {
+    method: 'PUT',
+    path: '/v1/domains/{domainId}/account/{entityId}/sponsored-accounts/domains/{sponsoredAccountDomainId}/accounts/{sponsoredAccountId}',
+  },
+  SponsorListController_addSponsoredAccounts: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/account/{entityId}/sponsored-accounts',
+  },
+  SponsorListController_addSponsoredDomains: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/account/{entityId}/sponsored-domains',
+  },
+  SponsorListController_getSponsorableAccounts: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/account/{entityId}/sponsorable-accounts',
+  },
+  SponsorListController_getSponsorableDomains: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/account/{entityId}/sponsorable-domains',
+  },
+  SponsorListController_removeSponsoredAccount: {
+    method: 'DELETE',
+    path: '/v1/domains/{domainId}/account/{entityId}/sponsored-accounts/domains/{sponsoredAccountDomainId}/accounts/{sponsoredAccountId}',
+  },
+  SponsorsController_getAccountSponsor: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sponsors/account/{accountId}/sponsor',
+  },
+  SponsorsController_getDomainSponsor: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sponsors/domain-sponsor',
+  },
+  SponsorsController_getValidSponsors: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sponsors/account/{accountId}/valid-sponsors',
+  },
+  SponsorsController_listSponsoredAccounts: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sponsors/sponsored-accounts',
+  },
+  SponsorsController_listSponsoredDomains: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sponsors/sponsored-domains',
+  },
+  SponsorsController_listSponsors: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/sponsors',
+  },
   testChannel: {
     method: 'POST',
     path: '/v1/domains/{domainId}/channels/{channelId}/test',
@@ -288,9 +429,25 @@ export const CUSTODY_ROUTES = {
     method: 'PUT',
     path: '/v1/domains/{domainId}/compliance/providers/{provider}/toggle-preview-screening',
   },
+  unlockTenant: {
+    method: 'POST',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/unlock',
+  },
   updateChannel: {
     method: 'PATCH',
     path: '/v1/domains/{domainId}/channels/{channelId}',
+  },
+  updateOmnibus: {
+    method: 'PUT',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}',
+  },
+  updateSweepThresholds: {
+    method: 'PUT',
+    path: '/v1/domains/{domainId}/sweep-thresholds',
+  },
+  updateTenant: {
+    method: 'PUT',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}',
   },
   upsertComplianceConfiguration: {
     method: 'PUT',
