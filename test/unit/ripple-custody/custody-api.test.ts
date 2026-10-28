@@ -56,17 +56,17 @@ const RELEASE_PAYLOAD: components['schemas']['Core_v0_ReleaseQuarantinedTransfer
   }
 
 /**
- * Parse the `Core_ProposeIntentBody` a recorded POST carried.
+ * Parse the `Core_UserSigned` a recorded POST carried.
  *
  * @param http - The recording HTTP port.
  * @returns The parsed envelope body.
  */
 function proposedBody(
   http: FakeHttpPort,
-): components['schemas']['Core_ProposeIntentBody'] {
+): components['schemas']['Core_UserSigned'] {
   return JSON.parse(
     http.requests[0]?.body ?? '{}',
-  ) as components['schemas']['Core_ProposeIntentBody']
+  ) as components['schemas']['Core_UserSigned']
 }
 
 describe('CustodyApi.call', () => {

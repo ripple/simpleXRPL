@@ -126,7 +126,7 @@ describe('Custody request-body spec conformance (offline)', () => {
   const signer = makeSigner()
 
   it.each(NATIVE_TRANSACTIONS)(
-    'builds a $name propose body that conforms to Core_ProposeIntentBody',
+    'builds a $name propose body that conforms to Core_UserSigned',
     ({ tx }) => {
       const body = buildProposeIntentBody(signer, {
         domainId: DOMAIN_ID,
@@ -136,16 +136,13 @@ describe('Custody request-body spec conformance (offline)', () => {
         idempotencyKey: IDEMPOTENCY_KEY,
       })
 
-      const { valid, errors } = validateAgainstSpec(
-        'Core_ProposeIntentBody',
-        body,
-      )
+      const { valid, errors } = validateAgainstSpec('Core_UserSigned', body)
       expect(errors).toEqual([])
       expect(valid).toBe(true)
     },
   )
 
-  it('builds a v0_SignManifest propose body that conforms to Core_ProposeIntentBody', () => {
+  it('builds a v0_SignManifest propose body that conforms to Core_UserSigned', () => {
     const tx: Payment = {
       TransactionType: 'Payment',
       Account: ISSUER,
@@ -164,10 +161,7 @@ describe('Custody request-body spec conformance (offline)', () => {
       },
     )
 
-    const { valid, errors } = validateAgainstSpec(
-      'Core_ProposeIntentBody',
-      body,
-    )
+    const { valid, errors } = validateAgainstSpec('Core_UserSigned', body)
     expect(errors).toEqual([])
     expect(valid).toBe(true)
   })
@@ -188,8 +182,6 @@ describe('Custody request-body spec conformance (offline)', () => {
       type: 'NotARealOperation',
     }
 
-    expect(validateAgainstSpec('Core_ProposeIntentBody', corrupted).valid).toBe(
-      false,
-    )
+    expect(validateAgainstSpec('Core_UserSigned', corrupted).valid).toBe(false)
   })
 })

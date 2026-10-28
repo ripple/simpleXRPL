@@ -11,7 +11,7 @@ import { toMemos } from './memos.js'
 import { buildProposeEnvelope } from './propose-envelope.js'
 import { txToOperation } from './xrpl-operations.js'
 
-type ProposeIntentBody = components['schemas']['Core_ProposeIntentBody']
+type ProposeIntentBody = components['schemas']['Core_UserSigned']
 type TransactionOrderParametersXrpl =
   components['schemas']['Core_TransactionOrderParameters_XRPL']
 
