@@ -142,6 +142,7 @@ export async function signRawTransaction(
 ): Promise<SignedEnvelope> {
   const { state, tx, ctx, accountId, maybeDryRun } = options
   assertRawEligible(state, tx.TransactionType)
+  state.versionGuard.assertRawSigning(tx.TransactionType)
   const { preparedTx, body } = await buildManifestEnvelope(options)
   await maybeDryRun(body.request.payload, body.request.customProperties)
   await state.client.post('/v1/intents', body)

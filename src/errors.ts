@@ -171,6 +171,61 @@ export class CustodyApiError extends SimpleXRPLError {
   }
 }
 
+/** Labels for each capability kind, as they read in an error message. */
+const CAPABILITY_LABELS = {
+  endpoint: 'endpoint',
+  xrplOperation: 'native XRPL operation',
+  intentType: 'intent type',
+} as const
+
+/**
+ * A call needs something the Ripple Custody instance's version doesn't support
+ * — an endpoint, a native XRPL operation, or an intent type — so it was blocked
+ * before reaching the network. Thrown only when the version is known (detected
+ * from the instance, or pinned with `apiVersion`).
+ */
+export class UnsupportedInVersionError extends SimpleXRPLError {
+  /** What kind of capability is missing. */
+  public readonly kind: keyof typeof CAPABILITY_LABELS
+  /** The missing capability, e.g. `POST /v1/exports/movement` or `MPTokenIssuanceCreate`. */
+  public readonly capability: string
+  /** The SDK call that needed it. */
+  public readonly sdkMethod: string
+  /** The Custody version checked against. */
+  public readonly appVersion: string
+  /** Whether that version was detected from the instance or pinned. */
+  public readonly source: 'detected' | 'pinned'
+
+  /**
+   * Construct an UnsupportedInVersionError.
+   *
+   * @param details - What is missing and where.
+   * @param details.kind - What kind of capability is missing.
+   * @param details.capability - The missing capability.
+   * @param details.sdkMethod - The SDK call that needed it.
+   * @param details.appVersion - The Custody version checked against.
+   * @param details.source - Whether that version was detected or pinned.
+   */
+  public constructor(details: {
+    kind: keyof typeof CAPABILITY_LABELS
+    capability: string
+    sdkMethod: string
+    appVersion: string
+    source: 'detected' | 'pinned'
+  }) {
+    super(
+      `${details.sdkMethod} needs the ${CAPABILITY_LABELS[details.kind]} ` +
+        `'${details.capability}', which Ripple Custody ${details.appVersion} ` +
+        `(${details.source}) does not support.`,
+    )
+    this.kind = details.kind
+    this.capability = details.capability
+    this.sdkMethod = details.sdkMethod
+    this.appVersion = details.appVersion
+    this.source = details.source
+  }
+}
+
 /**
  * Authenticating with Palisade failed (API key).
  */

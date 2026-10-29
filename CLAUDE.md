@@ -53,6 +53,11 @@ established.
   `openapi/custody-openapi.json`, runs typegen, and opens a PR. By hand:
   `npm run fetch:custody-spec` then `npm run typegen`. The pinned version is the
   file's `info.x-app-version` — never rename the file.
+- `openapi/custody-capabilities.json` holds what each Custody version supports
+  (for a pinned `apiVersion`); typegen emits it as
+  `src/generated/custody-capabilities.ts`. Rebuild every version with
+  `npm run fetch:custody-capabilities`; the daily workflow refreshes the current
+  one.
 - Bumping **Palisade** = replace `openapi/palisade-api.yaml`, run
   `npm run typegen`, and resolve any resulting type errors.
 - See [`openapi/README.md`](./openapi/README.md) for both.

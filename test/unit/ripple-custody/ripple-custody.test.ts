@@ -1,11 +1,16 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { Wallet } from 'xrpl'
 import type { OfferCancel, Payment, TxResponse } from 'xrpl'
 
+import type { CustodyProposePayload } from '../../../src/custodians/ripple/api.js'
 import { RippleCustody } from '../../../src/custodians/ripple/ripple-custody.js'
 import type {
   HttpRequest,
   HttpResponse,
 } from '../../../src/custodians/ripple/transport/http-port.js'
+import type { CustodyApiVersion } from '../../../src/custodians/ripple/versioning/capabilities.js'
 import type { SubmissionContext } from '../../../src/domain/index.js'
 import {
   AccountNotFoundError,
@@ -14,6 +19,7 @@ import {
   IntentValidationError,
   SignerCapabilityError,
   SimpleXRPLError,
+  UnsupportedInVersionError,
   XrpldSubmitError,
 } from '../../../src/errors.js'
 import { makeJwt } from '../custody-auth/test-utils.js'
@@ -52,7 +58,17 @@ interface Routes {
   transactions?: () => HttpResponse
   manifestGet?: () => HttpResponse
   dryRun?: (body: unknown) => HttpResponse
+  openApi?: () => HttpResponse
 }
+
+/**
+ * The instance's OpenAPI document version detection reads: by default the
+ * vendored spec, so the custodian resolves the version the SDK is built against.
+ */
+const VENDORED_SPEC = readFileSync(
+  join(process.cwd(), 'openapi', 'custody-openapi.json'),
+  'utf8',
+)
 
 /**
  * A one-item transactions collection linking a Confirmed on-ledger transaction
@@ -98,6 +114,13 @@ function buildRoutes(routes: Routes): Route[] {
       test: (request): boolean => request.url.includes('auth.example.com'),
       respond: (): HttpResponse =>
         ok({ access_token: makeJwt({ exp: 9_999_999_999 }) }),
+    },
+    {
+      test: (request): boolean => request.url.includes('/api/OpenAPI'),
+      respond: (): HttpResponse =>
+        (
+          routes.openApi ?? ((): HttpResponse => ok(JSON.parse(VENDORED_SPEC)))
+        )(),
     },
     {
       test: (request): boolean => request.url.endsWith('/v1/me'),
@@ -228,11 +251,18 @@ function buildHttp(routes: Routes = {}): FakeHttpPort {
  * @param options - Construction overrides.
  * @param options.allowRawSigning - Enable the raw-signing fallback.
  * @param options.defaultDryRun - Pre-flight every write through dry-run.
+ * @param options.apiVersion - Pin the Custody version instead of detecting it.
+ * @param options.autoDetectVersion - Detect the version from the instance.
  * @returns The ready custodian and the underlying fake port.
  */
 async function makeCustody(
   routes: Routes = {},
-  options: { allowRawSigning?: boolean; defaultDryRun?: boolean } = {},
+  options: {
+    allowRawSigning?: boolean
+    defaultDryRun?: boolean
+    apiVersion?: CustodyApiVersion
+    autoDetectVersion?: boolean
+  } = {},
 ): Promise<{ custody: RippleCustody; http: FakeHttpPort }> {
   const http = buildHttp(routes)
   const custody = await RippleCustody.create({
@@ -245,6 +275,8 @@ async function makeCustody(
     primary: PRIMARY_ADDRESS,
     allowRawSigning: options.allowRawSigning,
     defaultDryRun: options.defaultDryRun,
+    apiVersion: options.apiVersion,
+    autoDetectVersion: options.autoDetectVersion,
     http,
   })
   return { custody, http }
@@ -614,5 +646,139 @@ describe('RippleCustody.submitAsync', () => {
     await expect(
       custody.submitAsync(OFFER_CANCEL_TX, makeContext(custody)),
     ).rejects.toThrow(SimpleXRPLError)
+  })
+})
+
+describe('RippleCustody version checks', () => {
+  const VENDORED_VERSION: unknown =
+    JSON.parse(VENDORED_SPEC).info['x-app-version']
+
+  /**
+   * Whether any recorded request hit a URL containing `fragment`.
+   *
+   * @param http - The fake transport.
+   * @param fragment - The URL fragment to look for.
+   * @returns `true` if a request matched.
+   */
+  const requested = (http: FakeHttpPort, fragment: string): boolean =>
+    http.requests.some((request) => request.url.includes(fragment))
+
+  let warn: jest.SpyInstance
+  beforeEach(() => {
+    warn = jest.spyOn(process, 'emitWarning').mockReturnValue(undefined)
+  })
+  afterEach(() => {
+    warn.mockRestore()
+  })
+
+  it('detects the version from the instance OpenAPI document, without credentials', async () => {
+    const { custody, http } = await makeCustody()
+
+    expect(custody.backendVersion).toBe(VENDORED_VERSION)
+    const specRequest = http.requests.find((request) =>
+      request.url.includes('/api/OpenAPI'),
+    )
+    expect(specRequest?.url).toBe(
+      'https://custody.example.com/api/OpenAPI?scope=&layout=',
+    )
+    expect(specRequest?.headers.Authorization).toBeUndefined()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('uses a pinned version without fetching the document', async () => {
+    const { custody, http } = await makeCustody({}, { apiVersion: '1.35' })
+
+    expect(custody.backendVersion).toBe('1.35')
+    expect(requested(http, '/api/OpenAPI')).toBe(false)
+  })
+
+  it('rejects an unknown pinned version', async () => {
+    await expect(
+      makeCustody({}, { apiVersion: '9.99' as CustodyApiVersion }),
+    ).rejects.toThrow(/Unknown Ripple Custody apiVersion '9\.99'/u)
+  })
+
+  it('blocks a native write the version has no operation for, before posting an intent', async () => {
+    // Custody 1.23–1.31 modelled XRPL orders as plain payments, with no
+    // native operations at all.
+    const { custody, http } = await makeCustody({}, { apiVersion: '1.31' })
+
+    const submission = custody.submitAndWait(PAYMENT_TX, makeContext(custody))
+
+    await expect(submission).rejects.toBeInstanceOf(UnsupportedInVersionError)
+    await expect(submission).rejects.toMatchObject({
+      kind: 'xrplOperation',
+      capability: 'Payment',
+      sdkMethod: 'submitting Payment',
+      appVersion: '1.31',
+      source: 'pinned',
+    })
+    expect(
+      http.requests.some(
+        (request) =>
+          request.method === 'POST' && request.url.endsWith('/v1/intents'),
+      ),
+    ).toBe(false)
+  })
+
+  it('blocks api.call for an endpoint the version does not serve', async () => {
+    // GET /v1/health arrived in 1.36.
+    const { custody, http } = await makeCustody({}, { apiVersion: '1.35' })
+
+    await expect(
+      custody.api.call('HealthController_liveness'),
+    ).rejects.toMatchObject({
+      kind: 'endpoint',
+      capability: 'GET /v1/health',
+      sdkMethod: "api.call('HealthController_liveness')",
+    })
+    expect(requested(http, '/v1/health')).toBe(false)
+  })
+
+  it('blocks api.propose of a transaction order whose XRPL operation the version lacks', async () => {
+    const { custody } = await makeCustody({}, { apiVersion: '1.31' })
+    const payload = {
+      type: 'v0_CreateTransactionOrder',
+      id: '00000000-0000-7000-8000-000000000000',
+      accountId: ACCOUNT_ID,
+      parameters: {
+        type: 'XRPL',
+        operation: { type: 'TrustSet' },
+      },
+      customProperties: {},
+    } as unknown as CustodyProposePayload
+
+    await expect(custody.api.propose(payload)).rejects.toMatchObject({
+      kind: 'xrplOperation',
+      capability: 'TrustSet',
+      sdkMethod: 'api.propose',
+    })
+  })
+
+  it('lets calls through, warning once, when the document cannot be fetched', async () => {
+    const { custody } = await makeCustody({ openApi: () => status(404) })
+
+    expect(custody.backendVersion).toBeUndefined()
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('HTTP 404'),
+      expect.objectContaining({
+        code: 'SIMPLEXRPL_CUSTODY_VERSION_UNDETECTED',
+      }),
+    )
+    await expect(
+      custody.submitAndWait(PAYMENT_TX, makeContext(custody)),
+    ).resolves.toMatchObject({ source: 'custody' })
+  })
+
+  it('skips detection silently when autoDetectVersion is false', async () => {
+    const { custody, http } = await makeCustody(
+      {},
+      { autoDetectVersion: false },
+    )
+
+    expect(custody.backendVersion).toBeUndefined()
+    expect(requested(http, '/api/OpenAPI')).toBe(false)
+    expect(warn).not.toHaveBeenCalled()
   })
 })

@@ -84,6 +84,32 @@ Which transactors are native differs per backend — see
 matrix, and note that a transactor can be native while a specific _field_ on it
 is not, in which case that call also takes the raw path.
 
+## Ripple Custody versions
+
+Each Custody instance runs its own version, so not every instance serves every
+endpoint or operation the SDK knows about. `RippleCustody.create()` reads the
+instance's version from the OpenAPI document it serves, and blocks a call the
+instance can't handle — an `api.call` endpoint, an `api.propose` intent type, or
+a vertical's native XRPL operation — with an `UnsupportedInVersionError` naming
+what is missing, before anything is sent.
+
+```ts
+const custody = await RippleCustody.fromEnv({ primary: 'r...' })
+custody.backendVersion // e.g. '1.43.4'
+```
+
+To skip the detection request, pin the version instead; calls are then checked
+against data bundled with the SDK (one entry per minor version):
+
+```ts
+await RippleCustody.fromEnv({ primary: 'r...', apiVersion: '1.43' })
+```
+
+If the version can't be detected, the SDK emits a single Node warning
+(`SIMPLEXRPL_CUSTODY_VERSION_UNDETECTED`) and lets every call through to the
+server. `autoDetectVersion: false` turns detection off without the warning, and
+`openApiUrl` points it at a different document URL.
+
 ## Development
 
 Install dependencies with `npm install`.

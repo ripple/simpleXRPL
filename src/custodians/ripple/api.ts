@@ -9,6 +9,7 @@ import {
   type ProposeEnvelopeOverrides,
 } from './mapping/propose-envelope.js'
 import type { CustodyHttpClient } from './transport/custody-http-client.js'
+import { VersionGuard } from './versioning/version-guard.js'
 
 /** Every Custody operationId that has both a route and typed schema. */
 export type CustodyOperationId = keyof typeof CUSTODY_ROUTES & keyof operations
@@ -92,6 +93,7 @@ export class CustodyApi {
   private readonly client: CustodyHttpClient
   private readonly intentSigner: IntentSigner
   private readonly proposeContext: ProposeEnvelopeContext
+  private readonly versionGuard: VersionGuard
 
   /**
    * Construct the API surface over the authenticated client.
@@ -102,10 +104,15 @@ export class CustodyApi {
    * @param propose.intentSigner - Signs the canonicalized intent request.
    * @param propose.domainId - The Custody domain intents are proposed under.
    * @param propose.authorUserId - The intent-author's Custody user id.
+   * @param propose.versionGuard - Blocks calls the instance's version can't
+   *   serve; omitted, nothing is blocked.
    */
   public constructor(
     client: CustodyHttpClient,
-    propose: ProposeEnvelopeContext & { intentSigner: IntentSigner },
+    propose: ProposeEnvelopeContext & {
+      intentSigner: IntentSigner
+      versionGuard?: VersionGuard
+    },
   ) {
     this.client = client
     this.intentSigner = propose.intentSigner
@@ -113,6 +120,7 @@ export class CustodyApi {
       domainId: propose.domainId,
       authorUserId: propose.authorUserId,
     }
+    this.versionGuard = propose.versionGuard ?? new VersionGuard(undefined)
   }
 
   /**
@@ -122,6 +130,8 @@ export class CustodyApi {
    * @param operationId - The Custody operationId (autocompletes to all routes).
    * @param args - Typed path params, query params, and/or JSON body.
    * @returns The typed response body.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version doesn't serve the endpoint.
    * @throws {@link SimpleXRPLError} if a required path parameter is missing.
    * @throws A `CustodyApiError` if the API rejects the request (e.g. 403/404).
    */
@@ -130,6 +140,11 @@ export class CustodyApi {
     args?: CustodyCallArgs<Op>,
   ): Promise<ResponseBody<Op>> {
     const route = CUSTODY_ROUTES[operationId]
+    this.versionGuard.assertEndpoint(
+      route.method,
+      route.path,
+      `api.call('${operationId}')`,
+    )
     const path = fillPath(route.path, args?.path)
     return this.client.invoke<ResponseBody<Op>>(route.method, path, {
       query: args?.query,
@@ -149,6 +164,9 @@ export class CustodyApi {
    * @param options - Optional envelope overrides (idempotency id, expiry,
    *   custom properties, and so on).
    * @returns The Custody `{ requestId }` acknowledging the accepted intent.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version doesn't accept the intent type, or the XRPL operation a
+   *   transaction order carries.
    * @throws {@link CustodyAuthError} if the request cannot be canonicalized.
    * @throws A `CustodyApiError` if the API rejects the intent.
    */
@@ -156,6 +174,17 @@ export class CustodyApi {
     payload: CustodyProposePayload,
     options?: CustodyProposeOptions,
   ): Promise<components['schemas']['Core_IntentResponse']> {
+    this.versionGuard.assertIntentType(payload.type, 'api.propose')
+    if (
+      payload.type === 'v0_CreateTransactionOrder' &&
+      payload.parameters.type === 'XRPL' &&
+      payload.parameters.operation !== undefined
+    ) {
+      this.versionGuard.assertXrplOperation(
+        payload.parameters.operation.type,
+        'api.propose',
+      )
+    }
     const body = buildProposeEnvelope(this.intentSigner, {
       ...this.proposeContext,
       payload,

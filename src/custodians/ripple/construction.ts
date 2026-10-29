@@ -18,6 +18,9 @@ import { CustodyHttpClient } from './transport/custody-http-client.js'
 import { FetchHttpPort } from './transport/fetch-http-port.js'
 import { HttpCustodyAuthPort } from './transport/http-custody-auth-port.js'
 import type { CustodyHttpPort } from './transport/http-port.js'
+import { resolveVersionGuard } from './versioning/detect.js'
+import type { CustodyVersionOptions } from './versioning/detect.js'
+import type { VersionGuard } from './versioning/version-guard.js'
 
 const DEFAULT_TIMEOUT_MS = 60_000
 
@@ -32,7 +35,7 @@ export interface RippleCustodyAuthOptions {
 }
 
 /** Construction options for {@link RippleCustody.create}. */
-export interface RippleCustodyOptions {
+export interface RippleCustodyOptions extends CustodyVersionOptions {
   /** The Custody gateway base URL. */
   readonly gatewayUrl: string
   /** Intent-author credentials and token endpoint. */
@@ -70,7 +73,7 @@ export interface RippleCustodyOptions {
 }
 
 /** Construction options for {@link RippleCustody.fromEnv}. */
-export interface RippleCustodyFromEnvOptions {
+export interface RippleCustodyFromEnvOptions extends CustodyVersionOptions {
   /** The primary account's r-address; validated against the discovered set. */
   readonly primary: string
   /**
@@ -115,6 +118,8 @@ export interface RippleCustodyState {
   readonly defaultDryRun: boolean
   readonly defaultTimeoutMs: number
   readonly primaryAddress: string
+  /** Blocks calls the instance's Custody version can't serve. */
+  readonly versionGuard: VersionGuard
 }
 
 /** A PEM private key starts with this marker; anything else is a file path. */
@@ -289,21 +294,17 @@ function requireEnv(
 }
 
 /**
- * Authenticate with Custody and resolve the intent-author's identity for a
- * new RippleCustody. Account discovery and primary validation
- * happen after this, in {@link RippleCustody.create} — they need a
- * constructed instance to back-reference.
+ * Assemble the authenticated HTTP client and the intent signer, both backed by
+ * the configured signing key.
  *
- * @param options - Gateway/auth/domain config, the primary account, and
- * optional raw-signing/fee/dry-run/timeout defaults.
- * @returns The assembled construction state.
- * @throws {@link CustodyAuthError} if the authenticated user has no access
- * to `options.domainId`.
+ * @param options - Gateway and auth config.
+ * @param http - The transport.
+ * @returns The client and intent signer.
  */
-export async function buildRippleCustodyState(
+function createClientAndSigner(
   options: RippleCustodyOptions,
-): Promise<RippleCustodyState> {
-  const http = options.http ?? new FetchHttpPort()
+  http: CustodyHttpPort,
+): { client: CustodyHttpClient; intentSigner: IntentSigner } {
   const keypair = KeypairService.fromPrivateKey(options.auth.signingKey)
   const authService = new CustodyAuthService({
     authPort: new HttpCustodyAuthPort({
@@ -313,15 +314,41 @@ export async function buildRippleCustodyState(
     }),
     privateKey: options.auth.signingKey,
   })
-  const client = new CustodyHttpClient({
-    gatewayUrl: options.gatewayUrl,
-    http,
-    auth: authService,
-  })
-  const intentSigner = new IntentSigner(keypair, options.auth.signingKey)
+  return {
+    client: new CustodyHttpClient({
+      gatewayUrl: options.gatewayUrl,
+      http,
+      auth: authService,
+    }),
+    intentSigner: new IntentSigner(keypair, options.auth.signingKey),
+  }
+}
 
-  const me =
-    await client.get<components['schemas']['Core_MeReference']>('/v1/me')
+/**
+ * Authenticate with Custody and resolve the intent-author's identity for a
+ * new RippleCustody. Account discovery and primary validation
+ * happen after this, in {@link RippleCustody.create} — they need a
+ * constructed instance to back-reference.
+ *
+ * @param options - Gateway/auth/domain config, the primary account, and
+ * optional raw-signing/fee/dry-run/timeout/version defaults.
+ * @returns The assembled construction state.
+ * @throws {@link CustodyAuthError} if the authenticated user has no access
+ * to `options.domainId`.
+ * @throws {@link SimpleXRPLError} for an unknown `apiVersion`.
+ */
+export async function buildRippleCustodyState(
+  options: RippleCustodyOptions,
+): Promise<RippleCustodyState> {
+  const http = options.http ?? new FetchHttpPort()
+  const { client, intentSigner } = createClientAndSigner(options, http)
+
+  // Version detection reads the instance's own OpenAPI document; run it
+  // alongside the identity lookup so it adds no latency to create().
+  const [me, versionGuard] = await Promise.all([
+    client.get<components['schemas']['Core_MeReference']>('/v1/me'),
+    resolveVersionGuard(options, http, options.gatewayUrl),
+  ])
   const domain = me.domains.find((entry) => entry.id === options.domainId)
   if (domain === undefined) {
     throw new CustodyAuthError(
@@ -339,6 +366,7 @@ export async function buildRippleCustodyState(
     defaultDryRun: options.defaultDryRun ?? false,
     defaultTimeoutMs: options.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
     primaryAddress: options.primary,
+    versionGuard,
   }
 }
 
@@ -372,5 +400,8 @@ export async function resolveFromEnvOptions(
     defaultDryRun: options.defaultDryRun,
     defaultTimeoutMs: options.defaultTimeoutMs,
     http: options.http,
+    apiVersion: options.apiVersion,
+    autoDetectVersion: options.autoDetectVersion,
+    openApiUrl: options.openApiUrl,
   }
 }

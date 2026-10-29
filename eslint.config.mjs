@@ -73,12 +73,13 @@ export default [
   },
   {
     // Vertical classes aggregate many business verbs plus their read methods,
-    // and the Palisade custodian aggregates every signing/submission path
+    // and each custodian adapter aggregates every signing/submission path
     // (native, async, raw) plus its API wiring — both legitimately run longer
     // than the default file budget.
     files: [
       'src/verticals/*.ts',
       'src/custodians/palisade/palisade-custody.ts',
+      'src/custodians/ripple/ripple-custody.ts',
     ],
     rules: {
       'max-lines': [
