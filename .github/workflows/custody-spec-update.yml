@@ -1,0 +1,127 @@
+name: Custody spec update
+
+# Daily check for a newer Ripple Custody OpenAPI spec. When the spec published
+# with the Custody docs differs from openapi/custody-openapi.json, vendor it,
+# regenerate the custodian types, and open (or refresh) a PR for review.
+#
+# Setup (repository secrets) — see openapi/README.md:
+#   CUSTODY_SPEC_GITLAB_TOKEN    token that can read the Custody docs project
+#   CUSTODY_SPEC_GITLAB_PROJECT  that project's path
+#   CUSTODY_SPEC_GITLAB_REF      optional; the docs branch (enables read_repository-only tokens)
+#   SPEC_UPDATE_PR_TOKEN         optional; see the "Open or update the PR" step
+
+on:
+  schedule:
+    - cron: '0 13 * * *' # daily, 13:00 UTC
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Docs version to vendor (e.g. v1.44). Defaults to the docs' current default version.
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: custody-spec-update
+  cancel-in-progress: false
+
+env:
+  PR_BRANCH: automation/custody-spec-update
+
+jobs:
+  update:
+    # Forks inherit the schedule but not the secrets; only run upstream.
+    if: github.repository == 'ripple/simpleXRPL'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      # npm 11 (bundled with Node 24) can crash `npm ci`; match the CI workflow.
+      - name: Pin npm to v10
+        run: npm i -g npm@10 --registry=https://registry.npmjs.org
+      - run: npm ci
+
+      - name: Fetch the published Custody spec
+        id: fetch
+        env:
+          CUSTODY_SPEC_GITLAB_TOKEN: ${{ secrets.CUSTODY_SPEC_GITLAB_TOKEN }}
+          CUSTODY_SPEC_GITLAB_PROJECT: ${{ secrets.CUSTODY_SPEC_GITLAB_PROJECT }}
+          # Optional. Setting the branch skips the default-branch lookup, so a
+          # token with only `read_repository` is enough.
+          CUSTODY_SPEC_GITLAB_REF: ${{ secrets.CUSTODY_SPEC_GITLAB_REF }}
+          # Passed through env, never interpolated into the script, so a
+          # dispatch input can't inject shell.
+          SPEC_VERSION: ${{ inputs.version }}
+        run: node scripts/fetch-custody-spec.mjs ${SPEC_VERSION:+--version "$SPEC_VERSION"}
+
+      # Maintainers push type fixes onto the update branch. If the open PR
+      # already carries this exact spec, there is nothing new to propose, and
+      # regenerating would force-push over those fixes.
+      - name: Check the open update PR
+        id: existing
+        if: steps.fetch.outputs.changed == 'true'
+        run: |
+          if git fetch --depth=1 origin "$PR_BRANCH" 2>/dev/null \
+            && git show FETCH_HEAD:openapi/custody-openapi.json | cmp -s - openapi/custody-openapi.json; then
+            echo "The open update PR already carries this spec; leaving it untouched."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Regenerate custodian types
+        if: steps.fetch.outputs.changed == 'true' && steps.existing.outputs.skip != 'true'
+        run: npm run typegen
+
+      # A new spec often needs adapter changes, so these don't stop the PR from
+      # being opened — their results go into its description instead.
+      - name: Typecheck
+        id: typecheck
+        if: steps.fetch.outputs.changed == 'true' && steps.existing.outputs.skip != 'true'
+        continue-on-error: true
+        run: npm run typecheck
+      - name: Unit tests
+        id: unit
+        if: steps.fetch.outputs.changed == 'true' && steps.existing.outputs.skip != 'true'
+        continue-on-error: true
+        run: npm test
+
+      # PRs opened with the default GITHUB_TOKEN don't trigger other workflows,
+      # so CI won't run on them until someone pushes to the branch. Set
+      # SPEC_UPDATE_PR_TOKEN (a fine-grained PAT or GitHub App token with
+      # contents + pull-requests write) to have CI run on the PR automatically.
+      - name: Open or update the PR
+        if: steps.fetch.outputs.changed == 'true' && steps.existing.outputs.skip != 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.SPEC_UPDATE_PR_TOKEN || secrets.GITHUB_TOKEN }}
+          branch: ${{ env.PR_BRANCH }}
+          delete-branch: true
+          add-paths: |
+            openapi/custody-openapi.json
+            src/generated/
+          commit-message: 'chore: update Ripple Custody spec to ${{ steps.fetch.outputs.version }}'
+          title: 'chore: update Ripple Custody spec to ${{ steps.fetch.outputs.version }}'
+          body: |
+            The Custody docs publish a spec that differs from the vendored one, so this PR vendors it and regenerates the custodian types.
+
+            | | |
+            | --- | --- |
+            | Spec version | `${{ steps.fetch.outputs.previous-app-version }}` → `${{ steps.fetch.outputs.app-version }}` |
+            | `npm run typecheck` | ${{ steps.typecheck.outcome }} |
+            | `npm test` | ${{ steps.unit.outcome }} |
+
+            **Before merging**
+            - [ ] Review the changes to `src/generated/` for removed or reshaped operations the adapters rely on.
+            - [ ] Fix any type or test failures above by pushing to this branch. This PR won't be regenerated while it carries the same spec.
+            - [ ] Run the contract tier (`npm run test:contract`) against the sandbox, or rely on its run after merge to `main`.
+
+            If the published spec changes again before this merges, the PR is regenerated from `main` and commits pushed here are replaced.
+
+            Opened by the `Custody spec update` workflow.

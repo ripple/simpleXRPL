@@ -48,10 +48,14 @@ established.
   ```
 - The **only** hand-authored types are SDK-internal ones with no API counterpart
   (e.g. option bags, unions over generated types).
-- Bumping a custodian API version = drop the new spec (plus any files it
-  `$ref`s) in `openapi/`, update the `typegen:*` paths, run `npm run typegen`,
-  commit, and resolve any resulting type errors. See
-  [`openapi/README.md`](./openapi/README.md).
+- **Ripple Custody** spec updates are automated: a daily workflow
+  (`custody-spec-update.yml`) vendors the docs' current spec into the stable
+  `openapi/custody-openapi.json`, runs typegen, and opens a PR. By hand:
+  `npm run fetch:custody-spec` then `npm run typegen`. The pinned version is the
+  file's `info.x-app-version` — never rename the file.
+- Bumping **Palisade** = replace `openapi/palisade-api.yaml`, run
+  `npm run typegen`, and resolve any resulting type errors.
+- See [`openapi/README.md`](./openapi/README.md) for both.
 
 ## Testing
 

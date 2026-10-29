@@ -11,7 +11,7 @@ import type { ValidateFunction } from 'ajv'
  * that the spec would reject shows up here, and bumping the pinned spec version
  * re-runs this suite against the new contract.
  */
-const SPEC_PATH = join(process.cwd(), 'openapi', 'custody-v1.43-openapi.json')
+const SPEC_PATH = join(process.cwd(), 'openapi', 'custody-openapi.json')
 
 /**
  * Build the shared validator, with the whole spec registered so `$ref`s into
