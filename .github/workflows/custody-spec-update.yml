@@ -5,8 +5,9 @@ name: Custody spec update
 # regenerate the custodian types, and open (or refresh) a PR for review.
 #
 # Setup (repository secrets) — see openapi/README.md:
-#   CUSTODY_SPEC_GITLAB_TOKEN    read_api token for the Custody docs project
+#   CUSTODY_SPEC_GITLAB_TOKEN    token that can read the Custody docs project
 #   CUSTODY_SPEC_GITLAB_PROJECT  that project's path
+#   CUSTODY_SPEC_GITLAB_REF      optional; the docs branch (enables read_repository-only tokens)
 #   SPEC_UPDATE_PR_TOKEN         optional; see the "Open or update the PR" step
 
 on:
@@ -53,6 +54,9 @@ jobs:
         env:
           CUSTODY_SPEC_GITLAB_TOKEN: ${{ secrets.CUSTODY_SPEC_GITLAB_TOKEN }}
           CUSTODY_SPEC_GITLAB_PROJECT: ${{ secrets.CUSTODY_SPEC_GITLAB_PROJECT }}
+          # Optional. Setting the branch skips the default-branch lookup, so a
+          # token with only `read_repository` is enough.
+          CUSTODY_SPEC_GITLAB_REF: ${{ secrets.CUSTODY_SPEC_GITLAB_REF }}
           # Passed through env, never interpolated into the script, so a
           # dispatch input can't inject shell.
           SPEC_VERSION: ${{ inputs.version }}

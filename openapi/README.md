@@ -31,16 +31,17 @@ version (e.g. `v1.44`).
 
 The workflow needs these repository secrets:
 
-| Secret                        | Purpose                                                                                                                       |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `CUSTODY_SPEC_GITLAB_TOKEN`   | GitLab token with `read_api` on the Custody docs project                                                                      |
-| `CUSTODY_SPEC_GITLAB_PROJECT` | That project's path (`group/.../project`), kept out of this repo                                                              |
-| `SPEC_UPDATE_PR_TOKEN`        | Optional. PRs opened with the default `GITHUB_TOKEN` don't trigger CI; a token with contents + pull-requests write makes CI run on the PR |
+| Secret | Purpose |
+| --- | --- |
+| `CUSTODY_SPEC_GITLAB_TOKEN` | GitLab token that can read the Custody docs project (`read_api`, or `read_repository` with `CUSTODY_SPEC_GITLAB_REF` set) |
+| `CUSTODY_SPEC_GITLAB_PROJECT` | That project's path (`group/.../project`), kept out of this repo |
+| `CUSTODY_SPEC_GITLAB_REF` | Optional. The docs branch to read; when set, a token with only `read_repository` is enough |
+| `SPEC_UPDATE_PR_TOKEN` | Optional. PRs opened with the default `GITHUB_TOKEN` don't trigger CI; a token with contents + pull-requests write makes CI run on the PR |
 
 ### Updating by hand
 
 ```sh
-export CUSTODY_SPEC_GITLAB_TOKEN=...   # read_api on the docs project
+export CUSTODY_SPEC_GITLAB_TOKEN=...   # can read the docs project
 export CUSTODY_SPEC_GITLAB_PROJECT=... # the docs project's path
 npm run fetch:custody-spec            # the docs' default version
 npm run fetch:custody-spec -- --version v1.44
