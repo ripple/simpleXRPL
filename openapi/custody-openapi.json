@@ -8,7 +8,7 @@
       "url": "images/ripple-custody.png",
       "altText": "Ripple Custody logo"
     },
-    "x-app-version": "1.43"
+    "x-app-version": "1.42"
   },
   "paths": {
     "/v1/backups/{backupId}": {
@@ -14490,25 +14490,6 @@
           }
         }
       },
-      "Core_AntiRewindMode": {
-        "enum": [
-          "STRICT",
-          "BALANCED",
-          "DISABLED"
-        ],
-        "type": "string"
-      },
-      "Core_AntiRewindModeValue": {
-        "required": [
-          "mode"
-        ],
-        "type": "object",
-        "properties": {
-          "mode": {
-            "$ref": "#/components/schemas/Core_AntiRewindMode"
-          }
-        }
-      },
       "Core_ApiAccount": {
         "required": [
           "data",
@@ -15415,18 +15396,6 @@
           }
         }
       },
-      "Core_AuthorizationReference": {
-        "required": [
-          "transactionOrderId"
-        ],
-        "type": "object",
-        "properties": {
-          "transactionOrderId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
       "Core_Backup": {
         "required": [
           "id",
@@ -16021,282 +15990,6 @@
         }
       },
       "Core_BitcoinTickerProperties_Native": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "Native"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_Accept"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_CreateNativeTransferPreapproval"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_CreateParty"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_CreateTokenTransferPreapproval"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_NativeTransfer"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_Reject"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_TokenTransfer"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonOperation_Withdraw"
-          }
-        ],
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "Accept": "#/components/schemas/Core_CantonOperation_Accept",
-            "CreateNativeTransferPreapproval": "#/components/schemas/Core_CantonOperation_CreateNativeTransferPreapproval",
-            "CreateParty": "#/components/schemas/Core_CantonOperation_CreateParty",
-            "CreateTokenTransferPreapproval": "#/components/schemas/Core_CantonOperation_CreateTokenTransferPreapproval",
-            "NativeTransfer": "#/components/schemas/Core_CantonOperation_NativeTransfer",
-            "Reject": "#/components/schemas/Core_CantonOperation_Reject",
-            "TokenTransfer": "#/components/schemas/Core_CantonOperation_TokenTransfer",
-            "Withdraw": "#/components/schemas/Core_CantonOperation_Withdraw"
-          }
-        }
-      },
-      "Core_CantonOperation_Accept": {
-        "required": [
-          "contractId",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "contractId": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "Accept"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation_CreateNativeTransferPreapproval": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "CreateNativeTransferPreapproval"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation_CreateParty": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "CreateParty"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation_CreateTokenTransferPreapproval": {
-        "required": [
-          "tickerId",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "tickerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "type": {
-            "enum": [
-              "CreateTokenTransferPreapproval"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation_NativeTransfer": {
-        "required": [
-          "destination",
-          "amount",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "destination": {
-            "$ref": "#/components/schemas/Core_TransactionDestination"
-          },
-          "amount": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "executeBefore": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "memo": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "NativeTransfer"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation_Reject": {
-        "required": [
-          "contractId",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "contractId": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "Reject"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation_TokenTransfer": {
-        "required": [
-          "destination",
-          "amount",
-          "tickerId",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "destination": {
-            "$ref": "#/components/schemas/Core_TransactionDestination"
-          },
-          "amount": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "tickerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "executeBefore": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "memo": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "TokenTransfer"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonOperation_Withdraw": {
-        "required": [
-          "contractId",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "contractId": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "Withdraw"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonTickerProperties": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Core_CantonTickerProperties_Instrument"
-          },
-          {
-            "$ref": "#/components/schemas/Core_CantonTickerProperties_Native"
-          }
-        ],
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "Instrument": "#/components/schemas/Core_CantonTickerProperties_Instrument",
-            "Native": "#/components/schemas/Core_CantonTickerProperties_Native"
-          }
-        }
-      },
-      "Core_CantonTickerProperties_Instrument": {
-        "required": [
-          "instrumentAdmin",
-          "instrumentId",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "instrumentAdmin": {
-            "maxLength": 255,
-            "minLength": 5,
-            "type": "string"
-          },
-          "instrumentId": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "Instrument"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_CantonTickerProperties_Native": {
         "required": [
           "type"
         ],
@@ -17666,9 +17359,6 @@
           },
           {
             "$ref": "#/components/schemas/Core_EthereumFeeStrategy_SpecifiedRateEIP1559"
-          },
-          {
-            "$ref": "#/components/schemas/Core_EthereumFeeStrategy_Sponsored"
           }
         ],
         "discriminator": {
@@ -17676,8 +17366,7 @@
           "mapping": {
             "Priority": "#/components/schemas/Core_EthereumFeeStrategy_Priority",
             "SpecifiedRate": "#/components/schemas/Core_EthereumFeeStrategy_SpecifiedRate",
-            "SpecifiedRateEIP1559": "#/components/schemas/Core_EthereumFeeStrategy_SpecifiedRateEIP1559",
-            "Sponsored": "#/components/schemas/Core_EthereumFeeStrategy_Sponsored"
+            "SpecifiedRateEIP1559": "#/components/schemas/Core_EthereumFeeStrategy_SpecifiedRateEIP1559"
           }
         }
       },
@@ -17742,24 +17431,6 @@
           }
         }
       },
-      "Core_EthereumFeeStrategy_Sponsored": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "sponsor": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "type": {
-            "enum": [
-              "Sponsored"
-            ],
-            "type": "string"
-          }
-        }
-      },
       "Core_EthereumLedgerLog": {
         "required": [
           "logIndex",
@@ -17797,64 +17468,6 @@
           "etc"
         ],
         "type": "string"
-      },
-      "Core_EthereumOperation": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Core_EthereumOperation_SetDelegation"
-          },
-          {
-            "$ref": "#/components/schemas/Core_EthereumOperation_SubmitAuthorization"
-          }
-        ],
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "SetDelegation": "#/components/schemas/Core_EthereumOperation_SetDelegation",
-            "SubmitAuthorization": "#/components/schemas/Core_EthereumOperation_SubmitAuthorization"
-          }
-        }
-      },
-      "Core_EthereumOperation_SetDelegation": {
-        "required": [
-          "delegationContract",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "delegationContract": {
-            "maxLength": 512,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "SetDelegation"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_EthereumOperation_SubmitAuthorization": {
-        "required": [
-          "authorizations",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "authorizations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Core_AuthorizationReference"
-            }
-          },
-          "type": {
-            "enum": [
-              "SubmitAuthorization"
-            ],
-            "type": "string"
-          }
-        }
       },
       "Core_EthereumResourceStrategy": {
         "oneOf": [
@@ -18128,16 +17741,12 @@
           "systemSignaturesPublicKey": {
             "type": "string",
             "format": "base64"
-          },
-          "antiRewindMode": {
-            "$ref": "#/components/schemas/Core_AntiRewindMode"
           }
         }
       },
       "Core_GenesisRequest": {
         "required": [
-          "rootDomainSetup",
-          "antiRewindMode"
+          "rootDomainSetup"
         ],
         "type": "object",
         "properties": {
@@ -18164,9 +17773,6 @@
             "items": {
               "$ref": "#/components/schemas/Core_CreateLedgerGenesis"
             }
-          },
-          "antiRewindMode": {
-            "$ref": "#/components/schemas/Core_AntiRewindMode"
           },
           "systemSignaturesPublicKey": {
             "type": "string",
@@ -20510,9 +20116,6 @@
             "$ref": "#/components/schemas/Core_LedgerParameters_Bitcoin"
           },
           {
-            "$ref": "#/components/schemas/Core_LedgerParameters_Canton"
-          },
-          {
             "$ref": "#/components/schemas/Core_LedgerParameters_Cardano"
           },
           {
@@ -20531,9 +20134,6 @@
             "$ref": "#/components/schemas/Core_LedgerParameters_Substrate"
           },
           {
-            "$ref": "#/components/schemas/Core_LedgerParameters_Sui"
-          },
-          {
             "$ref": "#/components/schemas/Core_LedgerParameters_Tezos"
           },
           {
@@ -20548,14 +20148,12 @@
           "mapping": {
             "Algorand": "#/components/schemas/Core_LedgerParameters_Algorand",
             "Bitcoin": "#/components/schemas/Core_LedgerParameters_Bitcoin",
-            "Canton": "#/components/schemas/Core_LedgerParameters_Canton",
             "Cardano": "#/components/schemas/Core_LedgerParameters_Cardano",
             "Ethereum": "#/components/schemas/Core_LedgerParameters_Ethereum",
             "Hedera": "#/components/schemas/Core_LedgerParameters_Hedera",
             "Solana": "#/components/schemas/Core_LedgerParameters_Solana",
             "Stellar": "#/components/schemas/Core_LedgerParameters_Stellar",
             "Substrate": "#/components/schemas/Core_LedgerParameters_Substrate",
-            "Sui": "#/components/schemas/Core_LedgerParameters_Sui",
             "Tezos": "#/components/schemas/Core_LedgerParameters_Tezos",
             "Tron": "#/components/schemas/Core_LedgerParameters_Tron",
             "XRPL": "#/components/schemas/Core_LedgerParameters_XRPL"
@@ -20644,44 +20242,6 @@
           "type": {
             "enum": [
               "Bitcoin"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_LedgerParameters_Canton": {
-        "required": [
-          "synchronizerId",
-          "operatorId",
-          "dsoPartyId",
-          "daRegistryOperator",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "synchronizerId": {
-            "maxLength": 255,
-            "minLength": 5,
-            "type": "string"
-          },
-          "operatorId": {
-            "maxLength": 255,
-            "minLength": 5,
-            "type": "string"
-          },
-          "dsoPartyId": {
-            "maxLength": 255,
-            "minLength": 5,
-            "type": "string"
-          },
-          "daRegistryOperator": {
-            "maxLength": 255,
-            "minLength": 5,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "Canton"
             ],
             "type": "string"
           }
@@ -20892,32 +20452,6 @@
           "type": {
             "enum": [
               "Substrate"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_LedgerParameters_Sui": {
-        "required": [
-          "nativeTickerSymbol",
-          "nativeTickerName",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "nativeTickerSymbol": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "nativeTickerName": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "Sui"
             ],
             "type": "string"
           }
@@ -21180,11 +20714,6 @@
           },
           "ledgerId": {
             "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "address": {
-            "maxLength": 512,
             "minLength": 1,
             "type": "string"
           },
@@ -21820,9 +21349,6 @@
             "$ref": "#/components/schemas/Core_OnLedgerData_Bitcoin"
           },
           {
-            "$ref": "#/components/schemas/Core_OnLedgerData_Canton"
-          },
-          {
             "$ref": "#/components/schemas/Core_OnLedgerData_Ethereum"
           },
           {
@@ -21833,7 +21359,6 @@
           "propertyName": "type",
           "mapping": {
             "Bitcoin": "#/components/schemas/Core_OnLedgerData_Bitcoin",
-            "Canton": "#/components/schemas/Core_OnLedgerData_Canton",
             "Ethereum": "#/components/schemas/Core_OnLedgerData_Ethereum",
             "Xrpl": "#/components/schemas/Core_OnLedgerData_Xrpl"
           }
@@ -21862,49 +21387,6 @@
           "type": {
             "enum": [
               "Bitcoin"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_OnLedgerData_Canton": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "contractId": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "sender": {
-            "maxLength": 255,
-            "minLength": 5,
-            "type": "string"
-          },
-          "receiver": {
-            "maxLength": 255,
-            "minLength": 5,
-            "type": "string"
-          },
-          "amount": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "instrumentId": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "executeBefore": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "type": {
-            "enum": [
-              "Canton"
             ],
             "type": "string"
           }
@@ -22279,9 +21761,6 @@
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_Bitcoin"
           },
           {
-            "$ref": "#/components/schemas/Core_TransactionOrderParameters_Canton"
-          },
-          {
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_Cardano"
           },
           {
@@ -22300,9 +21779,6 @@
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_Substrate"
           },
           {
-            "$ref": "#/components/schemas/Core_TransactionOrderParameters_Sui"
-          },
-          {
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_Tezos"
           },
           {
@@ -22317,14 +21793,12 @@
           "mapping": {
             "Algorand": "#/components/schemas/Core_TransactionOrderParameters_Algorand",
             "Bitcoin": "#/components/schemas/Core_TransactionOrderParameters_Bitcoin",
-            "Canton": "#/components/schemas/Core_TransactionOrderParameters_Canton",
             "Cardano": "#/components/schemas/Core_TransactionOrderParameters_Cardano",
             "Ethereum": "#/components/schemas/Core_TransactionOrderParameters_Ethereum",
             "Hedera": "#/components/schemas/Core_TransactionOrderParameters_Hedera",
             "Solana": "#/components/schemas/Core_TransactionOrderParameters_Solana",
             "Stellar": "#/components/schemas/Core_TransactionOrderParameters_Stellar",
             "Substrate": "#/components/schemas/Core_TransactionOrderParameters_Substrate",
-            "Sui": "#/components/schemas/Core_TransactionOrderParameters_Sui",
             "Tezos": "#/components/schemas/Core_TransactionOrderParameters_Tezos",
             "Tron": "#/components/schemas/Core_TransactionOrderParameters_Tron",
             "XRPL": "#/components/schemas/Core_TransactionOrderParameters_XRPL"
@@ -22706,9 +22180,6 @@
       "Core_ReadWriteSystemPropertyKeyValue": {
         "oneOf": [
           {
-            "$ref": "#/components/schemas/Core_ReadWriteSystemPropertyKeyValue_AntiRewindModeProperty"
-          },
-          {
             "$ref": "#/components/schemas/Core_ReadWriteSystemPropertyKeyValue_NotarySystemSignedIntentsEnabledProperty"
           },
           {
@@ -22718,27 +22189,8 @@
         "discriminator": {
           "propertyName": "type",
           "mapping": {
-            "AntiRewindModeProperty": "#/components/schemas/Core_ReadWriteSystemPropertyKeyValue_AntiRewindModeProperty",
             "NotarySystemSignedIntentsEnabledProperty": "#/components/schemas/Core_ReadWriteSystemPropertyKeyValue_NotarySystemSignedIntentsEnabledProperty",
             "StateReviewAuthorityProperty": "#/components/schemas/Core_ReadWriteSystemPropertyKeyValue_StateReviewAuthorityProperty"
-          }
-        }
-      },
-      "Core_ReadWriteSystemPropertyKeyValue_AntiRewindModeProperty": {
-        "required": [
-          "value",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "value": {
-            "$ref": "#/components/schemas/Core_AntiRewindModeValue"
-          },
-          "type": {
-            "enum": [
-              "AntiRewindModeProperty"
-            ],
-            "type": "string"
           }
         }
       },
@@ -24682,164 +24134,8 @@
           }
         }
       },
-      "Core_SuiFeeStrategy": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Core_SuiFeeStrategy_Priority"
-          }
-        ],
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "Priority": "#/components/schemas/Core_SuiFeeStrategy_Priority"
-          }
-        }
-      },
-      "Core_SuiFeeStrategy_Priority": {
-        "required": [
-          "priority",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "priority": {
-            "$ref": "#/components/schemas/Core_FeePriority"
-          },
-          "type": {
-            "enum": [
-              "Priority"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_SuiOperation": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Core_SuiOperation_CoinTransfer"
-          },
-          {
-            "$ref": "#/components/schemas/Core_SuiOperation_NativeTransfer"
-          }
-        ],
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "CoinTransfer": "#/components/schemas/Core_SuiOperation_CoinTransfer",
-            "NativeTransfer": "#/components/schemas/Core_SuiOperation_NativeTransfer"
-          }
-        }
-      },
-      "Core_SuiOperation_CoinTransfer": {
-        "required": [
-          "destination",
-          "amount",
-          "coinType",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "destination": {
-            "$ref": "#/components/schemas/Core_TransactionDestination"
-          },
-          "amount": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "coinType": {
-            "pattern": "^0x[0-9a-fA-F]{1,64}::[A-Za-z_][A-Za-z0-9_]*::[A-Za-z_][A-Za-z0-9_]*$",
-            "type": "string",
-            "description": "Move coin type tag, e.g. 0x2::sui::SUI (no generic type parameters)."
-          },
-          "type": {
-            "enum": [
-              "CoinTransfer"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_SuiOperation_NativeTransfer": {
-        "required": [
-          "destination",
-          "amount",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "destination": {
-            "$ref": "#/components/schemas/Core_TransactionDestination"
-          },
-          "amount": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "type": {
-            "enum": [
-              "NativeTransfer"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_SuiTickerProperties": {
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/Core_SuiTickerProperties_Coin"
-          },
-          {
-            "$ref": "#/components/schemas/Core_SuiTickerProperties_Native"
-          }
-        ],
-        "discriminator": {
-          "propertyName": "type",
-          "mapping": {
-            "Coin": "#/components/schemas/Core_SuiTickerProperties_Coin",
-            "Native": "#/components/schemas/Core_SuiTickerProperties_Native"
-          }
-        }
-      },
-      "Core_SuiTickerProperties_Coin": {
-        "required": [
-          "coinType",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "coinType": {
-            "pattern": "^0x[0-9a-fA-F]{1,64}::[A-Za-z_][A-Za-z0-9_]*::[A-Za-z_][A-Za-z0-9_]*$",
-            "type": "string",
-            "description": "Move coin type tag, e.g. 0x2::sui::SUI (no generic type parameters)."
-          },
-          "type": {
-            "enum": [
-              "Coin"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_SuiTickerProperties_Native": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "Native"
-            ],
-            "type": "string"
-          }
-        }
-      },
       "Core_SystemProperty": {
         "oneOf": [
-          {
-            "$ref": "#/components/schemas/Core_SystemProperty_AntiRewindModeSystemProperty"
-          },
           {
             "$ref": "#/components/schemas/Core_SystemProperty_NotaryApiKeySystemProperty"
           },
@@ -24867,8 +24163,7 @@
           "NOTARY_API_KEY",
           "STATE_REVIEW_AUTHORITY",
           "NOTARY_SYSTEM_SIGNING_KEY",
-          "NOTARY_SYSTEM_SIGNED_INTENTS_ENABLED",
-          "ANTI_REWIND_MODE"
+          "NOTARY_SYSTEM_SIGNED_INTENTS_ENABLED"
         ],
         "type": "string"
       },
@@ -24887,25 +24182,6 @@
               "SystemPropertySet"
             ],
             "type": "string"
-          }
-        }
-      },
-      "Core_SystemProperty_AntiRewindModeSystemProperty": {
-        "required": [
-          "id",
-          "value",
-          "metadata"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Core_SystemPropertyId"
-          },
-          "value": {
-            "$ref": "#/components/schemas/Core_AntiRewindModeValue"
-          },
-          "metadata": {
-            "$ref": "#/components/schemas/Core_EntityMetadata"
           }
         }
       },
@@ -25303,9 +24579,6 @@
             "$ref": "#/components/schemas/Core_TickerLedgerDetails_Bitcoin"
           },
           {
-            "$ref": "#/components/schemas/Core_TickerLedgerDetails_Canton"
-          },
-          {
             "$ref": "#/components/schemas/Core_TickerLedgerDetails_Cardano"
           },
           {
@@ -25324,9 +24597,6 @@
             "$ref": "#/components/schemas/Core_TickerLedgerDetails_Substrate"
           },
           {
-            "$ref": "#/components/schemas/Core_TickerLedgerDetails_Sui"
-          },
-          {
             "$ref": "#/components/schemas/Core_TickerLedgerDetails_Tezos"
           },
           {
@@ -25341,14 +24611,12 @@
           "mapping": {
             "Algorand": "#/components/schemas/Core_TickerLedgerDetails_Algorand",
             "Bitcoin": "#/components/schemas/Core_TickerLedgerDetails_Bitcoin",
-            "Canton": "#/components/schemas/Core_TickerLedgerDetails_Canton",
             "Cardano": "#/components/schemas/Core_TickerLedgerDetails_Cardano",
             "Ethereum": "#/components/schemas/Core_TickerLedgerDetails_Ethereum",
             "Hedera": "#/components/schemas/Core_TickerLedgerDetails_Hedera",
             "Solana": "#/components/schemas/Core_TickerLedgerDetails_Solana",
             "Stellar": "#/components/schemas/Core_TickerLedgerDetails_Stellar",
             "Substrate": "#/components/schemas/Core_TickerLedgerDetails_Substrate",
-            "Sui": "#/components/schemas/Core_TickerLedgerDetails_Sui",
             "Tezos": "#/components/schemas/Core_TickerLedgerDetails_Tezos",
             "Tron": "#/components/schemas/Core_TickerLedgerDetails_Tron",
             "XRPL": "#/components/schemas/Core_TickerLedgerDetails_XRPL"
@@ -25386,24 +24654,6 @@
           "type": {
             "enum": [
               "Bitcoin"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_TickerLedgerDetails_Canton": {
-        "required": [
-          "properties",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "properties": {
-            "$ref": "#/components/schemas/Core_CantonTickerProperties"
-          },
-          "type": {
-            "enum": [
-              "Canton"
             ],
             "type": "string"
           }
@@ -25512,24 +24762,6 @@
           "type": {
             "enum": [
               "Substrate"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_TickerLedgerDetails_Sui": {
-        "required": [
-          "properties",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "properties": {
-            "$ref": "#/components/schemas/Core_SuiTickerProperties"
-          },
-          "type": {
-            "enum": [
-              "Sui"
             ],
             "type": "string"
           }
@@ -26099,9 +25331,6 @@
             "$ref": "#/components/schemas/Core_TransactionEstimate_Bitcoin"
           },
           {
-            "$ref": "#/components/schemas/Core_TransactionEstimate_Canton"
-          },
-          {
             "$ref": "#/components/schemas/Core_TransactionEstimate_Cardano"
           },
           {
@@ -26123,9 +25352,6 @@
             "$ref": "#/components/schemas/Core_TransactionEstimate_Substrate"
           },
           {
-            "$ref": "#/components/schemas/Core_TransactionEstimate_Sui"
-          },
-          {
             "$ref": "#/components/schemas/Core_TransactionEstimate_Tezos"
           },
           {
@@ -26140,7 +25366,6 @@
           "mapping": {
             "Algorand": "#/components/schemas/Core_TransactionEstimate_Algorand",
             "Bitcoin": "#/components/schemas/Core_TransactionEstimate_Bitcoin",
-            "Canton": "#/components/schemas/Core_TransactionEstimate_Canton",
             "Cardano": "#/components/schemas/Core_TransactionEstimate_Cardano",
             "Ethereum": "#/components/schemas/Core_TransactionEstimate_Ethereum",
             "Failure": "#/components/schemas/Core_TransactionEstimate_Failure",
@@ -26148,7 +25373,6 @@
             "Solana": "#/components/schemas/Core_TransactionEstimate_Solana",
             "Stellar": "#/components/schemas/Core_TransactionEstimate_Stellar",
             "Substrate": "#/components/schemas/Core_TransactionEstimate_Substrate",
-            "Sui": "#/components/schemas/Core_TransactionEstimate_Sui",
             "Tezos": "#/components/schemas/Core_TransactionEstimate_Tezos",
             "Tron": "#/components/schemas/Core_TransactionEstimate_Tron",
             "XRPL": "#/components/schemas/Core_TransactionEstimate_XRPL"
@@ -26200,26 +25424,6 @@
           "type": {
             "enum": [
               "Bitcoin"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_TransactionEstimate_Canton": {
-        "required": [
-          "fee",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "fee": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "type": {
-            "enum": [
-              "Canton"
             ],
             "type": "string"
           }
@@ -26379,31 +25583,6 @@
           }
         }
       },
-      "Core_TransactionEstimate_Sui": {
-        "required": [
-          "fee",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "fee": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "storageRebate": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "type": {
-            "enum": [
-              "Sui"
-            ],
-            "type": "string"
-          }
-        }
-      },
       "Core_TransactionEstimate_Tezos": {
         "required": [
           "minimalFee",
@@ -26529,9 +25708,7 @@
           "Tezos",
           "XRPL",
           "Stellar",
-          "Tron",
-          "Canton",
-          "Sui"
+          "Tron"
         ],
         "type": "string"
       },
@@ -26545,9 +25722,6 @@
           },
           {
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_BitcoinRedirect"
-          },
-          {
-            "$ref": "#/components/schemas/Core_TransactionOrderParameters_Canton"
           },
           {
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_Cardano"
@@ -26568,9 +25742,6 @@
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_Substrate"
           },
           {
-            "$ref": "#/components/schemas/Core_TransactionOrderParameters_Sui"
-          },
-          {
             "$ref": "#/components/schemas/Core_TransactionOrderParameters_Tezos"
           },
           {
@@ -26586,14 +25757,12 @@
             "Algorand": "#/components/schemas/Core_TransactionOrderParameters_Algorand",
             "Bitcoin": "#/components/schemas/Core_TransactionOrderParameters_Bitcoin",
             "BitcoinRedirect": "#/components/schemas/Core_TransactionOrderParameters_BitcoinRedirect",
-            "Canton": "#/components/schemas/Core_TransactionOrderParameters_Canton",
             "Cardano": "#/components/schemas/Core_TransactionOrderParameters_Cardano",
             "Ethereum": "#/components/schemas/Core_TransactionOrderParameters_Ethereum",
             "Hedera": "#/components/schemas/Core_TransactionOrderParameters_Hedera",
             "Solana": "#/components/schemas/Core_TransactionOrderParameters_Solana",
             "Stellar": "#/components/schemas/Core_TransactionOrderParameters_Stellar",
             "Substrate": "#/components/schemas/Core_TransactionOrderParameters_Substrate",
-            "Sui": "#/components/schemas/Core_TransactionOrderParameters_Sui",
             "Tezos": "#/components/schemas/Core_TransactionOrderParameters_Tezos",
             "Tron": "#/components/schemas/Core_TransactionOrderParameters_Tron",
             "XRPL": "#/components/schemas/Core_TransactionOrderParameters_XRPL"
@@ -26706,29 +25875,6 @@
           }
         }
       },
-      "Core_TransactionOrderParameters_Canton": {
-        "required": [
-          "operation",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "operation": {
-            "$ref": "#/components/schemas/Core_CantonOperation"
-          },
-          "maximumFee": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "type": {
-            "enum": [
-              "Canton"
-            ],
-            "type": "string"
-          }
-        }
-      },
       "Core_TransactionOrderParameters_Cardano": {
         "required": [
           "operation",
@@ -26786,9 +25932,6 @@
           },
           "resourceStrategy": {
             "$ref": "#/components/schemas/Core_EthereumResourceStrategy"
-          },
-          "operation": {
-            "$ref": "#/components/schemas/Core_EthereumOperation"
           },
           "type": {
             "enum": [
@@ -26926,40 +26069,6 @@
           "type": {
             "enum": [
               "Substrate"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_TransactionOrderParameters_Sui": {
-        "required": [
-          "operation",
-          "feeStrategy",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "operation": {
-            "$ref": "#/components/schemas/Core_SuiOperation"
-          },
-          "feeStrategy": {
-            "$ref": "#/components/schemas/Core_SuiFeeStrategy"
-          },
-          "maximumFee": {
-            "minimum": 0,
-            "type": "string",
-            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision."
-          },
-          "validityEpochs": {
-            "maximum": 14,
-            "minimum": 1,
-            "type": "integer",
-            "description": "Expiry window in whole Sui epochs (approximately 24 hours each) from preparation; omit for the platform default.",
-            "format": "int32"
-          },
-          "type": {
-            "enum": [
-              "Sui"
             ],
             "type": "string"
           }
@@ -27350,9 +26459,6 @@
             "$ref": "#/components/schemas/Core_TransferMetadata_Bitcoin"
           },
           {
-            "$ref": "#/components/schemas/Core_TransferMetadata_Canton"
-          },
-          {
             "$ref": "#/components/schemas/Core_TransferMetadata_Cardano"
           },
           {
@@ -27371,9 +26477,6 @@
             "$ref": "#/components/schemas/Core_TransferMetadata_Substrate"
           },
           {
-            "$ref": "#/components/schemas/Core_TransferMetadata_Sui"
-          },
-          {
             "$ref": "#/components/schemas/Core_TransferMetadata_Tezos"
           },
           {
@@ -27388,14 +26491,12 @@
           "mapping": {
             "Algorand": "#/components/schemas/Core_TransferMetadata_Algorand",
             "Bitcoin": "#/components/schemas/Core_TransferMetadata_Bitcoin",
-            "Canton": "#/components/schemas/Core_TransferMetadata_Canton",
             "Cardano": "#/components/schemas/Core_TransferMetadata_Cardano",
             "Ethereum": "#/components/schemas/Core_TransferMetadata_Ethereum",
             "Hedera": "#/components/schemas/Core_TransferMetadata_Hedera",
             "Solana": "#/components/schemas/Core_TransferMetadata_Solana",
             "Stellar": "#/components/schemas/Core_TransferMetadata_Stellar",
             "Substrate": "#/components/schemas/Core_TransferMetadata_Substrate",
-            "Sui": "#/components/schemas/Core_TransferMetadata_Sui",
             "Tezos": "#/components/schemas/Core_TransferMetadata_Tezos",
             "Tron": "#/components/schemas/Core_TransferMetadata_Tron",
             "XRPL": "#/components/schemas/Core_TransferMetadata_XRPL"
@@ -27429,20 +26530,6 @@
           "type": {
             "enum": [
               "Bitcoin"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_TransferMetadata_Canton": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "Canton"
             ],
             "type": "string"
           }
@@ -27536,20 +26623,6 @@
           "type": {
             "enum": [
               "Substrate"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_TransferMetadata_Sui": {
-        "required": [
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "Sui"
             ],
             "type": "string"
           }
@@ -28676,8 +27749,7 @@
           "BackupAcknowledgeDenied",
           "VaultOperationOnExternalAccount",
           "ExternalOperationOnVaultAccount",
-          "ValidateTickersPostProcessingFailure",
-          "SignManifestAddressResolutionFailure"
+          "ValidateTickersPostProcessingFailure"
         ],
         "type": "string"
       },
@@ -28898,9 +27970,6 @@
           },
           {
             "$ref": "#/components/schemas/Core_VaultAccountProviderInformation_Key_VaultRandom"
-          },
-          {
-            "$ref": "#/components/schemas/Core_VaultAccountProviderInformation_Key_VaultReserved"
           }
         ],
         "discriminator": {
@@ -28908,8 +27977,7 @@
           "mapping": {
             "VaultDerived": "#/components/schemas/Core_VaultAccountProviderInformation_Key_VaultDerived",
             "VaultDerivedNonExtended": "#/components/schemas/Core_VaultAccountProviderInformation_Key_VaultDerivedNonExtended",
-            "VaultRandom": "#/components/schemas/Core_VaultAccountProviderInformation_Key_VaultRandom",
-            "VaultReserved": "#/components/schemas/Core_VaultAccountProviderInformation_Key_VaultReserved"
+            "VaultRandom": "#/components/schemas/Core_VaultAccountProviderInformation_Key_VaultRandom"
           }
         }
       },
@@ -28918,8 +27986,7 @@
           "SECP256K1_CUSTODY_1",
           "ED25519_CUSTODY_1",
           "ED25519_CUSTODY_2",
-          "ED25519_STAKING_1",
-          "ED25519_CANTON_PARTY_1"
+          "ED25519_STAKING_1"
         ],
         "type": "string"
       },
@@ -28992,27 +28059,6 @@
           "type": {
             "enum": [
               "VaultRandom"
-            ],
-            "type": "string"
-          }
-        }
-      },
-      "Core_VaultAccountProviderInformation_Key_VaultReserved": {
-        "required": [
-          "id",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Core_VaultAccountProviderInformation_KeyId"
-          },
-          "publicKey": {
-            "$ref": "#/components/schemas/Core_AccountPublicKeyOnly"
-          },
-          "type": {
-            "enum": [
-              "VaultReserved"
             ],
             "type": "string"
           }
@@ -31516,11 +30562,6 @@
           },
           "ledgerId": {
             "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "address": {
-            "maxLength": 512,
             "minLength": 1,
             "type": "string"
           },
@@ -37752,6 +36793,10 @@
     {
       "name": "SystemSigning",
       "description": "Endpoints for inspecting the cluster's system-signing keys used to verify the integrity of system-signed intents."
+    },
+    {
+      "name": "Invitations",
+      "description": "**User invitations** are an alternative method to create users. With a user invitation, there is no need for the user to manually share its public key as the process is fully automated in the backend. Moreover it is possible to create invitations that have an expiration date."
     },
     {
       "name": "Compliance",

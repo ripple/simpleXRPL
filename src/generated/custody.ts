@@ -2864,11 +2864,6 @@ export interface components {
        */
       type: 'Native'
     }
-    /** @enum {string} */
-    Core_AntiRewindMode: 'STRICT' | 'BALANCED' | 'DISABLED'
-    Core_AntiRewindModeValue: {
-      mode: components['schemas']['Core_AntiRewindMode']
-    }
     Core_ApiAccount: {
       data: components['schemas']['Core_Account']
       /** Format: base64 */
@@ -3235,10 +3230,6 @@ export interface components {
       /** Format: base64 */
       signature: string
     }
-    Core_AuthorizationReference: {
-      /** Format: uuid */
-      transactionOrderId: string
-    }
     Core_Backup: {
       /** Format: uuid */
       id: string
@@ -3441,109 +3432,6 @@ export interface components {
     }
     Core_BitcoinTickerProperties: components['schemas']['Core_BitcoinTickerProperties_Native']
     Core_BitcoinTickerProperties_Native: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Native'
-    }
-    Core_CantonOperation:
-      | components['schemas']['Core_CantonOperation_Accept']
-      | components['schemas']['Core_CantonOperation_CreateNativeTransferPreapproval']
-      | components['schemas']['Core_CantonOperation_CreateParty']
-      | components['schemas']['Core_CantonOperation_CreateTokenTransferPreapproval']
-      | components['schemas']['Core_CantonOperation_NativeTransfer']
-      | components['schemas']['Core_CantonOperation_Reject']
-      | components['schemas']['Core_CantonOperation_TokenTransfer']
-      | components['schemas']['Core_CantonOperation_Withdraw']
-    Core_CantonOperation_Accept: {
-      contractId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Accept'
-    }
-    Core_CantonOperation_CreateNativeTransferPreapproval: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CreateNativeTransferPreapproval'
-    }
-    Core_CantonOperation_CreateParty: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CreateParty'
-    }
-    Core_CantonOperation_CreateTokenTransferPreapproval: {
-      /** Format: uuid */
-      tickerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CreateTokenTransferPreapproval'
-    }
-    Core_CantonOperation_NativeTransfer: {
-      destination: components['schemas']['Core_TransactionDestination']
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      /** Format: date-time */
-      executeBefore?: string
-      memo?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'NativeTransfer'
-    }
-    Core_CantonOperation_Reject: {
-      contractId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Reject'
-    }
-    Core_CantonOperation_TokenTransfer: {
-      destination: components['schemas']['Core_TransactionDestination']
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      /** Format: uuid */
-      tickerId: string
-      /** Format: date-time */
-      executeBefore?: string
-      memo?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'TokenTransfer'
-    }
-    Core_CantonOperation_Withdraw: {
-      contractId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Withdraw'
-    }
-    Core_CantonTickerProperties:
-      | components['schemas']['Core_CantonTickerProperties_Instrument']
-      | components['schemas']['Core_CantonTickerProperties_Native']
-    Core_CantonTickerProperties_Instrument: {
-      instrumentAdmin: string
-      instrumentId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Instrument'
-    }
-    Core_CantonTickerProperties_Native: {
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -3991,7 +3879,6 @@ export interface components {
       | components['schemas']['Core_EthereumFeeStrategy_Priority']
       | components['schemas']['Core_EthereumFeeStrategy_SpecifiedRate']
       | components['schemas']['Core_EthereumFeeStrategy_SpecifiedRateEIP1559']
-      | components['schemas']['Core_EthereumFeeStrategy_Sponsored']
     Core_EthereumFeeStrategy_Priority: {
       priority: components['schemas']['Core_FeePriority']
       /**
@@ -4020,15 +3907,6 @@ export interface components {
        */
       type: 'SpecifiedRateEIP1559'
     }
-    Core_EthereumFeeStrategy_Sponsored: {
-      /** Format: uuid */
-      sponsor?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sponsored'
-    }
     Core_EthereumLedgerLog: {
       /** @description This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
       logIndex: string
@@ -4038,25 +3916,6 @@ export interface components {
     }
     /** @enum {string} */
     Core_EthereumLikeVaultLedgerIdentifier: 'eth' | 'etc'
-    Core_EthereumOperation:
-      | components['schemas']['Core_EthereumOperation_SetDelegation']
-      | components['schemas']['Core_EthereumOperation_SubmitAuthorization']
-    Core_EthereumOperation_SetDelegation: {
-      delegationContract: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'SetDelegation'
-    }
-    Core_EthereumOperation_SubmitAuthorization: {
-      authorizations: components['schemas']['Core_AuthorizationReference'][]
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'SubmitAuthorization'
-    }
     Core_EthereumResourceStrategy: components['schemas']['Core_EthereumResourceStrategy_OrderReplacement']
     Core_EthereumResourceStrategy_OrderReplacement: {
       /** Format: uuid */
@@ -4145,7 +4004,6 @@ export interface components {
       ledgers?: components['schemas']['Core_CreateLedgerGenesis'][]
       /** Format: base64 */
       systemSignaturesPublicKey?: string
-      antiRewindMode?: components['schemas']['Core_AntiRewindMode']
     }
     Core_GenesisRequest: {
       rootDomainSetup: components['schemas']['Core_RootDomainSetup']
@@ -4153,7 +4011,6 @@ export interface components {
       tickers?: components['schemas']['Core_TickerToValidate'][]
       systemProperties?: components['schemas']['Core_ReadWriteSystemPropertyKeyValue'][]
       ledgers?: components['schemas']['Core_CreateLedgerGenesis'][]
-      antiRewindMode: components['schemas']['Core_AntiRewindMode']
       /** Format: base64 */
       systemSignaturesPublicKey?: string
     }
@@ -4976,14 +4833,12 @@ export interface components {
     Core_LedgerParameters:
       | components['schemas']['Core_LedgerParameters_Algorand']
       | components['schemas']['Core_LedgerParameters_Bitcoin']
-      | components['schemas']['Core_LedgerParameters_Canton']
       | components['schemas']['Core_LedgerParameters_Cardano']
       | components['schemas']['Core_LedgerParameters_Ethereum']
       | components['schemas']['Core_LedgerParameters_Hedera']
       | components['schemas']['Core_LedgerParameters_Solana']
       | components['schemas']['Core_LedgerParameters_Stellar']
       | components['schemas']['Core_LedgerParameters_Substrate']
-      | components['schemas']['Core_LedgerParameters_Sui']
       | components['schemas']['Core_LedgerParameters_Tezos']
       | components['schemas']['Core_LedgerParameters_Tron']
       | components['schemas']['Core_LedgerParameters_XRPL']
@@ -5013,17 +4868,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Bitcoin'
-    }
-    Core_LedgerParameters_Canton: {
-      synchronizerId: string
-      operatorId: string
-      dsoPartyId: string
-      daRegistryOperator: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
     }
     Core_LedgerParameters_Cardano: {
       nativeTickerSymbol: string
@@ -5093,15 +4937,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Substrate'
-    }
-    Core_LedgerParameters_Sui: {
-      nativeTickerSymbol: string
-      nativeTickerName: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
     }
     Core_LedgerParameters_Tezos: {
       nativeTickerSymbol: string
@@ -5190,7 +5025,6 @@ export interface components {
       /** Format: uuid */
       accountId: string
       ledgerId?: string
-      address?: string
       content: components['schemas']['Core_ManifestContent']
       value?: components['schemas']['Core_ManifestValue']
       metadata: components['schemas']['Core_EntityMetadata']
@@ -5408,7 +5242,6 @@ export interface components {
     }
     Core_OnLedgerData:
       | components['schemas']['Core_OnLedgerData_Bitcoin']
-      | components['schemas']['Core_OnLedgerData_Canton']
       | components['schemas']['Core_OnLedgerData_Ethereum']
       | components['schemas']['Core_OnLedgerData_Xrpl']
     Core_OnLedgerData_Bitcoin: {
@@ -5419,21 +5252,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Bitcoin'
-    }
-    Core_OnLedgerData_Canton: {
-      contractId?: string
-      sender?: string
-      receiver?: string
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount?: string
-      instrumentId?: string
-      /** Format: date-time */
-      executeBefore?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
     }
     Core_OnLedgerData_Ethereum: {
       logs: components['schemas']['Core_EthereumLedgerLog'][]
@@ -5579,14 +5397,12 @@ export interface components {
     Core_ProposeTransactionOrderParameters:
       | components['schemas']['Core_TransactionOrderParameters_Algorand']
       | components['schemas']['Core_TransactionOrderParameters_Bitcoin']
-      | components['schemas']['Core_TransactionOrderParameters_Canton']
       | components['schemas']['Core_TransactionOrderParameters_Cardano']
       | components['schemas']['Core_TransactionOrderParameters_Ethereum']
       | components['schemas']['Core_TransactionOrderParameters_Hedera']
       | components['schemas']['Core_TransactionOrderParameters_Solana']
       | components['schemas']['Core_TransactionOrderParameters_Stellar']
       | components['schemas']['Core_TransactionOrderParameters_Substrate']
-      | components['schemas']['Core_TransactionOrderParameters_Sui']
       | components['schemas']['Core_TransactionOrderParameters_Tezos']
       | components['schemas']['Core_TransactionOrderParameters_Tron']
       | components['schemas']['Core_TransactionOrderParameters_XRPL']
@@ -5684,17 +5500,8 @@ export interface components {
       events: string[]
     }
     Core_ReadWriteSystemPropertyKeyValue:
-      | components['schemas']['Core_ReadWriteSystemPropertyKeyValue_AntiRewindModeProperty']
       | components['schemas']['Core_ReadWriteSystemPropertyKeyValue_NotarySystemSignedIntentsEnabledProperty']
       | components['schemas']['Core_ReadWriteSystemPropertyKeyValue_StateReviewAuthorityProperty']
-    Core_ReadWriteSystemPropertyKeyValue_AntiRewindModeProperty: {
-      value: components['schemas']['Core_AntiRewindModeValue']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'AntiRewindModeProperty'
-    }
     Core_ReadWriteSystemPropertyKeyValue_NotarySystemSignedIntentsEnabledProperty: {
       value: components['schemas']['Core_NotarySystemSignedIntentsEnabledValue']
       /**
@@ -6374,61 +6181,7 @@ export interface components {
        */
       type: 'Native'
     }
-    Core_SuiFeeStrategy: components['schemas']['Core_SuiFeeStrategy_Priority']
-    Core_SuiFeeStrategy_Priority: {
-      priority: components['schemas']['Core_FeePriority']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Priority'
-    }
-    Core_SuiOperation:
-      | components['schemas']['Core_SuiOperation_CoinTransfer']
-      | components['schemas']['Core_SuiOperation_NativeTransfer']
-    Core_SuiOperation_CoinTransfer: {
-      destination: components['schemas']['Core_TransactionDestination']
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      /** @description Move coin type tag, e.g. 0x2::sui::SUI (no generic type parameters). */
-      coinType: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CoinTransfer'
-    }
-    Core_SuiOperation_NativeTransfer: {
-      destination: components['schemas']['Core_TransactionDestination']
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'NativeTransfer'
-    }
-    Core_SuiTickerProperties:
-      | components['schemas']['Core_SuiTickerProperties_Coin']
-      | components['schemas']['Core_SuiTickerProperties_Native']
-    Core_SuiTickerProperties_Coin: {
-      /** @description Move coin type tag, e.g. 0x2::sui::SUI (no generic type parameters). */
-      coinType: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Coin'
-    }
-    Core_SuiTickerProperties_Native: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Native'
-    }
     Core_SystemProperty:
-      | components['schemas']['Core_SystemProperty_AntiRewindModeSystemProperty']
       | components['schemas']['Core_SystemProperty_NotaryApiKeySystemProperty']
       | components['schemas']['Core_SystemProperty_NotaryCollectionsKeySystemProperty']
       | components['schemas']['Core_SystemProperty_NotaryCommunicationKeySystemProperty']
@@ -6443,7 +6196,6 @@ export interface components {
       | 'STATE_REVIEW_AUTHORITY'
       | 'NOTARY_SYSTEM_SIGNING_KEY'
       | 'NOTARY_SYSTEM_SIGNED_INTENTS_ENABLED'
-      | 'ANTI_REWIND_MODE'
     Core_SystemPropertySet: {
       id: components['schemas']['Core_SystemPropertyId']
       /**
@@ -6451,11 +6203,6 @@ export interface components {
        * @enum {string}
        */
       type: 'SystemPropertySet'
-    }
-    Core_SystemProperty_AntiRewindModeSystemProperty: {
-      id: components['schemas']['Core_SystemPropertyId']
-      value: components['schemas']['Core_AntiRewindModeValue']
-      metadata: components['schemas']['Core_EntityMetadata']
     }
     Core_SystemProperty_NotaryApiKeySystemProperty: {
       id: components['schemas']['Core_SystemPropertyId']
@@ -6582,14 +6329,12 @@ export interface components {
     Core_TickerLedgerDetails:
       | components['schemas']['Core_TickerLedgerDetails_Algorand']
       | components['schemas']['Core_TickerLedgerDetails_Bitcoin']
-      | components['schemas']['Core_TickerLedgerDetails_Canton']
       | components['schemas']['Core_TickerLedgerDetails_Cardano']
       | components['schemas']['Core_TickerLedgerDetails_Ethereum']
       | components['schemas']['Core_TickerLedgerDetails_Hedera']
       | components['schemas']['Core_TickerLedgerDetails_Solana']
       | components['schemas']['Core_TickerLedgerDetails_Stellar']
       | components['schemas']['Core_TickerLedgerDetails_Substrate']
-      | components['schemas']['Core_TickerLedgerDetails_Sui']
       | components['schemas']['Core_TickerLedgerDetails_Tezos']
       | components['schemas']['Core_TickerLedgerDetails_Tron']
       | components['schemas']['Core_TickerLedgerDetails_XRPL']
@@ -6608,14 +6353,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Bitcoin'
-    }
-    Core_TickerLedgerDetails_Canton: {
-      properties: components['schemas']['Core_CantonTickerProperties']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
     }
     Core_TickerLedgerDetails_Cardano: {
       properties: components['schemas']['Core_CardanoTickerProperties']
@@ -6664,14 +6401,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Substrate'
-    }
-    Core_TickerLedgerDetails_Sui: {
-      properties: components['schemas']['Core_SuiTickerProperties']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
     }
     Core_TickerLedgerDetails_Tezos: {
       properties: components['schemas']['Core_TezosTickerProperties']
@@ -6875,7 +6604,6 @@ export interface components {
     Core_TransactionEstimate:
       | components['schemas']['Core_TransactionEstimate_Algorand']
       | components['schemas']['Core_TransactionEstimate_Bitcoin']
-      | components['schemas']['Core_TransactionEstimate_Canton']
       | components['schemas']['Core_TransactionEstimate_Cardano']
       | components['schemas']['Core_TransactionEstimate_Ethereum']
       | components['schemas']['Core_TransactionEstimate_Failure']
@@ -6883,7 +6611,6 @@ export interface components {
       | components['schemas']['Core_TransactionEstimate_Solana']
       | components['schemas']['Core_TransactionEstimate_Stellar']
       | components['schemas']['Core_TransactionEstimate_Substrate']
-      | components['schemas']['Core_TransactionEstimate_Sui']
       | components['schemas']['Core_TransactionEstimate_Tezos']
       | components['schemas']['Core_TransactionEstimate_Tron']
       | components['schemas']['Core_TransactionEstimate_XRPL']
@@ -6908,15 +6635,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Bitcoin'
-    }
-    Core_TransactionEstimate_Canton: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      fee: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
     }
     Core_TransactionEstimate_Cardano: {
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
@@ -6984,17 +6702,6 @@ export interface components {
        */
       type: 'Substrate'
     }
-    Core_TransactionEstimate_Sui: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      fee: string
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      storageRebate?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
-    }
     Core_TransactionEstimate_Tezos: {
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
       minimalFee: string
@@ -7053,20 +6760,16 @@ export interface components {
       | 'XRPL'
       | 'Stellar'
       | 'Tron'
-      | 'Canton'
-      | 'Sui'
     Core_TransactionOrderParameters:
       | components['schemas']['Core_TransactionOrderParameters_Algorand']
       | components['schemas']['Core_TransactionOrderParameters_Bitcoin']
       | components['schemas']['Core_TransactionOrderParameters_BitcoinRedirect']
-      | components['schemas']['Core_TransactionOrderParameters_Canton']
       | components['schemas']['Core_TransactionOrderParameters_Cardano']
       | components['schemas']['Core_TransactionOrderParameters_Ethereum']
       | components['schemas']['Core_TransactionOrderParameters_Hedera']
       | components['schemas']['Core_TransactionOrderParameters_Solana']
       | components['schemas']['Core_TransactionOrderParameters_Stellar']
       | components['schemas']['Core_TransactionOrderParameters_Substrate']
-      | components['schemas']['Core_TransactionOrderParameters_Sui']
       | components['schemas']['Core_TransactionOrderParameters_Tezos']
       | components['schemas']['Core_TransactionOrderParameters_Tron']
       | components['schemas']['Core_TransactionOrderParameters_XRPL']
@@ -7107,16 +6810,6 @@ export interface components {
        */
       type: 'BitcoinRedirect'
     }
-    Core_TransactionOrderParameters_Canton: {
-      operation: components['schemas']['Core_CantonOperation']
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      maximumFee?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
-    }
     Core_TransactionOrderParameters_Cardano: {
       operation: components['schemas']['Core_CardanoOperation']
       feeStrategy: components['schemas']['Core_CardanoFeeStrategy']
@@ -7137,7 +6830,6 @@ export interface components {
       maximumFee?: string
       data?: string
       resourceStrategy?: components['schemas']['Core_EthereumResourceStrategy']
-      operation?: components['schemas']['Core_EthereumOperation']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -7194,22 +6886,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Substrate'
-    }
-    Core_TransactionOrderParameters_Sui: {
-      operation: components['schemas']['Core_SuiOperation']
-      feeStrategy: components['schemas']['Core_SuiFeeStrategy']
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      maximumFee?: string
-      /**
-       * Format: int32
-       * @description Expiry window in whole Sui epochs (approximately 24 hours each) from preparation; omit for the platform default.
-       */
-      validityEpochs?: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
     }
     Core_TransactionOrderParameters_Tezos: {
       operation: components['schemas']['Core_TezosOperation']
@@ -7362,14 +7038,12 @@ export interface components {
     Core_TransferMetadata:
       | components['schemas']['Core_TransferMetadata_Algorand']
       | components['schemas']['Core_TransferMetadata_Bitcoin']
-      | components['schemas']['Core_TransferMetadata_Canton']
       | components['schemas']['Core_TransferMetadata_Cardano']
       | components['schemas']['Core_TransferMetadata_Ethereum']
       | components['schemas']['Core_TransferMetadata_Hedera']
       | components['schemas']['Core_TransferMetadata_Solana']
       | components['schemas']['Core_TransferMetadata_Stellar']
       | components['schemas']['Core_TransferMetadata_Substrate']
-      | components['schemas']['Core_TransferMetadata_Sui']
       | components['schemas']['Core_TransferMetadata_Tezos']
       | components['schemas']['Core_TransferMetadata_Tron']
       | components['schemas']['Core_TransferMetadata_XRPL']
@@ -7388,13 +7062,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Bitcoin'
-    }
-    Core_TransferMetadata_Canton: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
     }
     Core_TransferMetadata_Cardano: {
       /**
@@ -7440,13 +7107,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Substrate'
-    }
-    Core_TransferMetadata_Sui: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
     }
     Core_TransferMetadata_Tezos: {
       /**
@@ -7865,7 +7525,6 @@ export interface components {
       | 'VaultOperationOnExternalAccount'
       | 'ExternalOperationOnVaultAccount'
       | 'ValidateTickersPostProcessingFailure'
-      | 'SignManifestAddressResolutionFailure'
     Core_UserReference: {
       /** Format: uuid */
       id: string
@@ -7936,14 +7595,12 @@ export interface components {
       | components['schemas']['Core_VaultAccountProviderInformation_Key_VaultDerived']
       | components['schemas']['Core_VaultAccountProviderInformation_Key_VaultDerivedNonExtended']
       | components['schemas']['Core_VaultAccountProviderInformation_Key_VaultRandom']
-      | components['schemas']['Core_VaultAccountProviderInformation_Key_VaultReserved']
     /** @enum {string} */
     Core_VaultAccountProviderInformation_KeyId:
       | 'SECP256K1_CUSTODY_1'
       | 'ED25519_CUSTODY_1'
       | 'ED25519_CUSTODY_2'
       | 'ED25519_STAKING_1'
-      | 'ED25519_CANTON_PARTY_1'
     Core_VaultAccountProviderInformation_Key_VaultDerived: {
       id: components['schemas']['Core_VaultAccountProviderInformation_KeyId']
       derivationPath: string
@@ -7972,15 +7629,6 @@ export interface components {
        * @enum {string}
        */
       type: 'VaultRandom'
-    }
-    Core_VaultAccountProviderInformation_Key_VaultReserved: {
-      id: components['schemas']['Core_VaultAccountProviderInformation_KeyId']
-      publicKey?: components['schemas']['Core_AccountPublicKeyOnly']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'VaultReserved'
     }
     Core_VaultAdditionalDetails: {
       processing: components['schemas']['Core_VaultProcessingDetails']
@@ -8905,7 +8553,6 @@ export interface components {
       /** Format: uuid */
       accountId: string
       ledgerId?: string
-      address?: string
       content: components['schemas']['Core_ManifestContent']
       description?: string
       customProperties: components['schemas']['Core_StringsMap']
