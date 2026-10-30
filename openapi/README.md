@@ -9,6 +9,7 @@ rather than a silent drift.
 | File                   | Upstream source                                                          | Pinned version                    |
 | ---------------------- | ------------------------------------------------------------------------ | --------------------------------- |
 | `custody-openapi.json` | Custody product docs: `products/custody/@<version>/reference/api/openapi.json` | the file's `info.x-app-version` |
+| `custody-capabilities.json` | Derived from every spec the Custody docs publish (1.15 onward) | one entry per minor version |
 | `palisade-api.yaml`    | `ripplenet-docs/products/wallet/api-docs/palisade-api/palisade-api.yaml` | Palisade v2.0                     |
 
 ## Ripple Custody: automated updates
@@ -51,6 +52,22 @@ npm run typegen && npm run typecheck
 The fetch refuses a spec whose `x-app-version` doesn't match the requested
 version, a spec that `$ref`s external files, and — unless `--version` is passed —
 a default version older than the one already pinned.
+
+### Per-version capability data
+
+`custody-capabilities.json` records, for each Custody version the docs publish a
+spec for, the endpoints, native XRPL operation types and intent types it
+supports. `npm run typegen` turns it into `src/generated/custody-capabilities.ts`,
+which a pinned `apiVersion` checks calls against. (Auto-detection reads the
+instance's own spec and doesn't use it.)
+
+The daily workflow refreshes the current version's entry along with the spec.
+To rebuild every entry — e.g. after the docs republish an older version:
+
+```sh
+npm run fetch:custody-capabilities   # same CUSTODY_SPEC_GITLAB_* environment
+npm run typegen
+```
 
 ## Palisade: bumping a version
 

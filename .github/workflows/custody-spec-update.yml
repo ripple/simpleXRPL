@@ -1,8 +1,9 @@
 name: Custody spec update
 
 # Daily check for a newer Ripple Custody OpenAPI spec. When the spec published
-# with the Custody docs differs from openapi/custody-openapi.json, vendor it,
-# regenerate the custodian types, and open (or refresh) a PR for review.
+# with the Custody docs differs from openapi/custody-openapi.json (or its entry
+# in openapi/custody-capabilities.json is stale), vendor it, regenerate the
+# custodian types, and open (or refresh) a PR for review.
 #
 # Setup (repository secrets) — see openapi/README.md:
 #   CUSTODY_SPEC_GITLAB_TOKEN    token that can read the Custody docs project
@@ -63,14 +64,16 @@ jobs:
         run: node scripts/fetch-custody-spec.mjs ${SPEC_VERSION:+--version "$SPEC_VERSION"}
 
       # Maintainers push type fixes onto the update branch. If the open PR
-      # already carries this exact spec, there is nothing new to propose, and
-      # regenerating would force-push over those fixes.
+      # already carries this exact spec and capability data, there is nothing
+      # new to propose, and regenerating would force-push over those fixes.
       - name: Check the open update PR
         id: existing
         if: steps.fetch.outputs.changed == 'true'
         run: |
+          same() { git show "FETCH_HEAD:$1" 2>/dev/null | cmp -s - "$1"; }
           if git fetch --depth=1 origin "$PR_BRANCH" 2>/dev/null \
-            && git show FETCH_HEAD:openapi/custody-openapi.json | cmp -s - openapi/custody-openapi.json; then
+            && same openapi/custody-openapi.json \
+            && same openapi/custody-capabilities.json; then
             echo "The open update PR already carries this spec; leaving it untouched."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
@@ -105,6 +108,7 @@ jobs:
           delete-branch: true
           add-paths: |
             openapi/custody-openapi.json
+            openapi/custody-capabilities.json
             src/generated/
           commit-message: 'chore: update Ripple Custody spec to ${{ steps.fetch.outputs.version }}'
           title: 'chore: update Ripple Custody spec to ${{ steps.fetch.outputs.version }}'

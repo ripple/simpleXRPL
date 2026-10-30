@@ -13,3 +13,6 @@ export type {
 } from './api.js'
 export { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
 export type { CustodyRoute } from '../../generated/custody-routes.js'
+export type { CustodyApiVersion } from './versioning/capabilities.js'
+export type { CustodyVersionOptions } from './versioning/detect.js'
+export type { KnownCustodyVersion } from '../../generated/custody-capabilities.js'
