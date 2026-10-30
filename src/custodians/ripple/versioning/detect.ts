@@ -8,6 +8,12 @@ import { VersionGuard } from './version-guard.js'
 /** The status at and above which an HTTP response is a failure. */
 const HTTP_ERROR_THRESHOLD = 400
 
+/**
+ * How long a spec fetch may take. The documents are ~1 MB and detection is
+ * best-effort, so a stalled gateway must not hold `create()` indefinitely.
+ */
+const DETECTION_TIMEOUT_MS = 15_000
+
 /** Version-check options, shared by `RippleCustody.create` and `fromEnv`. */
 export interface CustodyVersionOptions {
   /**
@@ -31,43 +37,72 @@ export interface CustodyVersionOptions {
 }
 
 /**
- * The default location of an instance's OpenAPI document. It is served
- * without authentication.
+ * The default location of an instance's OpenAPI document. Both the public
+ * (`scope` empty) and internal (`scope=internal`) documents are served without
+ * authentication.
  *
  * @param gatewayUrl - The Custody gateway base URL.
+ * @param scope - `''` for the public API, `'internal'` for the internal API.
  * @returns The document's URL.
  */
-export function defaultOpenApiUrl(gatewayUrl: string): string {
-  return `${gatewayUrl.replace(/\/+$/u, '')}/api/OpenAPI?scope=&layout=`
+export function defaultOpenApiUrl(
+  gatewayUrl: string,
+  scope: '' | 'internal' = '',
+): string {
+  return `${gatewayUrl.replace(/\/+$/u, '')}/api/OpenAPI?scope=${scope}&layout=`
 }
 
 /**
- * Fetch an instance's OpenAPI document and derive its capabilities.
+ * Fetch and parse one OpenAPI document.
  *
  * @param http - The transport.
  * @param url - The document's URL.
- * @returns The instance's capabilities.
- * @throws {@link SimpleXRPLError} if the document can't be fetched or parsed.
+ * @returns The parsed document.
+ * @throws {@link SimpleXRPLError} if it can't be fetched or isn't JSON.
  */
-export async function detectCapabilities(
+async function fetchDocument(
   http: CustodyHttpPort,
   url: string,
-): Promise<CustodyCapabilities> {
+): Promise<unknown> {
   const response = await http.send({
     method: 'GET',
     url,
     headers: { Accept: 'application/json' },
+    timeoutMs: DETECTION_TIMEOUT_MS,
   })
   if (response.status >= HTTP_ERROR_THRESHOLD) {
     throw new SimpleXRPLError(`HTTP ${response.status}`)
   }
-  let spec: unknown
   try {
-    spec = JSON.parse(response.body)
+    return JSON.parse(response.body)
   } catch {
     throw new SimpleXRPLError('the response is not JSON')
   }
-  return detectedCapabilities(spec)
+}
+
+/**
+ * Fetch an instance's OpenAPI document(s) and derive its capabilities. The
+ * internal document is best-effort: when it can't be read, the internal API
+ * is simply left unchecked.
+ *
+ * @param http - The transport.
+ * @param url - The public document's URL.
+ * @param internalUrl - The internal document's URL, if it should be read.
+ * @returns The instance's capabilities.
+ * @throws {@link SimpleXRPLError} if the public document can't be fetched or parsed.
+ */
+export async function detectCapabilities(
+  http: CustodyHttpPort,
+  url: string,
+  internalUrl?: string,
+): Promise<CustodyCapabilities> {
+  const [spec, internalSpec] = await Promise.all([
+    fetchDocument(http, url),
+    internalUrl === undefined
+      ? undefined
+      : fetchDocument(http, internalUrl).catch(() => undefined),
+  ])
+  return detectedCapabilities(spec, internalSpec)
 }
 
 /**
@@ -101,8 +136,14 @@ export async function resolveVersionGuard(
   if (!url.startsWith('https://')) {
     throw new SimpleXRPLError(`Custody openApiUrl must be HTTPS, got '${url}'`)
   }
+  // A custom document URL says nothing about where the internal document
+  // lives, so the internal API is only detected at the default location.
+  const internalUrl =
+    options.openApiUrl === undefined
+      ? defaultOpenApiUrl(gatewayUrl, 'internal')
+      : undefined
   try {
-    return new VersionGuard(await detectCapabilities(http, url))
+    return new VersionGuard(await detectCapabilities(http, url, internalUrl))
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
     process.emitWarning(

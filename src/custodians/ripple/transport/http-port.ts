@@ -12,6 +12,8 @@ export interface HttpRequest {
   url: string
   headers: Record<string, string>
   body?: string
+  /** Abort the request after this many milliseconds; unbounded when omitted. */
+  timeoutMs?: number
 }
 
 /** A raw HTTP response; `body` is the undecoded response text. */

@@ -8,6 +8,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { CAPABILITIES_FILE } from './custody-specs.mjs'
+
 const DOCS_ROOT = 'products/custody'
 export const VERSIONS_FILE = `${DOCS_ROOT}/versions.yaml`
 
@@ -181,17 +183,21 @@ export function extractCapabilities(doc) {
   }
 }
 
-/** `v1.43` → `1.43`: the key capability data is stored under. */
+/**
+ * `v1.43` (or `v1.43.2`) → `1.43`: the key capability data is stored under.
+ * Entries are per minor version, which is what a pinned `apiVersion` resolves
+ * to; a patch-level docs version shares its minor's entry.
+ */
 export function capabilityKey(version) {
-  return version.replace(/^v/u, '')
+  return version.replace(/^v/u, '').split('.').slice(0, 2).join('.')
 }
 
 /**
  * The vendored per-version capability data, `{ "1.43": { endpoints,
- * xrplOperations, intentTypes }, … }`. `npm run typegen` turns it into
- * src/generated/custody-capabilities.ts.
+ * xrplOperations, intentTypes }, … }`, for the official public API.
+ * `npm run typegen` turns it into src/generated/custody-capabilities.ts.
  */
-export const CAPABILITIES_FILE = 'openapi/custody-capabilities.json'
+export { CAPABILITIES_FILE }
 
 export function readCapabilityData(root) {
   try {

@@ -55,9 +55,10 @@
   "scripts": {
     "clean": "rimraf dist coverage tsconfig.*.tsbuildinfo",
     "typegen": "run-s typegen:custody typegen:palisade",
-    "typegen:custody": "openapi-typescript openapi/custody-openapi.json -o src/generated/custody.ts && node scripts/gen-custody-routes.mjs && node scripts/gen-custody-capabilities.mjs && prettier --write src/generated/custody.ts src/generated/custody-routes.ts src/generated/custody-capabilities.ts",
+    "typegen:custody": "node scripts/gen-custody-types.mjs && node scripts/gen-custody-capabilities.mjs && prettier --write \"src/generated/custody*.ts\" docs/custody-endpoints.md",
     "fetch:custody-spec": "node scripts/fetch-custody-spec.mjs",
     "fetch:custody-capabilities": "node scripts/fetch-custody-capabilities.mjs",
+    "fetch:custody-instance-spec": "node scripts/fetch-custody-instance-spec.mjs",
     "typegen:palisade": "openapi-typescript openapi/palisade-api.yaml -o src/generated/palisade.ts && node scripts/gen-palisade-routes.mjs && prettier --write src/generated/palisade.ts src/generated/palisade-routes.ts",
     "gen:version": "node scripts/gen-version.mjs",
     "prebuild": "npm run clean",
@@ -79,7 +80,8 @@
     "docgen": "typedoc",
     "docgen:md": "typedoc --options typedoc.md.json",
     "docgen:routing": "node scripts/gen-connector-routing.mjs",
-    "prepublishOnly": "run-s clean build"
+    "prepublishOnly": "run-s clean build",
+    "test:scripts": "node --import tsx --test \"scripts/**/*.test.mjs\""
   },
   "prettier": "@xrplf/prettier-config",
   "dependencies": {

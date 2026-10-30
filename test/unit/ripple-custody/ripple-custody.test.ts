@@ -59,6 +59,7 @@ interface Routes {
   manifestGet?: () => HttpResponse
   dryRun?: (body: unknown) => HttpResponse
   openApi?: () => HttpResponse
+  internalOpenApi?: () => HttpResponse
 }
 
 /**
@@ -66,7 +67,13 @@ interface Routes {
  * vendored spec, so the custodian resolves the version the SDK is built against.
  */
 const VENDORED_SPEC = readFileSync(
-  join(process.cwd(), 'openapi', 'custody-openapi.json'),
+  join(process.cwd(), 'openapi', 'custody', 'official', 'public.json'),
+  'utf8',
+)
+
+/** The instance's internal document, served at `?scope=internal`. */
+const VENDORED_INTERNAL_SPEC = readFileSync(
+  join(process.cwd(), 'openapi', 'custody', 'official', 'internal.json'),
   'utf8',
 )
 
@@ -114,6 +121,15 @@ function buildRoutes(routes: Routes): Route[] {
       test: (request): boolean => request.url.includes('auth.example.com'),
       respond: (): HttpResponse =>
         ok({ access_token: makeJwt({ exp: 9_999_999_999 }) }),
+    },
+    {
+      test: (request): boolean =>
+        request.url.includes('/api/OpenAPI?scope=internal'),
+      respond: (): HttpResponse =>
+        (
+          routes.internalOpenApi ??
+          ((): HttpResponse => ok(JSON.parse(VENDORED_INTERNAL_SPEC)))
+        )(),
     },
     {
       test: (request): boolean => request.url.includes('/api/OpenAPI'),
@@ -769,6 +785,63 @@ describe('RippleCustody version checks', () => {
     await expect(
       custody.submitAndWait(PAYMENT_TX, makeContext(custody)),
     ).resolves.toMatchObject({ source: 'custody' })
+  })
+
+  it('calls the internal API by operationId, authenticated', async () => {
+    const { custody, http } = await makeCustody()
+
+    // The fake transport has no internal route, so the request fails after
+    // being sent — which is what this checks.
+    await expect(custody.api.internal.call('getCurrentVault')).rejects.toThrow(
+      'unexpected request: GET https://custody.example.com/internal/v1/vaults/current',
+    )
+    const request = http.requests.find((entry) =>
+      entry.url.endsWith('/internal/v1/vaults/current'),
+    )
+    expect(request?.headers.Authorization).toMatch(/^Bearer /u)
+  })
+
+  it('blocks an internal call the instance does not serve', async () => {
+    const { custody, http } = await makeCustody({
+      internalOpenApi: () =>
+        ok({ paths: { '/internal/v1/users': { get: {} } } }),
+    })
+
+    await expect(
+      custody.api.internal.call('getCurrentVault'),
+    ).rejects.toMatchObject({
+      kind: 'endpoint',
+      sdkMethod: "api.internal.call('getCurrentVault')",
+      availability: 'official 1.43+ and pre-release Custody builds',
+    })
+    expect(requested(http, '/internal/v1/vaults/current')).toBe(false)
+  })
+
+  it('lets internal calls through when the internal document is unavailable', async () => {
+    const { custody, http } = await makeCustody({
+      internalOpenApi: () => status(404),
+    })
+
+    await expect(custody.api.internal.call('getCurrentVault')).rejects.toThrow(
+      'unexpected request',
+    )
+    expect(requested(http, '/internal/v1/vaults/current')).toBe(true)
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('blocks a devbox-only endpoint on an official instance, naming the devbox build', async () => {
+    const { custody, http } = await makeCustody()
+
+    await expect(
+      custody.api.call('initiateParametersCompute', {
+        path: { domainId: DOMAIN_ID, accountId: ACCOUNT_ID },
+        body: {} as never,
+      }),
+    ).rejects.toMatchObject({
+      kind: 'endpoint',
+      availability: 'pre-release Custody builds',
+    })
+    expect(requested(http, '/parameters-compute')).toBe(false)
   })
 
   it('skips detection silently when autoDetectVersion is false', async () => {
