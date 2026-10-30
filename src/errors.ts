@@ -38,6 +38,13 @@ export class IntentValidationError extends SimpleXRPLError {}
 export class SignerCapabilityError extends SimpleXRPLError {}
 
 /**
+ * A whole-transaction signer returned a blob that is not the transaction it was
+ * asked to sign (a field was added, dropped or changed), or whose signature does
+ * not verify against the signer's public key. Nothing was submitted.
+ */
+export class SignedTransactionMismatchError extends SimpleXRPLError {}
+
+/**
  * A write was attempted on a client with no signer configured.
  */
 export class NoSignerError extends SimpleXRPLError {}
