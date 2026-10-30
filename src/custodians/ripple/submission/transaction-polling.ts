@@ -131,7 +131,11 @@ function toOnChainResult(tx: ApiTransaction): OnChainResult {
   const mptIssuanceId =
     (onLedger?.type === 'Xrpl' ? onLedger.tokenData?.issuanceId : undefined) ??
     mptIssuanceIdFromRaw(ledgerData?.rawTransaction)
-  return { txHash, ...(mptIssuanceId !== undefined && { mptIssuanceId }) }
+  return {
+    txHash,
+    transactionId: tx.id,
+    ...(mptIssuanceId !== undefined && { mptIssuanceId }),
+  }
 }
 
 /** Inputs for {@link pollTransactionOnChain}. */

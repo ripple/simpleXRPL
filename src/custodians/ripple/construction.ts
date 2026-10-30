@@ -20,6 +20,7 @@ import { HttpCustodyAuthPort } from './transport/http-custody-auth-port.js'
 import type { CustodyHttpPort } from './transport/http-port.js'
 
 const DEFAULT_TIMEOUT_MS = 60_000
+const DEFAULT_QUARANTINE_POLL_TIMEOUT_MS = 60_000
 
 /** Auth construction options. */
 export interface RippleCustodyAuthOptions {
@@ -65,6 +66,17 @@ export interface RippleCustodyOptions {
   readonly defaultDryRun?: boolean
   /** How long `submitAndWait` polls before throwing `IntentPendingError`. */
   readonly defaultTimeoutMs?: number
+  /**
+   * After a token-movement transaction confirms, auto-propose release of any
+   * transfers compliance quarantined. Proposes only — release still runs the
+   * account's approval policy. Defaults to `false`.
+   */
+  readonly defaultAutoReleaseQuarantine?: boolean
+  /**
+   * How long to wait for compliance to decide a transaction's transfers before
+   * giving up on auto-release. Only used when auto-release is enabled.
+   */
+  readonly quarantinePollTimeoutMs?: number
   /** Injectable transport; defaults to `FetchHttpPort`. */
   readonly http?: CustodyHttpPort
 }
@@ -97,6 +109,17 @@ export interface RippleCustodyFromEnvOptions {
   readonly defaultDryRun?: boolean
   /** How long `submitAndWait` polls before throwing `IntentPendingError`. */
   readonly defaultTimeoutMs?: number
+  /**
+   * After a token-movement transaction confirms, auto-propose release of any
+   * transfers compliance quarantined. Proposes only — release still runs the
+   * account's approval policy. Defaults to `false`.
+   */
+  readonly defaultAutoReleaseQuarantine?: boolean
+  /**
+   * How long to wait for compliance to decide a transaction's transfers before
+   * giving up on auto-release. Only used when auto-release is enabled.
+   */
+  readonly quarantinePollTimeoutMs?: number
   /** Environment source to scan. Defaults to `process.env`. */
   readonly env?: Readonly<Record<string, string | undefined>>
   /** Injectable transport; defaults to `FetchHttpPort`. */
@@ -114,6 +137,8 @@ export interface RippleCustodyState {
   readonly defaultFee: FeeIntent | undefined
   readonly defaultDryRun: boolean
   readonly defaultTimeoutMs: number
+  readonly autoReleaseQuarantine: boolean
+  readonly quarantinePollTimeoutMs: number
   readonly primaryAddress: string
 }
 
@@ -289,20 +314,16 @@ function requireEnv(
 }
 
 /**
- * Authenticate with Custody and resolve the intent-author's identity for a
- * new RippleCustody. Account discovery and primary validation
- * happen after this, in {@link RippleCustody.create} — they need a
- * constructed instance to back-reference.
+ * Assemble the authenticated Custody client and the intent signer from the
+ * auth/gateway config — the transport half of {@link buildRippleCustodyState}.
  *
- * @param options - Gateway/auth/domain config, the primary account, and
- * optional raw-signing/fee/dry-run/timeout defaults.
- * @returns The assembled construction state.
- * @throws {@link CustodyAuthError} if the authenticated user has no access
- * to `options.domainId`.
+ * @param options - Gateway and auth config (and optional injected transport).
+ * @returns The authenticated client and the intent signer.
  */
-export async function buildRippleCustodyState(
-  options: RippleCustodyOptions,
-): Promise<RippleCustodyState> {
+function buildAuthenticatedClient(options: RippleCustodyOptions): {
+  client: CustodyHttpClient
+  intentSigner: IntentSigner
+} {
   const http = options.http ?? new FetchHttpPort()
   const keypair = KeypairService.fromPrivateKey(options.auth.signingKey)
   const authService = new CustodyAuthService({
@@ -319,7 +340,25 @@ export async function buildRippleCustodyState(
     auth: authService,
   })
   const intentSigner = new IntentSigner(keypair, options.auth.signingKey)
+  return { client, intentSigner }
+}
 
+/**
+ * Authenticate with Custody and resolve the intent-author's identity for a
+ * new RippleCustody. Account discovery and primary validation happen after
+ * this, in {@link RippleCustody.create} — they need a constructed instance to
+ * back-reference.
+ *
+ * @param options - Gateway/auth/domain config, the primary account, and
+ * optional raw-signing/fee/dry-run/timeout defaults.
+ * @returns The assembled construction state.
+ * @throws {@link CustodyAuthError} if the authenticated user has no access
+ * to `options.domainId`.
+ */
+export async function buildRippleCustodyState(
+  options: RippleCustodyOptions,
+): Promise<RippleCustodyState> {
+  const { client, intentSigner } = buildAuthenticatedClient(options)
   const me =
     await client.get<components['schemas']['Core_MeReference']>('/v1/me')
   const domain = me.domains.find((entry) => entry.id === options.domainId)
@@ -328,7 +367,6 @@ export async function buildRippleCustodyState(
       `The authenticated Custody user has no access to domain '${options.domainId}'`,
     )
   }
-
   return {
     client,
     domainId: options.domainId,
@@ -338,6 +376,9 @@ export async function buildRippleCustodyState(
     defaultFee: options.defaultFee,
     defaultDryRun: options.defaultDryRun ?? false,
     defaultTimeoutMs: options.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
+    autoReleaseQuarantine: options.defaultAutoReleaseQuarantine ?? false,
+    quarantinePollTimeoutMs:
+      options.quarantinePollTimeoutMs ?? DEFAULT_QUARANTINE_POLL_TIMEOUT_MS,
     primaryAddress: options.primary,
   }
 }
@@ -371,6 +412,8 @@ export async function resolveFromEnvOptions(
     defaultFee: options.defaultFee,
     defaultDryRun: options.defaultDryRun,
     defaultTimeoutMs: options.defaultTimeoutMs,
+    defaultAutoReleaseQuarantine: options.defaultAutoReleaseQuarantine,
+    quarantinePollTimeoutMs: options.quarantinePollTimeoutMs,
     http: options.http,
   }
 }

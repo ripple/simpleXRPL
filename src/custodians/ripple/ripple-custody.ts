@@ -20,7 +20,6 @@ import {
   SimpleXRPLError,
   XrpldSubmitError,
 } from '../../errors.js'
-import type { components } from '../../generated/custody.js'
 import { assertOnLedgerSuccess, engineResultOf } from '../on-ledger-result.js'
 
 import { CustodyApi } from './api.js'
@@ -37,9 +36,14 @@ import { AccountContext } from './discovery/account-context.js'
 import { discoverXrplAccounts } from './discovery/account-discovery.js'
 import { buildProposeIntentBody } from './mapping/envelope.js'
 import { NATIVE_XRPL_TRANSACTORS } from './mapping/xrpl-operations.js'
-import { runDryRun } from './submission/dry-run.js'
+import { maybeDryRun } from './submission/dry-run.js'
 import { createCustodyIntentHandle } from './submission/intent-handle.js'
 import { pollIntentUntilExecuted } from './submission/intent-polling.js'
+import {
+  proposeQuarantineRelease,
+  runAutoRelease,
+  type ReleaseQuarantineParams,
+} from './submission/quarantine-release.js'
 import { signRawTransaction } from './submission/raw-flow.js'
 import { pollTransactionOnChain as pollTxOnChain } from './submission/transaction-polling.js'
 
@@ -300,6 +304,20 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
+   * Propose releasing quarantined transfers — the manual counterpart to
+   * auto-release, and the way to release for the async submission path. The
+   * release is a governed intent still subject to the account's approval policy.
+   *
+   * @param params - The custodied account and the transfer ids to release.
+   * @returns The release intent id, for tracking to execution.
+   */
+  public async releaseQuarantinedTransfers(
+    params: ReleaseQuarantineParams,
+  ): Promise<string> {
+    return proposeQuarantineRelease(this.api, params)
+  }
+
+  /**
    * Submit a native operation intent and poll it to a terminal state.
    *
    * @param tx - The transaction to map and submit.
@@ -312,22 +330,18 @@ export class RippleCustody implements Custodian, IntentObserver {
   ): Promise<SubmissionResult> {
     const timeoutMs = ctx.timeoutMs ?? this.state.defaultTimeoutMs
     const intentId = await this.postNativeIntent(tx, ctx)
+    const pollArgs = {
+      client: this.state.client,
+      domainId: this.state.domainId,
+      intentId,
+      timeoutMs,
+    }
     // The intent reaching `Executed` only means Custody submitted the XRPL
     // transaction — a separate, on-chain layer decides whether it actually
     // applied. Stopping here reported a `tec` (on-ledger, fee burned, intent
     // *not* achieved) as success, so drive on to the on-chain outcome.
-    const executed = await pollIntentUntilExecuted({
-      client: this.state.client,
-      domainId: this.state.domainId,
-      intentId,
-      timeoutMs,
-    })
-    const onChain = await pollTxOnChain({
-      client: this.state.client,
-      domainId: this.state.domainId,
-      intentId,
-      timeoutMs,
-    })
+    const executed = await pollIntentUntilExecuted(pollArgs)
+    const onChain = await pollTxOnChain(pollArgs)
     // `undefined` is the indeterminate outcome: the transaction never reached a
     // terminal ledger state within the budget. It may yet confirm, so surface it
     // as pending rather than success — a retry must re-drive the same intent.
@@ -348,6 +362,13 @@ export class RippleCustody implements Custodian, IntentObserver {
       intent: undefined,
       intentId,
       txHash: onChain.txHash,
+      quarantineReleaseIntentIds: await runAutoRelease({
+        state: this.state,
+        api: this.api,
+        tx,
+        ctx,
+        transactionId: onChain.transactionId,
+      }),
     }
   }
 
@@ -381,11 +402,12 @@ export class RippleCustody implements Custodian, IntentObserver {
       fee: ctx.fee ?? this.state.defaultFee,
       idempotencyKey: ctx.idempotencyKey,
     })
-    await this.maybeDryRun(
+    await maybeDryRun({
+      state: this.state,
       ctx,
-      body.request.payload,
-      body.request.customProperties,
-    )
+      payload: body.request.payload,
+      customProperties: body.request.customProperties,
+    })
     try {
       await this.state.client.post('/v1/intents', body)
     } catch (error) {
@@ -421,31 +443,7 @@ export class RippleCustody implements Custodian, IntentObserver {
       ctx,
       accountId: this.requireAccountId(ctx.account),
       maybeDryRun: async (payload, customProperties) =>
-        this.maybeDryRun(ctx, payload, customProperties),
-    })
-  }
-
-  /**
-   * Pre-flight an intent payload through Custody's dry-run when requested,
-   * per-call or via the custodian's own default.
-   *
-   * @param ctx - The submission context (carries the per-call `dryRun` override).
-   * @param payload - The intent payload about to be submitted.
-   * @param customProperties - The same summary the real intent will carry.
-   */
-  private async maybeDryRun(
-    ctx: SubmissionContext,
-    payload: components['schemas']['Core_IntentDryRunRequest']['payload'],
-    customProperties: components['schemas']['Core_StringsMap'],
-  ): Promise<void> {
-    if (!(ctx.dryRun ?? this.state.defaultDryRun)) {
-      return
-    }
-    await runDryRun(this.state.client, {
-      domainId: this.state.domainId,
-      authorUserId: this.state.authorUserId,
-      payload,
-      customProperties,
+        maybeDryRun({ state: this.state, ctx, payload, customProperties }),
     })
   }
 

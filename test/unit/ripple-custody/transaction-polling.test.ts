@@ -66,7 +66,11 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH1', mptIssuanceId: 'STRUCTURED' })
+    expect(result).toEqual({
+      txHash: 'HASH1',
+      transactionId: 'tx-1',
+      mptIssuanceId: 'STRUCTURED',
+    })
   })
 
   it('reconstructs the issuance id from rawTransaction when ledgerData is null', async () => {
@@ -85,7 +89,11 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH2', mptIssuanceId: MPT_CREATE_ID })
+    expect(result).toEqual({
+      txHash: 'HASH2',
+      transactionId: 'tx-1',
+      mptIssuanceId: MPT_CREATE_ID,
+    })
   })
 
   it('prefers structured tokenData over the raw blob when both are present', async () => {
@@ -119,7 +127,7 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH4' })
+    expect(result).toEqual({ txHash: 'HASH4', transactionId: 'tx-1' })
   })
 
   it('omits the issuance id when neither structured data nor a raw blob is present', async () => {
@@ -135,7 +143,7 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH5' })
+    expect(result).toEqual({ txHash: 'HASH5', transactionId: 'tx-1' })
   })
 
   it('returns undefined when confirmation never arrives before the timeout', async () => {
