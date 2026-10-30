@@ -812,7 +812,7 @@ describe('RippleCustody version checks', () => {
     ).rejects.toMatchObject({
       kind: 'endpoint',
       sdkMethod: "api.internal.call('getCurrentVault')",
-      availability: 'official 1.43.4; devbox (cmpt)',
+      availability: 'official 1.43+ and pre-release Custody builds',
     })
     expect(requested(http, '/internal/v1/vaults/current')).toBe(false)
   })
@@ -839,7 +839,7 @@ describe('RippleCustody version checks', () => {
       }),
     ).rejects.toMatchObject({
       kind: 'endpoint',
-      availability: 'devbox (cmpt)',
+      availability: 'pre-release Custody builds',
     })
     expect(requested(http, '/parameters-compute')).toBe(false)
   })

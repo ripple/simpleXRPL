@@ -16,7 +16,9 @@
 //   node scripts/fetch-custody-instance-spec.mjs --gateway <url> --channel official
 //
 // With --channel official only the internal document is written: the official
-// public spec comes from the docs (scripts/fetch-custody-spec.mjs).
+// public spec comes from the docs (scripts/fetch-custody-spec.mjs). The
+// instance's public document is still read, to check it is the same minor
+// version as the vendored public spec.
 //
 // Next step: `npm run typegen`.
 
@@ -27,11 +29,14 @@ import { parseArgs } from 'node:util'
 
 import {
   BUILD_NAME,
+  OFFICIAL_PUBLIC_SPEC,
   readVendoredSpec,
   sameInstanceDocument,
   serializeInstanceDocument,
   specPath,
 } from './lib/custody-specs.mjs'
+
+const minorOf = (version) => version.split('.').slice(0, 2).join('.')
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -104,14 +109,33 @@ function parseOptions() {
 
 async function main() {
   const { gateway, channel, build } = parseOptions()
-  const scopes = channel === 'official' ? ['internal'] : ['', 'internal']
   const documents = await Promise.all(
-    scopes.map(async (scope) => ({
+    ['', 'internal'].map(async (scope) => ({
       surface: scope === '' ? 'public' : 'internal',
       ...(await fetchDocument(gateway, scope)),
     })),
   )
-  for (const { surface, doc, appVersion } of documents) {
+  if (channel === 'official') {
+    // The official public spec comes from the docs; the instance's internal
+    // document must describe the same minor version, or the two drift apart.
+    const vendored = readVendoredSpec(ROOT, OFFICIAL_PUBLIC_SPEC)
+    const vendoredVersion = vendored?.info?.['x-app-version']
+    const instanceVersion = documents[0].appVersion
+    if (
+      vendoredVersion !== undefined &&
+      minorOf(vendoredVersion) !== minorOf(instanceVersion)
+    ) {
+      throw new Error(
+        `The instance runs ${instanceVersion} but the vendored official public spec is ` +
+          `${vendoredVersion}; vendor matching versions (update the public spec first, or use an instance on ${minorOf(vendoredVersion)}).`,
+      )
+    }
+  }
+  const toWrite =
+    channel === 'official'
+      ? documents.filter((d) => d.surface === 'internal')
+      : documents
+  for (const { surface, doc, appVersion } of toWrite) {
     const path = specPath(channel, surface, build)
     const existing = readVendoredSpec(ROOT, path)
     if (existing !== undefined && sameInstanceDocument(existing, doc)) {

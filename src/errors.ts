@@ -211,6 +211,7 @@ export class UnsupportedInVersionError extends SimpleXRPLError {
    * @param details.appVersion - The Custody version checked against.
    * @param details.source - Whether that version was detected or pinned.
    * @param details.availability - Where the capability is served, if known.
+   * @param details.detail - An extra sentence explaining the gap, if any.
    */
   public constructor(details: {
     kind: keyof typeof CAPABILITY_LABELS
@@ -219,15 +220,17 @@ export class UnsupportedInVersionError extends SimpleXRPLError {
     appVersion: string
     source: 'detected' | 'pinned'
     availability?: string
+    detail?: string
   }) {
     const hint =
       details.availability === undefined
         ? ''
         : ` It is available in: ${details.availability}.`
+    const detail = details.detail === undefined ? '' : ` ${details.detail}`
     super(
       `${details.sdkMethod} needs the ${CAPABILITY_LABELS[details.kind]} ` +
         `'${details.capability}', which Ripple Custody ${details.appVersion} ` +
-        `(${details.source}) does not support.${hint}`,
+        `(${details.source}) does not support.${hint}${detail}`,
     )
     this.kind = details.kind
     this.capability = details.capability

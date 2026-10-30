@@ -21,7 +21,11 @@ function keyOfEntry(entry) {
   return endpointKey(method, path)
 }
 
-/** `['1.15', '1.16', '1.18']` over all known versions → `'1.15–1.16, 1.18'`. */
+/**
+ * `['1.15', '1.16', '1.18']` over all known versions → `'1.15–1.16, 1.18'`.
+ * A run that reaches the newest known version is open-ended (`'1.37+'`), so
+ * the next release doesn't rewrite every row that is still current.
+ */
 export function compressVersions(present, ordered) {
   const runs = []
   let run
@@ -37,9 +41,18 @@ export function compressVersions(present, ordered) {
       run = undefined
     }
   }
+  const newest = ordered[ordered.length - 1]
   return runs
-    .map(([first, last]) => (first === last ? first : `${first}–${last}`))
+    .map(([first, last]) => {
+      if (last === newest) return `${first}+`
+      return first === last ? first : `${first}–${last}`
+    })
     .join(', ')
+}
+
+/** `1.43.4` → `1.43`. */
+export function minorOf(version) {
+  return version.split('.').slice(0, 2).join('.')
 }
 
 /**
@@ -115,7 +128,7 @@ export function classify(capabilities, specs, merged) {
             surface === 'public'
               ? publicEndpointVersions(key)
               : officialInternalKeys.has(key)
-                ? officialInternal.appVersion
+                ? `${minorOf(officialInternal.appVersion)}+`
                 : '',
           devbox: devboxBuilds('endpoints', key, surface),
         })

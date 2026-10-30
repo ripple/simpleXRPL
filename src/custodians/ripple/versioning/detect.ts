@@ -8,6 +8,12 @@ import { VersionGuard } from './version-guard.js'
 /** The status at and above which an HTTP response is a failure. */
 const HTTP_ERROR_THRESHOLD = 400
 
+/**
+ * How long a spec fetch may take. The documents are ~1 MB and detection is
+ * best-effort, so a stalled gateway must not hold `create()` indefinitely.
+ */
+const DETECTION_TIMEOUT_MS = 15_000
+
 /** Version-check options, shared by `RippleCustody.create` and `fromEnv`. */
 export interface CustodyVersionOptions {
   /**
@@ -62,6 +68,7 @@ async function fetchDocument(
     method: 'GET',
     url,
     headers: { Accept: 'application/json' },
+    timeoutMs: DETECTION_TIMEOUT_MS,
   })
   if (response.status >= HTTP_ERROR_THRESHOLD) {
     throw new SimpleXRPLError(`HTTP ${response.status}`)

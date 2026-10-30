@@ -93,14 +93,20 @@ function asDocument(spec: unknown): OpenApiDocument {
 }
 
 /**
- * Sort comparator for plain strings.
+ * Sort comparator for plain strings, by UTF-16 code unit — the same order
+ * `Array.prototype.sort` uses with no comparator, and the order the bundled
+ * data is written in. Not `localeCompare`: that depends on the runtime's
+ * locale, and the two extractors must agree byte for byte.
  *
  * @param left - The first string.
  * @param right - The second string.
- * @returns Negative, zero, or positive, per `localeCompare`.
+ * @returns Negative, zero, or positive.
  */
 function byCodeUnit(left: string, right: string): number {
-  return left.localeCompare(right)
+  if (left === right) {
+    return 0
+  }
+  return left < right ? -1 : 1
 }
 
 /**
@@ -225,15 +231,36 @@ export function detectedCapabilities(
     'detected',
     lists,
   )
+  const internalEndpoints = internalEndpointsOf(internalSpec)
+  return internalEndpoints === undefined
+    ? capabilities
+    : { ...capabilities, internalEndpoints }
+}
+
+/** Every internal-API path starts with one of these. */
+const INTERNAL_PATH_PREFIXES = ['/internal/', '/api/']
+
+/**
+ * The internal endpoints an internal document serves — or `undefined` when
+ * the document isn't usable as one: absent, empty, or not actually the
+ * internal API (an instance that ignores an unknown `scope` serves the public
+ * document again). An unusable document leaves the internal API unchecked
+ * rather than blocking every internal call.
+ *
+ * @param internalSpec - The parsed internal document, if any.
+ * @returns The normalized endpoint set, or `undefined`.
+ */
+function internalEndpointsOf(internalSpec: unknown): Set<string> | undefined {
   if (internalSpec === undefined) {
-    return capabilities
+    return undefined
   }
-  return {
-    ...capabilities,
-    internalEndpoints: endpointSet(
-      extractCapabilityLists(internalSpec).endpoints,
+  const { endpoints } = extractCapabilityLists(internalSpec)
+  const looksInternal = endpoints.some((entry) =>
+    INTERNAL_PATH_PREFIXES.some((prefix) =>
+      entry.split(' ')[1]?.startsWith(prefix),
     ),
-  }
+  )
+  return looksInternal ? endpointSet(endpoints) : undefined
 }
 
 /**

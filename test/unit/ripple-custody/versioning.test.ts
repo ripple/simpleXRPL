@@ -371,6 +371,36 @@ describe('internal API detection', () => {
   it('leaves the internal API unchecked for a pinned version', () => {
     expect(pinnedCapabilities('1.43').internalEndpoints).toBeUndefined()
   })
+
+  it.each([
+    ['an empty document', {}],
+    ['a document with no paths', { paths: {} }],
+    ['the public document served again', VENDORED_SPEC],
+  ])(
+    'leaves the internal API unchecked when the internal document is %s',
+    (_label, internalDoc) => {
+      const detected = detectedCapabilities(VENDORED_SPEC, internalDoc)
+
+      expect(detected.internalEndpoints).toBeUndefined()
+      expect(() => {
+        new VersionGuard(detected).assertInternalEndpoint(
+          'GET',
+          '/internal/v1/anything',
+          'x',
+        )
+      }).not.toThrow()
+    },
+  )
+
+  it('bounds each spec fetch with a timeout', async () => {
+    const http = new FakeHttpPort(() => ok(VENDORED_SPEC))
+
+    await resolveVersionGuard({}, http, GATEWAY)
+
+    expect(http.requests.map((request) => request.timeoutMs)).toEqual([
+      15_000, 15_000,
+    ])
+  })
 })
 
 describe('availability hints', () => {
@@ -381,8 +411,8 @@ describe('availability hints', () => {
       guard.assertEndpoint('GET', '/v1/health', 'x')
     }).toThrow(
       "x needs the endpoint 'GET /v1/health', which Ripple Custody 1.35 " +
-        '(pinned) does not support. It is available in: official 1.36–1.43; ' +
-        'devbox (cmpt).',
+        '(pinned) does not support. It is available in: official 1.36+ and ' +
+        'pre-release Custody builds.',
     )
   })
 
@@ -394,8 +424,18 @@ describe('availability hints', () => {
     }).toThrow(
       expect.objectContaining({
         capability: 'Batch',
-        availability: 'devbox (cmpt)',
+        availability: 'pre-release Custody builds',
       }),
+    )
+  })
+
+  it('explains that 1.23–1.31 have no native XRPL operations at all', () => {
+    const guard = new VersionGuard(pinnedCapabilities('1.31'))
+
+    expect(() => {
+      guard.assertNativeTransaction('Payment')
+    }).toThrow(
+      /does not support\. It is available in: official 1\.15–1\.22, 1\.32\+ and pre-release Custody builds\. This version has no native XRPL operations: its transaction orders are plain payments, which the SDK does not build\.$/u,
     )
   })
 

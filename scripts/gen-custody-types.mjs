@@ -30,6 +30,7 @@ import { readCapabilityData } from './lib/custody-docs.mjs'
 import { mergeSurface, summarize } from './lib/custody-merge.mjs'
 import { collectRoutes, renderRoutes } from './lib/custody-routes.mjs'
 import { SURFACES, loadCustodySpecs } from './lib/custody-specs.mjs'
+import { minorOf } from './lib/custody-availability.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -86,6 +87,24 @@ async function main() {
     console.log(
       `${out.routes}: ${entries.length} operations` +
         (skipped > 0 ? ` (${skipped} skipped — no operationId)` : ''),
+    )
+  }
+
+  // The official internal spec is vendored from a live instance, not the docs,
+  // so the daily update can leave it behind the public one.
+  const officialBy = (surface) =>
+    specs.find((s) => s.channel === 'official' && s.surface === surface)
+  const [publicSpec, internalSpec] = [
+    officialBy('public'),
+    officialBy('internal'),
+  ]
+  if (
+    internalSpec !== undefined &&
+    minorOf(internalSpec.appVersion) !== minorOf(publicSpec.appVersion)
+  ) {
+    console.warn(
+      `warning: official internal spec is ${internalSpec.appVersion} but the official public spec is ` +
+        `${publicSpec.appVersion}; refresh it with \`npm run fetch:custody-instance-spec -- --channel official\``,
     )
   }
 

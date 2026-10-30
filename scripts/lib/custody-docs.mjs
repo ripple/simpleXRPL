@@ -183,9 +183,13 @@ export function extractCapabilities(doc) {
   }
 }
 
-/** `v1.43` → `1.43`: the key capability data is stored under. */
+/**
+ * `v1.43` (or `v1.43.2`) → `1.43`: the key capability data is stored under.
+ * Entries are per minor version, which is what a pinned `apiVersion` resolves
+ * to; a patch-level docs version shares its minor's entry.
+ */
 export function capabilityKey(version) {
-  return version.replace(/^v/u, '')
+  return version.replace(/^v/u, '').split('.').slice(0, 2).join('.')
 }
 
 /**

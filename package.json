@@ -81,7 +81,7 @@
     "docgen:md": "typedoc --options typedoc.md.json",
     "docgen:routing": "node scripts/gen-connector-routing.mjs",
     "prepublishOnly": "run-s clean build",
-    "test:scripts": "node --test \"scripts/**/*.test.mjs\""
+    "test:scripts": "node --import tsx --test \"scripts/**/*.test.mjs\""
   },
   "prettier": "@xrplf/prettier-config",
   "dependencies": {

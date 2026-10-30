@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, it } from 'node:test'
 
 import { compressVersions } from './custody-availability.mjs'
+import { capabilityKey } from './custody-docs.mjs'
 import {
   loadCustodySpecs,
   normalizeInstanceDocument,
@@ -135,7 +136,24 @@ describe('compressVersions', () => {
       compressVersions(new Set(['1.15', '1.16', '1.18']), ordered),
       '1.15–1.16, 1.18',
     )
-    assert.equal(compressVersions(new Set(ordered), ordered), '1.15–1.19')
     assert.equal(compressVersions(new Set(), ordered), '')
+  })
+
+  it('leaves a run that reaches the newest version open-ended', () => {
+    const ordered = ['1.15', '1.16', '1.17', '1.18', '1.19']
+    assert.equal(compressVersions(new Set(ordered), ordered), '1.15+')
+    assert.equal(compressVersions(new Set(['1.19']), ordered), '1.19+')
+    assert.equal(
+      compressVersions(new Set(['1.15', '1.18', '1.19']), ordered),
+      '1.15, 1.18+',
+    )
+  })
+})
+
+describe('capabilityKey', () => {
+  it('keys data by minor version, whatever the docs call it', () => {
+    assert.equal(capabilityKey('v1.43'), '1.43')
+    assert.equal(capabilityKey('v1.43.2'), '1.43')
+    assert.equal(capabilityKey('1.43'), '1.43')
   })
 })

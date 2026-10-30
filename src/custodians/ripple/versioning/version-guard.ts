@@ -15,13 +15,16 @@ interface CapabilityCheck {
   readonly sdkMethod: string
   /** Where the capability is served, for the error's hint. */
   readonly availability: CustodyAvailability | undefined
+  /** An extra sentence explaining the gap, when the kind warrants one. */
+  readonly detail?: (caps: CustodyCapabilities) => string | undefined
   /** Whether the resolved capabilities include it. */
   readonly isSupported: (caps: CustodyCapabilities) => boolean
 }
 
 /**
- * Describe where a capability is served, e.g. `official 1.37–1.43; devbox
- * (cmpt)`.
+ * Describe where a capability is served, e.g. `official 1.37+` or
+ * `pre-release Custody builds`. Devbox build names are an internal detail
+ * (they're listed in docs/custody-endpoints.md), so they aren't named here.
  *
  * @param availability - The generated availability entry.
  * @returns The description, or `undefined` when nothing is known.
@@ -34,10 +37,19 @@ function describeAvailability(
     parts.push(`official ${availability.official}`)
   }
   if (availability?.devbox !== undefined) {
-    parts.push(`devbox (${availability.devbox.join(', ')})`)
+    parts.push('pre-release Custody builds')
   }
-  return parts.length === 0 ? undefined : parts.join('; ')
+  return parts.length === 0 ? undefined : parts.join(' and ')
 }
+
+/**
+ * Custody 1.23–1.31 model XRPL transaction orders as plain payments, with no
+ * native operations at all — so a blocked operation there isn't a gap in one
+ * operation but in the whole native path.
+ */
+const NO_NATIVE_OPERATIONS_DETAIL =
+  'This version has no native XRPL operations: its transaction orders are ' +
+  'plain payments, which the SDK does not build.'
 
 /**
  * Blocks calls the resolved Ripple Custody version cannot serve, before they
@@ -122,6 +134,11 @@ export class VersionGuard {
       capability: operationType,
       sdkMethod,
       availability: CUSTODY_AVAILABILITY.xrplOperations[operationType],
+      detail(caps) {
+        return caps.xrplOperations.size === 0
+          ? NO_NATIVE_OPERATIONS_DETAIL
+          : undefined
+      },
       isSupported: (caps) => caps.xrplOperations.has(operationType),
     })
   }
@@ -213,6 +230,7 @@ export class VersionGuard {
       appVersion: caps.appVersion,
       source: caps.source,
       availability: describeAvailability(check.availability),
+      detail: check.detail?.(caps),
     })
   }
 }
