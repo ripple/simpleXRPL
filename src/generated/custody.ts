@@ -2488,6 +2488,724 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/v1/domain/{domainId}/account/{accountId}/sponsor': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get sponsor configuration for an account */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Domain ID */
+          domainId: string
+          /** @description Account ID */
+          accountId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Sponsor configuration */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsorResponseDto']
+          }
+        }
+        /** @description Sponsor not found */
+        404: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    /** Update a sponsor configuration */
+    put: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Domain ID */
+          domainId: string
+          /** @description Account ID */
+          accountId: string
+        }
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['GasStation_UpdateSponsorDto']
+        }
+      }
+      responses: {
+        /** @description Sponsor updated */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsorResponseDto']
+          }
+        }
+        /** @description Bad request */
+        400: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        /** @description Sponsor not found */
+        404: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    /** Create a sponsor configuration */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Domain ID */
+          domainId: string
+          /** @description Account ID */
+          accountId: string
+        }
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['GasStation_CreateSponsorDto']
+        }
+      }
+      responses: {
+        /** @description Sponsor created */
+        201: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsorCreatedResponseDto']
+          }
+        }
+        /** @description Bad request */
+        400: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        /** @description Sponsor already exists */
+        409: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    /** Delete a sponsor configuration */
+    delete: {
+      parameters: {
+        query: {
+          userId: string
+        }
+        header?: never
+        path: {
+          /** @description Domain ID */
+          domainId: string
+          /** @description Account ID */
+          accountId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Sponsor deleted */
+        204: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        /** @description Sponsor not found */
+        404: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/account/{entityId}/sponsorable-accounts': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List sponsorable accounts */
+    get: {
+      parameters: {
+        query?: {
+          status?: 'sponsored' | 'not_sponsored' | 'sponsored_by_other'
+          search?: string
+          limit?: number
+          /** @description Page number (0-indexed) */
+          page?: number
+        }
+        header?: never
+        path: {
+          /** @description Sponsor domain ID */
+          domainId: string
+          /** @description Sponsor account ID */
+          entityId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsorableAccountsResponseDto']
+          }
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/account/{entityId}/sponsorable-domains': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List sponsorable domains */
+    get: {
+      parameters: {
+        query?: {
+          status?: 'sponsored' | 'not_sponsored' | 'sponsored_by_other'
+          search?: string
+          limit?: number
+          /** @description Page number (0-indexed) */
+          page?: number
+        }
+        header?: never
+        path: {
+          /** @description Sponsor domain ID */
+          domainId: string
+          /** @description Sponsor account ID */
+          entityId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsorableDomainsResponseDto']
+          }
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/account/{entityId}/sponsored-accounts': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Add sponsored accounts */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Sponsor domain ID */
+          domainId: string
+          /** @description Sponsor account ID */
+          entityId: string
+        }
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['GasStation_AddSponsoredAccountsDto']
+        }
+      }
+      responses: {
+        201: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsoredModificationResponseDto']
+          }
+        }
+        /** @description Sponsor not found */
+        404: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/account/{entityId}/sponsored-domains': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Add sponsored domains */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Sponsor domain ID */
+          domainId: string
+          /** @description Sponsor account ID */
+          entityId: string
+        }
+        cookie?: never
+      }
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['GasStation_AddSponsoredDomainsDto']
+        }
+      }
+      responses: {
+        201: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsoredModificationResponseDto']
+          }
+        }
+        /** @description Sponsor not found */
+        404: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/sponsor/events': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get audit events for sponsorship configuration changes */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Filter by account ID */
+          accountId?: string
+          /** @description Filter by start date (ISO 8601) */
+          startDate?: string
+          /** @description Filter by end date (ISO 8601) */
+          endDate?: string
+          /** @description Filter by event type */
+          eventType?: 'CREATE' | 'UPDATE' | 'DELETE'
+          limit?: number
+          /** @description Cursor for pagination */
+          startingAfter?: string
+        }
+        header?: never
+        path: {
+          /** @description Domain ID */
+          domainId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Audit events */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_EventsResponseDto']
+          }
+        }
+        /** @description Invalid query parameters */
+        400: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/sponsors': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List all sponsor (gas station) accounts in a domain */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Domain ID to list sponsors for */
+          domainId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description List of sponsor account IDs */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsorsListResponseDto']
+          }
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/sponsors/account/{accountId}/sponsor': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Find which gas station sponsors a specific account
+     * @description Returns the sponsorship status for the given account, following the sponsorship hierarchy: 1) Domain-level sponsor for the account domain, 2) Parent domain sponsors (if includeSubDomains=true), 3) Account-level sponsor. Returns isSponsored=false if no sponsor is found.
+     */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Domain ID of the account to check */
+          domainId: string
+          /** @description Account ID to find the sponsor for */
+          accountId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Sponsorship status returned */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_AccountSponsorResponseDto']
+          }
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/sponsors/domain-sponsor': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Resolve domain-wide sponsorship for a domain
+     * @description Returns whether the domain is sponsored domain-wide, without requiring an account ID. Resolution follows the sponsorship hierarchy: 1) Domain-level sponsor for the domain itself, 2) Parent domain sponsors that have includeSubDomains=true. Account-level sponsorships are NOT considered. Returns isSponsored=false if no domain-wide sponsor is found.
+     */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          /** @description Domain ID to resolve domain-wide sponsorship for */
+          domainId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description Domain-wide sponsorship status returned */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_DomainSponsorResponseDto']
+          }
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/sponsors/sponsored-accounts': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List accounts in a domain with their sponsorship status
+     * @description Returns all accounts within the domain along with whether each account is currently sponsored by a Gas Station.
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Maximum number of items per page */
+          limit?: number
+          /** @description Cursor for pagination - returns items after this ID */
+          startingAfter?: string
+          /** @description Field to sort by */
+          sortBy?: string
+          /** @description Sort direction */
+          sortOrder?: 'asc' | 'desc'
+          /** @description Filter by a specific sponsor account ID. When provided, only entities sponsored by this sponsor are marked as sponsored. */
+          sponsorAccountId?: string
+        }
+        header?: never
+        path: {
+          /** @description Domain ID to list sponsored accounts for */
+          domainId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description List of accounts with sponsorship status */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsoredEntitiesResponseDto']
+          }
+        }
+        /** @description Database error */
+        500: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        /** @description External service unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domain/{domainId}/sponsors/sponsored-domains': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List sub-domains in a domain with their sponsorship status
+     * @description Returns all sub-domains within the domain along with whether each sub-domain is currently sponsored by a Gas Station.
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Maximum number of items per page */
+          limit?: number
+          /** @description Cursor for pagination - returns items after this ID */
+          startingAfter?: string
+          /** @description Field to sort by */
+          sortBy?: string
+          /** @description Sort direction */
+          sortOrder?: 'asc' | 'desc'
+          /** @description Filter by a specific sponsor account ID. When provided, only entities sponsored by this sponsor are marked as sponsored. */
+          sponsorAccountId?: string
+        }
+        header?: never
+        path: {
+          /** @description Domain ID to list sponsored sub-domains for */
+          domainId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description List of sub-domains with sponsorship status */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['GasStation_SponsoredEntitiesResponseDto']
+          }
+        }
+        /** @description Database error */
+        500: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        /** @description External service unavailable */
+        503: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/accounts/{accountId}/parameters-compute': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Initiate a parameter computation for an account */
+    post: operations['initiateParametersCompute']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/accounts/{accountId}/parameters-compute/{computeId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the status of a cMPT parameter computation */
+    get: operations['getParametersComputeStatus']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -2734,6 +3452,7 @@ export interface components {
        * @enum {string}
        */
       type: 'Vault'
+      purposeKeys?: components['schemas']['Core_PurposeKey'][]
     }
     Core_AccountPublicKey:
       | components['schemas']['Core_AccountPublicKey_ExtendedPublicKey']
@@ -4225,6 +4944,8 @@ export interface components {
       | components['schemas']['Core_VaultKeyMaterialRewrapCompleted']
       | components['schemas']['Core_VaultKeyMaterialRewrapFailed']
       | components['schemas']['Core_VaultUpdated']
+      | components['schemas']['Core_ElGamalKeyProvisioned']
+      | components['schemas']['Core_ElGamalKeyProvisioningFailed']
     Core_HederaFeeStrategy: components['schemas']['Core_HederaFeeStrategy_Priority']
     Core_HederaFeeStrategy_Priority: {
       priority: components['schemas']['Core_FeePriority']
@@ -4415,6 +5136,7 @@ export interface components {
       | components['schemas']['Core_IntentDryRunResponse_v0_UpdateUser']
       | components['schemas']['Core_IntentDryRunResponse_v0_UpdateVault']
       | components['schemas']['Core_IntentDryRunResponse_v0_ValidateTickers']
+      | components['schemas']['Core_IntentDryRunResponse_v0_ProvisionElGamalKeyPair']
     Core_IntentDryRunResponse_v0_AcknowledgeBackup: {
       success: boolean
       errors?: string[]
@@ -4948,6 +5670,7 @@ export interface components {
       | 'v0_RegisterTrustedPublicKey'
       | 'v0_CreateBackup'
       | 'v0_AcknowledgeBackup'
+      | 'v0_ProvisionElGamalKeyPair'
     Core_IntentUpdated: {
       /** Format: uuid */
       id: string
@@ -5452,6 +6175,7 @@ export interface components {
        * @enum {string}
        */
       type: 'Xrpl'
+      transactionType?: string
     }
     Core_Permissions: {
       readAccess: components['schemas']['Core_ReadAccess']
@@ -5638,6 +6362,7 @@ export interface components {
       | components['schemas']['Core_v0_UpdateUser']
       | components['schemas']['Core_v0_UpdateVault']
       | components['schemas']['Core_v0_ValidateTickers']
+      | components['schemas']['Core_v0_ProvisionElGamalKeyPair']
     Core_Propose_v0_CreateTransactionOrder: {
       /** Format: uuid */
       id: string
@@ -7027,6 +7752,7 @@ export interface components {
        * @enum {string}
        */
       type: 'XRPL'
+      batchSigningData?: components['schemas']['Core_ApiBatchSigningData']
     }
     Core_TransactionOrder: {
       /** Format: uuid */
@@ -7778,6 +8504,7 @@ export interface components {
       | components['schemas']['Core_v0_UpdateUser']
       | components['schemas']['Core_v0_UpdateVault']
       | components['schemas']['Core_v0_ValidateTickers']
+      | components['schemas']['Core_v0_ProvisionElGamalKeyPair']
     /** @enum {string} */
     Core_UserOperationRejectionCode:
       | 'AccountLocked'
@@ -8279,6 +9006,13 @@ export interface components {
       | components['schemas']['Core_XrplOperation_OfferCreate']
       | components['schemas']['Core_XrplOperation_Payment']
       | components['schemas']['Core_XrplOperation_TrustSet']
+      | components['schemas']['Core_XrplOperation_Batch']
+      | components['schemas']['Core_XrplOperation_ConfidentialMPTClawback']
+      | components['schemas']['Core_XrplOperation_ConfidentialMPTConvert']
+      | components['schemas']['Core_XrplOperation_ConfidentialMPTConvertBack']
+      | components['schemas']['Core_XrplOperation_ConfidentialMPTMergeInbox']
+      | components['schemas']['Core_XrplOperation_ConfidentialMPTSend']
+      | components['schemas']['Core_XrplOperation_TicketCreate']
     Core_XrplOperation_AccountSet: {
       setFlag?: components['schemas']['Core_Xrpl_AccountSetFlag']
       clearFlag?: components['schemas']['Core_Xrpl_AccountSetFlag']
@@ -8370,6 +9104,9 @@ export interface components {
        * @enum {string}
        */
       type: 'MPTokenIssuanceSet'
+      auditorEncryptionKey?: string
+      issuerEncryptionKey?: string
+      mutableFlags?: components['schemas']['Core_Xrpl_MPTokenIssuanceMutableFlag'][]
     }
     Core_XrplOperation_OfferCreate: {
       flags: components['schemas']['Core_Xrpl_OfferCreateFlag'][]
@@ -8439,6 +9176,7 @@ export interface components {
       | components['schemas']['Core_XrplTickerProperties_FungibleToken']
       | components['schemas']['Core_XrplTickerProperties_MultiPurposeToken']
       | components['schemas']['Core_XrplTickerProperties_Native']
+      | components['schemas']['Core_XrplTickerProperties_ConfidentialMultiPurposeToken']
     Core_XrplTickerProperties_FungibleToken: {
       currencyCode: string
       issuer: string
@@ -8515,6 +9253,7 @@ export interface components {
       | 'tfMPTCanEscrow'
       | 'tfMPTCanLock'
       | 'tfMPTCanTrade'
+      | 'tfMPTCanConfidentialAmount'
     /** @enum {string} */
     Core_Xrpl_MPTokenIssuanceSetFlag: 'tfMPTLock' | 'tfMPTUnlock'
     /** @enum {string} */
@@ -11482,6 +12221,889 @@ export interface components {
        * @enum {string}
        */
       format: 'CSV' | 'JSON'
+    }
+    Core_ApiBatchSigningData: {
+      executionMode: components['schemas']['Core_Xrpl_BatchExecutionMode']
+      /** @description Hex encoded string. */
+      signingPayload: string
+      /** @description Hex encoded string. */
+      signingPayloadHash: string
+      transactions: components['schemas']['Core_ApiInnerTransactionData'][]
+    }
+    Core_ApiInitiateParametersComputeRequest: components['schemas']['Core_ApiInitiateParametersComputeRequest_CmptSend']
+    Core_ApiInitiateParametersComputeRequest_CmptSend: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      destination: string
+      ledgerId: string
+      /** Format: int32 */
+      ticketSequence?: number
+      tokenIdentifier: components['schemas']['Core_Xrpl_ResolvedMPTokenIdentifier']
+    }
+    Core_ApiInitiateParametersComputeResponse: {
+      /** Format: uuid */
+      id: string
+      status: string
+    }
+    Core_ApiInnerTransactionData: {
+      account: string
+      operation: components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation']
+      sequencing: components['schemas']['Core_ResolvedSequencing']
+    }
+    Core_ApiParametersComputeCryptographicFields:
+      | components['schemas']['Core_ApiParametersComputeCryptographicFields_Clawback']
+      | components['schemas']['Core_ApiParametersComputeCryptographicFields_Convert']
+      | components['schemas']['Core_ApiParametersComputeCryptographicFields_ConvertBack']
+      | components['schemas']['Core_ApiParametersComputeCryptographicFields_Send']
+    Core_ApiParametersComputeCryptographicFields_Clawback: {
+      /** Format: int64 */
+      amount: number
+      /** @description Hex encoded string. */
+      zkProof: string
+    }
+    Core_ApiParametersComputeCryptographicFields_Convert: {
+      /** @description Hex encoded string. */
+      auditorEncryptedAmount?: string
+      /** @description Hex encoded string. */
+      blindingFactor: string
+      /** @description Hex encoded string. */
+      holderEncryptedAmount: string
+      /** @description Hex encoded string. */
+      issuerEncryptedAmount: string
+      /** @description Hex encoded string. */
+      zkProof?: string
+    }
+    Core_ApiParametersComputeCryptographicFields_ConvertBack: {
+      /** @description Hex encoded string. */
+      auditorEncryptedAmount?: string
+      /** @description Hex encoded string. */
+      balanceCommitment: string
+      /** @description Hex encoded string. */
+      blindingFactor: string
+      /** @description Hex encoded string. */
+      holderEncryptedAmount: string
+      /** @description Hex encoded string. */
+      issuerEncryptedAmount: string
+      /** @description Hex encoded string. */
+      zkProof: string
+    }
+    Core_ApiParametersComputeCryptographicFields_Send: {
+      /** @description Hex encoded string. */
+      amountCommitment: string
+      /** @description Hex encoded string. */
+      auditorEncryptedAmount?: string
+      /** @description Hex encoded string. */
+      balanceCommitment: string
+      /** @description Hex encoded string. */
+      destinationEncryptedAmount: string
+      /** @description Hex encoded string. */
+      issuerEncryptedAmount: string
+      /** @description Hex encoded string. */
+      senderEncryptedAmount: string
+      /** @description Hex encoded string. */
+      senderEncryptedBalance?: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion?: number
+      /** @description Hex encoded string. */
+      zkProof: string
+    }
+    Core_ApiParametersComputeStatusResponse: {
+      cryptographicFields?: components['schemas']['Core_ApiParametersComputeCryptographicFields']
+      /** Format: uuid */
+      id: string
+      status: string
+    }
+    Core_BatchEntry:
+      | components['schemas']['Core_BatchEntry_ParticipantOperation']
+      | components['schemas']['Core_BatchEntry_SubmitterOperation']
+    Core_BatchEntry_ParticipantOperation: {
+      operation: components['schemas']['Core_BatchInnerOperation']
+      participant: components['schemas']['Core_Participant']
+      sequencing: components['schemas']['Core_ParticipantSequencing']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ParticipantOperation'
+    }
+    Core_BatchEntry_SubmitterOperation: {
+      operation: components['schemas']['Core_BatchInnerOperation']
+      sequencing: components['schemas']['Core_Sequencing']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SubmitterOperation'
+    }
+    Core_BatchInnerOperation:
+      | components['schemas']['Core_BatchInnerOperation_AccountSet']
+      | components['schemas']['Core_BatchInnerOperation_Clawback']
+      | components['schemas']['Core_BatchInnerOperation_ConfidentialMPTConvert']
+      | components['schemas']['Core_BatchInnerOperation_ConfidentialMPTConvertBack']
+      | components['schemas']['Core_BatchInnerOperation_ConfidentialMPTMergeInbox']
+      | components['schemas']['Core_BatchInnerOperation_ConfidentialMPTSend']
+      | components['schemas']['Core_BatchInnerOperation_DepositPreauth']
+      | components['schemas']['Core_BatchInnerOperation_EscrowFinish']
+      | components['schemas']['Core_BatchInnerOperation_MPTokenAuthorize']
+      | components['schemas']['Core_BatchInnerOperation_MPTokenIssuanceCreate']
+      | components['schemas']['Core_BatchInnerOperation_MPTokenIssuanceDestroy']
+      | components['schemas']['Core_BatchInnerOperation_MPTokenIssuanceSet']
+      | components['schemas']['Core_BatchInnerOperation_OfferCreate']
+      | components['schemas']['Core_BatchInnerOperation_Payment']
+      | components['schemas']['Core_BatchInnerOperation_TicketCreate']
+      | components['schemas']['Core_BatchInnerOperation_TrustSet']
+    Core_BatchInnerOperation_AccountSet: {
+      clearFlag?: components['schemas']['Core_Xrpl_AccountSetFlag']
+      setFlag?: components['schemas']['Core_Xrpl_AccountSetFlag']
+      /** Format: int32 */
+      transferRate?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSet'
+    }
+    Core_BatchInnerOperation_Clawback: {
+      currency: components['schemas']['Core_XrplClawbackCurrency']
+      holder: components['schemas']['Core_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Clawback'
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      value: string
+    }
+    Core_BatchInnerOperation_ConfidentialMPTConvert: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvert'
+    }
+    Core_BatchInnerOperation_ConfidentialMPTConvertBack: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvertBack'
+    }
+    Core_BatchInnerOperation_ConfidentialMPTMergeInbox: {
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTMergeInbox'
+    }
+    Core_BatchInnerOperation_ConfidentialMPTSend: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount?: string
+      cryptographicFields?: components['schemas']['Core_CmptCryptographicFields']
+      destination: components['schemas']['Core_TransactionDestination']
+      /** @description Hex encoded string. */
+      senderEncryptedBalance?: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion?: number
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTSend'
+    }
+    Core_BatchInnerOperation_DepositPreauth: {
+      authorize?: components['schemas']['Core_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'DepositPreauth'
+      unauthorize?: components['schemas']['Core_TransactionDestination']
+    }
+    Core_BatchInnerOperation_EscrowFinish: {
+      /** @description Hex encoded string. */
+      condition?: string
+      credentialIds?: string[]
+      /** @description Hex encoded string. */
+      fulfillment?: string
+      /** Format: int64 */
+      offerSequence: number
+      owner: components['schemas']['Core_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'EscrowFinish'
+    }
+    Core_BatchInnerOperation_MPTokenAuthorize: {
+      flags: components['schemas']['Core_Xrpl_MPTokenAuthorizeFlag'][]
+      holder?: components['schemas']['Core_TransactionDestination']
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenAuthorize'
+    }
+    Core_BatchInnerOperation_MPTokenIssuanceCreate: {
+      /** Format: int32 */
+      assetScale?: number
+      flags: components['schemas']['Core_Xrpl_MPTokenIssuanceCreateFlag'][]
+      /** @description This field is a unsigned 64bit integer that can store values in range from 0 to 18446744073709551615.It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      maximumAmount?: string
+      metadata?: components['schemas']['Core_MPTokenIssuanceMetadata']
+      /**
+       * Format: int32
+       * @description Transfer fee for MultiPurposeToken, must be from 0 to 50000
+       */
+      transferFee?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceCreate'
+    }
+    Core_BatchInnerOperation_MPTokenIssuanceDestroy: {
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceDestroy'
+    }
+    Core_BatchInnerOperation_MPTokenIssuanceSet: {
+      auditorEncryptionKey?: string
+      flags: components['schemas']['Core_Xrpl_MPTokenIssuanceSetFlag'][]
+      holder?: components['schemas']['Core_TransactionDestination']
+      issuerEncryptionKey?: string
+      mutableFlags: components['schemas']['Core_Xrpl_MPTokenIssuanceMutableFlag'][]
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceSet'
+    }
+    Core_BatchInnerOperation_OfferCreate: {
+      flags: components['schemas']['Core_Xrpl_OfferCreateFlag'][]
+      takerGets: components['schemas']['Core_Xrpl_AssetQuantity']
+      takerPays: components['schemas']['Core_Xrpl_AssetQuantity']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'OfferCreate'
+    }
+    Core_BatchInnerOperation_Payment: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      currency?: components['schemas']['Core_XrplPaymentCurrency']
+      destination: components['schemas']['Core_TransactionDestination']
+      /** Format: int64 */
+      destinationTag?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Payment'
+    }
+    Core_BatchInnerOperation_TicketCreate: {
+      /**
+       * Format: int32
+       * @description Number of tickets to create, must be from 1 to 250
+       */
+      ticketCount: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TicketCreate'
+    }
+    Core_BatchInnerOperation_TrustSet: {
+      enableRippling?: boolean
+      flags: components['schemas']['Core_Xrpl_TrustSetFlag'][]
+      limitAmount: components['schemas']['Core_Xrpl_LimitAmount']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TrustSet'
+    }
+    Core_BatchSigner: {
+      participant: components['schemas']['Core_Participant']
+      /** @description Hex encoded string. */
+      publicKey: string
+      /** @description Hex encoded string. */
+      signature: string
+    }
+    Core_CmptCryptographicFields:
+      | components['schemas']['Core_CmptCryptographicFields_Clawback']
+      | components['schemas']['Core_CmptCryptographicFields_Convert']
+      | components['schemas']['Core_CmptCryptographicFields_ConvertBack']
+      | components['schemas']['Core_CmptCryptographicFields_Send']
+    Core_CmptCryptographicFields_Clawback: {
+      /** Format: int64 */
+      amount: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Clawback'
+      /** Format: base64 */
+      zkProof: string
+    }
+    Core_CmptCryptographicFields_Convert: {
+      /** Format: base64 */
+      auditorEncryptedAmount?: string
+      /** Format: base64 */
+      blindingFactor: string
+      /** Format: base64 */
+      holderEncryptedAmount: string
+      /** Format: base64 */
+      issuerEncryptedAmount: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Convert'
+      /** Format: base64 */
+      zkProof?: string
+    }
+    Core_CmptCryptographicFields_ConvertBack: {
+      /** Format: base64 */
+      auditorEncryptedAmount?: string
+      /** Format: base64 */
+      balanceCommitment: string
+      /** Format: base64 */
+      blindingFactor: string
+      /** Format: base64 */
+      holderEncryptedAmount: string
+      /** Format: base64 */
+      issuerEncryptedAmount: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConvertBack'
+      /** Format: base64 */
+      zkProof: string
+    }
+    Core_CmptCryptographicFields_Send: {
+      /** Format: base64 */
+      amountCommitment: string
+      /** Format: base64 */
+      auditorEncryptedAmount?: string
+      /** Format: base64 */
+      balanceCommitment: string
+      /** Format: base64 */
+      destinationEncryptedAmount: string
+      /** Format: base64 */
+      issuerEncryptedAmount: string
+      /** Format: base64 */
+      senderEncryptedAmount: string
+      /** Format: base64 */
+      senderEncryptedBalance?: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Send'
+      /** Format: base64 */
+      zkProof: string
+    }
+    Core_ElGamalKeyProvisioned: {
+      /** Format: uuid */
+      id: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ElGamalKeyProvisioned'
+    }
+    Core_ElGamalKeyProvisioningFailed: {
+      /** Format: uuid */
+      id: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ElGamalKeyProvisioningFailed'
+    }
+    Core_IntentDryRunResponse_v0_ProvisionElGamalKeyPair: {
+      errors?: string[]
+      success: boolean
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'v0_ProvisionElGamalKeyPair'
+    }
+    /** @enum {string} */
+    Core_KeyPurpose: 'ElGamal'
+    Core_Participant:
+      | components['schemas']['Core_Participant_Account']
+      | components['schemas']['Core_Participant_Address']
+      | components['schemas']['Core_Participant_Endpoint']
+    Core_ParticipantSequencing:
+      | components['schemas']['Core_ParticipantSequencing_AccountSequence']
+      | components['schemas']['Core_ParticipantSequencing_Ticket']
+    Core_ParticipantSequencing_AccountSequence: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSequence'
+      /** Format: int64 */
+      value: number
+    }
+    Core_ParticipantSequencing_Ticket: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Ticket'
+      /** Format: int64 */
+      value: number
+    }
+    Core_Participant_Account: {
+      /** Format: uuid */
+      accountId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Account'
+    }
+    Core_Participant_Address: {
+      address: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Address'
+    }
+    Core_Participant_Endpoint: {
+      /** Format: uuid */
+      endpointId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Endpoint'
+    }
+    Core_PurposeKey: {
+      ledgerId: string
+      /** Format: base64 */
+      publicKey: string
+      purpose: components['schemas']['Core_KeyPurpose']
+    }
+    Core_ResolvedSequencing:
+      | components['schemas']['Core_ResolvedSequencing_AccountSequence']
+      | components['schemas']['Core_ResolvedSequencing_Ticket']
+    Core_ResolvedSequencing_AccountSequence: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSequence'
+      /** Format: int64 */
+      value: number
+    }
+    Core_ResolvedSequencing_Ticket: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Ticket'
+      /** Format: int64 */
+      value: number
+    }
+    Core_Sequencing:
+      | components['schemas']['Core_Sequencing_AccountSequence']
+      | components['schemas']['Core_Sequencing_PlatformManaged']
+      | components['schemas']['Core_Sequencing_Ticket']
+    Core_Sequencing_AccountSequence: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSequence'
+      /** Format: int64 */
+      value: number
+    }
+    Core_Sequencing_PlatformManaged: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'PlatformManaged'
+    }
+    Core_Sequencing_Ticket: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Ticket'
+      /** Format: int64 */
+      value: number
+    }
+    Core_XrplOperation_Batch: {
+      batchSigners: components['schemas']['Core_BatchSigner'][]
+      entries: components['schemas']['Core_BatchEntry'][]
+      executionMode: components['schemas']['Core_Xrpl_BatchExecutionMode']
+      /** Format: int64 */
+      lastLedgerSequence?: number
+      sequencing: components['schemas']['Core_Sequencing']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Batch'
+    }
+    Core_XrplOperation_ConfidentialMPTClawback: {
+      cryptographicFields?: components['schemas']['Core_CmptCryptographicFields']
+      holder: components['schemas']['Core_TransactionDestination']
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTClawback'
+    }
+    Core_XrplOperation_ConfidentialMPTConvert: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvert'
+    }
+    Core_XrplOperation_ConfidentialMPTConvertBack: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvertBack'
+    }
+    Core_XrplOperation_ConfidentialMPTMergeInbox: {
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTMergeInbox'
+    }
+    Core_XrplOperation_ConfidentialMPTSend: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount?: string
+      cryptographicFields?: components['schemas']['Core_CmptCryptographicFields']
+      destination: components['schemas']['Core_TransactionDestination']
+      /** @description Hex encoded string. */
+      senderEncryptedBalance?: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion?: number
+      tokenIdentifier: components['schemas']['Core_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTSend'
+    }
+    Core_XrplOperation_TicketCreate: {
+      /**
+       * Format: int32
+       * @description Number of tickets to create, must be from 1 to 250
+       */
+      ticketCount: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TicketCreate'
+    }
+    Core_XrplTickerProperties_ConfidentialMultiPurposeToken: {
+      /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
+      issuanceId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMultiPurposeToken'
+    }
+    /** @enum {string} */
+    Core_Xrpl_BatchExecutionMode:
+      'AllOrNothing' | 'OnlyOne' | 'UntilFailure' | 'Independent'
+    Core_Xrpl_CmptCryptographicFields: {
+      /** @description Hex encoded string. */
+      amountCommitment: string
+      /** @description Hex encoded string. */
+      auditorEncryptedAmount?: string
+      /** @description Hex encoded string. */
+      balanceCommitment: string
+      /** @description Hex encoded string. */
+      destinationEncryptedAmount: string
+      /** @description Hex encoded string. */
+      issuerEncryptedAmount: string
+      /** @description Hex encoded string. */
+      senderEncryptedAmount: string
+      /** @description Hex encoded string. */
+      zkProof: string
+    }
+    /** @enum {string} */
+    Core_Xrpl_MPTokenIssuanceMutableFlag: 'MPTSetCanConfidentialAmount'
+    Core_Xrpl_ResolvedAssetQuantity: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      currency?: components['schemas']['Core_Xrpl_ResolvedIouCurrency']
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation:
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_AccountSet']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_Clawback']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_ConfidentialMPTSend']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_DepositPreauth']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_EscrowFinish']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_MPTokenAuthorize']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_MPTokenIssuanceCreate']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_MPTokenIssuanceDestroy']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_MPTokenIssuanceSet']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_OfferCreate']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_Payment']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_TicketCreate']
+      | components['schemas']['Core_Xrpl_ResolvedBatchInnerOperation_TrustSet']
+    Core_Xrpl_ResolvedBatchInnerOperation_AccountSet: {
+      clearFlag?: components['schemas']['Core_Xrpl_AccountSetFlag']
+      setFlag?: components['schemas']['Core_Xrpl_AccountSetFlag']
+      /** Format: int32 */
+      transferRate?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSet'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_Clawback: {
+      currency: components['schemas']['Core_Xrpl_ResolvedClawbackCurrency']
+      holder: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Clawback'
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      value: string
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_ConfidentialMPTSend: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      cryptographicFields: components['schemas']['Core_Xrpl_CmptCryptographicFields']
+      destination: string
+      /** @description Hex encoded string. */
+      senderEncryptedBalance: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion: number
+      tokenIdentifier: components['schemas']['Core_Xrpl_ResolvedMPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTSend'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_DepositPreauth: {
+      authorize?: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'DepositPreauth'
+      unauthorize?: string
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_EscrowFinish: {
+      /** @description Hex encoded string. */
+      condition?: string
+      credentialIds?: string[]
+      /** @description Hex encoded string. */
+      fulfillment?: string
+      /** Format: int64 */
+      offerSequence: number
+      owner: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'EscrowFinish'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_MPTokenAuthorize: {
+      flags: components['schemas']['Core_Xrpl_MPTokenAuthorizeFlag'][]
+      holder?: string
+      tokenIdentifier: components['schemas']['Core_Xrpl_ResolvedMPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenAuthorize'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_MPTokenIssuanceCreate: {
+      /** Format: int32 */
+      assetScale?: number
+      flags: components['schemas']['Core_Xrpl_MPTokenIssuanceCreateFlag'][]
+      /** @description This field is a unsigned 64bit integer that can store values in range from 0 to 18446744073709551615.It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      maximumAmount?: string
+      metadata?: components['schemas']['Core_MPTokenIssuanceMetadata']
+      /**
+       * Format: int32
+       * @description Transfer fee for MultiPurposeToken, must be from 0 to 50000
+       */
+      transferFee?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceCreate'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_MPTokenIssuanceDestroy: {
+      tokenIdentifier: components['schemas']['Core_Xrpl_ResolvedMPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceDestroy'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_MPTokenIssuanceSet: {
+      auditorEncryptionKey?: string
+      flags: components['schemas']['Core_Xrpl_MPTokenIssuanceSetFlag'][]
+      holder?: string
+      issuerEncryptionKey?: string
+      mutableFlags: components['schemas']['Core_Xrpl_MPTokenIssuanceMutableFlag'][]
+      tokenIdentifier: components['schemas']['Core_Xrpl_ResolvedMPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceSet'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_OfferCreate: {
+      flags: components['schemas']['Core_Xrpl_OfferCreateFlag'][]
+      takerGets: components['schemas']['Core_Xrpl_ResolvedAssetQuantity']
+      takerPays: components['schemas']['Core_Xrpl_ResolvedAssetQuantity']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'OfferCreate'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_Payment: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      currency?: components['schemas']['Core_Xrpl_ResolvedPaymentCurrency']
+      destination: string
+      /** Format: int64 */
+      destinationTag?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Payment'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_TicketCreate: {
+      /**
+       * Format: int32
+       * @description Number of tickets to create, must be from 1 to 250
+       */
+      ticketCount: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TicketCreate'
+    }
+    Core_Xrpl_ResolvedBatchInnerOperation_TrustSet: {
+      enableRippling?: boolean
+      flags: components['schemas']['Core_Xrpl_TrustSetFlag'][]
+      limitAmount: components['schemas']['Core_Xrpl_ResolvedLimitAmount']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TrustSet'
+    }
+    Core_Xrpl_ResolvedClawbackCurrency:
+      | components['schemas']['Core_Xrpl_ResolvedClawbackCurrency_Fungible']
+      | components['schemas']['Core_Xrpl_ResolvedClawbackCurrency_MultiPurposeToken']
+    Core_Xrpl_ResolvedClawbackCurrency_Fungible: {
+      code: string
+      issuer: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Fungible'
+    }
+    Core_Xrpl_ResolvedClawbackCurrency_MultiPurposeToken: {
+      /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
+      issuanceId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MultiPurposeToken'
+    }
+    Core_Xrpl_ResolvedIouCurrency: {
+      code: string
+      issuer: string
+    }
+    Core_Xrpl_ResolvedLimitAmount: {
+      currency: components['schemas']['Core_Xrpl_ResolvedIouCurrency']
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      value: string
+    }
+    Core_Xrpl_ResolvedMPTokenIdentifier: {
+      /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
+      issuanceId: string
+    }
+    Core_Xrpl_ResolvedPaymentCurrency:
+      | components['schemas']['Core_Xrpl_ResolvedPaymentCurrency_Fungible']
+      | components['schemas']['Core_Xrpl_ResolvedPaymentCurrency_MultiPurposeToken']
+    Core_Xrpl_ResolvedPaymentCurrency_Fungible: {
+      code: string
+      issuer: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Fungible'
+    }
+    Core_Xrpl_ResolvedPaymentCurrency_MultiPurposeToken: {
+      /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
+      issuanceId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MultiPurposeToken'
+    }
+    Core_v0_ProvisionElGamalKeyPair: {
+      /** Format: uuid */
+      accountId: string
+      ledgerId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'v0_ProvisionElGamalKeyPair'
     }
   }
   responses: never
@@ -19351,6 +20973,111 @@ export interface operations {
               }
             }
           }
+        }
+      }
+    }
+  }
+  initiateParametersCompute: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description Unique identifier for the domain. */
+        domainId: string
+        accountId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Core_ApiInitiateParametersComputeRequest']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ApiInitiateParametersComputeResponse']
+        }
+      }
+      /** @description Invalid value for: path parameter domainId, Invalid value for: path parameter accountId, Invalid value for: body */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/plain': string
+        }
+      }
+      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+      /** @description Account not ready yet (AccountNotReady) */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+    }
+  }
+  getParametersComputeStatus: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description Unique identifier for the domain. */
+        domainId: string
+        accountId: string
+        computeId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ApiParametersComputeStatusResponse']
+        }
+      }
+      /** @description Invalid value for: path parameter domainId, Invalid value for: path parameter accountId, Invalid value for: path parameter computeId */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/plain': string
+        }
+      }
+      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+      /** @description Entity or Domain not found (EntityNotFoundError) */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
         }
       }
     }

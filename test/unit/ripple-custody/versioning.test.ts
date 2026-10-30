@@ -22,7 +22,10 @@ import {
 import { FakeHttpPort, ok, status } from './test-utils.js'
 
 const VENDORED_SPEC: unknown = JSON.parse(
-  readFileSync(join(process.cwd(), 'openapi', 'custody-openapi.json'), 'utf8'),
+  readFileSync(
+    join(process.cwd(), 'openapi', 'custody', 'official', 'public.json'),
+    'utf8',
+  ),
 )
 const GATEWAY = 'https://custody.example.com'
 
@@ -302,5 +305,105 @@ describe('resolveVersionGuard', () => {
         code: 'SIMPLEXRPL_CUSTODY_VERSION_UNDETECTED',
       }),
     )
+  })
+})
+
+describe('internal API detection', () => {
+  const INTERNAL_SPEC: unknown = JSON.parse(
+    readFileSync(
+      join(process.cwd(), 'openapi', 'custody', 'official', 'internal.json'),
+      'utf8',
+    ),
+  )
+  let warn: jest.SpyInstance
+  beforeEach(() => {
+    warn = jest.spyOn(process, 'emitWarning').mockReturnValue(undefined)
+  })
+  afterEach(() => {
+    warn.mockRestore()
+  })
+
+  it('reads the internal document alongside the public one', async () => {
+    const http = new FakeHttpPort((request) =>
+      ok(
+        request.url.includes('scope=internal') ? INTERNAL_SPEC : VENDORED_SPEC,
+      ),
+    )
+
+    const guard = await resolveVersionGuard({}, http, GATEWAY)
+
+    expect(http.requests.map((request) => request.url)).toEqual([
+      `${GATEWAY}/api/OpenAPI?scope=&layout=`,
+      `${GATEWAY}/api/OpenAPI?scope=internal&layout=`,
+    ])
+    expect(() => {
+      guard.assertInternalEndpoint('GET', '/internal/v1/vaults/current', 'x')
+    }).not.toThrow()
+    expect(() => {
+      guard.assertInternalEndpoint('GET', '/internal/v1/nothing', 'x')
+    }).toThrow(UnsupportedInVersionError)
+  })
+
+  it('leaves the internal API unchecked, silently, when its document is unavailable', async () => {
+    const http = new FakeHttpPort((request) => {
+      return request.url.includes('scope=internal')
+        ? status(404)
+        : ok(VENDORED_SPEC)
+    })
+
+    const guard = await resolveVersionGuard({}, http, GATEWAY)
+
+    expect(guard.appVersion).toBeDefined()
+    expect(() => {
+      guard.assertInternalEndpoint('GET', '/internal/v1/nothing', 'x')
+    }).not.toThrow()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('does not look for the internal document beside a custom openApiUrl', async () => {
+    const http = new FakeHttpPort(() => ok(VENDORED_SPEC))
+
+    await resolveVersionGuard({ openApiUrl: `${GATEWAY}/spec` }, http, GATEWAY)
+
+    expect(http.requests).toHaveLength(1)
+  })
+
+  it('leaves the internal API unchecked for a pinned version', () => {
+    expect(pinnedCapabilities('1.43').internalEndpoints).toBeUndefined()
+  })
+})
+
+describe('availability hints', () => {
+  it('points at the official versions that serve a missing endpoint', () => {
+    const guard = new VersionGuard(pinnedCapabilities('1.35'))
+
+    expect(() => {
+      guard.assertEndpoint('GET', '/v1/health', 'x')
+    }).toThrow(
+      "x needs the endpoint 'GET /v1/health', which Ripple Custody 1.35 " +
+        '(pinned) does not support. It is available in: official 1.36–1.43; ' +
+        'devbox (cmpt).',
+    )
+  })
+
+  it('points at the devbox build for a pre-release capability', () => {
+    const guard = new VersionGuard(pinnedCapabilities('1.43'))
+
+    expect(() => {
+      guard.assertNativeTransaction('Batch')
+    }).toThrow(
+      expect.objectContaining({
+        capability: 'Batch',
+        availability: 'devbox (cmpt)',
+      }),
+    )
+  })
+
+  it('omits the hint when nothing is known about the capability', () => {
+    const guard = new VersionGuard(pinnedCapabilities('1.43'))
+
+    expect(() => {
+      guard.assertIntentType('v0_DoesNotExist', 'x')
+    }).toThrow(expect.objectContaining({ availability: undefined }))
   })
 })

@@ -19,8 +19,14 @@ export interface CustodyCapabilities {
   readonly appVersion: string
   /** Whether this came from the live instance or a pinned version's bundled data. */
   readonly source: 'detected' | 'pinned'
-  /** Served endpoints, normalized with {@link endpointKey}. */
+  /** Served public-API endpoints, normalized with {@link endpointKey}. */
   readonly endpoints: ReadonlySet<string>
+  /**
+   * Served internal-API endpoints, when the instance's internal document was
+   * read. `undefined` leaves the internal API unchecked: pinned data covers
+   * the public API only, and not every instance serves its internal document.
+   */
+  readonly internalEndpoints?: ReadonlySet<string>
   /** Accepted native XRPL operation types (e.g. `'TrustSet'`). */
   readonly xrplOperations: ReadonlySet<string>
   /** Accepted intent payload types (e.g. `'v0_CreateTransactionOrder'`). */
@@ -175,36 +181,59 @@ function toCapabilities(
   return {
     appVersion,
     source,
-    endpoints: new Set(
-      lists.endpoints.map((entry) => {
-        const [method, path] = entry.split(' ')
-        return endpointKey(method, path)
-      }),
-    ),
+    endpoints: endpointSet(lists.endpoints),
     xrplOperations: new Set(lists.xrplOperations),
     intentTypes: new Set(lists.intentTypes),
   }
 }
 
 /**
- * Derive a live instance's capabilities from the OpenAPI document it serves —
+ * Normalize a list of `METHOD /path` entries.
+ *
+ * @param entries - Endpoints as `METHOD /path`.
+ * @returns The normalized set (see {@link endpointKey}).
+ */
+function endpointSet(entries: readonly string[]): Set<string> {
+  return new Set(
+    entries.map((entry) => {
+      const [method, path] = entry.split(' ')
+      return endpointKey(method, path)
+    }),
+  )
+}
+
+/**
+ * Derive a live instance's capabilities from the OpenAPI documents it serves —
  * exact for that instance, including versions with no bundled data.
  *
- * @param spec - The instance's parsed OpenAPI document.
+ * @param spec - The instance's parsed public OpenAPI document.
+ * @param internalSpec - Its internal document, when it could be read.
  * @returns The detected capabilities.
  * @throws {@link SimpleXRPLError} if the document has no paths (not a Custody spec).
  */
-export function detectedCapabilities(spec: unknown): CustodyCapabilities {
+export function detectedCapabilities(
+  spec: unknown,
+  internalSpec?: unknown,
+): CustodyCapabilities {
   const lists = extractCapabilityLists(spec)
   if (lists.endpoints.length === 0) {
     throw new SimpleXRPLError('The Custody OpenAPI document lists no endpoints')
   }
   const version = asDocument(spec).info?.['x-app-version']
-  return toCapabilities(
+  const capabilities = toCapabilities(
     typeof version === 'string' ? version : 'unknown',
     'detected',
     lists,
   )
+  if (internalSpec === undefined) {
+    return capabilities
+  }
+  return {
+    ...capabilities,
+    internalEndpoints: endpointSet(
+      extractCapabilityLists(internalSpec).endpoints,
+    ),
+  }
 }
 
 /**

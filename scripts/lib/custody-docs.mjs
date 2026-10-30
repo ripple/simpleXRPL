@@ -8,6 +8,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { CAPABILITIES_FILE } from './custody-specs.mjs'
+
 const DOCS_ROOT = 'products/custody'
 export const VERSIONS_FILE = `${DOCS_ROOT}/versions.yaml`
 
@@ -188,10 +190,10 @@ export function capabilityKey(version) {
 
 /**
  * The vendored per-version capability data, `{ "1.43": { endpoints,
- * xrplOperations, intentTypes }, … }`. `npm run typegen` turns it into
- * src/generated/custody-capabilities.ts.
+ * xrplOperations, intentTypes }, … }`, for the official public API.
+ * `npm run typegen` turns it into src/generated/custody-capabilities.ts.
  */
-export const CAPABILITIES_FILE = 'openapi/custody-capabilities.json'
+export { CAPABILITIES_FILE }
 
 export function readCapabilityData(root) {
   try {

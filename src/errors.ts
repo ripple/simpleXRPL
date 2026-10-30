@@ -195,6 +195,11 @@ export class UnsupportedInVersionError extends SimpleXRPLError {
   public readonly appVersion: string
   /** Whether that version was detected from the instance or pinned. */
   public readonly source: 'detected' | 'pinned'
+  /**
+   * Where the capability is served, when known — e.g. `official 1.37–1.43` or
+   * `devbox (cmpt)`.
+   */
+  public readonly availability: string | undefined
 
   /**
    * Construct an UnsupportedInVersionError.
@@ -205,6 +210,7 @@ export class UnsupportedInVersionError extends SimpleXRPLError {
    * @param details.sdkMethod - The SDK call that needed it.
    * @param details.appVersion - The Custody version checked against.
    * @param details.source - Whether that version was detected or pinned.
+   * @param details.availability - Where the capability is served, if known.
    */
   public constructor(details: {
     kind: keyof typeof CAPABILITY_LABELS
@@ -212,17 +218,23 @@ export class UnsupportedInVersionError extends SimpleXRPLError {
     sdkMethod: string
     appVersion: string
     source: 'detected' | 'pinned'
+    availability?: string
   }) {
+    const hint =
+      details.availability === undefined
+        ? ''
+        : ` It is available in: ${details.availability}.`
     super(
       `${details.sdkMethod} needs the ${CAPABILITY_LABELS[details.kind]} ` +
         `'${details.capability}', which Ripple Custody ${details.appVersion} ` +
-        `(${details.source}) does not support.`,
+        `(${details.source}) does not support.${hint}`,
     )
     this.kind = details.kind
     this.capability = details.capability
     this.sdkMethod = details.sdkMethod
     this.appVersion = details.appVersion
     this.source = details.source
+    this.availability = details.availability
   }
 }
 

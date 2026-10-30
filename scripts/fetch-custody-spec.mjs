@@ -1,6 +1,6 @@
 // Vendors the Ripple Custody OpenAPI spec published with the Custody product
-// docs into openapi/custody-openapi.json, and records that version's
-// capabilities in openapi/custody-capabilities.json. Without `--version`, it
+// docs into openapi/custody/official/public.json, and records that version's
+// capabilities in openapi/custody/capabilities.json. Without `--version`, it
 // takes the docs' current default version (`default:` in versions.yaml), so a
 // daily run tracks whatever the docs publish as current.
 //
@@ -37,9 +37,10 @@ import {
   serializeCapabilityData,
   writeCapabilityData,
 } from './lib/custody-docs.mjs'
+import { OFFICIAL_PUBLIC_SPEC } from './lib/custody-specs.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const VENDORED_SPEC = join(ROOT, 'openapi/custody-openapi.json')
+const VENDORED_SPEC = join(ROOT, OFFICIAL_PUBLIC_SPEC)
 
 function externalRefs(node, found = new Set()) {
   if (Array.isArray(node)) {
@@ -152,14 +153,14 @@ async function main() {
   if (specChanged) {
     writeFileSync(VENDORED_SPEC, body)
     console.log(
-      `Updated openapi/custody-openapi.json: ${current.appVersion ?? 'none'} → ${appVersion} (${version}). ` +
+      `Updated ${OFFICIAL_PUBLIC_SPEC}: ${current.appVersion ?? 'none'} → ${appVersion} (${version}). ` +
         'Next: npm run typegen',
     )
   } else {
     console.log(`Custody spec is up to date (${version}).`)
   }
   if (capabilitiesChanged) {
-    console.log(`Updated ${version} in openapi/custody-capabilities.json.`)
+    console.log(`Updated ${version} in openapi/custody/capabilities.json.`)
   }
 
   setOutputs({

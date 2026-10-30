@@ -1,4 +1,4 @@
-// Rebuilds openapi/custody-capabilities.json from every Ripple Custody version
+// Rebuilds openapi/custody/capabilities.json from every Ripple Custody version
 // the docs publish a spec for: the endpoints, native XRPL operation types and
 // intent payload types each version supports. This is the offline data a
 // pinned `apiVersion` gates against; auto-detection reads the live instance

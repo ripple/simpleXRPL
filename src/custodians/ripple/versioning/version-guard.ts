@@ -1,4 +1,6 @@
 import { UnsupportedInVersionError } from '../../../errors.js'
+import { CUSTODY_AVAILABILITY } from '../../../generated/custody-availability.js'
+import type { CustodyAvailability } from '../../../generated/custody-availability.js'
 
 import { endpointKey } from './capabilities.js'
 import type { CustodyCapabilities } from './capabilities.js'
@@ -11,8 +13,30 @@ interface CapabilityCheck {
   readonly capability: string
   /** The SDK call that needs it. */
   readonly sdkMethod: string
+  /** Where the capability is served, for the error's hint. */
+  readonly availability: CustodyAvailability | undefined
   /** Whether the resolved capabilities include it. */
   readonly isSupported: (caps: CustodyCapabilities) => boolean
+}
+
+/**
+ * Describe where a capability is served, e.g. `official 1.37–1.43; devbox
+ * (cmpt)`.
+ *
+ * @param availability - The generated availability entry.
+ * @returns The description, or `undefined` when nothing is known.
+ */
+function describeAvailability(
+  availability: CustodyAvailability | undefined,
+): string | undefined {
+  const parts: string[] = []
+  if (availability?.official !== undefined) {
+    parts.push(`official ${availability.official}`)
+  }
+  if (availability?.devbox !== undefined) {
+    parts.push(`devbox (${availability.devbox.join(', ')})`)
+  }
+  return parts.length === 0 ? undefined : parts.join('; ')
 }
 
 /**
@@ -47,7 +71,7 @@ export class VersionGuard {
   }
 
   /**
-   * Assert the version serves an endpoint.
+   * Assert the version serves a public-API endpoint.
    *
    * @param method - The HTTP method.
    * @param pathTemplate - The path template (e.g. `/v1/domains/{domainId}`).
@@ -59,13 +83,30 @@ export class VersionGuard {
     pathTemplate: string,
     sdkMethod: string,
   ): void {
-    const key = endpointKey(method, pathTemplate)
-    this.check({
-      kind: 'endpoint',
-      capability: `${method.toUpperCase()} ${pathTemplate}`,
-      sdkMethod,
-      isSupported: (caps) => caps.endpoints.has(key),
-    })
+    this.checkEndpoint({ method, pathTemplate, sdkMethod }, (caps, key) =>
+      caps.endpoints.has(key),
+    )
+  }
+
+  /**
+   * Assert the version serves an internal-API endpoint. Passes when the
+   * instance's internal API wasn't resolved (a pinned version, or an instance
+   * that doesn't serve its internal document).
+   *
+   * @param method - The HTTP method.
+   * @param pathTemplate - The path template (e.g. `/internal/v1/users`).
+   * @param sdkMethod - The SDK call making it, for the error message.
+   * @throws {@link UnsupportedInVersionError} if the endpoint is not served.
+   */
+  public assertInternalEndpoint(
+    method: string,
+    pathTemplate: string,
+    sdkMethod: string,
+  ): void {
+    this.checkEndpoint(
+      { method, pathTemplate, sdkMethod },
+      (caps, key) => caps.internalEndpoints?.has(key) ?? true,
+    )
   }
 
   /**
@@ -80,6 +121,7 @@ export class VersionGuard {
       kind: 'xrplOperation',
       capability: operationType,
       sdkMethod,
+      availability: CUSTODY_AVAILABILITY.xrplOperations[operationType],
       isSupported: (caps) => caps.xrplOperations.has(operationType),
     })
   }
@@ -96,6 +138,7 @@ export class VersionGuard {
       kind: 'intentType',
       capability: intentType,
       sdkMethod,
+      availability: CUSTODY_AVAILABILITY.intentTypes[intentType],
       isSupported: (caps) => caps.intentTypes.has(intentType),
     })
   }
@@ -125,6 +168,34 @@ export class VersionGuard {
   }
 
   /**
+   * Shared endpoint check for both APIs.
+   *
+   * @param call - The endpoint and the SDK call making it.
+   * @param call.method - The HTTP method.
+   * @param call.pathTemplate - The path template.
+   * @param call.sdkMethod - The SDK call making it.
+   * @param isServed - Whether the capabilities include the normalized endpoint.
+   * @throws {@link UnsupportedInVersionError} if the endpoint is not served.
+   */
+  private checkEndpoint(
+    call: {
+      readonly method: string
+      readonly pathTemplate: string
+      readonly sdkMethod: string
+    },
+    isServed: (caps: CustodyCapabilities, key: string) => boolean,
+  ): void {
+    const key = endpointKey(call.method, call.pathTemplate)
+    this.check({
+      kind: 'endpoint',
+      capability: `${call.method.toUpperCase()} ${call.pathTemplate}`,
+      sdkMethod: call.sdkMethod,
+      availability: CUSTODY_AVAILABILITY.endpoints[key],
+      isSupported: (caps) => isServed(caps, key),
+    })
+  }
+
+  /**
    * Pass through when unresolved; otherwise throw unless the check holds.
    *
    * @param check - The capability check.
@@ -141,6 +212,7 @@ export class VersionGuard {
       sdkMethod: check.sdkMethod,
       appVersion: caps.appVersion,
       source: caps.source,
+      availability: describeAvailability(check.availability),
     })
   }
 }

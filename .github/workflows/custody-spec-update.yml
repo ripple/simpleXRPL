@@ -1,9 +1,12 @@
 name: Custody spec update
 
 # Daily check for a newer Ripple Custody OpenAPI spec. When the spec published
-# with the Custody docs differs from openapi/custody-openapi.json (or its entry
-# in openapi/custody-capabilities.json is stale), vendor it, regenerate the
-# custodian types, and open (or refresh) a PR for review.
+# with the Custody docs differs from openapi/custody/official/public.json (or
+# its entry in openapi/custody/capabilities.json is stale), vendor it,
+# regenerate the custodian types, and open (or refresh) a PR for review.
+#
+# Devbox and internal specs aren't published with the docs; they're vendored
+# by hand with `npm run fetch:custody-instance-spec` (see openapi/README.md).
 #
 # Setup (repository secrets) — see openapi/README.md:
 #   CUSTODY_SPEC_GITLAB_TOKEN    token that can read the Custody docs project
@@ -72,8 +75,8 @@ jobs:
         run: |
           same() { git show "FETCH_HEAD:$1" 2>/dev/null | cmp -s - "$1"; }
           if git fetch --depth=1 origin "$PR_BRANCH" 2>/dev/null \
-            && same openapi/custody-openapi.json \
-            && same openapi/custody-capabilities.json; then
+            && same openapi/custody/official/public.json \
+            && same openapi/custody/capabilities.json; then
             echo "The open update PR already carries this spec; leaving it untouched."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
@@ -107,9 +110,10 @@ jobs:
           branch: ${{ env.PR_BRANCH }}
           delete-branch: true
           add-paths: |
-            openapi/custody-openapi.json
-            openapi/custody-capabilities.json
+            openapi/custody/official/public.json
+            openapi/custody/capabilities.json
             src/generated/
+            docs/custody-endpoints.md
           commit-message: 'chore: update Ripple Custody spec to ${{ steps.fetch.outputs.version }}'
           title: 'chore: update Ripple Custody spec to ${{ steps.fetch.outputs.version }}'
           body: |

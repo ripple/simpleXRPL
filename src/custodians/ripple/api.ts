@@ -1,7 +1,9 @@
-import { SimpleXRPLError } from '../../errors.js'
 import { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
 import type { components, operations } from '../../generated/custody.js'
 
+import { fillPath } from './api-call.js'
+import type { CallArgs, ResponseBody } from './api-call.js'
+import { CustodyInternalApi } from './api-internal.js'
 import type { IntentSigner } from './auth/intent-signer.js'
 import {
   buildProposeEnvelope,
@@ -20,56 +22,11 @@ export type CustodyProposePayload =
 /** Per-call envelope overrides for {@link CustodyApi.propose}. */
 export type CustodyProposeOptions = ProposeEnvelopeOverrides
 
-/** The path parameters an operation takes (or `never` if it has none). */
-type PathParams<Op extends keyof operations> =
-  operations[Op]['parameters']['path']
-/** The query parameters an operation takes (or `never`/`undefined`). */
-type QueryParams<Op extends keyof operations> =
-  operations[Op]['parameters']['query']
-/** The JSON request body an operation takes (or `never` if it has none). */
-type RequestBody<Op extends keyof operations> = operations[Op] extends {
-  requestBody: { content: { 'application/json': infer Body } }
-}
-  ? Body
-  : never
-/* eslint-disable @typescript-eslint/no-magic-numbers -- 200 indexes the OpenAPI success-response type */
-/** The JSON response body an operation returns (or `unknown` if untyped). */
-type ResponseBody<Op extends keyof operations> = operations[Op] extends {
-  responses: { 200: { content: { 'application/json': infer Res } } }
-}
-  ? Res
-  : unknown
-/* eslint-enable @typescript-eslint/no-magic-numbers */
-
 /** The typed arguments for one operation: path params, query, and/or body. */
-export interface CustodyCallArgs<Op extends CustodyOperationId> {
-  readonly path?: PathParams<Op>
-  readonly query?: QueryParams<Op>
-  readonly body?: RequestBody<Op>
-}
-
-/**
- * Fill `{name}` placeholders in a route template from the supplied path params.
- *
- * @param template - The route path template (e.g. `/v1/domains/{domainId}`).
- * @param params - The path parameters, keyed by placeholder name.
- * @returns The interpolated path.
- * @throws {@link SimpleXRPLError} if a placeholder has no matching parameter.
- */
-function fillPath(template: string, params?: Record<string, unknown>): string {
-  return template.replace(/\{(?<key>\w+)\}/gu, (_match, key: string) => {
-    const value = params?.[key]
-    // Treat null like undefined: without this it would stringify to the literal
-    // "null" and silently produce a malformed path.
-    if (value === undefined || value === null) {
-      throw new SimpleXRPLError(
-        `Missing path parameter '${key}' for Custody route ${template}`,
-      )
-    }
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- path params are scalars (ids / r-addresses)
-    return encodeURIComponent(String(value))
-  })
-}
+export type CustodyCallArgs<Op extends CustodyOperationId> = CallArgs<
+  operations,
+  Op
+>
 
 /**
  * Low-level, typed access to the full Ripple Custody v1 API — a **secondary**
@@ -90,6 +47,12 @@ function fillPath(template: string, params?: Record<string, unknown>): string {
  * quarantined transfers) without a dedicated vertical.
  */
 export class CustodyApi {
+  /**
+   * The instance's internal API (`/internal/v1/…`), with its own operationIds.
+   * See {@link CustodyInternalApi}.
+   */
+  public readonly internal: CustodyInternalApi
+
   private readonly client: CustodyHttpClient
   private readonly intentSigner: IntentSigner
   private readonly proposeContext: ProposeEnvelopeContext
@@ -121,6 +84,7 @@ export class CustodyApi {
       authorUserId: propose.authorUserId,
     }
     this.versionGuard = propose.versionGuard ?? new VersionGuard(undefined)
+    this.internal = new CustodyInternalApi(client, this.versionGuard)
   }
 
   /**
@@ -138,7 +102,7 @@ export class CustodyApi {
   public async call<Op extends CustodyOperationId>(
     operationId: Op,
     args?: CustodyCallArgs<Op>,
-  ): Promise<ResponseBody<Op>> {
+  ): Promise<ResponseBody<operations, Op>> {
     const route = CUSTODY_ROUTES[operationId]
     this.versionGuard.assertEndpoint(
       route.method,
@@ -146,10 +110,14 @@ export class CustodyApi {
       `api.call('${operationId}')`,
     )
     const path = fillPath(route.path, args?.path)
-    return this.client.invoke<ResponseBody<Op>>(route.method, path, {
-      query: args?.query,
-      body: args?.body,
-    })
+    return this.client.invoke<ResponseBody<operations, Op>>(
+      route.method,
+      path,
+      {
+        query: args?.query,
+        body: args?.body,
+      },
+    )
   }
 
   /**

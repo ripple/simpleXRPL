@@ -1,5 +1,5 @@
 // Generates the per-version Ripple Custody capability table from the vendored
-// openapi/custody-capabilities.json. A pinned `apiVersion` gates calls against
+// openapi/custody/capabilities.json. A pinned `apiVersion` gates calls against
 // this table; auto-detection reads the live instance spec instead. Regenerated
 // by `npm run typegen`, so it never drifts from the vendored data.
 //
@@ -15,7 +15,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const data = readCapabilityData(ROOT)
 const versions = Object.keys(data)
 if (versions.length === 0) {
-  throw new Error('openapi/custody-capabilities.json is missing or empty')
+  throw new Error('openapi/custody/capabilities.json is missing or empty')
 }
 
 const out = `/**

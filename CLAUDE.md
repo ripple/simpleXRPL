@@ -33,7 +33,7 @@ established.
 
 - Adapter wire types are **generated, never hand-authored**. `npm run typegen`
   runs `openapi-typescript` (+ prettier) over the pinned specs in `openapi/`
-  into `src/generated/{custody,palisade}.ts`.
+  into `src/generated/{custody,custody-internal,palisade}.ts`.
 - These generated files **are committed** (not git-ignored): the repo stays
   self-contained, and an API change shows up as a diff in review. CI regenerates
   and fails if they're stale. ESLint skips them; Prettier formats them.
@@ -48,16 +48,24 @@ established.
   ```
 - The **only** hand-authored types are SDK-internal ones with no API counterpart
   (e.g. option bags, unions over generated types).
-- **Ripple Custody** spec updates are automated: a daily workflow
-  (`custody-spec-update.yml`) vendors the docs' current spec into the stable
-  `openapi/custody-openapi.json`, runs typegen, and opens a PR. By hand:
-  `npm run fetch:custody-spec` then `npm run typegen`. The pinned version is the
-  file's `info.x-app-version` — never rename the file.
-- `openapi/custody-capabilities.json` holds what each Custody version supports
-  (for a pinned `apiVersion`); typegen emits it as
-  `src/generated/custody-capabilities.ts`. Rebuild every version with
-  `npm run fetch:custody-capabilities`; the daily workflow refreshes the current
-  one.
+- **Ripple Custody** specs live in `openapi/custody/`, by channel (`official/`,
+  `devbox/<build>/`) and surface (`public.json`, `internal.json`); any other
+  file there fails generation. Typegen merges each surface (official
+  authoritative, devbox strictly additive) into `custody.ts` /
+  `custody-internal.ts` plus their route maps, and writes the availability
+  table (`docs/custody-endpoints.md`, `src/generated/custody-availability.ts`).
+  Internal-API types come from `../generated/custody-internal.js` — never mix the
+  two `operations` maps; their operationIds overlap.
+- The official public spec is kept current by a daily workflow
+  (`custody-spec-update.yml`); by hand: `npm run fetch:custody-spec`. Devbox and
+  internal specs come from live instances: `npm run fetch:custody-instance-spec`.
+  Never rename a spec file — its version is `info.x-app-version`.
+- `openapi/custody/capabilities.json` holds what each official Custody version
+  supports (for a pinned `apiVersion`); typegen emits it as
+  `src/generated/custody-capabilities.ts`. Rebuild it with
+  `npm run fetch:custody-capabilities`.
+- Spec tooling in `scripts/lib/` has its own tests: `npm run test:scripts`
+  (Node's test runner; CI runs it).
 - Bumping **Palisade** = replace `openapi/palisade-api.yaml`, run
   `npm run typegen`, and resolve any resulting type errors.
 - See [`openapi/README.md`](./openapi/README.md) for both.
