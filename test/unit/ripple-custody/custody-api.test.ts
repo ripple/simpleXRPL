@@ -5,6 +5,16 @@ import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
 import { buildProposeIntentBody } from '../../../src/custodians/ripple/mapping/envelope.js'
 import { CustodyHttpClient } from '../../../src/custodians/ripple/transport/custody-http-client.js'
+import type {
+  HttpRequest,
+  HttpResponse,
+} from '../../../src/custodians/ripple/transport/http-port.js'
+import { pinnedCapabilities } from '../../../src/custodians/ripple/versioning/capabilities.js'
+import { VersionGuard } from '../../../src/custodians/ripple/versioning/version-guard.js'
+import {
+  SimpleXRPLError,
+  UnsupportedInVersionError,
+} from '../../../src/errors.js'
 import type { components } from '../../../src/generated/custody.js'
 import {
   FakeAuthPort,
@@ -12,6 +22,8 @@ import {
   makeJwt,
 } from '../custody-auth/test-utils.js'
 import { FakeHttpPort, ok } from '../custody-discovery/test-utils.js'
+
+import { intentBody } from './test-utils.js'
 
 const KEY = generateTestKey('ed25519')
 const GATEWAY = 'https://custody.example.com'
@@ -24,14 +36,23 @@ const AUTHOR = 'user-1'
  * the API calls the route map drives — no token-exchange noise. A real
  * `IntentSigner` backs `propose`, so its envelopes are genuinely signed.
  *
- * @param responseBody - The JSON body every recorded request returns.
+ * @param respond - The JSON body every recorded request returns, or a handler
+ *   choosing the response per request.
+ * @param versionGuard - The version guard; omitted, nothing is blocked.
  * @returns The api under test and the recording HTTP port.
  */
-function apiOn(responseBody: unknown = {}): {
+function apiOn(
+  respond: unknown = {},
+  versionGuard?: VersionGuard,
+): {
   api: CustodyApi
   http: FakeHttpPort
 } {
-  const http = new FakeHttpPort(() => ok(responseBody))
+  const http = new FakeHttpPort(
+    typeof respond === 'function'
+      ? (respond as (request: HttpRequest) => HttpResponse)
+      : (): HttpResponse => ok(respond),
+  )
   const auth = new CustodyAuthService({
     authPort: new FakeAuthPort(makeJwt({ exp: 9_999_999_999 })),
     privateKey: KEY,
@@ -42,6 +63,7 @@ function apiOn(responseBody: unknown = {}): {
     intentSigner,
     domainId: DOMAIN,
     authorUserId: AUTHOR,
+    versionGuard,
   })
   return { api, http }
 }
@@ -231,5 +253,173 @@ describe('CustodyApi.propose', () => {
     const response = await api.propose(RELEASE_PAYLOAD)
 
     expect(response.requestId).toBe('req-42')
+  })
+})
+
+describe('CustodyApi.request', () => {
+  it('reaches an endpoint with no operationId, by method and path', async () => {
+    const { api, http } = apiOn({ id: 'inv-1' })
+    const invitation = { email: 'ops@example.com' } as never
+
+    await api.request('POST', '/v1/domains/{domainId}/users/invitations', {
+      path: { domainId: 'D' },
+      body: invitation,
+    })
+
+    expect(http.requests[0]?.method).toBe('POST')
+    expect(http.requests[0]?.url).toBe(
+      `${GATEWAY}/v1/domains/D/users/invitations`,
+    )
+    expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual(invitation)
+  })
+
+  it('appends query params and needs no body on a GET', async () => {
+    const { api, http } = apiOn({ items: [] })
+
+    await api.request('GET', '/v1/domains/{domainId}/users/invitations', {
+      path: { domainId: 'D' },
+      query: { limit: 5 },
+    })
+
+    expect(http.requests[0]?.url).toBe(
+      `${GATEWAY}/v1/domains/D/users/invitations?limit=5`,
+    )
+    expect(http.requests[0]?.body).toBeUndefined()
+  })
+
+  it('throws when a required path parameter is missing', async () => {
+    const { api, http } = apiOn()
+
+    await expect(
+      api.request('GET', '/v1/domains/{domainId}/users/invitations'),
+    ).rejects.toThrow(/Missing path parameter 'domainId'/u)
+    expect(http.requests).toHaveLength(0)
+  })
+
+  it('is checked against the Custody version, like call', async () => {
+    // GET /v1/health arrived in 1.36.
+    const { api, http } = apiOn(
+      {},
+      new VersionGuard(pinnedCapabilities('1.35')),
+    )
+
+    await expect(api.request('GET', '/v1/health')).rejects.toThrow(
+      UnsupportedInVersionError,
+    )
+    await expect(api.request('GET', '/v1/health')).rejects.toMatchObject({
+      sdkMethod: "api.request('GET', '/v1/health')",
+    })
+    expect(http.requests).toHaveLength(0)
+  })
+
+  it('accepts only the methods a path serves', () => {
+    const { api } = apiOn()
+
+    // Compile-time checks: these never run.
+    const wrongMethod = async (): Promise<unknown> =>
+      // @ts-expect-error -- /v1/health serves no POST
+      api.request('POST', '/v1/health')
+    const unknownPath = async (): Promise<unknown> =>
+      // @ts-expect-error -- not a Custody path
+      api.request('GET', '/v1/not-a-path')
+
+    expect([wrongMethod, unknownPath]).toHaveLength(2)
+  })
+})
+
+describe('CustodyApi.approve / reject', () => {
+  const INTENT_ID = 'intent-7'
+  const PROPOSAL_SIGNATURE = 'cHJvcG9zYWwtc2lnbmF0dXJl'
+  const TARGET_DOMAIN = 'domain-target'
+
+  /**
+   * Answer the intent fetch with an intent, and the decision with an ack.
+   *
+   * @param request - The recorded request.
+   * @returns The fake Custody response.
+   */
+  const custody = (request: HttpRequest): HttpResponse => {
+    if (request.method === 'GET') {
+      const intent = intentBody(INTENT_ID, 'Open') as {
+        data: { details: Record<string, unknown> }
+      }
+      intent.data.details.proposalSignature = PROPOSAL_SIGNATURE
+      intent.data.details.targetDomainId = TARGET_DOMAIN
+      return ok(intent)
+    }
+    return ok({ requestId: 'decision-1' })
+  }
+
+  /**
+   * The signed body a recorded decision POST carried.
+   *
+   * @param http - The recording HTTP port.
+   * @returns The posted body.
+   */
+  const decisionBody = (
+    http: FakeHttpPort,
+  ): { request: Record<string, unknown>; signature: string } =>
+    JSON.parse(http.requests[1]?.body ?? '{}') as {
+      request: Record<string, unknown>
+      signature: string
+    }
+
+  it('fetches the intent, then posts an approval signed by the API user key', async () => {
+    const { api, http } = apiOn(custody)
+
+    const response = await api.approve(INTENT_ID, { reason: 'within limits' })
+
+    expect(http.requests.map(({ method, url }) => `${method} ${url}`)).toEqual([
+      `GET ${GATEWAY}/v1/domains/${DOMAIN}/intents/${INTENT_ID}`,
+      `POST ${GATEWAY}/v1/intents/approve`,
+    ])
+    const body = decisionBody(http)
+    expect(body.request).toEqual({
+      type: 'Approve',
+      author: { id: AUTHOR, domainId: DOMAIN },
+      targetDomainId: TARGET_DOMAIN,
+      intentId: INTENT_ID,
+      proposalSignature: PROPOSAL_SIGNATURE,
+      approvalReason: 'within limits',
+    })
+    // ed25519 is deterministic: the same key over the same request agrees.
+    expect(body.signature).toBe(
+      await IntentSigner.fromPrivateKey(KEY).signRequest(body.request),
+    )
+    expect(response).toEqual({ requestId: 'decision-1' })
+  })
+
+  it('leaves approvalReason out when no reason is given', async () => {
+    const { api, http } = apiOn(custody)
+
+    await api.approve(INTENT_ID)
+
+    expect(decisionBody(http).request).not.toHaveProperty('approvalReason')
+  })
+
+  it('posts a rejection with its reason', async () => {
+    const { api, http } = apiOn(custody)
+
+    await api.reject(INTENT_ID, { reason: 'unexpected destination' })
+
+    expect(http.requests[1]?.url).toBe(`${GATEWAY}/v1/intents/reject`)
+    expect(decisionBody(http).request).toMatchObject({
+      type: 'Reject',
+      intentId: INTENT_ID,
+      proposalSignature: PROPOSAL_SIGNATURE,
+      rejectReason: 'unexpected destination',
+    })
+  })
+
+  it('refuses a rejection with no reason, and a reason over 5000 characters', async () => {
+    const { api, http } = apiOn(custody)
+
+    await expect(api.reject(INTENT_ID, { reason: '' })).rejects.toThrow(
+      'api.reject needs a reason',
+    )
+    await expect(
+      api.approve(INTENT_ID, { reason: 'x'.repeat(5001) }),
+    ).rejects.toThrow(SimpleXRPLError)
+    expect(http.requests).toHaveLength(0)
   })
 })

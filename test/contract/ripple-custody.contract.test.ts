@@ -27,6 +27,9 @@ import { SANDBOX_PRIMARY, describeContract } from './helpers/custody-sandbox.js'
 
 const LIVE_TIMEOUT_MS = 120_000
 
+/** How long to wait for a rejected intent to show as `Rejected`. */
+const DECISION_SETTLE_MS = 15_000
+
 /** A no-op AccountSet on the sandbox primary — the benign shape the dry-run and
  * propose contract checks both reuse (it never executes without approval). */
 const PRIMARY_ACCOUNT_SET: AccountSet = {
@@ -275,6 +278,62 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     ISSUE_TEST_TIMEOUT_MS,
   )
 
+  describe('intent decisions (approve / reject)', () => {
+    // Known failure on the shared sandbox: it auto-approves and executes
+    // proposals within about a second, so the reject arrives after the intent
+    // has settled and Custody answers 404. This passes on an instance whose
+    // policy keeps intents pending until a decision.
+    it(
+      'rejects an intent it proposed, signed with the API user key',
+      async () => {
+        const { accountId, ledgerId } = requirePrimary(
+          await custody.listAccounts(),
+        )
+        const intentId = randomUUID()
+        const order = await buildProposeIntentBody(state.intentSigner, {
+          domainId: state.domainId,
+          authorUserId: state.authorUserId,
+          accountId,
+          ledgerId,
+          transaction: PRIMARY_ACCOUNT_SET,
+          idempotencyKey: intentId,
+        })
+        await custody.api.propose(order.request.payload, {
+          id: intentId,
+          expiryAt: new Date(Date.now() + 120_000).toISOString(),
+        })
+
+        // A requestId back means the sandbox verified the decision's signature
+        // and bound it to the proposal by its signature.
+        const response = await custody.api.reject(intentId, {
+          reason: 'simpleXRPL contract check: rejecting a no-op intent',
+        })
+        expect(response.requestId).toBeTruthy()
+
+        // And the intent ends up Rejected — which also cleans it up.
+        const deadline = Date.now() + DECISION_SETTLE_MS
+        let status = ''
+        while (Date.now() < deadline) {
+          // Sequential by design: each poll waits on the previous one.
+          // eslint-disable-next-line no-await-in-loop -- polling for a status change
+          const intent = await custody.api.call('getIntent', {
+            path: { domainId: state.domainId, intentId },
+          })
+          status = intent.data.state.status
+          if (status === 'Rejected') {
+            break
+          }
+          // eslint-disable-next-line no-await-in-loop -- polling interval
+          await new Promise((resolve) => {
+            setTimeout(resolve, 1000)
+          })
+        }
+        expect(status).toBe('Rejected')
+      },
+      LIVE_TIMEOUT_MS,
+    )
+  })
+
   describe('API key through an HSM/KMS signer port', () => {
     it(
       'logs in and signs an intent the sandbox accepts',
@@ -315,7 +374,7 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     )
   })
 
-  describe('api passthrough (call + propose)', () => {
+  describe('api passthrough (call + request + propose)', () => {
     it(
       'api.call resolves getMe and the response parses to the expected shape',
       async () => {
@@ -325,6 +384,21 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         expect(me.domains.some((domain) => domain.id === state.domainId)).toBe(
           true,
         )
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.request reaches an endpoint with no operationId',
+      async () => {
+        // User invitations have no operationId, so only the by-path call can
+        // reach them. A read: lists at most one invitation.
+        const invitations = await custody.api.request(
+          'GET',
+          '/v1/domains/{domainId}/users/invitations',
+          { path: { domainId: state.domainId }, query: { limit: 1 } },
+        )
+        expect(Array.isArray(invitations.items)).toBe(true)
       },
       LIVE_TIMEOUT_MS,
     )

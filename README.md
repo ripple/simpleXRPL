@@ -84,6 +84,28 @@ Which transactors are native differs per backend — see
 matrix, and note that a transactor can be native while a specific _field_ on it
 is not, in which case that call also takes the raw path.
 
+## Ripple Custody API
+
+Beyond the verticals, a `RippleCustody` exposes the whole Custody API, typed
+from the bundled spec:
+
+```ts
+// Any endpoint by operationId, or by method and path (including the ones
+// with no operationId, such as user invitations).
+await custody.api.call('getIntent', { path: { domainId, intentId } })
+await custody.api.request('GET', '/v1/domains/{domainId}/users/invitations', {
+  path: { domainId },
+})
+
+// Governed intents, signed with the API user key.
+await custody.api.propose(payload)
+await custody.api.approve(intentId, { reason: 'within limits' })
+await custody.api.reject(intentId, { reason: 'unexpected destination' })
+```
+
+`approve` and `reject` fetch the intent and sign the decision for you; the API
+user must be allowed to decide on that intent under its policy.
+
 ## Ripple Custody API key in an HSM or KMS
 
 The Ripple Custody API user's key signs the login challenge and every intent
