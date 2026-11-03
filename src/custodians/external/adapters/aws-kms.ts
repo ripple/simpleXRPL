@@ -169,3 +169,8 @@ export class AwsKmsSigner implements Secp256k1SignerPort {
     return derToScalars(response.Signature)
   }
 }
+
+// The Ripple Custody API key signer lives with its custodian but ships from
+// this entry point, so `simplexrpl/aws-kms` is the one place for AWS KMS.
+export { AwsKmsCustodySigner } from '../../ripple/adapters/aws-kms-custody-signer.js'
+export type { AwsKmsCustodySignerOptions } from '../../ripple/adapters/aws-kms-custody-signer.js'

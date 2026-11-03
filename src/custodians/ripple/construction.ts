@@ -12,8 +12,9 @@ import type { components } from '../../generated/custody.js'
 import {
   CustodyAuthService,
   IntentSigner,
-  KeypairService,
+  resolveKeySigner,
 } from './auth/index.js'
+import type { CustodySignerPort } from './auth/index.js'
 import { CustodyHttpClient } from './transport/custody-http-client.js'
 import { FetchHttpPort } from './transport/fetch-http-port.js'
 import { HttpCustodyAuthPort } from './transport/http-custody-auth-port.js'
@@ -24,15 +25,32 @@ import type { VersionGuard } from './versioning/version-guard.js'
 
 const DEFAULT_TIMEOUT_MS = 60_000
 
-/** Auth construction options. */
-export interface RippleCustodyAuthOptions {
-  /** Intent-author private key: PEM contents, or a path to a `.pem` file. */
-  readonly signingKey: string
+/**
+ * Auth construction options. The Custody API user's key — which signs the
+ * login challenge and every intent — is given exactly one way: `signingKey`
+ * (a PEM held in process) or `signer` (an HSM or KMS, so the private key never
+ * enters the process).
+ */
+export type RippleCustodyAuthOptions = {
   /** The Custody token endpoint URL. */
   readonly tokenUrl: string
   /** The OIDC client id to authenticate as. Defaults to `'customer_api'`. */
   readonly clientId?: string
-}
+} & (
+  | {
+      /** The API user's private key, as PEM contents. */
+      readonly signingKey: string
+      readonly signer?: never
+    }
+  | {
+      /**
+       * The API user's key in an HSM or KMS. See {@link CustodySignerPort};
+       * `simplexrpl/aws-kms` ships an AWS KMS implementation.
+       */
+      readonly signer: CustodySignerPort
+      readonly signingKey?: never
+    }
+)
 
 /** Construction options for {@link RippleCustody.create}. */
 export interface RippleCustodyOptions extends CustodyVersionOptions {
@@ -76,6 +94,11 @@ export interface RippleCustodyOptions extends CustodyVersionOptions {
 export interface RippleCustodyFromEnvOptions extends CustodyVersionOptions {
   /** The primary account's r-address; validated against the discovered set. */
   readonly primary: string
+  /**
+   * The API user's key in an HSM or KMS, instead of
+   * `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` (which is then not read).
+   */
+  readonly signer?: CustodySignerPort
   /**
    * Enable the raw-signing fallback for transactors and fields this backend has
    * no native operation for.
@@ -295,24 +318,24 @@ function requireEnv(
 
 /**
  * Assemble the authenticated HTTP client and the intent signer, both backed by
- * the configured signing key.
+ * the API user's key.
  *
  * @param options - Gateway and auth config.
  * @param http - The transport.
  * @returns The client and intent signer.
  */
-function createClientAndSigner(
+async function createClientAndSigner(
   options: RippleCustodyOptions,
   http: CustodyHttpPort,
-): { client: CustodyHttpClient; intentSigner: IntentSigner } {
-  const keypair = KeypairService.fromPrivateKey(options.auth.signingKey)
+): Promise<{ client: CustodyHttpClient; intentSigner: IntentSigner }> {
+  const keySigner = await resolveKeySigner(options.auth)
   const authService = new CustodyAuthService({
     authPort: new HttpCustodyAuthPort({
       tokenUrl: options.auth.tokenUrl,
       http,
       clientId: options.auth.clientId,
     }),
-    privateKey: options.auth.signingKey,
+    keySigner,
   })
   return {
     client: new CustodyHttpClient({
@@ -320,7 +343,7 @@ function createClientAndSigner(
       http,
       auth: authService,
     }),
-    intentSigner: new IntentSigner(keypair, options.auth.signingKey),
+    intentSigner: new IntentSigner(keySigner),
   }
 }
 
@@ -341,7 +364,7 @@ export async function buildRippleCustodyState(
   options: RippleCustodyOptions,
 ): Promise<RippleCustodyState> {
   const http = options.http ?? new FetchHttpPort()
-  const { client, intentSigner } = createClientAndSigner(options, http)
+  const { client, intentSigner } = await createClientAndSigner(options, http)
 
   // Version detection reads the instance's own OpenAPI document; run it
   // alongside the identity lookup so it adds no latency to create().
@@ -383,16 +406,24 @@ export async function resolveFromEnvOptions(
 ): Promise<RippleCustodyOptions> {
   // eslint-disable-next-line n/no-process-env -- fromEnv reads config from the environment by design.
   const env = options.env ?? process.env
-  const signingKey = await resolveSigningKey(
-    requireEnv(env, 'RIPPLE_CUSTODY_AUTH_SIGNING_KEY'),
-  )
+  const tokenUrl = requireEnv(env, 'RIPPLE_CUSTODY_AUTH_TOKEN_URL')
+  const clientId = env.RIPPLE_CUSTODY_AUTH_CLIENT_ID
+  // With a signer the key lives in an HSM/KMS, so the key variable isn't read.
+  const auth: RippleCustodyAuthOptions =
+    options.signer === undefined
+      ? {
+          signingKey: (
+            await resolveSigningKey(
+              requireEnv(env, 'RIPPLE_CUSTODY_AUTH_SIGNING_KEY'),
+            )
+          ).privateKeyPem,
+          tokenUrl,
+          clientId,
+        }
+      : { signer: options.signer, tokenUrl, clientId }
   return {
     gatewayUrl: requireEnv(env, 'RIPPLE_CUSTODY_GATEWAY_URL'),
-    auth: {
-      signingKey: signingKey.privateKeyPem,
-      tokenUrl: requireEnv(env, 'RIPPLE_CUSTODY_AUTH_TOKEN_URL'),
-      clientId: env.RIPPLE_CUSTODY_AUTH_CLIENT_ID,
-    },
+    auth,
     domainId: requireEnv(env, 'RIPPLE_CUSTODY_DOMAIN_ID'),
     primary: options.primary,
     allowRawSigning: options.allowRawSigning,

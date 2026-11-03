@@ -153,7 +153,7 @@ export class CustodyApi {
         'api.propose',
       )
     }
-    const body = buildProposeEnvelope(this.intentSigner, {
+    const body = await buildProposeEnvelope(this.intentSigner, {
       ...this.proposeContext,
       payload,
       overrides: options,

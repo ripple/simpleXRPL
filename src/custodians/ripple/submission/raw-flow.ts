@@ -72,7 +72,7 @@ export function assertRawEligible(
  */
 async function buildManifestEnvelope(options: SignRawOptions): Promise<{
   preparedTx: Transaction
-  body: ReturnType<typeof buildSignManifestIntentBody>
+  body: Awaited<ReturnType<typeof buildSignManifestIntentBody>>
 }> {
   const { state, tx, ctx, accountId } = options
   const publicKeyBase64 = await resolveSigningPublicKey(
@@ -84,7 +84,7 @@ async function buildManifestEnvelope(options: SignRawOptions): Promise<{
     tx,
     publicKeyBase64,
   )
-  const body = buildSignManifestIntentBody(
+  const body = await buildSignManifestIntentBody(
     state.intentSigner,
     buildCustomProperties(tx),
     {

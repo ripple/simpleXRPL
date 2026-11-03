@@ -1,7 +1,16 @@
-import { randomUUID } from 'node:crypto'
+import {
+  createPrivateKey,
+  createPublicKey,
+  randomUUID,
+  sign as nodeSign,
+} from 'node:crypto'
 
+import { p256 } from '@noble/curves/p256'
+import { secp256k1 } from '@noble/curves/secp256k1'
 import type { AccountSet } from 'xrpl'
 
+import { KeypairService } from '../../src/custodians/ripple/auth/keypair.service.js'
+import type { CustodySignerPort } from '../../src/custodians/ripple/auth/signer-port.js'
 import {
   buildRippleCustodyState,
   resolveFromEnvOptions,
@@ -63,6 +72,32 @@ const ISSUE_TEST_TIMEOUT_MS = 300_000
  */
 const ISSUE_AMOUNT = '73.5'
 
+/**
+ * An HSM-style signer port around a PEM key: it hands back only the raw
+ * primitive's output, as a real HSM/KMS would, so the SDK's port path — digest
+ * preparation, signature checks and encoding — runs against the live server.
+ *
+ * @param pem - The Custody API user's PEM private key.
+ * @returns The port.
+ */
+function portAround(pem: string): CustodySignerPort {
+  const algorithm = KeypairService.fromPrivateKey(pem).algorithm
+  const { d: scalar } = createPrivateKey(pem).export({ format: 'jwk' })
+  const privateKey = Buffer.from(scalar ?? '', 'base64url')
+  return {
+    algorithm,
+    publicKey: async () =>
+      createPublicKey(pem).export({ type: 'spki', format: 'pem' }).toString(),
+    async sign(data): Promise<Uint8Array> {
+      if (algorithm === 'ed25519') {
+        return nodeSign(null, data, pem)
+      }
+      const curve = algorithm === 'secp256k1' ? secp256k1 : p256
+      return curve.sign(data, privateKey).toDERRawBytes()
+    },
+  }
+}
+
 describeContract('RippleCustody (live Custody sandbox)', () => {
   let custody: RippleCustody
   let state: RippleCustodyState
@@ -113,7 +148,7 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         Account: SANDBOX_PRIMARY,
         SetFlag: 8,
       }
-      const body = buildProposeIntentBody(state.intentSigner, {
+      const body = await buildProposeIntentBody(state.intentSigner, {
         domainId: state.domainId,
         authorUserId: state.authorUserId,
         accountId: primary.custodianRef,
@@ -240,6 +275,46 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     ISSUE_TEST_TIMEOUT_MS,
   )
 
+  describe('API key through an HSM/KMS signer port', () => {
+    it(
+      'logs in and signs an intent the sandbox accepts',
+      async () => {
+        const { auth } = await resolveFromEnvOptions({
+          primary: SANDBOX_PRIMARY,
+        })
+        const signerCustody = await RippleCustody.fromEnv({
+          primary: SANDBOX_PRIMARY,
+          signer: portAround(auth.signingKey ?? ''),
+        })
+        // Login ran through the port: discovery needs a token.
+        const { accountId, ledgerId } = requirePrimary(
+          await signerCustody.listAccounts(),
+        )
+        const intentId = randomUUID()
+        const order = await buildProposeIntentBody(state.intentSigner, {
+          domainId: state.domainId,
+          authorUserId: state.authorUserId,
+          accountId,
+          ledgerId,
+          transaction: PRIMARY_ACCOUNT_SET,
+          idempotencyKey: intentId,
+        })
+        // api.propose re-signs the envelope through the port. A requestId back
+        // means the sandbox verified that signature. The intent sits unapproved
+        // and lapses at this short expiry.
+        const response = await signerCustody.api.propose(
+          order.request.payload,
+          {
+            id: intentId,
+            expiryAt: new Date(Date.now() + 120_000).toISOString(),
+          },
+        )
+        expect(response.requestId).toBeTruthy()
+      },
+      LIVE_TIMEOUT_MS,
+    )
+  })
+
   describe('api passthrough (call + propose)', () => {
     it(
       'api.call resolves getMe and the response parses to the expected shape',
@@ -279,7 +354,7 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         // Reuse the vetted create-transaction-order payload builder to get a
         // valid payload, then drive it through the *generic* propose surface —
         // exercising envelope-signing + the createIntent route end to end.
-        const envelope = buildProposeIntentBody(state.intentSigner, {
+        const envelope = await buildProposeIntentBody(state.intentSigner, {
           domainId: state.domainId,
           authorUserId: state.authorUserId,
           accountId,

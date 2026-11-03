@@ -54,10 +54,10 @@ export interface BuildEnvelopeOptions {
  * @throws {@link SignerCapabilityError} if the transactor (or one of its
  * fields) has no native Custody representation.
  */
-export function buildProposeIntentBody(
+export async function buildProposeIntentBody(
   intentSigner: IntentSigner,
   options: BuildEnvelopeOptions,
-): ProposeIntentBody {
+): Promise<ProposeIntentBody> {
   const operation = txToOperation(options.transaction)
   const { feeStrategy, maximumFee } = toFeeStrategy(options.fee)
   const customProperties = buildCustomProperties(options.transaction)
