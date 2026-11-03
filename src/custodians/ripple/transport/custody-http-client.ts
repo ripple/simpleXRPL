@@ -1,11 +1,14 @@
 import {
   CustodyApiError,
   CustodyAuthError,
+  CustodyPermissionError,
+  CustodySignatureError,
   SimpleXRPLError,
 } from '../../../errors.js'
 import type { CustodyAuthService } from '../auth/custody-auth.service.js'
 
 import type { CustodyHttpPort, HttpResponse } from './http-port.js'
+import { knownIssueHint, type FailedRequest } from './known-issues.js'
 
 const HTTP_UNAUTHORIZED = 401
 const HTTP_ERROR_THRESHOLD = 400
@@ -58,52 +61,47 @@ function parseJsonBody<T>(body: string): T {
 }
 
 /**
- * Pull Custody's `processing.hint` out of an error body, if present.
- *
- * @param body - The raw error response text.
- * @returns The hint string, or `undefined` if absent/unparseable.
+ * The {@link CustodyAuthError} subclass for each `401` reason a token refresh
+ * can't recover. Any other reason (e.g. `InvalidJwtError`) stays a plain
+ * {@link CustodyAuthError}.
  */
-function extractHint(body: string): string | undefined {
-  try {
-    const parsed: unknown = JSON.parse(body)
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'processing' in parsed &&
-      typeof parsed.processing === 'object' &&
-      parsed.processing !== null &&
-      'hint' in parsed.processing &&
-      typeof parsed.processing.hint === 'string'
-    ) {
-      return parsed.processing.hint
-    }
-    return undefined
-  } catch {
-    return undefined
-  }
+const UNAUTHORIZED_ERRORS: Readonly<
+  Record<
+    string,
+    new (message: string, options: { cause: unknown }) => CustodyAuthError
+  >
+> = {
+  InvalidSignatureError: CustodySignatureError,
+  PermissionDeniedError: CustodyPermissionError,
 }
 
 /**
- * Map a non-2xx response to the right typed error.
+ * Map a non-2xx response to the right typed error, with a hint when the
+ * failure matches a known Custody server bug.
  *
+ * @param request - The request that failed.
  * @param response - The failed HTTP response.
- * @returns A {@link CustodyAuthError} for 401, else a {@link CustodyApiError}.
+ * @returns A {@link CustodyAuthError} (or the subclass naming Custody's
+ *   reason) for 401, else a {@link CustodyApiError}.
  */
-function toError(response: HttpResponse): SimpleXRPLError {
-  const apiError = new CustodyApiError(
-    response.status,
-    response.body,
-    extractHint(response.body),
-  )
+function toError(
+  request: FailedRequest,
+  response: HttpResponse,
+): SimpleXRPLError {
+  const plain = new CustodyApiError(response.status, response.body)
+  const hint = knownIssueHint(request, plain)
+  const apiError =
+    hint === undefined
+      ? plain
+      : new CustodyApiError(response.status, response.body, hint)
   if (response.status === HTTP_UNAUTHORIZED) {
-    // A 401 on `/v1/intents` is one of InvalidJwtError, InvalidSignatureError,
-    // or PermissionDeniedError — the refresh-and-replay only recovers the
-    // first. Preserve the response body as the cause so the actual error type
-    // isn't swallowed by the generic "after token refresh" message.
-    return new CustodyAuthError(
-      'Custody API authentication failed after token refresh',
-      { cause: apiError },
-    )
+    // The refresh-and-replay only recovers an expired JWT; report whatever
+    // Custody still refused by its own reason, with the response as the cause.
+    const ErrorClass =
+      (apiError.reason === undefined
+        ? undefined
+        : UNAUTHORIZED_ERRORS[apiError.reason]) ?? CustodyAuthError
+    return new ErrorClass(apiError.message, { cause: apiError })
   }
   return apiError
 }
@@ -113,8 +111,8 @@ function toError(response: HttpResponse): SimpleXRPLError {
  *
  * Injects the JWT from {@link CustodyAuthService} on every call and implements
  * the one-shot 401 recovery: a `401` triggers a single forced token refresh and
- * one replay; a second `401` surfaces as {@link CustodyAuthError}. (This is the
- * 401-retry deferred from the auth work, which had no HTTP client yet.)
+ * one replay; a second `401` surfaces as {@link CustodyAuthError}, or the
+ * subclass naming Custody's reason for it.
  */
 export class CustodyHttpClient {
   private readonly gatewayUrl: string
@@ -224,7 +222,7 @@ export class CustodyHttpClient {
       response = await attempt(true)
     }
     if (response.status >= HTTP_ERROR_THRESHOLD) {
-      throw toError(response)
+      throw toError({ url, body }, response)
     }
     return response
   }

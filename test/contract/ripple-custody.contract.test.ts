@@ -22,7 +22,7 @@ import { runDryRun } from '../../src/custodians/ripple/submission/dry-run.js'
 import type { Account } from '../../src/domain/index.js'
 import {
   CustodyApiError,
-  CustodyAuthError,
+  CustodySignatureError,
   IntentValidationError,
 } from '../../src/errors.js'
 import type { components } from '../../src/generated/custody.js'
@@ -362,7 +362,8 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
               if (
                 error instanceof CustodyApiError &&
                 error.status === 400 &&
-                String(error.raw).includes('cannot be signed anymore')
+                error.reason === 'InvalidIntentError' &&
+                (error.detail ?? '').includes('cannot be signed anymore')
               ) {
                 return true
               }
@@ -402,13 +403,15 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
           error = caught
         }
 
-        // A 401 after the token refresh surfaces as CustodyAuthError, with
+        // A 401 the token refresh can't fix surfaces by Custody's reason, with
         // Custody's own response as its cause.
-        expect(error).toBeInstanceOf(CustodyAuthError)
-        const cause = (error as CustodyAuthError).cause
-        expect(cause).toBeInstanceOf(CustodyApiError)
-        expect(String((cause as CustodyApiError).raw)).toContain(
-          'InvalidSignatureError',
+        expect(error).toBeInstanceOf(CustodySignatureError)
+        expect((error as CustodySignatureError).apiError).toMatchObject({
+          status: 401,
+          reason: 'InvalidSignatureError',
+        })
+        expect((error as Error).message).toMatch(
+          /^Custody API error \(401 InvalidSignatureError\)/u,
         )
       },
       LIVE_TIMEOUT_MS,

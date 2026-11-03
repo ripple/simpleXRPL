@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file -- the error hierarchy lives in one file */
+import { readErrorBody } from './custodians/ripple/transport/error-body.js'
 import type { CustodianKind, SubmissionResult } from './domain/model.js'
 
 /**
@@ -143,33 +144,115 @@ export class DuplicateSignerError extends SimpleXRPLError {
 }
 
 /**
- * Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
- */
-export class CustodyAuthError extends SimpleXRPLError {}
-
-/**
- * A Ripple Custody API call returned an error. The diagnostic `hint` and full
- * response body are preserved for the caller to surface.
+ * A Ripple Custody API call returned an error. The message leads with Custody's
+ * own reason and explanation; they, a diagnostic `hint`, and the full response
+ * body are also kept as fields for the caller to inspect.
  */
 export class CustodyApiError extends SimpleXRPLError {
+  /** The HTTP status code. */
   public readonly status: number
+  /** Custody's error type, e.g. `InvalidIntentError`, when it named one. */
+  public readonly reason?: string
+  /** Custody's explanation of the error, when it gave one. */
+  public readonly detail?: string
+  /**
+   * What to try next, when known: Custody's own `processing.hint`, and/or
+   * simpleXRPL's note on a known Custody server bug that matches the failure.
+   */
   public readonly hint?: string
+  /** The full response body, as Custody sent it. */
   public readonly raw: unknown
 
   /**
-   * Construct a CustodyApiError.
+   * Construct a CustodyApiError, reading the reason, detail, and any Custody
+   * hint out of the response body.
    *
    * @param status - The HTTP status code.
    * @param raw - The full response body.
-   * @param hint - The custodian's `processing.hint`, preserved verbatim.
+   * @param hint - An extra hint, added after any hint Custody gave.
    */
   public constructor(status: number, raw: unknown, hint?: string) {
-    super(`Custody API error (${status})`)
+    const body = readErrorBody(raw)
+    const hints = [body.hint, hint].filter((part) => part !== undefined)
+    const joinedHint = hints.length === 0 ? undefined : hints.join('\n')
+    const label =
+      body.reason === undefined ? `${status}` : `${status} ${body.reason}`
+    const detail = body.detail === undefined ? '' : `: ${body.detail}`
+    const hintLine = joinedHint === undefined ? '' : `\n${joinedHint}`
+    super(`Custody API error (${label})${detail}${hintLine}`)
     this.status = status
+    this.reason = body.reason
+    this.detail = body.detail
+    this.hint = joinedHint
     this.raw = raw
-    this.hint = hint
+  }
+
+  /**
+   * A plain-object form for structured logs (an `Error`'s own `message` and
+   * `name` don't survive `JSON.stringify`). The raw body is left out; it stays
+   * on {@link CustodyApiError.raw}.
+   *
+   * @returns The error's name, message, status, reason, detail, and hint.
+   */
+  public toJSON(): Record<string, unknown> {
+    return {
+      name: this.name,
+      message: this.message,
+      status: this.status,
+      reason: this.reason,
+      detail: this.detail,
+      hint: this.hint,
+    }
   }
 }
+
+/**
+ * Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh),
+ * or Custody refused a request's credentials with a `401` that a token refresh
+ * did not fix. In the second case the `401` response is the `cause` — see
+ * {@link CustodyAuthError.apiError} — and the subclasses
+ * {@link CustodySignatureError} and {@link CustodyPermissionError} name the
+ * two failures a refresh can't recover.
+ */
+export class CustodyAuthError extends SimpleXRPLError {
+  /**
+   * The `401` Custody returned, when the API itself refused the request.
+   *
+   * @returns The Custody response, or `undefined` for a local auth failure.
+   */
+  public get apiError(): CustodyApiError | undefined {
+    return this.cause instanceof CustodyApiError ? this.cause : undefined
+  }
+
+  /**
+   * A plain-object form for structured logs (an `Error`'s own `message` and
+   * `name` don't survive `JSON.stringify`).
+   *
+   * @returns The error's name and message, and the Custody response if any.
+   */
+  public toJSON(): Record<string, unknown> {
+    return {
+      name: this.name,
+      message: this.message,
+      ...(this.apiError === undefined
+        ? {}
+        : { apiError: this.apiError.toJSON() }),
+    }
+  }
+}
+
+/**
+ * Custody rejected a request's signature (`401 InvalidSignatureError`): the
+ * body was signed with a key Custody doesn't hold for the API user, or Custody
+ * verified different bytes than were signed.
+ */
+export class CustodySignatureError extends CustodyAuthError {}
+
+/**
+ * Custody refused the request because the API user isn't allowed to make it
+ * (`401 PermissionDeniedError`), e.g. it has no role that grants the action.
+ */
+export class CustodyPermissionError extends CustodyAuthError {}
 
 /** Labels for each capability kind, as they read in an error message. */
 const CAPABILITY_LABELS = {
