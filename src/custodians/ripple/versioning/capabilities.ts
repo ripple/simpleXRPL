@@ -19,14 +19,8 @@ export interface CustodyCapabilities {
   readonly appVersion: string
   /** Whether this came from the live instance or a pinned version's bundled data. */
   readonly source: 'detected' | 'pinned'
-  /** Served public-API endpoints, normalized with {@link endpointKey}. */
+  /** Served endpoints, normalized with {@link endpointKey}. */
   readonly endpoints: ReadonlySet<string>
-  /**
-   * Served internal-API endpoints, when the instance's internal document was
-   * read. `undefined` leaves the internal API unchecked: pinned data covers
-   * the public API only, and not every instance serves its internal document.
-   */
-  readonly internalEndpoints?: ReadonlySet<string>
   /** Accepted native XRPL operation types (e.g. `'TrustSet'`). */
   readonly xrplOperations: ReadonlySet<string>
   /** Accepted intent payload types (e.g. `'v0_CreateTransactionOrder'`). */
@@ -209,58 +203,24 @@ function endpointSet(entries: readonly string[]): Set<string> {
 }
 
 /**
- * Derive a live instance's capabilities from the OpenAPI documents it serves —
+ * Derive a live instance's capabilities from the OpenAPI document it serves —
  * exact for that instance, including versions with no bundled data.
  *
- * @param spec - The instance's parsed public OpenAPI document.
- * @param internalSpec - Its internal document, when it could be read.
+ * @param spec - The instance's parsed OpenAPI document.
  * @returns The detected capabilities.
  * @throws {@link SimpleXRPLError} if the document has no paths (not a Custody spec).
  */
-export function detectedCapabilities(
-  spec: unknown,
-  internalSpec?: unknown,
-): CustodyCapabilities {
+export function detectedCapabilities(spec: unknown): CustodyCapabilities {
   const lists = extractCapabilityLists(spec)
   if (lists.endpoints.length === 0) {
     throw new SimpleXRPLError('The Custody OpenAPI document lists no endpoints')
   }
   const version = asDocument(spec).info?.['x-app-version']
-  const capabilities = toCapabilities(
+  return toCapabilities(
     typeof version === 'string' ? version : 'unknown',
     'detected',
     lists,
   )
-  const internalEndpoints = internalEndpointsOf(internalSpec)
-  return internalEndpoints === undefined
-    ? capabilities
-    : { ...capabilities, internalEndpoints }
-}
-
-/** Every internal-API path starts with one of these. */
-const INTERNAL_PATH_PREFIXES = ['/internal/', '/api/']
-
-/**
- * The internal endpoints an internal document serves — or `undefined` when
- * the document isn't usable as one: absent, empty, or not actually the
- * internal API (an instance that ignores an unknown `scope` serves the public
- * document again). An unusable document leaves the internal API unchecked
- * rather than blocking every internal call.
- *
- * @param internalSpec - The parsed internal document, if any.
- * @returns The normalized endpoint set, or `undefined`.
- */
-function internalEndpointsOf(internalSpec: unknown): Set<string> | undefined {
-  if (internalSpec === undefined) {
-    return undefined
-  }
-  const { endpoints } = extractCapabilityLists(internalSpec)
-  const looksInternal = endpoints.some((entry) =>
-    INTERNAL_PATH_PREFIXES.some((prefix) =>
-      entry.split(' ')[1]?.startsWith(prefix),
-    ),
-  )
-  return looksInternal ? endpointSet(endpoints) : undefined
 }
 
 /**

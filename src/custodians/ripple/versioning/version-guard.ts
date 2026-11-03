@@ -83,7 +83,7 @@ export class VersionGuard {
   }
 
   /**
-   * Assert the version serves a public-API endpoint.
+   * Assert the version serves an endpoint.
    *
    * @param method - The HTTP method.
    * @param pathTemplate - The path template (e.g. `/v1/domains/{domainId}`).
@@ -95,30 +95,14 @@ export class VersionGuard {
     pathTemplate: string,
     sdkMethod: string,
   ): void {
-    this.checkEndpoint({ method, pathTemplate, sdkMethod }, (caps, key) =>
-      caps.endpoints.has(key),
-    )
-  }
-
-  /**
-   * Assert the version serves an internal-API endpoint. Passes when the
-   * instance's internal API wasn't resolved (a pinned version, or an instance
-   * that doesn't serve its internal document).
-   *
-   * @param method - The HTTP method.
-   * @param pathTemplate - The path template (e.g. `/internal/v1/users`).
-   * @param sdkMethod - The SDK call making it, for the error message.
-   * @throws {@link UnsupportedInVersionError} if the endpoint is not served.
-   */
-  public assertInternalEndpoint(
-    method: string,
-    pathTemplate: string,
-    sdkMethod: string,
-  ): void {
-    this.checkEndpoint(
-      { method, pathTemplate, sdkMethod },
-      (caps, key) => caps.internalEndpoints?.has(key) ?? true,
-    )
+    const key = endpointKey(method, pathTemplate)
+    this.check({
+      kind: 'endpoint',
+      capability: `${method.toUpperCase()} ${pathTemplate}`,
+      sdkMethod,
+      availability: CUSTODY_AVAILABILITY.endpoints[key],
+      isSupported: (caps) => caps.endpoints.has(key),
+    })
   }
 
   /**
@@ -182,34 +166,6 @@ export class VersionGuard {
    */
   public assertRawSigning(transactor: string): void {
     this.assertIntentType('v0_SignManifest', `raw-signing ${transactor}`)
-  }
-
-  /**
-   * Shared endpoint check for both APIs.
-   *
-   * @param call - The endpoint and the SDK call making it.
-   * @param call.method - The HTTP method.
-   * @param call.pathTemplate - The path template.
-   * @param call.sdkMethod - The SDK call making it.
-   * @param isServed - Whether the capabilities include the normalized endpoint.
-   * @throws {@link UnsupportedInVersionError} if the endpoint is not served.
-   */
-  private checkEndpoint(
-    call: {
-      readonly method: string
-      readonly pathTemplate: string
-      readonly sdkMethod: string
-    },
-    isServed: (caps: CustodyCapabilities, key: string) => boolean,
-  ): void {
-    const key = endpointKey(call.method, call.pathTemplate)
-    this.check({
-      kind: 'endpoint',
-      capability: `${call.method.toUpperCase()} ${call.pathTemplate}`,
-      sdkMethod: call.sdkMethod,
-      availability: CUSTODY_AVAILABILITY.endpoints[key],
-      isSupported: (caps) => isServed(caps, key),
-    })
   }
 
   /**

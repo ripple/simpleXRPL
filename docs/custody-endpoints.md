@@ -4,27 +4,26 @@
      Regenerate with `npm run typegen`. -->
 
 Where each part of the Ripple Custody API the SDK knows about is served.
-**Official** lists the released Custody versions that serve it (public API:
-every version the Custody docs publish a spec for; internal API: the vendored
-official internal spec). **Devbox** lists the vendored pre-release builds that
-serve it.
+**Official** lists the released Custody versions that serve it (every version
+the Custody docs publish a spec for). **Devbox** lists the vendored
+pre-release builds that serve it.
 
 At runtime the SDK checks calls against the instance's own version, so this
 table is for planning — see the README's "Ripple Custody versions" section.
 
 Endpoints without an operationId are typed but not callable by name through
-`api.call` / `api.internal.call`.
+`api.call`.
 
-## Public API (`custody.api.call`)
+## Endpoints (`custody.api.call`)
 
 | Endpoint                                                                                                                                      | operationId                                                     | Official    | Devbox |
 | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------- | ------ |
 | `DELETE /v1/domain/{domainId}/account/{accountId}/sponsor`                                                                                    | —                                                               | 1.37–1.38   | cmpt   |
 | `DELETE /v1/domains/{domainId}/account/{accountId}/sponsor`                                                                                   | `SponsorController_deleteSponsor`                               | 1.36, 1.38+ | —      |
 | `DELETE /v1/domains/{domainId}/account/{entityId}/sponsored-accounts/domains/{sponsoredAccountDomainId}/accounts/{sponsoredAccountId}`        | `SponsorListController_removeSponsoredAccount`                  | 1.38+       | —      |
-| `DELETE /v1/domains/{domainId}/channels/{channelId}`                                                                                          | `deleteChannel`                                                 | 1.19+       | —      |
-| `DELETE /v1/domains/{domainId}/compliance/domain`                                                                                             | `DeleteComplianceDomain`                                        | 1.26+       | —      |
-| `DELETE /v1/domains/{domainId}/compliance/providers/{provider}`                                                                               | `DeleteProviderConnectionAndScreeningRules`                     | 1.26+       | —      |
+| `DELETE /v1/domains/{domainId}/channels/{channelId}`                                                                                          | `deleteChannel`                                                 | 1.19+       | cmpt   |
+| `DELETE /v1/domains/{domainId}/compliance/domain`                                                                                             | `DeleteComplianceDomain`                                        | 1.26+       | cmpt   |
+| `DELETE /v1/domains/{domainId}/compliance/providers/{provider}`                                                                               | `DeleteProviderConnectionAndScreeningRules`                     | 1.26+       | cmpt   |
 | `GET /v1/addresses`                                                                                                                           | `getAllDomainsAddresses`                                        | 1.21+       | cmpt   |
 | `GET /v1/backups`                                                                                                                             | `getBackups`                                                    | 1.28+       | cmpt   |
 | `GET /v1/backups/{backupId}`                                                                                                                  | `getBackup`                                                     | 1.28+       | cmpt   |
@@ -54,19 +53,19 @@ Endpoints without an operationId are typed but not callable by name through
 | `GET /v1/domains/{domainId}/accounts/{accountId}/manifests`                                                                                   | `getManifests`                                                  | 1.15+       | cmpt   |
 | `GET /v1/domains/{domainId}/accounts/{accountId}/manifests/{manifestId}`                                                                      | `getManifest`                                                   | 1.15+       | cmpt   |
 | `GET /v1/domains/{domainId}/accounts/{accountId}/parameters-compute/{computeId}`                                                              | `getParametersComputeStatus`                                    | —           | cmpt   |
-| `GET /v1/domains/{domainId}/channels`                                                                                                         | `getAllChannels`                                                | 1.19+       | —      |
-| `GET /v1/domains/{domainId}/channels/{channelId}`                                                                                             | `getChannel`                                                    | 1.19+       | —      |
-| `GET /v1/domains/{domainId}/channels/{channelId}/events`                                                                                      | `getAllChannelEvents`                                           | 1.19+       | —      |
-| `GET /v1/domains/{domainId}/channels/{channelId}/events/{eventId}`                                                                            | `getEvent`                                                      | 1.19+       | —      |
-| `GET /v1/domains/{domainId}/channels/events`                                                                                                  | `getAllEvents`                                                  | 1.19+       | —      |
+| `GET /v1/domains/{domainId}/channels`                                                                                                         | `getAllChannels`                                                | 1.19+       | cmpt   |
+| `GET /v1/domains/{domainId}/channels/{channelId}`                                                                                             | `getChannel`                                                    | 1.19+       | cmpt   |
+| `GET /v1/domains/{domainId}/channels/{channelId}/events`                                                                                      | `getAllChannelEvents`                                           | 1.19+       | cmpt   |
+| `GET /v1/domains/{domainId}/channels/{channelId}/events/{eventId}`                                                                            | `getEvent`                                                      | 1.19+       | cmpt   |
+| `GET /v1/domains/{domainId}/channels/events`                                                                                                  | `getAllEvents`                                                  | 1.19+       | cmpt   |
 | `GET /v1/domains/{domainId}/compliance-configurations`                                                                                        | `listComplianceConfigurations`                                  | 1.33+       | cmpt   |
-| `GET /v1/domains/{domainId}/compliance/policy/{policyType}/transaction/{transactionType}`                                                     | `GetPolicy`                                                     | 1.26+       | —      |
-| `GET /v1/domains/{domainId}/compliance/provider-connection`                                                                                   | `GetAllProviderConnectionForDomain`                             | 1.26+       | —      |
-| `GET /v1/domains/{domainId}/compliance/providers`                                                                                             | `GetAllProvidersForDomain`                                      | 1.26+       | —      |
-| `GET /v1/domains/{domainId}/compliance/providers/{provider}/screening-rules`                                                                  | `GetScreeningRulesForDomainAndProvider`                         | 1.26+       | —      |
-| `GET /v1/domains/{domainId}/compliance/transactionType/{transactionType}/exception-role`                                                      | `GetExceptionRole`                                              | 1.26+       | —      |
-| `GET /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}`                                              | `GetTravelRuleTransfer`                                         | 1.30+       | —      |
-| `GET /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/relationships`                                                        | `ListRelationships`                                             | 1.33+       | —      |
+| `GET /v1/domains/{domainId}/compliance/policy/{policyType}/transaction/{transactionType}`                                                     | `GetPolicy`                                                     | 1.26+       | cmpt   |
+| `GET /v1/domains/{domainId}/compliance/provider-connection`                                                                                   | `GetAllProviderConnectionForDomain`                             | 1.26+       | cmpt   |
+| `GET /v1/domains/{domainId}/compliance/providers`                                                                                             | `GetAllProvidersForDomain`                                      | 1.26+       | cmpt   |
+| `GET /v1/domains/{domainId}/compliance/providers/{provider}/screening-rules`                                                                  | `GetScreeningRulesForDomainAndProvider`                         | 1.26+       | cmpt   |
+| `GET /v1/domains/{domainId}/compliance/transactionType/{transactionType}/exception-role`                                                      | `GetExceptionRole`                                              | 1.26+       | cmpt   |
+| `GET /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}`                                              | `GetTravelRuleTransfer`                                         | 1.30+       | cmpt   |
+| `GET /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/relationships`                                                        | `ListRelationships`                                             | 1.33+       | cmpt   |
 | `GET /v1/domains/{domainId}/endpoints`                                                                                                        | `getEndpoints`                                                  | 1.15+       | cmpt   |
 | `GET /v1/domains/{domainId}/endpoints/{endpointId}`                                                                                           | `getEndpoint`                                                   | 1.15+       | cmpt   |
 | `GET /v1/domains/{domainId}/events`                                                                                                           | `getEvents`                                                     | 1.15+       | cmpt   |
@@ -125,7 +124,7 @@ Endpoints without an operationId are typed but not callable by name through
 | `GET /v1/vaults`                                                                                                                              | `getVaults`                                                     | 1.15+       | cmpt   |
 | `GET /v1/vaults/{vaultId}`                                                                                                                    | `getVault`                                                      | 1.15+       | cmpt   |
 | `GET /v1/vaults/{vaultId}/operations/prepared`                                                                                                | —                                                               | 1.15+       | cmpt   |
-| `PATCH /v1/domains/{domainId}/channels/{channelId}`                                                                                           | `updateChannel`                                                 | 1.19+       | —      |
+| `PATCH /v1/domains/{domainId}/channels/{channelId}`                                                                                           | `updateChannel`                                                 | 1.19+       | cmpt   |
 | `POST /v1/domain/{domainId}/account/{accountId}/sponsor`                                                                                      | —                                                               | 1.37–1.38   | cmpt   |
 | `POST /v1/domain/{domainId}/account/{entityId}/sponsored-accounts`                                                                            | —                                                               | 1.37–1.38   | cmpt   |
 | `POST /v1/domain/{domainId}/account/{entityId}/sponsored-domains`                                                                             | —                                                               | 1.37–1.38   | cmpt   |
@@ -136,21 +135,21 @@ Endpoints without an operationId are typed but not callable by name through
 | `POST /v1/domains/{domainId}/accounts/{accountId}/addresses/{ledgerId}`                                                                       | `generateNewExternalAddress`                                    | 1.15+       | cmpt   |
 | `POST /v1/domains/{domainId}/accounts/{accountId}/balances/refresh`                                                                           | `forceUpdateAccountBalances`                                    | 1.15+       | cmpt   |
 | `POST /v1/domains/{domainId}/accounts/{accountId}/parameters-compute`                                                                         | `initiateParametersCompute`                                     | —           | cmpt   |
-| `POST /v1/domains/{domainId}/channels`                                                                                                        | `createChannel`                                                 | 1.19+       | —      |
-| `POST /v1/domains/{domainId}/channels/{channelId}/test`                                                                                       | `testChannel`                                                   | 1.19+       | —      |
-| `POST /v1/domains/{domainId}/compliance/analysis`                                                                                             | `analysis`                                                      | 1.26+       | —      |
-| `POST /v1/domains/{domainId}/compliance/analysis/preview`                                                                                     | `PreviewAnalysis`                                               | 1.26+       | —      |
-| `POST /v1/domains/{domainId}/compliance/domain`                                                                                               | `CreateDomainPayload`                                           | 1.26+       | —      |
-| `POST /v1/domains/{domainId}/compliance/domain/validation`                                                                                    | `ValidateComplianceDomainCreation`                              | 1.26+       | —      |
-| `POST /v1/domains/{domainId}/compliance/policy`                                                                                               | `CreatePolicyPayload`                                           | 1.26+       | —      |
-| `POST /v1/domains/{domainId}/compliance/providers`                                                                                            | `ConnectProvider`                                               | 1.26+       | —      |
-| `POST /v1/domains/{domainId}/compliance/providers/{provider}/screening-rules`                                                                 | `ConfigureScreeningRulesForDomainAndProvider`                   | 1.26+       | —      |
-| `POST /v1/domains/{domainId}/compliance/travel-rule/details`                                                                                  | `GetTravelRuleDetails`                                          | 1.32+       | —      |
-| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages`                                                            | `CreateTravelRuleTransfer`                                      | 1.30+       | —      |
-| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}/encrypted-pii`                               | `PresentEncryptedPIIToTransferWithoutPolicy`                    | 1.30+       | —      |
-| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}/pii`                                         | `AppendPIIToTransfer`                                           | 1.30+       | —      |
-| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}/policies/{travelRulePolicyId}/encrypted-pii` | `PresentEncryptedPIIToTransfer`                                 | 1.30+       | —      |
-| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/relationships`                                                       | `CreateRelationship`                                            | 1.33+       | —      |
+| `POST /v1/domains/{domainId}/channels`                                                                                                        | `createChannel`                                                 | 1.19+       | cmpt   |
+| `POST /v1/domains/{domainId}/channels/{channelId}/test`                                                                                       | `testChannel`                                                   | 1.19+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/analysis`                                                                                             | `analysis`                                                      | 1.26+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/analysis/preview`                                                                                     | `PreviewAnalysis`                                               | 1.26+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/domain`                                                                                               | `CreateDomainPayload`                                           | 1.26+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/domain/validation`                                                                                    | `ValidateComplianceDomainCreation`                              | 1.26+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/policy`                                                                                               | `CreatePolicyPayload`                                           | 1.26+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/providers`                                                                                            | `ConnectProvider`                                               | 1.26+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/providers/{provider}/screening-rules`                                                                 | `ConfigureScreeningRulesForDomainAndProvider`                   | 1.26+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/travel-rule/details`                                                                                  | `GetTravelRuleDetails`                                          | 1.32+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages`                                                            | `CreateTravelRuleTransfer`                                      | 1.30+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}/encrypted-pii`                               | `PresentEncryptedPIIToTransferWithoutPolicy`                    | 1.30+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}/pii`                                         | `AppendPIIToTransfer`                                           | 1.30+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/messages/{travelRuleId}/policies/{travelRulePolicyId}/encrypted-pii` | `PresentEncryptedPIIToTransfer`                                 | 1.30+       | cmpt   |
+| `POST /v1/domains/{domainId}/compliance/travel-rule/providers/{provider}/relationships`                                                       | `CreateRelationship`                                            | 1.33+       | cmpt   |
 | `POST /v1/domains/{domainId}/omnibus`                                                                                                         | `createOmnibus`                                                 | 1.36+       | —      |
 | `POST /v1/domains/{domainId}/omnibus/{omnibusId}/tenants`                                                                                     | `createTenant`                                                  | 1.36+       | —      |
 | `POST /v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/deposit-wallet`                                                           | `createDepositWallet`                                           | 1.36+       | —      |
@@ -178,68 +177,11 @@ Endpoints without an operationId are typed but not callable by name through
 | `PUT /v1/domains/{domainId}/account/{accountId}/sponsor`                                                                                      | `SponsorController_updateSponsor`                               | 1.36, 1.38+ | —      |
 | `PUT /v1/domains/{domainId}/account/{entityId}/sponsored-accounts/domains/{sponsoredAccountDomainId}/accounts/{sponsoredAccountId}`           | `SponsorListController_addSponsoredAccount`                     | 1.38+       | —      |
 | `PUT /v1/domains/{domainId}/accounts/{accountId}/compliance-configuration`                                                                    | `upsertComplianceConfiguration`                                 | 1.33+       | cmpt   |
-| `PUT /v1/domains/{domainId}/compliance/providers/{provider}/pause-connection`                                                                 | `PauseProviderConnection`                                       | 1.26+       | —      |
-| `PUT /v1/domains/{domainId}/compliance/providers/{provider}/toggle-preview-screening`                                                         | `TogglePreviewScreening`                                        | 1.26+       | —      |
+| `PUT /v1/domains/{domainId}/compliance/providers/{provider}/pause-connection`                                                                 | `PauseProviderConnection`                                       | 1.26+       | cmpt   |
+| `PUT /v1/domains/{domainId}/compliance/providers/{provider}/toggle-preview-screening`                                                         | `TogglePreviewScreening`                                        | 1.26+       | cmpt   |
 | `PUT /v1/domains/{domainId}/omnibus/{omnibusId}`                                                                                              | `updateOmnibus`                                                 | 1.36+       | —      |
 | `PUT /v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}`                                                                           | `updateTenant`                                                  | 1.36+       | —      |
 | `PUT /v1/domains/{domainId}/sweep-thresholds`                                                                                                 | `updateSweepThresholds`                                         | 1.38+       | —      |
-
-## Internal API (`custody.api.internal.call`)
-
-| Endpoint                                                             | operationId                                      | Official | Devbox |
-| -------------------------------------------------------------------- | ------------------------------------------------ | -------- | ------ |
-| `DELETE /api/notifications/entity/{hash}`                            | `NotificationController.deleteEntity`            | 1.43+    | cmpt   |
-| `DELETE /api/notifications/entity/{hash}/signature`                  | `NotificationController.getSignedEntity`         | 1.43+    | cmpt   |
-| `DELETE /internal/v1/me/domains/{domainId}/session/{sessionId}`      | `deleteDisconnect`                               | 1.43+    | —      |
-| `GET /api/notifications/entities`                                    | `NotificationController.getEntities`             | 1.43+    | cmpt   |
-| `GET /api/notifications/entity/{hash}`                               | `NotificationController.getEntity`               | 1.43+    | cmpt   |
-| `GET /api/notifications/nonce`                                       | `NotificationController.getNonce`                | 1.43+    | cmpt   |
-| `GET /api/notifications/register-web`                                | `NotificationController.registerWebClient`       | —        | cmpt   |
-| `GET /internal/v1/accounts/pending`                                  | `getPendingAccounts`                             | 1.43+    | cmpt   |
-| `GET /internal/v1/backups/pending`                                   | `getPendingBackups`                              | 1.43+    | cmpt   |
-| `GET /internal/v1/cmpt-cb-in/{requestId}`                            | `getCbInDecryptionStatus`                        | —        | cmpt   |
-| `GET /internal/v1/decrypt-cbs/pending`                               | `getPendingDecryptCbs`                           | —        | cmpt   |
-| `GET /internal/v1/events`                                            | `getAllEvents`                                   | 1.43+    | cmpt   |
-| `GET /internal/v1/manifests/pending`                                 | `getPendingManifests`                            | 1.43+    | cmpt   |
-| `GET /internal/v1/me/domains/{domainId}/session`                     | `getConnectedSession`                            | 1.43+    | —      |
-| `GET /internal/v1/me/domains/{domainId}/session/{sessionId}`         | `getDAppDetails`                                 | 1.43+    | —      |
-| `GET /internal/v1/me/domains/{domainId}/session/{sessionId}/events`  | `getSessionEvents`                               | 1.43+    | —      |
-| `GET /internal/v1/me/settings/notifications`                         | —                                                | 1.43+    | cmpt   |
-| `GET /internal/v1/me/settings/notifications/available`               | —                                                | 1.43+    | cmpt   |
-| `GET /internal/v1/migrations/lar-phase1-migration-sanity-check`      | `getLarPhase1MigrationSanityCheck`               | 1.43+    | —      |
-| `GET /internal/v1/parameters-computed/pending`                       | `getPendingParametersComputes`                   | —        | cmpt   |
-| `GET /internal/v1/rewraps/pending`                                   | `getPendingRewraps`                              | 1.43+    | cmpt   |
-| `GET /internal/v1/scripting`                                         | `getExampleContextV0`                            | 1.43+    | cmpt   |
-| `GET /internal/v1/system/information`                                | —                                                | 1.43+    | cmpt   |
-| `GET /internal/v1/transaction/{transactionId}/blocker`               | `getTransactionBlocker`                          | 1.43+    | cmpt   |
-| `GET /internal/v1/transactions/pending`                              | `getPendingTransactions`                         | 1.43+    | cmpt   |
-| `GET /internal/v1/transactions/prepared`                             | `getPreparedTransactions`                        | 1.43+    | cmpt   |
-| `GET /internal/v1/users`                                             | `getUsers`                                       | —        | cmpt   |
-| `GET /internal/v1/users/conflicts`                                   | `getUsersConflicts`                              | 1.43+    | cmpt   |
-| `GET /internal/v1/vaults/current`                                    | `getCurrentVault`                                | 1.43+    | cmpt   |
-| `POST /api/notifications/register-mobile`                            | `NotificationController.registerMobile`          | 1.43+    | cmpt   |
-| `POST /api/notifications/secured-register-mobile`                    | `NotificationController.securedRegisterMobile`   | 1.43+    | cmpt   |
-| `POST /api/notifications/secured-unregister-mobile`                  | `NotificationController.securedUnregisterMobile` | 1.43+    | —      |
-| `POST /api/notifications/sign-web`                                   | `NotificationController.signWeb`                 | 1.43+    | cmpt   |
-| `POST /api/notifications/signature`                                  | `NotificationController.sendSignatureToWeb`      | 1.43+    | cmpt   |
-| `POST /api/notifications/unregister-mobile`                          | `NotificationController.unregisterMobile`        | —        | cmpt   |
-| `POST /internal/v1/accounts/pending`                                 | `postPendingAccount`                             | 1.43+    | cmpt   |
-| `POST /internal/v1/backups/pending`                                  | `postPreparedBackup`                             | 1.43+    | cmpt   |
-| `POST /internal/v1/cmpt-cb-in`                                       | `initiateCbInDecryption`                         | —        | cmpt   |
-| `POST /internal/v1/decrypt-cbs/pending`                              | `postDecryptCbsResponse`                         | —        | cmpt   |
-| `POST /internal/v1/domains/{domainId}/account-balances/query`        | `queryAccountsBalances`                          | 1.43+    | —      |
-| `POST /internal/v1/intents/context`                                  | `intentContext`                                  | 1.43+    | cmpt   |
-| `POST /internal/v1/manifests/pending`                                | `postPendingManifest`                            | 1.43+    | cmpt   |
-| `POST /internal/v1/me/domains/{domainId}/session`                    | `postConnect`                                    | 1.43+    | —      |
-| `POST /internal/v1/me/domains/{domainId}/session/{sessionId}`        | `postApproveSession`                             | 1.43+    | —      |
-| `POST /internal/v1/me/domains/{domainId}/session/{sessionId}/change` | `postChangeAccount`                              | 1.43+    | —      |
-| `POST /internal/v1/me/settings/notifications`                        | —                                                | 1.43+    | cmpt   |
-| `POST /internal/v1/parameters-computed/pending`                      | `postParametersComputeResponse`                  | —        | cmpt   |
-| `POST /internal/v1/rewraps/pending`                                  | `postPreparedRewrap`                             | 1.43+    | cmpt   |
-| `POST /internal/v1/transactions/interrupt`                           | `postTransactionInterruption`                    | 1.43+    | cmpt   |
-| `POST /internal/v1/transactions/pending`                             | `postPendingTransaction`                         | 1.43+    | cmpt   |
-| `POST /internal/v1/transactions/prepared`                            | `postPreparedTransaction`                        | 1.43+    | cmpt   |
-| `POST /internal/v1/vaults/current`                                   | `postPendingVault`                               | 1.43+    | cmpt   |
 
 ## Native XRPL operations
 

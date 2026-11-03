@@ -48,7 +48,7 @@ const OUTPUTS = {
     routes: 'src/generated/custody-routes.ts',
     constName: 'CUSTODY_ROUTES',
     typesModule: './custody.js',
-    consumer: 'CustodyApi.call',
+    consumer: 'Consumed by\n * `CustodyApi.call`.',
     defineRouteType: true,
   },
   internal: {
@@ -56,7 +56,8 @@ const OUTPUTS = {
     routes: 'src/generated/custody-internal-routes.ts',
     constName: 'CUSTODY_INTERNAL_ROUTES',
     typesModule: './custody-internal.js',
-    consumer: 'CustodyInternalApi.call',
+    consumer:
+      "Not exposed to\n * SDK users: the internal API isn't meant for clients. Kept for narrowly scoped\n * internal use.",
     defineRouteType: false,
   },
 }

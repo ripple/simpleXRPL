@@ -3,7 +3,6 @@ import type { components, operations } from '../../generated/custody.js'
 
 import { fillPath } from './api-call.js'
 import type { CallArgs, ResponseBody } from './api-call.js'
-import { CustodyInternalApi } from './api-internal.js'
 import type { IntentSigner } from './auth/intent-signer.js'
 import {
   buildProposeEnvelope,
@@ -47,12 +46,6 @@ export type CustodyCallArgs<Op extends CustodyOperationId> = CallArgs<
  * quarantined transfers) without a dedicated vertical.
  */
 export class CustodyApi {
-  /**
-   * The instance's internal API (`/internal/v1/…`), with its own operationIds.
-   * See {@link CustodyInternalApi}.
-   */
-  public readonly internal: CustodyInternalApi
-
   private readonly client: CustodyHttpClient
   private readonly intentSigner: IntentSigner
   private readonly proposeContext: ProposeEnvelopeContext
@@ -84,7 +77,6 @@ export class CustodyApi {
       authorUserId: propose.authorUserId,
     }
     this.versionGuard = propose.versionGuard ?? new VersionGuard(undefined)
-    this.internal = new CustodyInternalApi(client, this.versionGuard)
   }
 
   /**

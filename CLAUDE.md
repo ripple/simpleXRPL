@@ -55,7 +55,9 @@ established.
   `custody-internal.ts` plus their route maps, and writes the availability
   table (`docs/custody-endpoints.md`, `src/generated/custody-availability.ts`).
   Internal-API types come from `../generated/custody-internal.js` — never mix the
-  two `operations` maps; their operationIds overlap.
+  two `operations` maps; their operationIds overlap. The internal API isn't
+  meant for clients: never expose it publicly. Only add narrowly scoped,
+  purpose-specific methods on it (e.g. cMPT inbox decryption).
 - The official public spec is kept current by a daily workflow
   (`custody-spec-update.yml`); by hand: `npm run fetch:custody-spec`. Devbox and
   internal specs come from live instances: `npm run fetch:custody-instance-spec`.

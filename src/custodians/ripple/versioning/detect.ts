@@ -37,19 +37,14 @@ export interface CustodyVersionOptions {
 }
 
 /**
- * The default location of an instance's OpenAPI document. Both the public
- * (`scope` empty) and internal (`scope=internal`) documents are served without
- * authentication.
+ * The default location of an instance's OpenAPI document. It is served
+ * without authentication.
  *
  * @param gatewayUrl - The Custody gateway base URL.
- * @param scope - `''` for the public API, `'internal'` for the internal API.
  * @returns The document's URL.
  */
-export function defaultOpenApiUrl(
-  gatewayUrl: string,
-  scope: '' | 'internal' = '',
-): string {
-  return `${gatewayUrl.replace(/\/+$/u, '')}/api/OpenAPI?scope=${scope}&layout=`
+export function defaultOpenApiUrl(gatewayUrl: string): string {
+  return `${gatewayUrl.replace(/\/+$/u, '')}/api/OpenAPI?scope=&layout=`
 }
 
 /**
@@ -81,28 +76,18 @@ async function fetchDocument(
 }
 
 /**
- * Fetch an instance's OpenAPI document(s) and derive its capabilities. The
- * internal document is best-effort: when it can't be read, the internal API
- * is simply left unchecked.
+ * Fetch an instance's OpenAPI document and derive its capabilities.
  *
  * @param http - The transport.
- * @param url - The public document's URL.
- * @param internalUrl - The internal document's URL, if it should be read.
+ * @param url - The document's URL.
  * @returns The instance's capabilities.
- * @throws {@link SimpleXRPLError} if the public document can't be fetched or parsed.
+ * @throws {@link SimpleXRPLError} if the document can't be fetched or parsed.
  */
 export async function detectCapabilities(
   http: CustodyHttpPort,
   url: string,
-  internalUrl?: string,
 ): Promise<CustodyCapabilities> {
-  const [spec, internalSpec] = await Promise.all([
-    fetchDocument(http, url),
-    internalUrl === undefined
-      ? undefined
-      : fetchDocument(http, internalUrl).catch(() => undefined),
-  ])
-  return detectedCapabilities(spec, internalSpec)
+  return detectedCapabilities(await fetchDocument(http, url))
 }
 
 /**
@@ -136,14 +121,8 @@ export async function resolveVersionGuard(
   if (!url.startsWith('https://')) {
     throw new SimpleXRPLError(`Custody openApiUrl must be HTTPS, got '${url}'`)
   }
-  // A custom document URL says nothing about where the internal document
-  // lives, so the internal API is only detected at the default location.
-  const internalUrl =
-    options.openApiUrl === undefined
-      ? defaultOpenApiUrl(gatewayUrl, 'internal')
-      : undefined
   try {
-    return new VersionGuard(await detectCapabilities(http, url, internalUrl))
+    return new VersionGuard(await detectCapabilities(http, url))
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
     process.emitWarning(

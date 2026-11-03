@@ -137,16 +137,8 @@ await RippleCustody.fromEnv({ primary: 'r...', apiVersion: '1.43' })
 ```
 
 The error also says where the missing piece _is_ available — e.g. `official
-1.37–1.43`, or `devbox (cmpt)` for a pre-release feature. The full table is in
-[`docs/custody-endpoints.md`](./docs/custody-endpoints.md).
-
-The instance's **internal API** (`/internal/v1/…`) is reachable too, through its
-own typed entry point, and is checked the same way when the instance serves its
-internal document:
-
-```ts
-await custody.api.internal.call('getCurrentVault')
-```
+1.37+`, or `pre-release Custody builds` for a feature only those have so far. The
+full table is in [`docs/custody-endpoints.md`](./docs/custody-endpoints.md).
 
 If the version can't be detected, the SDK emits a single Node warning
 (`SIMPLEXRPL_CUSTODY_VERSION_UNDETECTED`) and lets every call through to the

@@ -8,8 +8,11 @@
 //
 //   - paths, and operations on paths the official spec already has
 //   - component entries (schemas, parameters, responses, …)
-//   - members of a shared union schema (`oneOf` / `anyOf`, discriminator
-//     mapping entries, `enum` values)
+//   - members of a shared union schema (`oneOf` / `anyOf` members that are
+//     `$ref`s to a named schema, discriminator mapping entries, `enum`
+//     values). An inline member is skipped: a genuinely new variant is a named
+//     schema, while an inline one is typically an older build's shape of an
+//     existing variant, which would loosen the official type.
 //   - properties on a shared object schema — never added to `required`, so
 //     they type as optional
 //
@@ -113,12 +116,13 @@ function extendSchema(target, source, report, label) {
   for (const key of UNION_KEYS) {
     if (!Array.isArray(target[key]) || !Array.isArray(source[key])) continue
     for (const member of source[key]) {
-      if (!target[key].some((existing) => same(existing, member))) {
+      if (
+        typeof member.$ref === 'string' &&
+        !target[key].some((existing) => same(existing, member))
+      ) {
         target[key].push(structuredClone(member))
         report.unionMembers += 1
-        report.additions.push(
-          `${label}: ${key} member ${member.$ref ?? '(inline)'}`,
-        )
+        report.additions.push(`${label}: ${key} member ${member.$ref}`)
       }
     }
   }

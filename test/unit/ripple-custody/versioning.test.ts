@@ -308,97 +308,16 @@ describe('resolveVersionGuard', () => {
   })
 })
 
-describe('internal API detection', () => {
-  const INTERNAL_SPEC: unknown = JSON.parse(
-    readFileSync(
-      join(process.cwd(), 'openapi', 'custody', 'official', 'internal.json'),
-      'utf8',
-    ),
-  )
-  let warn: jest.SpyInstance
-  beforeEach(() => {
-    warn = jest.spyOn(process, 'emitWarning').mockReturnValue(undefined)
-  })
-  afterEach(() => {
-    warn.mockRestore()
-  })
-
-  it('reads the internal document alongside the public one', async () => {
-    const http = new FakeHttpPort((request) =>
-      ok(
-        request.url.includes('scope=internal') ? INTERNAL_SPEC : VENDORED_SPEC,
-      ),
-    )
-
-    const guard = await resolveVersionGuard({}, http, GATEWAY)
-
-    expect(http.requests.map((request) => request.url)).toEqual([
-      `${GATEWAY}/api/OpenAPI?scope=&layout=`,
-      `${GATEWAY}/api/OpenAPI?scope=internal&layout=`,
-    ])
-    expect(() => {
-      guard.assertInternalEndpoint('GET', '/internal/v1/vaults/current', 'x')
-    }).not.toThrow()
-    expect(() => {
-      guard.assertInternalEndpoint('GET', '/internal/v1/nothing', 'x')
-    }).toThrow(UnsupportedInVersionError)
-  })
-
-  it('leaves the internal API unchecked, silently, when its document is unavailable', async () => {
-    const http = new FakeHttpPort((request) => {
-      return request.url.includes('scope=internal')
-        ? status(404)
-        : ok(VENDORED_SPEC)
-    })
-
-    const guard = await resolveVersionGuard({}, http, GATEWAY)
-
-    expect(guard.appVersion).toBeDefined()
-    expect(() => {
-      guard.assertInternalEndpoint('GET', '/internal/v1/nothing', 'x')
-    }).not.toThrow()
-    expect(warn).not.toHaveBeenCalled()
-  })
-
-  it('does not look for the internal document beside a custom openApiUrl', async () => {
-    const http = new FakeHttpPort(() => ok(VENDORED_SPEC))
-
-    await resolveVersionGuard({ openApiUrl: `${GATEWAY}/spec` }, http, GATEWAY)
-
-    expect(http.requests).toHaveLength(1)
-  })
-
-  it('leaves the internal API unchecked for a pinned version', () => {
-    expect(pinnedCapabilities('1.43').internalEndpoints).toBeUndefined()
-  })
-
-  it.each([
-    ['an empty document', {}],
-    ['a document with no paths', { paths: {} }],
-    ['the public document served again', VENDORED_SPEC],
-  ])(
-    'leaves the internal API unchecked when the internal document is %s',
-    (_label, internalDoc) => {
-      const detected = detectedCapabilities(VENDORED_SPEC, internalDoc)
-
-      expect(detected.internalEndpoints).toBeUndefined()
-      expect(() => {
-        new VersionGuard(detected).assertInternalEndpoint(
-          'GET',
-          '/internal/v1/anything',
-          'x',
-        )
-      }).not.toThrow()
-    },
-  )
-
-  it('bounds each spec fetch with a timeout', async () => {
+describe('spec fetching', () => {
+  it('reads only the public document, bounded by a timeout', async () => {
     const http = new FakeHttpPort(() => ok(VENDORED_SPEC))
 
     await resolveVersionGuard({}, http, GATEWAY)
 
-    expect(http.requests.map((request) => request.timeoutMs)).toEqual([
-      15_000, 15_000,
+    expect(
+      http.requests.map(({ url, timeoutMs }) => ({ url, timeoutMs })),
+    ).toEqual([
+      { url: `${GATEWAY}/api/OpenAPI?scope=&layout=`, timeoutMs: 15_000 },
     ])
   })
 })
