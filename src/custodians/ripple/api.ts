@@ -1,9 +1,17 @@
+import { SimpleXRPLError } from '../../errors.js'
 import { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
-import type { components, operations } from '../../generated/custody.js'
+import type { components, operations, paths } from '../../generated/custody.js'
 
 import { fillPath } from './api-call.js'
-import type { CallArgs, ResponseBody } from './api-call.js'
+import type {
+  CallArgs,
+  OperationArgs,
+  OperationResponse,
+  ResponseBody,
+} from './api-call.js'
 import type { IntentSigner } from './auth/intent-signer.js'
+import { buildDecisionEnvelope } from './mapping/decision-envelope.js'
+import type { IntentDecision } from './mapping/decision-envelope.js'
 import {
   buildProposeEnvelope,
   type ProposeEnvelopeContext,
@@ -27,6 +35,36 @@ export type CustodyCallArgs<Op extends CustodyOperationId> = CallArgs<
   Op
 >
 
+/** The HTTP methods {@link CustodyApi.request} sends. */
+export type CustodyHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+
+/** The operation `path` serves for `method` (`never` if it serves none). */
+type PathOperation<
+  Path extends keyof paths,
+  Method extends CustodyHttpMethod,
+> = NonNullable<paths[Path][Lowercase<Method>]>
+
+/** Every Custody path template that serves `Method`. */
+export type CustodyRequestPath<Method extends CustodyHttpMethod> = {
+  [Path in keyof paths]: [PathOperation<Path, Method>] extends [never]
+    ? never
+    : Path
+}[keyof paths]
+
+/** The typed arguments for one `request`: path params, query, and/or body. */
+export type CustodyRequestArgs<
+  Method extends CustodyHttpMethod,
+  Path extends CustodyRequestPath<Method>,
+> = OperationArgs<PathOperation<Path, Method>>
+
+/** The typed response of one `request`. */
+export type CustodyRequestResponse<
+  Method extends CustodyHttpMethod,
+  Path extends CustodyRequestPath<Method>,
+> = OperationResponse<PathOperation<Path, Method>>
+
+/** Custody's limit on an approval or rejection reason. */
+const MAX_REASON_LENGTH = 5000
 /**
  * Low-level, typed access to the full Ripple Custody v1 API — a **secondary**
  * surface beside the first-class verticals, for endpoints simpleXRPL doesn't
@@ -113,6 +151,80 @@ export class CustodyApi {
   }
 
   /**
+   * Call any Custody endpoint by its HTTP method and path template — including
+   * the ones with no operationId, which {@link call} can't name (e.g. user
+   * invitations). Path/query/body and the response are typed from the
+   * generated schema, and only methods a path actually serves are accepted.
+   *
+   * @param method - The HTTP method.
+   * @param path - The path template, e.g. `/v1/domains/{domainId}/users/invitations`.
+   * @param args - Typed path params, query params, and/or JSON body.
+   * @returns The typed response body.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version doesn't serve the endpoint.
+   * @throws {@link SimpleXRPLError} if a required path parameter is missing.
+   * @throws A `CustodyApiError` if the API rejects the request.
+   */
+  public async request<
+    Method extends CustodyHttpMethod,
+    Path extends CustodyRequestPath<Method>,
+  >(
+    method: Method,
+    path: Path,
+    args?: CustodyRequestArgs<Method, Path>,
+  ): Promise<CustodyRequestResponse<Method, Path>> {
+    this.versionGuard.assertEndpoint(
+      method,
+      path,
+      `api.request('${method}', '${path}')`,
+    )
+    return this.client.invoke<CustodyRequestResponse<Method, Path>>(
+      method,
+      fillPath(path, args?.path),
+      { query: args?.query, body: args?.body },
+    )
+  }
+
+  /**
+   * Approve an existing intent as the API user — e.g. as an automated approver
+   * under the intent's policy. Fetches the intent, then signs and posts the
+   * approval with the intent-author key.
+   *
+   * @param intentId - The intent to approve.
+   * @param options - Options.
+   * @param options.reason - Why it is approved (up to 5000 characters).
+   * @returns The Custody `{ requestId }` acknowledging the approval.
+   * @throws {@link SimpleXRPLError} if the reason is too long.
+   * @throws A `CustodyApiError` if the intent doesn't exist, or Custody
+   *   rejects the approval (e.g. the user isn't an approver for it).
+   */
+  public async approve(
+    intentId: string,
+    options: { readonly reason?: string } = {},
+  ): Promise<components['schemas']['Core_IntentResponse']> {
+    return this.decide(intentId, 'Approve', options.reason)
+  }
+
+  /**
+   * Reject an existing intent as the API user. Fetches the intent, then signs
+   * and posts the rejection with the intent-author key.
+   *
+   * @param intentId - The intent to reject.
+   * @param options - Options.
+   * @param options.reason - Why it is rejected (1–5000 characters; required).
+   * @returns The Custody `{ requestId }` acknowledging the rejection.
+   * @throws {@link SimpleXRPLError} if the reason is empty or too long.
+   * @throws A `CustodyApiError` if the intent doesn't exist, or Custody
+   *   rejects the rejection (e.g. the user can't decide on it).
+   */
+  public async reject(
+    intentId: string,
+    options: { readonly reason: string },
+  ): Promise<components['schemas']['Core_IntentResponse']> {
+    return this.decide(intentId, 'Reject', options.reason)
+  }
+
+  /**
    * Propose a governed intent: wrap `payload` in a `Core_Propose` envelope,
    * sign the canonicalized request with the intent-author key, and POST it to
    * `/v1/intents`. This is the signed counterpart to {@link call} — for
@@ -151,6 +263,51 @@ export class CustodyApi {
       overrides: options,
     })
     const route = CUSTODY_ROUTES.createIntent
+    return this.client.invoke<components['schemas']['Core_IntentResponse']>(
+      route.method,
+      route.path,
+      { body },
+    )
+  }
+
+  /**
+   * Shared by {@link approve} and {@link reject}: validate the reason, fetch
+   * the intent for its proposal signature, then sign and post the decision.
+   *
+   * @param intentId - The intent to decide on.
+   * @param decision - Approve or reject.
+   * @param reason - The reason, if any.
+   * @returns The Custody `{ requestId }` acknowledging the decision.
+   * @throws {@link SimpleXRPLError} if the reason is invalid.
+   */
+  private async decide(
+    intentId: string,
+    decision: IntentDecision,
+    reason: string | undefined,
+  ): Promise<components['schemas']['Core_IntentResponse']> {
+    const sdkMethod = decision === 'Approve' ? 'api.approve' : 'api.reject'
+    if (decision === 'Reject' && (reason === undefined || reason === '')) {
+      throw new SimpleXRPLError(`${sdkMethod} needs a reason`)
+    }
+    if (reason !== undefined && reason.length > MAX_REASON_LENGTH) {
+      throw new SimpleXRPLError(
+        `${sdkMethod} reason is ${reason.length} characters; Custody allows up to ${MAX_REASON_LENGTH}`,
+      )
+    }
+    const route =
+      decision === 'Approve'
+        ? CUSTODY_ROUTES.approveIntent
+        : CUSTODY_ROUTES.rejectIntent
+    this.versionGuard.assertEndpoint(route.method, route.path, sdkMethod)
+    const intent = await this.call('getIntent', {
+      path: { domainId: this.proposeContext.domainId, intentId },
+    })
+    const body = await buildDecisionEnvelope(this.intentSigner, {
+      ...this.proposeContext,
+      intent,
+      decision,
+      reason,
+    })
     return this.client.invoke<components['schemas']['Core_IntentResponse']>(
       route.method,
       route.path,

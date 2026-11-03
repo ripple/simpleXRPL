@@ -7,9 +7,13 @@ export type {
 export { CustodyApi } from './api.js'
 export type {
   CustodyCallArgs,
+  CustodyHttpMethod,
   CustodyOperationId,
   CustodyProposeOptions,
   CustodyProposePayload,
+  CustodyRequestArgs,
+  CustodyRequestPath,
+  CustodyRequestResponse,
 } from './api.js'
 export { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
 export type { CustodyRoute } from '../../generated/custody-routes.js'

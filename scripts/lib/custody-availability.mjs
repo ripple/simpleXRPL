@@ -209,8 +209,8 @@ pre-release builds that serve it.
 At runtime the SDK checks calls against the instance's own version, so this
 table is for planning — see the README's "Ripple Custody versions" section.
 
-Endpoints without an operationId are typed but not callable by name through
-\`api.call\`.
+Endpoints without an operationId aren't callable by name through \`api.call\`;
+call them by method and path with \`api.request\`.
 
 ## Endpoints (\`custody.api.call\`)
 

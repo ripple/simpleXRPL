@@ -1,35 +1,45 @@
 import { SimpleXRPLError } from '../../errors.js'
 
 /*
- * Request/response typing for a by-operationId call, generic over a generated
- * `operations` map: `CustodyApi.call` uses the public API's. (The internal
- * API has its own map, since its operationIds overlap the public API's.)
+ * Request/response typing for a Custody call, derived from a generated
+ * operation object — one from the `operations` map (calls by operationId,
+ * `CustodyApi.call`) or from the `paths` map (calls by path,
+ * `CustodyApi.request`, which also reaches operations with no operationId).
  */
 
 /** The path parameters an operation takes (or `never` if it has none). */
-export type PathParams<Ops, Op extends keyof Ops> = Ops[Op] extends {
+export type OperationPathParams<Op> = Op extends {
   parameters: { path?: infer Path extends object }
 }
   ? Path
   : never
 
 /** The query parameters an operation takes (or `never`/`undefined`). */
-export type QueryParams<Ops, Op extends keyof Ops> = Ops[Op] extends {
+export type OperationQuery<Op> = Op extends {
   parameters: { query?: infer Query extends Record<string, unknown> }
 }
   ? Query
   : never
 
-/** The JSON request body an operation takes (or `never` if it has none). */
-export type RequestBody<Ops, Op extends keyof Ops> = Ops[Op] extends {
-  requestBody: { content: { 'application/json': infer Body } }
-}
-  ? Body
+/**
+ * The JSON body inside a request-body declaration, or `never` when there is
+ * none (`requestBody?: never`) or it isn't JSON (e.g. a multipart upload, which
+ * the transport can't send).
+ */
+type JsonBodyOf<Declared> = [Declared] extends [never]
+  ? never
+  : Declared extends { content: { 'application/json': infer Body } }
+    ? Body
+    : never
+
+/** The JSON request body an operation takes, required or optional. */
+export type OperationBody<Op> = Op extends { requestBody?: infer Declared }
+  ? JsonBodyOf<NonNullable<Declared>>
   : never
 
 /* eslint-disable @typescript-eslint/no-magic-numbers -- 200 indexes the OpenAPI success-response type */
 /** The JSON response body an operation returns (or `unknown` if untyped). */
-export type ResponseBody<Ops, Op extends keyof Ops> = Ops[Op] extends {
+export type OperationResponse<Op> = Op extends {
   responses: { 200: { content: { 'application/json': infer Res } } }
 }
   ? Res
@@ -37,11 +47,17 @@ export type ResponseBody<Ops, Op extends keyof Ops> = Ops[Op] extends {
 /* eslint-enable @typescript-eslint/no-magic-numbers */
 
 /** The typed arguments for one operation: path params, query, and/or body. */
-export interface CallArgs<Ops, Op extends keyof Ops> {
-  readonly path?: PathParams<Ops, Op>
-  readonly query?: QueryParams<Ops, Op>
-  readonly body?: RequestBody<Ops, Op>
+export interface OperationArgs<Op> {
+  readonly path?: OperationPathParams<Op>
+  readonly query?: OperationQuery<Op>
+  readonly body?: OperationBody<Op>
 }
+
+/** {@link OperationResponse} for an operation in an `operations` map. */
+export type ResponseBody<Ops, Op extends keyof Ops> = OperationResponse<Ops[Op]>
+
+/** {@link OperationArgs} for an operation in an `operations` map. */
+export type CallArgs<Ops, Op extends keyof Ops> = OperationArgs<Ops[Op]>
 
 /**
  * Fill `{name}` placeholders in a route template from the supplied path params.
