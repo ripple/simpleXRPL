@@ -384,7 +384,7 @@ export class RippleCustody implements Custodian, IntentObserver {
   ): Promise<string> {
     const accountId = this.requireAccountId(ctx.account)
     this.state.versionGuard.assertNativeTransaction(tx.TransactionType)
-    const body = buildProposeIntentBody(this.state.intentSigner, {
+    const body = await buildProposeIntentBody(this.state.intentSigner, {
       domainId: this.state.domainId,
       authorUserId: this.state.authorUserId,
       accountId,

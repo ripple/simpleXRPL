@@ -22,3 +22,8 @@ export type {
   CustodyInternalOperationId,
 } from './api-internal.js'
 export { CUSTODY_INTERNAL_ROUTES } from '../../generated/custody-internal-routes.js'
+export type {
+  CustodyKeyAlgorithm,
+  CustodySignContext,
+  CustodySignerPort,
+} from './auth/signer-port.js'

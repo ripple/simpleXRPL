@@ -3,7 +3,6 @@ import type { Payment } from 'xrpl'
 import { CustodyApi } from '../../../src/custodians/ripple/api.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
-import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import { buildProposeIntentBody } from '../../../src/custodians/ripple/mapping/envelope.js'
 import { CustodyHttpClient } from '../../../src/custodians/ripple/transport/custody-http-client.js'
 import type { components } from '../../../src/generated/custody.js'
@@ -38,7 +37,7 @@ function apiOn(responseBody: unknown = {}): {
     privateKey: KEY,
   })
   const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
-  const intentSigner = new IntentSigner(KeypairService.fromPrivateKey(KEY), KEY)
+  const intentSigner = IntentSigner.fromPrivateKey(KEY)
   const api = new CustodyApi(client, {
     intentSigner,
     domainId: DOMAIN,
@@ -201,7 +200,7 @@ describe('CustodyApi.propose', () => {
 
   it('defaults the envelope id to a payload that carries its own id', async () => {
     const { api, http } = apiOn()
-    const signer = new IntentSigner(KeypairService.fromPrivateKey(KEY), KEY)
+    const signer = IntentSigner.fromPrivateKey(KEY)
     const payment: Payment = {
       TransactionType: 'Payment',
       Account: 'rFrom',
@@ -211,13 +210,15 @@ describe('CustodyApi.propose', () => {
     // v0_CreateTransactionOrder carries its own id; Custody expects the envelope
     // id to match it, so a caller who doesn't override id must still get them
     // in sync rather than a fresh random envelope id.
-    const order = buildProposeIntentBody(signer, {
-      domainId: DOMAIN,
-      authorUserId: AUTHOR,
-      accountId: 'account-1',
-      transaction: payment,
-      idempotencyKey: 'order-id-1',
-    }).request.payload
+    const order = (
+      await buildProposeIntentBody(signer, {
+        domainId: DOMAIN,
+        authorUserId: AUTHOR,
+        accountId: 'account-1',
+        transaction: payment,
+        idempotencyKey: 'order-id-1',
+      })
+    ).request.payload
 
     await api.propose(order)
 

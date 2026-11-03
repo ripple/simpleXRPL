@@ -81,10 +81,10 @@ function payloadId(payload: ProposeUserIntentPayload): string | undefined {
  * @returns The signed `{ request, signature }` body ready to POST to
  * `/v1/intents`.
  */
-export function buildProposeEnvelope(
+export async function buildProposeEnvelope(
   intentSigner: IntentSigner,
   input: ProposeEnvelopeInput,
-): ProposeIntentBody {
+): Promise<ProposeIntentBody> {
   const overrides = input.overrides ?? {}
   const request = {
     author: overrides.author ?? {

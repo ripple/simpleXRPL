@@ -48,11 +48,11 @@ export interface BuildManifestEnvelopeOptions {
  * @param options - The domain, author, account, and preimage to sign.
  * @returns The signed `{ request, signature }` body ready to POST to `/v1/intents`.
  */
-export function buildSignManifestIntentBody(
+export async function buildSignManifestIntentBody(
   intentSigner: IntentSigner,
   customProperties: components['schemas']['Core_StringsMap'],
   options: BuildManifestEnvelopeOptions,
-): ProposeIntentBody {
+): Promise<ProposeIntentBody> {
   const manifestId = options.idempotencyKey ?? randomUUID()
   const request = {
     author: { id: options.authorUserId, domainId: options.domainId },

@@ -1,10 +1,17 @@
+import { createPrivateKey, createPublicKey, verify } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { p256 } from '@noble/curves/p256'
+import canonicalizeImport from 'canonicalize'
 import { Wallet } from 'xrpl'
 import type { OfferCancel, Payment, TxResponse } from 'xrpl'
 
 import type { CustodyProposePayload } from '../../../src/custodians/ripple/api.js'
+import type {
+  CustodySignContext,
+  CustodySignerPort,
+} from '../../../src/custodians/ripple/auth/signer-port.js'
 import { RippleCustody } from '../../../src/custodians/ripple/ripple-custody.js'
 import type {
   HttpRequest,
@@ -22,7 +29,7 @@ import {
   UnsupportedInVersionError,
   XrpldSubmitError,
 } from '../../../src/errors.js'
-import { makeJwt } from '../custody-auth/test-utils.js'
+import { generateTestKey, makeJwt } from '../custody-auth/test-utils.js'
 import {
   accountsBody,
   addressesBody,
@@ -853,5 +860,121 @@ describe('RippleCustody version checks', () => {
     expect(custody.backendVersion).toBeUndefined()
     expect(requested(http, '/api/OpenAPI')).toBe(false)
     expect(warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('RippleCustody with an HSM/KMS signer', () => {
+  const canonicalize = canonicalizeImport as unknown as (
+    value: unknown,
+  ) => string
+  const HSM_KEY = generateTestKey('secp256r1')
+  const HSM_PUBLIC = createPublicKey(HSM_KEY)
+
+  /**
+   * A secp256r1 port that signs digests like an HSM, recording the contexts it
+   * was asked to sign for.
+   *
+   * @returns The port and its recorded contexts.
+   */
+  function hsmPort(): {
+    port: CustodySignerPort
+    contexts: CustodySignContext[]
+  } {
+    const contexts: CustodySignContext[] = []
+    const { d: scalar } = createPrivateKey(HSM_KEY).export({ format: 'jwk' })
+    const port: CustodySignerPort = {
+      algorithm: 'secp256r1',
+      publicKey: async () =>
+        HSM_PUBLIC.export({ type: 'spki', format: 'pem' }).toString(),
+      async sign(digest, context) {
+        contexts.push(context)
+        return p256
+          .sign(digest, Buffer.from(scalar ?? '', 'base64url'))
+          .toDERRawBytes()
+      },
+    }
+    return { port, contexts }
+  }
+
+  const createWith = async (
+    auth: Parameters<typeof RippleCustody.create>[0]['auth'],
+  ): Promise<{ custody: RippleCustody; http: FakeHttpPort }> => {
+    const http = buildHttp()
+    const custody = await RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth,
+      domainId: DOMAIN_ID,
+      primary: PRIMARY_ADDRESS,
+      http,
+    })
+    return { custody, http }
+  }
+
+  it('logs in with the signer’s public key and a challenge signature it made', async () => {
+    const { port, contexts } = hsmPort()
+
+    const { http } = await createWith({
+      signer: port,
+      tokenUrl: 'https://auth.example.com/token',
+    })
+
+    const login = http.requests.find((request) =>
+      request.url.includes('auth.example.com'),
+    )
+    const form = new URLSearchParams(login?.body ?? '')
+    expect(form.get('public_key')).toBe(
+      HSM_PUBLIC.export({ type: 'spki', format: 'der' }).toString('base64'),
+    )
+    expect(
+      verify(
+        'sha256',
+        Buffer.from(form.get('challenge') ?? ''),
+        HSM_PUBLIC,
+        Buffer.from(form.get('signature') ?? '', 'base64'),
+      ),
+    ).toBe(true)
+    expect(contexts).toEqual(['auth-challenge'])
+  })
+
+  it('signs the intents it proposes through the signer', async () => {
+    const { port, contexts } = hsmPort()
+    const { custody, http } = await createWith({
+      signer: port,
+      tokenUrl: 'https://auth.example.com/token',
+    })
+
+    await custody.submitAndWait(PAYMENT_TX, makeContext(custody))
+
+    const posted = http.requests.find(
+      (request) =>
+        request.method === 'POST' && request.url.endsWith('/v1/intents'),
+    )
+    const body = JSON.parse(posted?.body ?? '{}') as {
+      request: unknown
+      signature: string
+    }
+    expect(
+      verify(
+        'sha256',
+        Buffer.from(canonicalize(body.request)),
+        HSM_PUBLIC,
+        Buffer.from(body.signature, 'base64'),
+      ),
+    ).toBe(true)
+    expect(contexts).toEqual(['auth-challenge', 'intent'])
+  })
+
+  it('refuses a signing key and a signer together', async () => {
+    const { port } = hsmPort()
+
+    await expect(
+      createWith({
+        signingKey: SIGNING_KEY,
+        signer: port,
+        tokenUrl: 'https://auth.example.com/token',
+      } as unknown as Parameters<typeof RippleCustody.create>[0]['auth']),
+    ).rejects.toThrow(
+      'RippleCustody auth takes either signingKey or signer, not both',
+    )
   })
 })

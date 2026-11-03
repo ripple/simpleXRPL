@@ -35,6 +35,26 @@ describe('resolveFromEnvOptions', () => {
     send.mockReset()
   })
 
+  it('takes an HSM/KMS signer instead of reading the signing key variable', async () => {
+    const signer = {
+      algorithm: 'ed25519' as const,
+      publicKey: async (): Promise<string> => 'unused',
+      sign: async (): Promise<Uint8Array> => new Uint8Array(64),
+    }
+    const { RIPPLE_CUSTODY_AUTH_SIGNING_KEY: _unset, ...env } = envWith('')
+
+    const options = await resolveFromEnvOptions({
+      primary: 'rPrimary',
+      env,
+      signer,
+    })
+
+    expect(options.auth.signer).toBe(signer)
+    expect(options.auth.signingKey).toBeUndefined()
+    expect(options.auth.tokenUrl).toBe('https://auth.example.com/token')
+    expect(send).not.toHaveBeenCalled()
+  })
+
   it('resolves a literal PEM signing key unchanged', async () => {
     const options = await resolveFromEnvOptions({
       primary: 'rPrimary',
@@ -58,7 +78,7 @@ describe('resolveFromEnvOptions', () => {
     })
 
     expect(options.auth.signingKey).toBe(SIGNING_KEY_PEM)
-    expect(KeypairService.detectKeyType(options.auth.signingKey)).toBe(
+    expect(KeypairService.detectKeyType(options.auth.signingKey ?? '')).toBe(
       'ed25519',
     )
   })

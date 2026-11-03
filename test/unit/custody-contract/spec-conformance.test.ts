@@ -1,7 +1,6 @@
 import type { Payment, Transaction } from 'xrpl'
 
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
-import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import { buildCustomProperties } from '../../../src/custodians/ripple/mapping/custom-properties.js'
 import { buildProposeIntentBody } from '../../../src/custodians/ripple/mapping/envelope.js'
 import { buildSignManifestIntentBody } from '../../../src/custodians/ripple/mapping/manifest-envelope.js'
@@ -119,7 +118,7 @@ const NATIVE_TRANSACTIONS: ReadonlyArray<{ name: string; tx: Transaction }> = [
 
 function makeSigner(): IntentSigner {
   const pem = generateTestKey('ed25519')
-  return new IntentSigner(KeypairService.fromPrivateKey(pem), pem)
+  return IntentSigner.fromPrivateKey(pem)
 }
 
 describe('Custody request-body spec conformance (offline)', () => {
@@ -127,8 +126,8 @@ describe('Custody request-body spec conformance (offline)', () => {
 
   it.each(NATIVE_TRANSACTIONS)(
     'builds a $name propose body that conforms to Core_UserSigned',
-    ({ tx }) => {
-      const body = buildProposeIntentBody(signer, {
+    async ({ tx }) => {
+      const body = await buildProposeIntentBody(signer, {
         domainId: DOMAIN_ID,
         authorUserId: AUTHOR_ID,
         accountId: ACCOUNT_ID,
@@ -142,14 +141,14 @@ describe('Custody request-body spec conformance (offline)', () => {
     },
   )
 
-  it('builds a v0_SignManifest propose body that conforms to Core_UserSigned', () => {
+  it('builds a v0_SignManifest propose body that conforms to Core_UserSigned', async () => {
     const tx: Payment = {
       TransactionType: 'Payment',
       Account: ISSUER,
       Destination: DEST,
       Amount: '1000000',
     }
-    const body = buildSignManifestIntentBody(
+    const body = await buildSignManifestIntentBody(
       signer,
       buildCustomProperties(tx),
       {
@@ -166,8 +165,8 @@ describe('Custody request-body spec conformance (offline)', () => {
     expect(valid).toBe(true)
   })
 
-  it('rejects a body whose operation type is not in the spec (negative control)', () => {
-    const body = buildProposeIntentBody(signer, {
+  it('rejects a body whose operation type is not in the spec (negative control)', async () => {
+    const body = await buildProposeIntentBody(signer, {
       domainId: DOMAIN_ID,
       authorUserId: AUTHOR_ID,
       accountId: ACCOUNT_ID,

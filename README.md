@@ -84,6 +84,37 @@ Which transactors are native differs per backend — see
 matrix, and note that a transactor can be native while a specific _field_ on it
 is not, in which case that call also takes the raw path.
 
+## Ripple Custody API key in an HSM or KMS
+
+The Ripple Custody API user's key signs the login challenge and every intent
+the SDK proposes. By default it is a PEM key held in the process
+(`auth.signingKey`, or `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` with `fromEnv`). To
+keep it inside an HSM or KMS instead, pass a `signer`:
+
+```ts
+import { RippleCustody } from 'simplexrpl'
+import { AwsKmsCustodySigner } from 'simplexrpl/aws-kms'
+
+const signer = await AwsKmsCustodySigner.create({
+  keyId: 'alias/custody-api-user', // an ECC_SECG_P256K1 or ECC_NIST_P256 key
+  region: 'us-east-1',
+})
+const custody = await RippleCustody.fromEnv({ primary: 'r...', signer })
+```
+
+Other HSMs and KMSs implement `CustodySignerPort`: `algorithm`, `publicKey()`,
+and `sign(data, context)`, which runs only the raw signing primitive.
+
+- **secp256k1 and secp256r1** keys receive a 32-byte SHA-256 digest to sign as
+  a digest, and return a DER signature.
+- **ed25519** keys receive the exact bytes to sign, and return the raw 64-byte
+  signature.
+
+`context` (`'auth-challenge'` or `'intent'`) lets an HSM policy treat the two
+differently. The SDK checks every signature against the public key before
+sending it, so a misconfigured signer fails with a clear error rather than a
+401 from Custody.
+
 ## Ripple Custody versions
 
 Each Custody instance runs its own version, so not every instance serves every
