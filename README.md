@@ -167,6 +167,28 @@ If the version can't be detected, the SDK emits a single Node warning
 server. `autoDetectVersion: false` turns detection off without the warning, and
 `openApiUrl` points it at a different document URL.
 
+## Ripple Custody errors
+
+A failed Custody call throws a `CustodyApiError` whose message leads with
+Custody's own reason and explanation:
+
+```
+Custody API error (404 EntityNotFoundError): Intent 3f1c… not found.
+```
+
+The same parts are fields, beside the full response body: `status`, `reason`,
+`detail`, `hint`, and `raw`. `toJSON()` gives a plain object for structured
+logs.
+
+A `401` that a token refresh doesn't fix throws a `CustodyAuthError` named for
+its reason: `CustodySignatureError` (`InvalidSignatureError`) or
+`CustodyPermissionError` (`PermissionDeniedError`). Its `apiError` is the
+underlying `CustodyApiError`.
+
+When a failure matches a known Custody server bug, `hint` says how to work
+around it. For example, a `quarantineStatus` filter can return a 500 on the
+transfers endpoint.
+
 ## Development
 
 Install dependencies with `npm install`.
