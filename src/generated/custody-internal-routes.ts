@@ -3,8 +3,9 @@
  * Do not make direct changes to the file. Regenerate with `npm run typegen`.
  *
  * Each Ripple Custody operationId → its HTTP method and path template (the
- * runtime companion to the `operations` types in ./custody-internal.js). Consumed by
- * `CustodyInternalApi.call`.
+ * runtime companion to the `operations` types in ./custody-internal.js). Not exposed to
+ * SDK users: the internal API isn't meant for clients. Kept for narrowly scoped
+ * internal use.
  */
 
 import type { CustodyRoute } from './custody-routes.js'

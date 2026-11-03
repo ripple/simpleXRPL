@@ -1,7 +1,7 @@
 // Renders a Ripple Custody route map: each operationId → its HTTP method and
 // path template. This is the runtime companion to the generated `operations`
-// types (openapi-typescript emits types only), used by `CustodyApi.call` and
-// `CustodyInternalApi.call` to resolve a request.
+// types (openapi-typescript emits types only), used by `CustodyApi.call` to
+// resolve a request.
 //
 // Custody uses a single credential for every endpoint, so — unlike Palisade —
 // there is no per-tag auth scope: the route carries only method + path.
@@ -49,7 +49,7 @@ export function collectRoutes(doc) {
  * @param entries - From {@link collectRoutes}.
  * @param options.constName - The exported constant (e.g. `CUSTODY_ROUTES`).
  * @param options.typesModule - The sibling types module (e.g. `./custody.js`).
- * @param options.consumer - Who reads the map (for the header).
+ * @param options.consumer - A sentence on who reads the map (for the header).
  * @param options.defineRouteType - Emit the `CustodyRoute` interface here;
  *   otherwise import it from ./custody-routes.js.
  */
@@ -74,8 +74,7 @@ export function renderRoutes(
  * Do not make direct changes to the file. Regenerate with \`npm run typegen\`.
  *
  * Each Ripple Custody operationId → its HTTP method and path template (the
- * runtime companion to the \`operations\` types in ${typesModule}). Consumed by
- * \`${consumer}\`.
+ * runtime companion to the \`operations\` types in ${typesModule}). ${consumer}
  */
 
 ${routeType}

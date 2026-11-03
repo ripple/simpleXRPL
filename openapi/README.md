@@ -32,7 +32,13 @@ and generates its types and route map:
 | Surface | Types | Routes | SDK entry point |
 | --- | --- | --- | --- |
 | public | `src/generated/custody.ts` | `custody-routes.ts` | `custody.api.call` / `api.propose` |
-| internal | `src/generated/custody-internal.ts` | `custody-internal-routes.ts` | `custody.api.internal.call` |
+| internal | `src/generated/custody-internal.ts` | `custody-internal-routes.ts` | none — see below |
+
+**The internal API isn't exposed to SDK users.** Custody's internal API isn't
+meant for clients, so the SDK has no general entry point for it. Its specs and
+generated types are kept, unexported, for narrowly scoped use: today that's
+confidential MPT inbox decryption, which will move to a public endpoint in a
+future Custody release.
 
 **The merge.** The official spec is the base and is authoritative. Devbox specs
 are merged in strictly additively: they can add paths, operations, schemas,
@@ -119,9 +125,8 @@ a default version older than the one already pinned.
 spec for, the endpoints, native XRPL operation types and intent types it
 supports. `npm run typegen` turns it into `src/generated/custody-capabilities.ts`,
 which a pinned `apiVersion` checks calls against. (Auto-detection reads the
-instance's own spec and doesn't use it.) It covers the official public API only:
-a pinned version leaves internal calls unchecked, and devbox builds are served
-by auto-detection.
+instance's own spec and doesn't use it.) It covers the official public API only;
+devbox builds are served by auto-detection.
 
 The daily workflow refreshes the current version's entry along with the spec.
 To rebuild every entry — e.g. after the docs republish an older version:

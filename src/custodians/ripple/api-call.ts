@@ -2,9 +2,8 @@ import { SimpleXRPLError } from '../../errors.js'
 
 /*
  * Request/response typing for a by-operationId call, generic over a generated
- * `operations` map — shared by the public API (`CustodyApi.call`) and the
- * internal API (`CustodyInternalApi.call`), whose maps are generated
- * separately because their operationIds overlap.
+ * `operations` map: `CustodyApi.call` uses the public API's. (The internal
+ * API has its own map, since its operationIds overlap the public API's.)
  */
 
 /** The path parameters an operation takes (or `never` if it has none). */

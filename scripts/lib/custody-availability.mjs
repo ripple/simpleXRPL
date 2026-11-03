@@ -60,9 +60,10 @@ export function minorOf(version) {
  *
  * @param capabilities - The per-version official public data (capabilities.json).
  * @param specs - Tagged vendored specs (loadCustodySpecs).
- * @param merged - `{ public, internal }` merged documents.
+ * @param merged - `{ public, internal }` merged documents; only the public API
+ *   is classified.
  * @returns `{ endpoints, xrplOperations, intentTypes }`, each a sorted array of
- *   `{ key, operationId?, surface?, official, devbox }`.
+ *   `{ key, operationId?, official, devbox }`.
  */
 export function classify(capabilities, specs, merged) {
   const ordered = Object.keys(capabilities).sort(compareVersions)
@@ -77,14 +78,6 @@ export function classify(capabilities, specs, merged) {
     }
     return (key) => compressVersions(byKey.get(key) ?? new Set(), ordered)
   }
-  const officialInternal = specs.find(
-    (s) => s.channel === 'official' && s.surface === 'internal',
-  )
-  const officialInternalKeys = new Set(
-    officialInternal === undefined
-      ? []
-      : extractCapabilities(officialInternal.doc).endpoints.map(keyOfEntry),
-  )
   const devbox = specs
     .filter((s) => s.channel === 'devbox')
     .map((s) => {
@@ -112,27 +105,20 @@ export function classify(capabilities, specs, merged) {
 
   const publicEndpointVersions = officialPublic('endpoints', keyOfEntry)
   const endpoints = []
-  for (const surface of ['public', 'internal']) {
-    const doc = merged[surface]
-    for (const [path, item] of Object.entries(doc.paths ?? {})) {
-      for (const method of HTTP_METHODS) {
-        const op = item?.[method]
-        if (op === undefined) continue
-        const key = endpointKey(method, path)
-        endpoints.push({
-          key: `${method.toUpperCase()} ${path}`,
-          normalizedKey: key,
-          operationId: op.operationId,
-          surface,
-          official:
-            surface === 'public'
-              ? publicEndpointVersions(key)
-              : officialInternalKeys.has(key)
-                ? `${minorOf(officialInternal.appVersion)}+`
-                : '',
-          devbox: devboxBuilds('endpoints', key, surface),
-        })
-      }
+  // Public API only: the internal API isn't exposed to SDK users, so it isn't
+  // classified for them either.
+  for (const [path, item] of Object.entries(merged.public.paths ?? {})) {
+    for (const method of HTTP_METHODS) {
+      const op = item?.[method]
+      if (op === undefined) continue
+      const key = endpointKey(method, path)
+      endpoints.push({
+        key: `${method.toUpperCase()} ${path}`,
+        normalizedKey: key,
+        operationId: op.operationId,
+        official: publicEndpointVersions(key),
+        devbox: devboxBuilds('endpoints', key, 'public'),
+      })
     }
   }
   endpoints.sort((a, b) => a.key.localeCompare(b.key))
@@ -196,9 +182,8 @@ export const CUSTODY_AVAILABILITY: {
 /** Render docs/custody-endpoints.md. */
 export function renderAvailabilityDoc(classification) {
   const cell = (value) => (value === '' || value === undefined ? '—' : value)
-  const endpointRows = (surface) =>
+  const endpointRows = () =>
     classification.endpoints
-      .filter((row) => row.surface === surface)
       .map(
         (row) =>
           `| \`${row.key}\` | ${row.operationId === undefined ? '—' : `\`${row.operationId}\``} | ${cell(row.official)} | ${cell(row.devbox.join(', '))} |`,
@@ -217,28 +202,21 @@ export function renderAvailabilityDoc(classification) {
      Regenerate with \`npm run typegen\`. -->
 
 Where each part of the Ripple Custody API the SDK knows about is served.
-**Official** lists the released Custody versions that serve it (public API:
-every version the Custody docs publish a spec for; internal API: the vendored
-official internal spec). **Devbox** lists the vendored pre-release builds that
-serve it.
+**Official** lists the released Custody versions that serve it (every version
+the Custody docs publish a spec for). **Devbox** lists the vendored
+pre-release builds that serve it.
 
 At runtime the SDK checks calls against the instance's own version, so this
 table is for planning — see the README's "Ripple Custody versions" section.
 
 Endpoints without an operationId are typed but not callable by name through
-\`api.call\` / \`api.internal.call\`.
+\`api.call\`.
 
-## Public API (\`custody.api.call\`)
-
-| Endpoint | operationId | Official | Devbox |
-| --- | --- | --- | --- |
-${endpointRows('public')}
-
-## Internal API (\`custody.api.internal.call\`)
+## Endpoints (\`custody.api.call\`)
 
 | Endpoint | operationId | Official | Devbox |
 | --- | --- | --- | --- |
-${endpointRows('internal')}
+${endpointRows()}
 
 ## Native XRPL operations
 

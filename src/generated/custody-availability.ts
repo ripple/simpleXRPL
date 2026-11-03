@@ -19,17 +19,6 @@ export const CUSTODY_AVAILABILITY: {
   readonly intentTypes: Readonly<Record<string, CustodyAvailability>>
 } = {
   endpoints: {
-    'DELETE /api/notifications/entity/{}': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'DELETE /api/notifications/entity/{}/signature': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'DELETE /internal/v1/me/domains/{}/session/{}': {
-      official: '1.43+',
-    },
     'DELETE /v1/domain/{}/account/{}/sponsor': {
       official: '1.37–1.38',
       devbox: ['cmpt'],
@@ -43,106 +32,14 @@ export const CUSTODY_AVAILABILITY: {
       },
     'DELETE /v1/domains/{}/channels/{}': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'DELETE /v1/domains/{}/compliance/domain': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'DELETE /v1/domains/{}/compliance/providers/{}': {
       official: '1.26+',
-    },
-    'GET /api/notifications/entities': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /api/notifications/entity/{}': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /api/notifications/nonce': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /api/notifications/register-web': {
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/accounts/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/backups/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/cmpt-cb-in/{}': {
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/decrypt-cbs/pending': {
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/events': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/manifests/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/me/domains/{}/session': {
-      official: '1.43+',
-    },
-    'GET /internal/v1/me/domains/{}/session/{}': {
-      official: '1.43+',
-    },
-    'GET /internal/v1/me/domains/{}/session/{}/events': {
-      official: '1.43+',
-    },
-    'GET /internal/v1/me/settings/notifications': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/me/settings/notifications/available': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/migrations/lar-phase1-migration-sanity-check': {
-      official: '1.43+',
-    },
-    'GET /internal/v1/parameters-computed/pending': {
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/rewraps/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/scripting': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/system/information': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/transaction/{}/blocker': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/transactions/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/transactions/prepared': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/users': {
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/users/conflicts': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'GET /internal/v1/vaults/current': {
-      official: '1.43+',
       devbox: ['cmpt'],
     },
     'GET /v1/addresses': {
@@ -259,18 +156,23 @@ export const CUSTODY_AVAILABILITY: {
     },
     'GET /v1/domains/{}/channels': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/channels/{}': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/channels/{}/events': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/channels/{}/events/{}': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/channels/events': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/compliance-configurations': {
       official: '1.33+',
@@ -278,24 +180,31 @@ export const CUSTODY_AVAILABILITY: {
     },
     'GET /v1/domains/{}/compliance/policy/{}/transaction/{}': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/compliance/provider-connection': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/compliance/providers': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/compliance/providers/{}/screening-rules': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/compliance/transactionType/{}/exception-role': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/compliance/travel-rule/providers/{}/messages/{}': {
       official: '1.30+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/compliance/travel-rule/providers/{}/relationships': {
       official: '1.33+',
+      devbox: ['cmpt'],
     },
     'GET /v1/domains/{}/endpoints': {
       official: '1.15+',
@@ -514,88 +423,6 @@ export const CUSTODY_AVAILABILITY: {
     },
     'PATCH /v1/domains/{}/channels/{}': {
       official: '1.19+',
-    },
-    'POST /api/notifications/register-mobile': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /api/notifications/secured-register-mobile': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /api/notifications/secured-unregister-mobile': {
-      official: '1.43+',
-    },
-    'POST /api/notifications/sign-web': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /api/notifications/signature': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /api/notifications/unregister-mobile': {
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/accounts/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/backups/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/cmpt-cb-in': {
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/decrypt-cbs/pending': {
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/domains/{}/account-balances/query': {
-      official: '1.43+',
-    },
-    'POST /internal/v1/intents/context': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/manifests/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/me/domains/{}/session': {
-      official: '1.43+',
-    },
-    'POST /internal/v1/me/domains/{}/session/{}': {
-      official: '1.43+',
-    },
-    'POST /internal/v1/me/domains/{}/session/{}/change': {
-      official: '1.43+',
-    },
-    'POST /internal/v1/me/settings/notifications': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/parameters-computed/pending': {
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/rewraps/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/transactions/interrupt': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/transactions/pending': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/transactions/prepared': {
-      official: '1.43+',
-      devbox: ['cmpt'],
-    },
-    'POST /internal/v1/vaults/current': {
-      official: '1.43+',
       devbox: ['cmpt'],
     },
     'POST /v1/domain/{}/account/{}/sponsor': {
@@ -636,50 +463,65 @@ export const CUSTODY_AVAILABILITY: {
     },
     'POST /v1/domains/{}/channels': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/channels/{}/test': {
       official: '1.19+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/analysis': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/analysis/preview': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/domain': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/domain/validation': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/policy': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/providers': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/providers/{}/screening-rules': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/travel-rule/details': {
       official: '1.32+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/travel-rule/providers/{}/messages': {
       official: '1.30+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/travel-rule/providers/{}/messages/{}/encrypted-pii':
       {
         official: '1.30+',
+        devbox: ['cmpt'],
       },
     'POST /v1/domains/{}/compliance/travel-rule/providers/{}/messages/{}/pii': {
       official: '1.30+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/compliance/travel-rule/providers/{}/messages/{}/policies/{}/encrypted-pii':
       {
         official: '1.30+',
+        devbox: ['cmpt'],
       },
     'POST /v1/domains/{}/compliance/travel-rule/providers/{}/relationships': {
       official: '1.33+',
+      devbox: ['cmpt'],
     },
     'POST /v1/domains/{}/omnibus': {
       official: '1.36+',
@@ -779,9 +621,11 @@ export const CUSTODY_AVAILABILITY: {
     },
     'PUT /v1/domains/{}/compliance/providers/{}/pause-connection': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'PUT /v1/domains/{}/compliance/providers/{}/toggle-preview-screening': {
       official: '1.26+',
+      devbox: ['cmpt'],
     },
     'PUT /v1/domains/{}/omnibus/{}': {
       official: '1.36+',

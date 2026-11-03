@@ -105,6 +105,43 @@ describe('mergeSurface', () => {
     assert.deepEqual(schemas.Status.enum, ['Open', 'Closed', 'Draft'])
   })
 
+  it('adds union members only by $ref, never an inline reshape', () => {
+    const official = spec('official', '1.43', {
+      paths: {},
+      components: {
+        schemas: {
+          Request: { oneOf: [{ $ref: '#/components/schemas/Request_A' }] },
+        },
+      },
+    })
+    const devbox = spec(
+      'devbox',
+      '1.36.2',
+      {
+        paths: {},
+        components: {
+          schemas: {
+            Request: {
+              oneOf: [
+                { $ref: '#/components/schemas/Request_A' },
+                { $ref: '#/components/schemas/Request_B' },
+                { type: 'object', properties: { legacy: { type: 'string' } } },
+              ],
+            },
+          },
+        },
+      },
+      'cmpt',
+    )
+
+    const merged = mergeSurface([official, devbox]).doc.components.schemas
+
+    assert.deepEqual(merged.Request.oneOf, [
+      { $ref: '#/components/schemas/Request_A' },
+      { $ref: '#/components/schemas/Request_B' },
+    ])
+  })
+
   it('adds devbox properties as optional, never touching `required`', () => {
     assert.ok(schemas.Op_Payment.properties.mutableFlags)
     assert.deepEqual(schemas.Op_Payment.required, ['type', 'amount'])
