@@ -189,6 +189,28 @@ When a failure matches a known Custody server bug, `hint` says how to work
 around it. For example, a `quarantineStatus` filter can return a 500 on the
 transfers endpoint.
 
+## Debug logging
+
+To see a custodian's HTTP traffic, pass `debug` to `RippleCustody.create()` /
+`fromEnv()` or `PalisadeCustody.create()`. Each request is logged at debug
+level with its method, URL, status and duration, plus the request headers and
+bodies:
+
+```
+Ripple Custody GET https://…/v1/me → 200 (328 ms)
+```
+
+`debug: true` logs to `console.debug`. To use your own logger, pass any object
+with a `debug(message, fields)` method, such as pino or winston. The `fields`
+object carries the details.
+
+```ts
+await RippleCustody.fromEnv({ primary: 'r...', debug: logger })
+```
+
+Credentials are masked before anything is logged: the `Authorization` header,
+access/ID/refresh tokens, and client secrets. Bodies longer than 8 KB are cut.
+
 ## Development
 
 Install dependencies with `npm install`.

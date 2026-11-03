@@ -920,3 +920,50 @@ describe('RippleCustody with an HSM/KMS signer', () => {
     )
   })
 })
+
+describe('RippleCustody debug logging', () => {
+  it('logs every request with its credentials masked', async () => {
+    const entries: Array<{
+      message: string
+      fields?: Record<string, unknown>
+    }> = []
+    const jwt = makeJwt({ exp: 9_999_999_999 })
+
+    await RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth: {
+        signingKey: SIGNING_KEY,
+        tokenUrl: 'https://auth.example.com/token',
+      },
+      domainId: DOMAIN_ID,
+      primary: PRIMARY_ADDRESS,
+      http: buildHttp(),
+      debug: {
+        debug(message, fields): void {
+          entries.push({ message, fields })
+        },
+      },
+    })
+
+    const messages = entries.map((entry) => entry.message)
+    // The token exchange, version detection, and API calls alike.
+    expect(messages).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^Ripple Custody POST https:\/\/auth\.example\.com\/token → 200 \(\d+ ms\)$/u,
+        ),
+        expect.stringMatching(
+          /^Ripple Custody GET \S+\/api\/OpenAPI\S* → 200/u,
+        ),
+        expect.stringMatching(
+          /^Ripple Custody GET https:\/\/custody\.example\.com\/v1\/me → 200/u,
+        ),
+      ]),
+    )
+    const me = entries.find((entry) => entry.message.includes('/v1/me'))
+    expect(me?.fields?.requestHeaders).toMatchObject({
+      Authorization: 'Bearer [REDACTED]',
+    })
+    expect(JSON.stringify(entries)).not.toContain(jwt)
+  })
+})

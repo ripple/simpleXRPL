@@ -55,6 +55,18 @@ describe('resolveFromEnvOptions', () => {
     expect(send).not.toHaveBeenCalled()
   })
 
+  it('passes the debug option through', async () => {
+    const logger = { debug: (): void => undefined }
+
+    const options = await resolveFromEnvOptions({
+      primary: 'rPrimary',
+      env: envWith(SIGNING_KEY_PEM),
+      debug: logger,
+    })
+
+    expect(options.debug).toBe(logger)
+  })
+
   it('resolves a literal PEM signing key unchanged', async () => {
     const options = await resolveFromEnvOptions({
       primary: 'rPrimary',

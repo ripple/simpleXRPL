@@ -8,6 +8,8 @@ import {
 import type { FeeIntent } from '../../domain/index.js'
 import { CustodyAuthError, SimpleXRPLError } from '../../errors.js'
 import type { components } from '../../generated/custody.js'
+import { withHttpLogging } from '../http-logging.js'
+import type { HttpDebugOption } from '../http-logging.js'
 
 import {
   CustodyAuthService,
@@ -88,6 +90,12 @@ export interface RippleCustodyOptions extends CustodyVersionOptions {
   readonly defaultTimeoutMs?: number
   /** Injectable transport; defaults to `FetchHttpPort`. */
   readonly http?: CustodyHttpPort
+  /**
+   * Log every Custody HTTP request — method, URL, status, duration, and the
+   * bodies with credentials masked: `true` to `console.debug`, or to a logger
+   * with a `debug(message, fields)` method.
+   */
+  readonly debug?: HttpDebugOption
 }
 
 /** Construction options for {@link RippleCustody.fromEnv}. */
@@ -127,6 +135,12 @@ export interface RippleCustodyFromEnvOptions extends CustodyVersionOptions {
   readonly env?: Readonly<Record<string, string | undefined>>
   /** Injectable transport; defaults to `FetchHttpPort`. */
   readonly http?: CustodyHttpPort
+  /**
+   * Log every Custody HTTP request — method, URL, status, duration, and the
+   * bodies with credentials masked: `true` to `console.debug`, or to a logger
+   * with a `debug(message, fields)` method.
+   */
+  readonly debug?: HttpDebugOption
 }
 
 /** Fully assembled construction state, ready to hand to `new RippleCustody(...)`. */
@@ -363,7 +377,11 @@ async function createClientAndSigner(
 export async function buildRippleCustodyState(
   options: RippleCustodyOptions,
 ): Promise<RippleCustodyState> {
-  const http = options.http ?? new FetchHttpPort()
+  const http = withHttpLogging(
+    options.http ?? new FetchHttpPort(),
+    options.debug,
+    { custodian: 'ripple-custody', label: 'Ripple Custody' },
+  )
   const { client, intentSigner } = await createClientAndSigner(options, http)
 
   // Version detection reads the instance's own OpenAPI document; run it
@@ -431,6 +449,7 @@ export async function resolveFromEnvOptions(
     defaultDryRun: options.defaultDryRun,
     defaultTimeoutMs: options.defaultTimeoutMs,
     http: options.http,
+    debug: options.debug,
     apiVersion: options.apiVersion,
     autoDetectVersion: options.autoDetectVersion,
     openApiUrl: options.openApiUrl,
