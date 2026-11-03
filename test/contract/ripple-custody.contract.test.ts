@@ -16,10 +16,16 @@ import {
   resolveFromEnvOptions,
 } from '../../src/custodians/ripple/construction.js'
 import type { RippleCustodyState } from '../../src/custodians/ripple/construction.js'
+import { buildDecisionEnvelope } from '../../src/custodians/ripple/mapping/decision-envelope.js'
 import { buildProposeIntentBody } from '../../src/custodians/ripple/mapping/envelope.js'
 import { runDryRun } from '../../src/custodians/ripple/submission/dry-run.js'
 import type { Account } from '../../src/domain/index.js'
-import { IntentValidationError } from '../../src/errors.js'
+import {
+  CustodyApiError,
+  CustodyAuthError,
+  IntentValidationError,
+} from '../../src/errors.js'
+import type { components } from '../../src/generated/custody.js'
 import { RippleCustody, SimpleXRPL } from '../../src/index.js'
 import { TESTNET_FAUCET, TESTNET_WS, ensureFunded } from '../helpers/testnet.js'
 
@@ -27,7 +33,7 @@ import { SANDBOX_PRIMARY, describeContract } from './helpers/custody-sandbox.js'
 
 const LIVE_TIMEOUT_MS = 120_000
 
-/** How long to wait for a rejected intent to show as `Rejected`. */
+/** How long to wait for a newly proposed intent to become readable. */
 const DECISION_SETTLE_MS = 15_000
 
 /** A no-op AccountSet on the sandbox primary — the benign shape the dry-run and
@@ -279,56 +285,131 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
   )
 
   describe('intent decisions (approve / reject)', () => {
-    // Known failure on the shared sandbox: it auto-approves and executes
-    // proposals within about a second, so the reject arrives after the intent
-    // has settled and Custody answers 404. This passes on an instance whose
-    // policy keeps intents pending until a decision.
-    it(
-      'rejects an intent it proposed, signed with the API user key',
-      async () => {
-        const { accountId, ledgerId } = requirePrimary(
-          await custody.listAccounts(),
-        )
-        const intentId = randomUUID()
-        const order = await buildProposeIntentBody(state.intentSigner, {
-          domainId: state.domainId,
-          authorUserId: state.authorUserId,
-          accountId,
-          ledgerId,
-          transaction: PRIMARY_ACCOUNT_SET,
-          idempotencyKey: intentId,
-        })
-        await custody.api.propose(order.request.payload, {
-          id: intentId,
-          expiryAt: new Date(Date.now() + 120_000).toISOString(),
-        })
+    // Custody makes a proposed intent readable only after ~1 s, and this
+    // sandbox's policy auto-approves this user's proposals in about the same
+    // time. So by the time a reject can find the intent it has usually
+    // executed, and Custody refuses it as already settled. That refusal still
+    // comes after Custody has verified the request's signature (the second
+    // test shows a bad signature is caught first), so it proves the decision
+    // is well-formed and correctly signed. On an instance whose policy keeps
+    // intents pending, the reject succeeds and the intent ends up Rejected.
+    let intentId: string
+    let intent: components['schemas']['Core_TrustedIntent']
 
-        // A requestId back means the sandbox verified the decision's signature
-        // and bound it to the proposal by its signature.
-        const response = await custody.api.reject(intentId, {
-          reason: 'simpleXRPL contract check: rejecting a no-op intent',
-        })
-        expect(response.requestId).toBeTruthy()
-
-        // And the intent ends up Rejected — which also cleans it up.
-        const deadline = Date.now() + DECISION_SETTLE_MS
-        let status = ''
-        while (Date.now() < deadline) {
-          // Sequential by design: each poll waits on the previous one.
-          // eslint-disable-next-line no-await-in-loop -- polling for a status change
-          const intent = await custody.api.call('getIntent', {
+    /**
+     * Read the intent, polling past the 404 Custody returns until a newly
+     * proposed intent becomes readable.
+     *
+     * @returns The intent.
+     */
+    async function readIntent(): Promise<
+      components['schemas']['Core_TrustedIntent']
+    > {
+      const deadline = Date.now() + DECISION_SETTLE_MS
+      for (;;) {
+        try {
+          // eslint-disable-next-line no-await-in-loop -- polling until readable
+          return await custody.api.call('getIntent', {
             path: { domainId: state.domainId, intentId },
           })
-          status = intent.data.state.status
-          if (status === 'Rejected') {
-            break
+        } catch (error) {
+          if (
+            !(error instanceof CustodyApiError) ||
+            error.status !== 404 ||
+            Date.now() > deadline
+          ) {
+            throw error
           }
-          // eslint-disable-next-line no-await-in-loop -- polling interval
-          await new Promise((resolve) => {
-            setTimeout(resolve, 1000)
-          })
         }
-        expect(status).toBe('Rejected')
+        // eslint-disable-next-line no-await-in-loop -- polling interval
+        await new Promise((resolve) => {
+          setTimeout(resolve, 500)
+        })
+      }
+    }
+
+    beforeAll(async () => {
+      const { accountId, ledgerId } = requirePrimary(
+        await custody.listAccounts(),
+      )
+      intentId = randomUUID()
+      const order = await buildProposeIntentBody(state.intentSigner, {
+        domainId: state.domainId,
+        authorUserId: state.authorUserId,
+        accountId,
+        ledgerId,
+        transaction: PRIMARY_ACCOUNT_SET,
+        idempotencyKey: intentId,
+      })
+      await custody.api.propose(order.request.payload, {
+        id: intentId,
+        expiryAt: new Date(Date.now() + 120_000).toISOString(),
+      })
+      intent = await readIntent()
+    }, LIVE_TIMEOUT_MS)
+
+    it(
+      'rejects the intent, or is refused only because it already settled',
+      async () => {
+        const settled = await custody.api
+          .reject(intentId, {
+            reason: 'simpleXRPL contract check: rejecting a no-op intent',
+          })
+          .then(
+            () => false,
+            (error: unknown) => {
+              // The one acceptable refusal: the intent was decided before us.
+              if (
+                error instanceof CustodyApiError &&
+                error.status === 400 &&
+                String(error.raw).includes('cannot be signed anymore')
+              ) {
+                return true
+              }
+              throw error
+            },
+          )
+
+        const { status } = (await readIntent()).data.state
+        if (settled) {
+          expect(status).not.toBe('Open')
+        } else {
+          expect(['Open', 'Rejected']).toContain(status)
+        }
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'is refused with InvalidSignatureError when the signature is wrong',
+      async () => {
+        const body = await buildDecisionEnvelope(state.intentSigner, {
+          domainId: state.domainId,
+          authorUserId: state.authorUserId,
+          intent,
+          decision: 'Reject',
+          reason: 'simpleXRPL contract check: tampered signature',
+        })
+        const tampered = {
+          ...body,
+          signature: Buffer.from('not this request').toString('base64'),
+        }
+
+        let error: unknown
+        try {
+          await state.client.post('/v1/intents/reject', tampered)
+        } catch (caught) {
+          error = caught
+        }
+
+        // A 401 after the token refresh surfaces as CustodyAuthError, with
+        // Custody's own response as its cause.
+        expect(error).toBeInstanceOf(CustodyAuthError)
+        const cause = (error as CustodyAuthError).cause
+        expect(cause).toBeInstanceOf(CustodyApiError)
+        expect(String((cause as CustodyApiError).raw)).toContain(
+          'InvalidSignatureError',
+        )
       },
       LIVE_TIMEOUT_MS,
     )
