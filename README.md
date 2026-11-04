@@ -136,6 +136,23 @@ one.
 domain holding the `primary` address is looked up when the custodian is
 created; `custody.domainId` returns it either way.
 
+## Creating a Ripple Custody API key
+
+`generateCustodyKeypair` makes a new key pair for an API user, in any of the
+three algorithms Custody supports:
+
+```ts
+import { generateCustodyKeypair } from 'simplexrpl'
+
+const { privateKey, publicKey } = await generateCustodyKeypair('ed25519') // or 'secp256k1', 'secp256r1'
+```
+
+Register `publicKey` (base64 SPKI DER) for the API user in Custody, and store
+`privateKey` (PKCS#8 PEM) wherever the SDK reads its signing key from:
+`auth.signingKey`, or `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` as the PEM itself, a
+path to a `.pem` file, or an AWS Secrets Manager secret ARN. To keep the key in
+an HSM or KMS instead, generate it there; see below.
+
 ## Ripple Custody API key in an HSM or KMS
 
 The Ripple Custody API user's key signs the login challenge and every intent

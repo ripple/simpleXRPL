@@ -34,3 +34,5 @@ export type {
   CustodySignContext,
   CustodySignerPort,
 } from './auth/signer-port.js'
+export { generateCustodyKeypair } from './auth/generate-keypair.js'
+export type { CustodyKeypair } from './auth/generate-keypair.js'
