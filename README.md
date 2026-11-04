@@ -107,6 +107,38 @@ await custody.api.reject(intentId, { reason: 'unexpected destination' })
 `approve` and `reject` fetch the intent and sign the decision for you; the API
 user must be allowed to decide on that intent under its policy.
 
+To find out how an intent ended, `api.waitForIntent` reports the outcome
+instead of throwing. A rejected, expired, or failed intent, or one still
+pending when the wait runs out, comes back as an answer:
+
+```ts
+const outcome = await custody.api.waitForIntent(intentId, { timeoutMs: 30_000 })
+// → { status, isTerminal, isSuccess, reason, intent }
+if (!outcome.isSuccess) console.log(outcome.reason)
+
+// Or propose and wait in one call.
+const result = await custody.api.proposeAndWait(payload)
+```
+
+An intent still `Open` when the wait ends is most likely waiting for a person
+to approve it, so keep the `intentId` and check back later.
+`client.intent.outcome(intentId)` does the same from a `SimpleXRPL` client.
+
+`api.dryRun` asks Custody whether an intent would go through, without creating
+it, and returns the verdict instead of throwing. `api.dryRunTransaction` does
+the same for an XRPL transaction, and includes the fee estimate:
+
+```ts
+const check = await custody.api.dryRunTransaction(payment, { ledgerId: 'xrpl' })
+// → { success, errors, result, estimate: { fee, minimumCostInDrops, ... } }
+```
+
+To pre-flight a single vertical write, pass `dryRun: true`, e.g.
+`client.xrp.transfer(params, { dryRun: true })`. If the dry-run fails, the
+write throws a `DryRunFailedError` (carrying Custody's full response) and
+nothing is submitted. This works for Ripple Custody accounts; other signers
+reject the option.
+
 List endpoints return one page at a time. `api.paginate` follows the
 `nextStartingAfter` cursor and yields every item, fetching each page only when
 the loop needs it:

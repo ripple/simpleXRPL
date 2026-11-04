@@ -86,6 +86,159 @@ export async function fetchIntent(
   return trusted.data
 }
 
+/**
+ * How an intent wait ended. Reported, never thrown: a rejected, expired, or
+ * failed intent and a wait that ran out of time are all answers, so the caller
+ * reads them from `isSuccess` / `isTerminal`, with `reason` saying the same in
+ * one sentence.
+ */
+export interface IntentOutcome {
+  /** The intent waited on. */
+  readonly intentId: string
+  /** The last status seen; `undefined` if the intent was never readable. */
+  readonly status: IntentStatus | undefined
+  /** Whether the intent reached the end of its lifecycle. */
+  readonly isTerminal: boolean
+  /** Whether it ended `Executed`. */
+  readonly isSuccess: boolean
+  /**
+   * Why the wait didn't succeed, in one sentence — `undefined` exactly when
+   * `isSuccess` is true. Set when the wait ran out of time too: an intent still
+   * `Open` is most likely waiting for an approval.
+   */
+  readonly reason: string | undefined
+  /** The last intent read; `undefined` if it was never readable. */
+  readonly intent: TrustedIntent | undefined
+}
+
+/** Inputs for {@link waitForIntentOutcome}. */
+export interface WaitForIntentOptions {
+  /** Reads the intent once (`GET /v1/domains/{domainId}/intents/{intentId}`). */
+  readonly readIntent: () => Promise<TrustedIntent>
+  /** The intent id, for the outcome and its reason. */
+  readonly intentId: string
+  /** How long to wait before reporting the intent as still in progress. */
+  readonly timeoutMs: number
+  /** Called with each status read, and the attempt number (from 1). */
+  readonly onStatusCheck?: (status: IntentStatus, attempt: number) => void
+}
+
+/**
+ * Explain an intent still in progress when the wait ran out.
+ *
+ * @param intentId - The intent id.
+ * @param status - Its last status, if it was ever readable.
+ * @param timeoutMs - How long the wait ran.
+ * @returns The reason.
+ */
+function describeUnfinished(
+  intentId: string,
+  status: IntentStatus | undefined,
+  timeoutMs: number,
+): string {
+  if (status === undefined) {
+    return `Custody intent ${intentId} was not readable within ${timeoutMs} ms; check the intent id and domain`
+  }
+  const approval =
+    status === 'Open' ? '; it is most likely waiting for an approval' : ''
+  return `Custody intent ${intentId} is still ${status} after ${timeoutMs} ms${approval}`
+}
+
+/**
+ * Read the intent once, treating a 404 as "not readable yet".
+ *
+ * @param readIntent - Reads the intent.
+ * @returns The intent, or `undefined` on a 404.
+ * @throws Whatever reading the intent throws, other than a 404.
+ */
+async function readIfVisible(
+  readIntent: () => Promise<TrustedIntent>,
+): Promise<TrustedIntent | undefined> {
+  try {
+    return await readIntent()
+  } catch (error) {
+    if (error instanceof CustodyApiError && error.status === HTTP_NOT_FOUND) {
+      return undefined
+    }
+    throw error
+  }
+}
+
+/**
+ * The outcome of an intent that has finished, or `undefined` if it hasn't.
+ *
+ * @param intentId - The intent id.
+ * @param intent - The intent as last read.
+ * @returns The terminal outcome, if the intent is terminal.
+ */
+function terminalOutcome(
+  intentId: string,
+  intent: TrustedIntent,
+): IntentOutcome | undefined {
+  const { status } = intent.data.state
+  const isSuccess = status === 'Executed'
+  if (!isSuccess && !TERMINAL_FAILURE_STATUSES.has(status)) {
+    return undefined
+  }
+  return {
+    intentId,
+    status,
+    isTerminal: true,
+    isSuccess,
+    reason: isSuccess
+      ? undefined
+      : describeFailure(intentId, intent.data.state),
+    intent,
+  }
+}
+
+/**
+ * Wait for an intent to finish, and report how it ended — without throwing on
+ * a rejected, expired, or failed intent, or on running out of time.
+ *
+ * A 404 means "not readable yet", not "does not exist": Custody accepts an
+ * intent with 202 and materializes it in the read model a moment later, so a
+ * wait that starts right after proposing can race it. It is retried within the
+ * same budget; a genuinely absent intent is reported as never readable.
+ *
+ * @param options - How to read the intent, its id, the budget, and an
+ *   optional per-read callback.
+ * @returns How the intent ended, or where it stood when the budget ran out.
+ * @throws Whatever reading the intent throws, other than a 404.
+ */
+export async function waitForIntentOutcome(
+  options: WaitForIntentOptions,
+): Promise<IntentOutcome> {
+  const { intentId, timeoutMs } = options
+  const deadline = Date.now() + timeoutMs
+  let last: TrustedIntent | undefined
+  for (let attempt = 0; ; attempt += 1) {
+    // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
+    last = (await readIfVisible(options.readIntent)) ?? last
+    if (last !== undefined) {
+      options.onStatusCheck?.(last.data.state.status, attempt + 1)
+      const outcome = terminalOutcome(intentId, last)
+      if (outcome !== undefined) {
+        return outcome
+      }
+    }
+    const delay = pollDelayMs(attempt, POLL_SCHEDULE)
+    if (Date.now() + delay >= deadline) {
+      const status = last?.data.state.status
+      return {
+        intentId,
+        status,
+        isTerminal: false,
+        isSuccess: false,
+        reason: describeUnfinished(intentId, status, timeoutMs),
+        intent: last,
+      }
+    }
+    // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
+    await sleep(delay)
+  }
+}
+
 /** Inputs for {@link pollIntentUntilExecuted}. */
 export interface PollIntentOptions {
   /** The authenticated Custody client. */
@@ -100,14 +253,12 @@ export interface PollIntentOptions {
 
 /**
  * Poll a submitted intent until it reaches `Executed`, or throw once it hits a
- * terminal failure or the timeout elapses. Shared by the native
- * and raw-signing paths, both of which submit one intent and wait on it the
- * same way.
+ * terminal failure or the timeout elapses — {@link waitForIntentOutcome}, with
+ * the unsuccessful outcomes thrown. Shared by the native and raw-signing
+ * paths, both of which submit one intent and wait on it the same way.
  *
- * Bounded, blocking wait only — {@link IntentPendingError} on timeout is *not*
- * a failure: the intent keeps living custodian-side. Resuming a
- * timed-out intent from its id (`client.intent.await`) is the async /
- * governance-observation surface, not this polling primitive.
+ * {@link IntentPendingError} on timeout is *not* a failure: the intent keeps
+ * living custodian-side, and `client.intent.await` resumes it by id.
  *
  * @param options - The client, domain, intent id, and timeout to poll with.
  * @returns The executed intent entity.
@@ -120,49 +271,21 @@ export async function pollIntentUntilExecuted(
   options: PollIntentOptions,
 ): Promise<IntentEntity> {
   const { client, domainId, intentId, timeoutMs } = options
-  const deadline = Date.now() + timeoutMs
-  let lastStatus: IntentStatus | typeof NOT_YET_VISIBLE = NOT_YET_VISIBLE
-  for (let attempt = 0; ; attempt += 1) {
-    let trusted: TrustedIntent | undefined
-    try {
-      // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
-      trusted = await client.get<TrustedIntent>(
-        `/v1/domains/${domainId}/intents/${intentId}`,
-      )
-    } catch (error) {
-      // A 404 here means "not readable yet", not "does not exist". Custody
-      // accepts the intent with 202 and materializes it in the read model a
-      // moment later, so polling that starts immediately after submission can
-      // race it. Treating that as fatal reported *successful* payments as
-      // failures — the intent went on to execute and move funds while the
-      // caller saw an error. Keep waiting instead; a genuinely absent intent
-      // still surfaces, as IntentPendingError once the deadline passes.
-      if (
-        !(error instanceof CustodyApiError) ||
-        error.status !== HTTP_NOT_FOUND
-      ) {
-        throw error
-      }
-    }
-
-    if (trusted !== undefined) {
-      const { status } = trusted.data.state
-      lastStatus = status
-      if (status === 'Executed') {
-        return trusted.data
-      }
-      if (TERMINAL_FAILURE_STATUSES.has(status)) {
-        throw new IntentValidationError(
-          describeFailure(intentId, trusted.data.state),
-        )
-      }
-    }
-
-    const delay = pollDelayMs(attempt, POLL_SCHEDULE)
-    if (Date.now() + delay >= deadline) {
-      throw new IntentPendingError(intentId, 'ripple-custody', lastStatus)
-    }
-    // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
-    await sleep(delay)
+  const outcome = await waitForIntentOutcome({
+    readIntent: async () =>
+      client.get<TrustedIntent>(`/v1/domains/${domainId}/intents/${intentId}`),
+    intentId,
+    timeoutMs,
+  })
+  if (outcome.isSuccess && outcome.intent !== undefined) {
+    return outcome.intent.data
   }
+  if (outcome.isTerminal) {
+    throw new IntentValidationError(outcome.reason)
+  }
+  throw new IntentPendingError(
+    intentId,
+    'ripple-custody',
+    outcome.status ?? NOT_YET_VISIBLE,
+  )
 }

@@ -123,6 +123,7 @@ export class Token {
       transaction: buildIssuance(account.address, params),
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
 
@@ -271,6 +272,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
@@ -304,6 +306,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { to: params.to, amount: params.amount.value })
@@ -344,6 +347,7 @@ export class Token {
       transaction,
       account: issuer,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
@@ -383,6 +387,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
@@ -419,6 +424,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {

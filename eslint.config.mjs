@@ -80,6 +80,7 @@ export default [
       'src/verticals/*.ts',
       'src/custodians/palisade/palisade-custody.ts',
       'src/custodians/ripple/ripple-custody.ts',
+      'src/custodians/ripple/api.ts',
     ],
     rules: {
       'max-lines': [

@@ -19,7 +19,7 @@ import { assembleSignedTransaction, buildSigningPreimage } from './raw-sign.js'
 /** Runs the custodian's dry-run pre-flight for an intent payload, if enabled. */
 interface DryRunStep {
   (
-    payload: components['schemas']['Core_IntentDryRunRequest']['payload'],
+    payload: components['schemas']['Core_ProposeUserIntentPayload'],
     customProperties: components['schemas']['Core_StringsMap'],
   ): Promise<void>
 }
