@@ -106,6 +106,35 @@ await custody.api.reject(intentId, { reason: 'unexpected destination' })
 `approve` and `reject` fetch the intent and sign the decision for you; the API
 user must be allowed to decide on that intent under its policy.
 
+List endpoints return one page at a time. `api.paginate` follows the
+`nextStartingAfter` cursor and yields every item, fetching each page only when
+the loop needs it:
+
+```ts
+for await (const account of custody.api.paginate('getAccounts', {
+  path: { domainId },
+  query: { limit: 100 },
+})) {
+  // every account in the domain
+}
+```
+
+`api.findByAddress` finds the account that holds an address, across every
+domain the API user can see:
+
+```ts
+const ref = await custody.api.findByAddress('r...', { ledgerId: 'xrpl' })
+// → { domainId, accountId, ledgerId, ... }, or undefined if no account holds it
+```
+
+It throws if more than one account matches. That includes one account holding
+the address on several ledgers, so pass `ledgerId` and/or `domainId` to pick
+one.
+
+`domainId` is optional when creating a `RippleCustody`. If it's left out, the
+domain holding the `primary` address is looked up when the custodian is
+created; `custody.domainId` returns it either way.
+
 ## Ripple Custody API key in an HSM or KMS
 
 The Ripple Custody API user's key signs the login challenge and every intent

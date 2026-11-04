@@ -6,7 +6,7 @@ import {
 } from '@aws-sdk/client-secrets-manager'
 
 import type { FeeIntent } from '../../domain/index.js'
-import { CustodyAuthError, SimpleXRPLError } from '../../errors.js'
+import { SimpleXRPLError } from '../../errors.js'
 import type { components } from '../../generated/custody.js'
 import { withHttpLogging } from '../http-logging.js'
 import type { HttpDebugOption } from '../http-logging.js'
@@ -17,6 +17,7 @@ import {
   resolveKeySigner,
 } from './auth/index.js'
 import type { CustodySignerPort } from './auth/index.js'
+import { resolveDomain } from './discovery/domain-resolution.js'
 import { CustodyHttpClient } from './transport/custody-http-client.js'
 import { FetchHttpPort } from './transport/fetch-http-port.js'
 import { HttpCustodyAuthPort } from './transport/http-custody-auth-port.js'
@@ -60,8 +61,11 @@ export interface RippleCustodyOptions extends CustodyVersionOptions {
   readonly gatewayUrl: string
   /** Intent-author credentials and token endpoint. */
   readonly auth: RippleCustodyAuthOptions
-  /** The Custody domain this custodian operates in. */
-  readonly domainId: string
+  /**
+   * The Custody domain this custodian operates in. Omitted, it is the domain
+   * that holds the `primary` address, looked up at creation.
+   */
+  readonly domainId?: string
   /** The primary account's r-address; validated against the discovered set. */
   readonly primary: string
   /**
@@ -372,7 +376,8 @@ async function createClientAndSigner(
  * @returns The assembled construction state.
  * @throws {@link CustodyAuthError} if the authenticated user has no access
  * to `options.domainId`.
- * @throws {@link SimpleXRPLError} for an unknown `apiVersion`.
+ * @throws {@link SimpleXRPLError} for an unknown `apiVersion`, or when no
+ * `domainId` is set and the primary address isn't in exactly one domain.
  */
 export async function buildRippleCustodyState(
   options: RippleCustodyOptions,
@@ -390,17 +395,12 @@ export async function buildRippleCustodyState(
     client.get<components['schemas']['Core_MeReference']>('/v1/me'),
     resolveVersionGuard(options, http, options.gatewayUrl),
   ])
-  const domain = me.domains.find((entry) => entry.id === options.domainId)
-  if (domain === undefined) {
-    throw new CustodyAuthError(
-      `The authenticated Custody user has no access to domain '${options.domainId}'`,
-    )
-  }
+  const { domainId, authorUserId } = await resolveDomain(client, me, options)
 
   return {
     client,
-    domainId: options.domainId,
-    authorUserId: domain.userReference.id,
+    domainId,
+    authorUserId,
     intentSigner,
     allowRawSigning: options.allowRawSigning ?? false,
     defaultFee: options.defaultFee,
@@ -442,7 +442,11 @@ export async function resolveFromEnvOptions(
   return {
     gatewayUrl: requireEnv(env, 'RIPPLE_CUSTODY_GATEWAY_URL'),
     auth,
-    domainId: requireEnv(env, 'RIPPLE_CUSTODY_DOMAIN_ID'),
+    // Unset or empty: the domain is found from the primary address.
+    domainId:
+      env.RIPPLE_CUSTODY_DOMAIN_ID === ''
+        ? undefined
+        : env.RIPPLE_CUSTODY_DOMAIN_ID,
     primary: options.primary,
     allowRawSigning: options.allowRawSigning,
     defaultFee: options.defaultFee,
