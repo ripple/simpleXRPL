@@ -457,7 +457,7 @@ export class RippleCustody implements Custodian, IntentObserver {
    */
   private async maybeDryRun(
     ctx: SubmissionContext,
-    payload: components['schemas']['Core_IntentDryRunRequest']['payload'],
+    payload: components['schemas']['Core_ProposeUserIntentPayload'],
     customProperties: components['schemas']['Core_StringsMap'],
   ): Promise<void> {
     if (!(ctx.dryRun ?? this.state.defaultDryRun)) {

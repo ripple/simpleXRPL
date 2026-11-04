@@ -81,6 +81,7 @@ export class Domain {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { domainID: extractDomainId(result) })
@@ -108,6 +109,7 @@ export class Domain {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { domainID: params.domain })
@@ -134,6 +136,7 @@ export class Domain {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { domainID: params.domain })

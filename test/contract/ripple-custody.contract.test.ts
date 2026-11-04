@@ -553,6 +553,48 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     )
 
     it(
+      'api.dryRunTransaction returns the verdict and fee estimate',
+      async () => {
+        const { ledgerId } = requirePrimary(await custody.listAccounts())
+
+        // Non-mutating: a dry-run creates no intent.
+        const response = await custody.api.dryRunTransaction(
+          PRIMARY_ACCOUNT_SET,
+          { ledgerId },
+        )
+
+        expect(response.type).toBe('v0_CreateTransactionOrder')
+        expect(response.success).toBe(true)
+        expect(response.estimate).toMatchObject({ type: 'XRPL' })
+        expect(
+          response.estimate.type === 'XRPL' ? response.estimate.fee : undefined,
+        ).toMatch(/^\d+$/u)
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.dryRun reports a failed verdict instead of throwing',
+      async () => {
+        const { accountId } = requirePrimary(await custody.listAccounts())
+        // A synthetic transfer id: Custody parses it and rejects it as
+        // unknown — a verdict, returned rather than thrown.
+        const transferId = randomUUID()
+
+        const response = await custody.api.dryRun({
+          accountId,
+          transferIds: [transferId],
+          type: 'v0_ReleaseQuarantinedTransfers',
+        })
+
+        expect(response.type).toBe('v0_ReleaseQuarantinedTransfers')
+        expect(response.success).toBe(false)
+        expect(JSON.stringify(response.errors)).toContain(transferId)
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
       'api.propose signs an envelope the sandbox accepts',
       async () => {
         const { accountId, ledgerId } = requirePrimary(
@@ -574,15 +616,28 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         // the envelope — the contract this guards. A shape or canonicalization
         // drift surfaces as CustodyApiError/CustodyAuthError and fails the test.
         // The intent sits unapproved and lapses at this short expiry.
-        const response = await custody.api.propose(envelope.request.payload, {
-          id: intentId,
-          expiryAt: new Date(Date.now() + 120_000).toISOString(),
-        })
+        // proposeAndWait = propose + waitForIntent, so this also proves the
+        // outcome wait reads the live intent back by the signed id.
+        const response = await custody.api.proposeAndWait(
+          envelope.request.payload,
+          {
+            id: intentId,
+            expiryAt: new Date(Date.now() + 120_000).toISOString(),
+            timeoutMs: 30_000,
+          },
+        )
         expect(typeof response.requestId).toBe('string')
         expect(response.requestId).toBeTruthy()
         // The intent id the envelope was signed under comes back as the
         // caller's handle on the intent.
         expect(response.intentId).toBe(intentId)
+        // Reported, not thrown, whatever the sandbox's policy decides: the
+        // intent was read back, and anything short of success says why.
+        expect(response.status).toBeDefined()
+        expect(response.intent?.data.id).toBe(intentId)
+        if (!response.isSuccess) {
+          expect(typeof response.reason).toBe('string')
+        }
       },
       LIVE_TIMEOUT_MS,
     )

@@ -22,6 +22,7 @@ import type { SubmissionContext } from '../../../src/domain/index.js'
 import {
   AccountNotFoundError,
   CustodyAuthError,
+  DryRunFailedError,
   IntentPendingError,
   IntentValidationError,
   SignerCapabilityError,
@@ -424,9 +425,15 @@ describe('RippleCustody.sign', () => {
       { allowRawSigning: true },
     )
 
-    await expect(
-      custody.sign(OFFER_CANCEL_TX, makeContext(custody, { dryRun: true })),
-    ).rejects.toThrow(IntentValidationError)
+    const signing = custody.sign(
+      OFFER_CANCEL_TX,
+      makeContext(custody, { dryRun: true }),
+    )
+    await expect(signing).rejects.toThrow(IntentValidationError)
+    await expect(signing).rejects.toBeInstanceOf(DryRunFailedError)
+    await expect(signing).rejects.toMatchObject({
+      response: { success: false, errors: ['nope'] },
+    })
 
     expect(
       http.requests.some(

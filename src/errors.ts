@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file -- the error hierarchy lives in one file */
 import { readErrorBody } from './custodians/ripple/transport/error-body.js'
 import type { CustodianKind, SubmissionResult } from './domain/model.js'
+import type { components } from './generated/custody.js'
 
 /**
  * Base class for every error thrown by simpleXRPL. Errors are pass-through but
@@ -31,6 +32,30 @@ export class SimpleXRPLError extends Error {
  * a custodian dry-run rejection).
  */
 export class IntentValidationError extends SimpleXRPLError {}
+
+/**
+ * A Ripple Custody dry-run pre-flight reported the intent would fail, so it was
+ * not submitted. Custody's full answer is kept on `response`: its `errors`, and
+ * for a transaction order the `result` and fee `estimate`.
+ */
+export class DryRunFailedError extends IntentValidationError {
+  /** Custody's dry-run response. */
+  public readonly response: components['schemas']['Core_IntentDryRunResponse']
+
+  /**
+   * Construct a DryRunFailedError.
+   *
+   * @param message - What failed, from Custody's diagnostics.
+   * @param response - Custody's dry-run response.
+   */
+  public constructor(
+    message: string,
+    response: components['schemas']['Core_IntentDryRunResponse'],
+  ) {
+    super(message)
+    this.response = response
+  }
+}
 
 /**
  * The resolved custodian cannot sign the requested transactor and the

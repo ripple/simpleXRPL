@@ -1,4 +1,6 @@
-import { SimpleXRPLError } from '../../errors.js'
+import type { Transaction } from 'xrpl'
+
+import { AccountNotFoundError, SimpleXRPLError } from '../../errors.js'
 import { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
 import type { components, operations, paths } from '../../generated/custody.js'
 
@@ -18,9 +20,19 @@ import type {
   CustodyAddressReference,
   CustodyFindByAddressOptions,
 } from './discovery/address-lookup.js'
+import type {
+  CustodyDryRunResponse,
+  CustodyDryRunTransactionOptions,
+  CustodyIntentOutcome,
+  CustodyProposeAndWaitResult,
+  CustodyTransactionDryRun,
+  CustodyWaitOptions,
+} from './intent-types.js'
 import { buildDecisionEnvelope } from './mapping/decision-envelope.js'
 import type { IntentDecision } from './mapping/decision-envelope.js'
+import { buildTransactionOrderPayload } from './mapping/envelope.js'
 import {
+  buildEnvelopeRequest,
   buildProposeEnvelope,
   type ProposeEnvelopeContext,
   type ProposeEnvelopeOverrides,
@@ -31,6 +43,8 @@ import type {
   CustodyPageItem,
   CustodyPaginatedOperationId,
 } from './pagination.js'
+import { postDryRun } from './submission/dry-run.js'
+import { waitForIntentOutcome } from './submission/intent-polling.js'
 import type { CustodyHttpClient } from './transport/custody-http-client.js'
 import { VersionGuard } from './versioning/version-guard.js'
 
@@ -88,6 +102,9 @@ export type CustodyRequestResponse<
   Path extends CustodyRequestPath<Method>,
 > = OperationResponse<PathOperation<Path, Method>>
 
+/** How long {@link CustodyApi.waitForIntent} waits, unless configured. */
+const DEFAULT_WAIT_TIMEOUT_MS = 60_000
+
 /** Custody's limit on an approval or rejection reason. */
 const MAX_REASON_LENGTH = 5000
 /**
@@ -113,6 +130,7 @@ export class CustodyApi {
   private readonly intentSigner: IntentSigner
   private readonly proposeContext: ProposeEnvelopeContext
   private readonly versionGuard: VersionGuard
+  private readonly defaultTimeoutMs: number
 
   /**
    * Construct the API surface over the authenticated client.
@@ -125,12 +143,15 @@ export class CustodyApi {
    * @param propose.authorUserId - The intent-author's Custody user id.
    * @param propose.versionGuard - Blocks calls the instance's version can't
    *   serve; omitted, nothing is blocked.
+   * @param propose.defaultTimeoutMs - How long {@link waitForIntent} waits by
+   *   default; 60 s when omitted.
    */
   public constructor(
     client: CustodyHttpClient,
     propose: ProposeEnvelopeContext & {
       intentSigner: IntentSigner
       versionGuard?: VersionGuard
+      defaultTimeoutMs?: number
     },
   ) {
     this.client = client
@@ -140,6 +161,7 @@ export class CustodyApi {
       authorUserId: propose.authorUserId,
     }
     this.versionGuard = propose.versionGuard ?? new VersionGuard(undefined)
+    this.defaultTimeoutMs = propose.defaultTimeoutMs ?? DEFAULT_WAIT_TIMEOUT_MS
   }
 
   /**
@@ -366,17 +388,7 @@ export class CustodyApi {
     payload: CustodyProposePayload,
     options?: CustodyProposeOptions,
   ): Promise<CustodyProposeResponse> {
-    this.versionGuard.assertIntentType(payload.type, 'api.propose')
-    if (
-      payload.type === 'v0_CreateTransactionOrder' &&
-      payload.parameters.type === 'XRPL' &&
-      payload.parameters.operation !== undefined
-    ) {
-      this.versionGuard.assertXrplOperation(
-        payload.parameters.operation.type,
-        'api.propose',
-      )
-    }
+    this.assertPayload(payload, 'api.propose')
     const body = await buildProposeEnvelope(this.intentSigner, {
       ...this.proposeContext,
       payload,
@@ -387,6 +399,160 @@ export class CustodyApi {
       components['schemas']['Core_IntentResponse']
     >(route.method, route.path, { body })
     return { ...response, intentId: body.request.id }
+  }
+
+  /**
+   * Wait for an intent to finish, and report how it ended — without throwing
+   * when it is rejected, expires, or fails, or when the wait runs out of time.
+   * Read `isSuccess` / `isTerminal`; `reason` explains any other outcome in one
+   * sentence. (`client.intent.await` is the throwing counterpart.)
+   *
+   * An intent still `Open` when the wait ends is most likely waiting for a
+   * human approval: no polling budget fits that, so keep the `intentId` and
+   * check back later rather than raising `timeoutMs` indefinitely.
+   *
+   * @param intentId - The intent to wait on.
+   * @param options - The budget, the intent's domain, and a per-read callback.
+   * @returns How the intent ended, or where it stood when the wait ran out.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version can't read intents.
+   * @throws A `CustodyApiError` if reading the intent fails other than with a
+   *   404 (a just-proposed intent 404s briefly; that is retried).
+   */
+  public async waitForIntent(
+    intentId: string,
+    options: CustodyWaitOptions = {},
+  ): Promise<CustodyIntentOutcome> {
+    const domainId = options.domainId ?? this.proposeContext.domainId
+    return waitForIntentOutcome({
+      readIntent: async () =>
+        this.call('getIntent', { path: { domainId, intentId } }),
+      intentId,
+      timeoutMs: options.timeoutMs ?? this.defaultTimeoutMs,
+      onStatusCheck: options.onStatusCheck,
+    })
+  }
+
+  /**
+   * Propose a governed intent, then wait for it to finish — {@link propose}
+   * followed by {@link waitForIntent}. Best suited to auto-approved policies,
+   * development, and tests; where a person approves, prefer {@link propose}
+   * and check back on the `intentId` later.
+   *
+   * @param payload - The governed-intent payload (any `v0_*` variant).
+   * @param options - Envelope overrides, plus the wait's budget and callback.
+   * @returns How the intent ended (as {@link waitForIntent} reports it), plus
+   *   Custody's `requestId`.
+   * @throws Whatever {@link propose} throws; the wait itself only reports.
+   */
+  public async proposeAndWait(
+    payload: CustodyProposePayload,
+    options: CustodyProposeOptions & CustodyWaitOptions = {},
+  ): Promise<CustodyProposeAndWaitResult> {
+    const { timeoutMs, onStatusCheck, domainId, ...overrides } = options
+    const { requestId, intentId } = await this.propose(payload, overrides)
+    const outcome = await this.waitForIntent(intentId, {
+      timeoutMs,
+      onStatusCheck,
+      domainId: domainId ?? overrides.targetDomainId,
+    })
+    return { ...outcome, requestId }
+  }
+
+  /**
+   * Dry-run a governed intent: Custody runs its schema, policy, and fee or
+   * balance checks on exactly the envelope {@link propose} would send, without
+   * creating an intent. The verdict is returned, not thrown — read `success`
+   * and `errors`, and for a transaction order the `result` and fee `estimate`.
+   *
+   * @param payload - The governed-intent payload (any `v0_*` variant).
+   * @param options - Envelope overrides, as for {@link propose}.
+   * @returns Custody's dry-run response, typed for the payload's intent type.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version doesn't accept the intent type or the dry-run endpoint.
+   * @throws A `CustodyApiError` if Custody can't process the request at all.
+   */
+  public async dryRun<Payload extends CustodyProposePayload>(
+    payload: Payload,
+    options?: CustodyProposeOptions,
+  ): Promise<CustodyDryRunResponse<Payload['type']>> {
+    this.assertPayload(payload, 'api.dryRun')
+    const route = CUSTODY_ROUTES.intentDryRun
+    this.versionGuard.assertEndpoint(route.method, route.path, 'api.dryRun')
+    const response = await postDryRun(
+      this.client,
+      buildEnvelopeRequest({
+        ...this.proposeContext,
+        payload,
+        overrides: options,
+      }),
+    )
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Custody answers with the payload type
+    return response as CustodyDryRunResponse<Payload['type']>
+  }
+
+  /**
+   * Dry-run an XRPL transaction as the native intent a submission would
+   * propose: the sending account is found from `transaction.Account`, the
+   * transaction is mapped to Custody's operation, and Custody's verdict and fee
+   * estimate are returned without creating anything.
+   *
+   * @param transaction - The XRPL transaction (`Account` must be a Custody
+   *   account in this domain).
+   * @param options - The sending account's ledger, if ambiguous, and a fee
+   *   override.
+   * @returns Custody's dry-run: `success`, `errors`, `result`, and `estimate`.
+   * @throws {@link AccountNotFoundError} if no Custody account in the domain
+   *   holds `transaction.Account`.
+   * @throws {@link SignerCapabilityError} if the transactor has no native
+   *   Custody operation.
+   * @throws {@link SimpleXRPLError} if the account holds the address on several
+   *   ledgers and no `ledgerId` is given.
+   */
+  public async dryRunTransaction(
+    transaction: Transaction,
+    options: CustodyDryRunTransactionOptions = {},
+  ): Promise<CustodyTransactionDryRun> {
+    this.versionGuard.assertNativeTransaction(transaction.TransactionType)
+    const reference = await this.findByAddress(transaction.Account, {
+      ledgerId: options.ledgerId,
+      domainId: this.proposeContext.domainId,
+    })
+    if (reference === undefined) {
+      throw new AccountNotFoundError(transaction.Account)
+    }
+    const { payload } = buildTransactionOrderPayload({
+      accountId: reference.accountId,
+      ledgerId: reference.ledgerId,
+      transaction,
+      fee: options.fee,
+    })
+    return this.dryRun(payload)
+  }
+
+  /**
+   * Check the instance's Custody version accepts a payload: its intent type
+   * and, for an XRPL transaction order, its operation.
+   *
+   * @param payload - The intent payload.
+   * @param sdkMethod - The SDK call, for the error.
+   * @throws {@link UnsupportedInVersionError} if either isn't supported.
+   */
+  private assertPayload(
+    payload: CustodyProposePayload,
+    sdkMethod: string,
+  ): void {
+    this.versionGuard.assertIntentType(payload.type, sdkMethod)
+    if (
+      payload.type === 'v0_CreateTransactionOrder' &&
+      payload.parameters.type === 'XRPL' &&
+      payload.parameters.operation !== undefined
+    ) {
+      this.versionGuard.assertXrplOperation(
+        payload.parameters.operation.type,
+        sdkMethod,
+      )
+    }
   }
 
   /**

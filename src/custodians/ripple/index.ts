@@ -24,6 +24,14 @@ export type {
   CustodyPageItem,
   CustodyPaginatedOperationId,
 } from './pagination.js'
+export type {
+  CustodyDryRunResponse,
+  CustodyDryRunTransactionOptions,
+  CustodyIntentOutcome,
+  CustodyProposeAndWaitResult,
+  CustodyTransactionDryRun,
+  CustodyWaitOptions,
+} from './intent-types.js'
 export { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
 export type { CustodyRoute } from '../../generated/custody-routes.js'
 export type { CustodyApiVersion } from './versioning/capabilities.js'
