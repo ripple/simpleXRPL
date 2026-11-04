@@ -6,4 +6,7 @@ export type {
   ExternalSignerAlgorithm,
   ExternalSignerPort,
   Secp256k1SignerPort,
+  SignedTransactionBlob,
+  TransactionSignerPort,
 } from './external-signer-port.js'
+export { isTransactionSignerPort } from './external-signer-port.js'

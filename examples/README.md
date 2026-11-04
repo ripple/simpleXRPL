@@ -28,14 +28,17 @@ account (and, for the Palisade samples, sandbox credentials).
 | [09-cross-custodian-workflow.ts](./09-cross-custodian-workflow.ts)     | Sequencing work across two custodians — Ripple Custody issuer + Palisade holder — via vertical verbs                          |
 | [13-palisade-api-escape-hatch.ts](./13-palisade-api-escape-hatch.ts)   | Calling any Palisade operation the verticals don't model, via the typed `palisade.api.call(operationId, …)` secondary surface |
 
-## External signing (KMS / HSM)
+## External signing (KMS / HSM / hardware wallet)
 
 Keys held outside the process sign through the `ExternalSigner` connector. AWS
 KMS has a built-in adapter (`import { AwsKmsSigner } from 'simplexrpl/aws-kms'`);
-for an HSM you implement the same `ExternalSignerPort` seam.
+for an HSM you implement the same `ExternalSignerPort` seam. Hardware wallets
+that sign whole transactions rather than digests (e.g. Ledger) implement
+`TransactionSignerPort` instead.
 
-| File                                                       | Shows                                                                                                             |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| [10-hsm-pkcs11-signer.ts](./10-hsm-pkcs11-signer.ts)       | Bring-your-own PKCS#11 HSM signer — implementing `ExternalSignerPort` (secp256k1) against your device             |
-| [11-kms-signer.ts](./11-kms-signer.ts)                     | Signing with an AWS KMS-held key via the built-in `simplexrpl/aws-kms` adapter                                    |
-| [12-external-signer-mock.ts](./12-external-signer-mock.ts) | **Runnable**: a mock in-process signer that signs & submits a real transfer, shown for both secp256k1 and ed25519 |
+| File                                                         | Shows                                                                                                                |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| [10-hsm-pkcs11-signer.ts](./10-hsm-pkcs11-signer.ts)         | Bring-your-own PKCS#11 HSM signer — implementing `ExternalSignerPort` (secp256k1) against your device                |
+| [11-kms-signer.ts](./11-kms-signer.ts)                       | Signing with an AWS KMS-held key via the built-in `simplexrpl/aws-kms` adapter                                       |
+| [12-external-signer-mock.ts](./12-external-signer-mock.ts)   | **Runnable**: a mock in-process signer that signs & submits a real transfer, shown for both secp256k1 and ed25519    |
+| [14-ledger-browser-signer.ts](./14-ledger-browser-signer.ts) | Signing on a Ledger device via the Ledger Button in the browser — a `TransactionSignerPort` relay from a Node server |
