@@ -1,4 +1,5 @@
 import { IntentInspector } from '../../../src/client/intent-inspector.js'
+import { RippleCustody } from '../../../src/custodians/ripple/ripple-custody.js'
 import { SimpleXRPLError } from '../../../src/errors.js'
 import type {
   Account,
@@ -125,6 +126,37 @@ describe('IntentInspector', () => {
     await inspector.status('intent-3')
 
     expect(observer.observed).toEqual(['intent-3'])
+  })
+
+  it('outcome(id) reports through the Ripple Custody api, without throwing', async () => {
+    const outcome = {
+      intentId: 'intent-5',
+      status: 'Rejected',
+      isTerminal: true,
+      isSuccess: false,
+      reason: 'rejected',
+      intent: undefined,
+    }
+    const waitForIntent = jest.fn(async () => outcome)
+    // A RippleCustody (the inspector selects it by class) with a stub api.
+    const custody = Object.assign(
+      Object.create(RippleCustody.prototype) as RippleCustody,
+      { api: { waitForIntent } },
+    )
+    const inspector = new IntentInspector([custody])
+
+    await expect(
+      inspector.outcome('intent-5', { timeoutMs: 1000 }),
+    ).resolves.toBe(outcome)
+    expect(waitForIntent).toHaveBeenCalledWith('intent-5', { timeoutMs: 1000 })
+  })
+
+  it('outcome(id) needs a Ripple Custody signer', async () => {
+    const inspector = new IntentInspector([makeObserver()])
+
+    await expect(inspector.outcome('intent-6')).rejects.toThrow(
+      'outcome requires a RippleCustody signer',
+    )
   })
 
   it('throws when no configured custodian can observe intents', () => {

@@ -1,5 +1,7 @@
 /* eslint-disable max-classes-per-file -- the error hierarchy lives in one file */
+import { readErrorBody } from './custodians/ripple/transport/error-body.js'
 import type { CustodianKind, SubmissionResult } from './domain/model.js'
+import type { components } from './generated/custody.js'
 
 /**
  * Base class for every error thrown by simpleXRPL. Errors are pass-through but
@@ -30,6 +32,30 @@ export class SimpleXRPLError extends Error {
  * a custodian dry-run rejection).
  */
 export class IntentValidationError extends SimpleXRPLError {}
+
+/**
+ * A Ripple Custody dry-run pre-flight reported the intent would fail, so it was
+ * not submitted. Custody's full answer is kept on `response`: its `errors`, and
+ * for a transaction order the `result` and fee `estimate`.
+ */
+export class DryRunFailedError extends IntentValidationError {
+  /** Custody's dry-run response. */
+  public readonly response: components['schemas']['Core_IntentDryRunResponse']
+
+  /**
+   * Construct a DryRunFailedError.
+   *
+   * @param message - What failed, from Custody's diagnostics.
+   * @param response - Custody's dry-run response.
+   */
+  public constructor(
+    message: string,
+    response: components['schemas']['Core_IntentDryRunResponse'],
+  ) {
+    super(message)
+    this.response = response
+  }
+}
 
 /**
  * The resolved custodian cannot sign the requested transactor and the
@@ -150,31 +176,183 @@ export class DuplicateSignerError extends SimpleXRPLError {
 }
 
 /**
- * Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh).
- */
-export class CustodyAuthError extends SimpleXRPLError {}
-
-/**
- * A Ripple Custody API call returned an error. The diagnostic `hint` and full
- * response body are preserved for the caller to surface.
+ * A Ripple Custody API call returned an error. The message leads with Custody's
+ * own reason and explanation; they, a diagnostic `hint`, and the full response
+ * body are also kept as fields for the caller to inspect.
  */
 export class CustodyApiError extends SimpleXRPLError {
+  /** The HTTP status code. */
   public readonly status: number
+  /** Custody's error type, e.g. `InvalidIntentError`, when it named one. */
+  public readonly reason?: string
+  /** Custody's explanation of the error, when it gave one. */
+  public readonly detail?: string
+  /**
+   * What to try next, when known: Custody's own `processing.hint`, and/or
+   * simpleXRPL's note on a known Custody server bug that matches the failure.
+   */
   public readonly hint?: string
+  /** The full response body, as Custody sent it. */
   public readonly raw: unknown
 
   /**
-   * Construct a CustodyApiError.
+   * Construct a CustodyApiError, reading the reason, detail, and any Custody
+   * hint out of the response body.
    *
    * @param status - The HTTP status code.
    * @param raw - The full response body.
-   * @param hint - The custodian's `processing.hint`, preserved verbatim.
+   * @param hint - An extra hint, added after any hint Custody gave.
    */
   public constructor(status: number, raw: unknown, hint?: string) {
-    super(`Custody API error (${status})`)
+    const body = readErrorBody(raw)
+    const hints = [body.hint, hint].filter((part) => part !== undefined)
+    const joinedHint = hints.length === 0 ? undefined : hints.join('\n')
+    const label =
+      body.reason === undefined ? `${status}` : `${status} ${body.reason}`
+    const detail = body.detail === undefined ? '' : `: ${body.detail}`
+    const hintLine = joinedHint === undefined ? '' : `\n${joinedHint}`
+    super(`Custody API error (${label})${detail}${hintLine}`)
     this.status = status
+    this.reason = body.reason
+    this.detail = body.detail
+    this.hint = joinedHint
     this.raw = raw
-    this.hint = hint
+  }
+
+  /**
+   * A plain-object form for structured logs (an `Error`'s own `message` and
+   * `name` don't survive `JSON.stringify`). The raw body is left out; it stays
+   * on {@link CustodyApiError.raw}.
+   *
+   * @returns The error's name, message, status, reason, detail, and hint.
+   */
+  public toJSON(): Record<string, unknown> {
+    return {
+      name: this.name,
+      message: this.message,
+      status: this.status,
+      reason: this.reason,
+      detail: this.detail,
+      hint: this.hint,
+    }
+  }
+}
+
+/**
+ * Authenticating with Ripple Custody failed (challenge/JWT exchange or refresh),
+ * or Custody refused a request's credentials with a `401` that a token refresh
+ * did not fix. In the second case the `401` response is the `cause` — see
+ * {@link CustodyAuthError.apiError} — and the subclasses
+ * {@link CustodySignatureError} and {@link CustodyPermissionError} name the
+ * two failures a refresh can't recover.
+ */
+export class CustodyAuthError extends SimpleXRPLError {
+  /**
+   * The `401` Custody returned, when the API itself refused the request.
+   *
+   * @returns The Custody response, or `undefined` for a local auth failure.
+   */
+  public get apiError(): CustodyApiError | undefined {
+    return this.cause instanceof CustodyApiError ? this.cause : undefined
+  }
+
+  /**
+   * A plain-object form for structured logs (an `Error`'s own `message` and
+   * `name` don't survive `JSON.stringify`).
+   *
+   * @returns The error's name and message, and the Custody response if any.
+   */
+  public toJSON(): Record<string, unknown> {
+    return {
+      name: this.name,
+      message: this.message,
+      ...(this.apiError === undefined
+        ? {}
+        : { apiError: this.apiError.toJSON() }),
+    }
+  }
+}
+
+/**
+ * Custody rejected a request's signature (`401 InvalidSignatureError`): the
+ * body was signed with a key Custody doesn't hold for the API user, or Custody
+ * verified different bytes than were signed.
+ */
+export class CustodySignatureError extends CustodyAuthError {}
+
+/**
+ * Custody refused the request because the API user isn't allowed to make it
+ * (`401 PermissionDeniedError`), e.g. it has no role that grants the action.
+ */
+export class CustodyPermissionError extends CustodyAuthError {}
+
+/** Labels for each capability kind, as they read in an error message. */
+const CAPABILITY_LABELS = {
+  endpoint: 'endpoint',
+  xrplOperation: 'native XRPL operation',
+  intentType: 'intent type',
+} as const
+
+/**
+ * A call needs something the Ripple Custody instance's version doesn't support
+ * — an endpoint, a native XRPL operation, or an intent type — so it was blocked
+ * before reaching the network. Thrown only when the version is known (detected
+ * from the instance, or pinned with `apiVersion`).
+ */
+export class UnsupportedInVersionError extends SimpleXRPLError {
+  /** What kind of capability is missing. */
+  public readonly kind: keyof typeof CAPABILITY_LABELS
+  /** The missing capability, e.g. `POST /v1/exports/movement` or `MPTokenIssuanceCreate`. */
+  public readonly capability: string
+  /** The SDK call that needed it. */
+  public readonly sdkMethod: string
+  /** The Custody version checked against. */
+  public readonly appVersion: string
+  /** Whether that version was detected from the instance or pinned. */
+  public readonly source: 'detected' | 'pinned'
+  /**
+   * Where the capability is served, when known — e.g. `official 1.37–1.43` or
+   * `devbox (cmpt)`.
+   */
+  public readonly availability: string | undefined
+
+  /**
+   * Construct an UnsupportedInVersionError.
+   *
+   * @param details - What is missing and where.
+   * @param details.kind - What kind of capability is missing.
+   * @param details.capability - The missing capability.
+   * @param details.sdkMethod - The SDK call that needed it.
+   * @param details.appVersion - The Custody version checked against.
+   * @param details.source - Whether that version was detected or pinned.
+   * @param details.availability - Where the capability is served, if known.
+   * @param details.detail - An extra sentence explaining the gap, if any.
+   */
+  public constructor(details: {
+    kind: keyof typeof CAPABILITY_LABELS
+    capability: string
+    sdkMethod: string
+    appVersion: string
+    source: 'detected' | 'pinned'
+    availability?: string
+    detail?: string
+  }) {
+    const hint =
+      details.availability === undefined
+        ? ''
+        : ` It is available in: ${details.availability}.`
+    const detail = details.detail === undefined ? '' : ` ${details.detail}`
+    super(
+      `${details.sdkMethod} needs the ${CAPABILITY_LABELS[details.kind]} ` +
+        `'${details.capability}', which Ripple Custody ${details.appVersion} ` +
+        `(${details.source}) does not support.${hint}${detail}`,
+    )
+    this.kind = details.kind
+    this.capability = details.capability
+    this.sdkMethod = details.sdkMethod
+    this.appVersion = details.appVersion
+    this.source = details.source
+    this.availability = details.availability
   }
 }
 

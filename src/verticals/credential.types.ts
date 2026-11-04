@@ -15,6 +15,13 @@ export interface CredentialWriteOptions {
    * `idempotencyKey`. Auto-generated when omitted.
    */
   readonly idempotencyKey?: string
+  /**
+   * Pre-flight the write through Ripple Custody's dry-run before submitting
+   * it; a failed pre-flight throws `DryRunFailedError` and nothing is
+   * submitted. Overrides the custodian's `defaultDryRun`. Ripple Custody
+   * accounts only: other signers reject `dryRun: true`.
+   */
+  readonly dryRun?: boolean
 }
 
 /** Parameters for `Credential.issue` (issued by the source account). */

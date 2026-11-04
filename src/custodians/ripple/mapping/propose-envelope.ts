@@ -8,6 +8,17 @@ type ProposeUserIntentPayload =
 type UserReference = components['schemas']['Core_UserReference']
 type StringsMap = components['schemas']['Core_StringsMap']
 
+/** The envelope fields shared by a proposal and a dry-run request. */
+export interface EnvelopeRequest {
+  readonly author: UserReference
+  readonly expiryAt: string
+  readonly targetDomainId: string
+  readonly id: string
+  readonly payload: ProposeUserIntentPayload
+  readonly customProperties: StringsMap
+  readonly description?: string
+}
+
 const MS_PER_SECOND = 1000
 const SECONDS_PER_MINUTE = 60
 const MINUTES_PER_HOUR = 60
@@ -70,23 +81,19 @@ function payloadId(payload: ProposeUserIntentPayload): string | undefined {
 }
 
 /**
- * Wrap an intent payload in a signed `Core_UserSigned`: fill the envelope
- * scaffolding (author, expiry, target domain, id, custom properties) from the
- * context and any overrides, then sign the canonicalized request with the
- * intent-author key. The generic core shared by {@link buildProposeIntentBody}
- * (native transactions) and the `CustodyApi.propose` passthrough.
+ * The unsigned envelope around an intent payload: author, expiry, target
+ * domain, id, and custom properties, filled from the context and any
+ * overrides. The shared core of a proposal ({@link buildProposeEnvelope} signs
+ * it) and a dry-run (posted as-is).
  *
- * @param intentSigner - Signs the canonicalized request.
  * @param input - The payload, the domain/author context, and any overrides.
- * @returns The signed `{ request, signature }` body ready to POST to
- * `/v1/intents`.
+ * @returns The envelope fields, without the request `type`.
  */
-export function buildProposeEnvelope(
-  intentSigner: IntentSigner,
+export function buildEnvelopeRequest(
   input: ProposeEnvelopeInput,
-): ProposeIntentBody {
+): EnvelopeRequest {
   const overrides = input.overrides ?? {}
-  const request = {
+  return {
     author: overrides.author ?? {
       id: input.authorUserId,
       domainId: input.domainId,
@@ -102,12 +109,30 @@ export function buildProposeEnvelope(
     id: overrides.id ?? payloadId(input.payload) ?? uuidV7(),
     payload: input.payload,
     customProperties: overrides.customProperties ?? {},
-    type: 'Propose' as const,
     // Omit `description` entirely when absent rather than carry an undefined key.
     ...(overrides.description === undefined
       ? {}
       : { description: overrides.description }),
   }
+}
 
-  return intentSigner.signEnvelope({ request })
+/**
+ * Wrap an intent payload in a signed `Core_UserSigned`: fill the envelope
+ * scaffolding from the context and any overrides (see
+ * {@link buildEnvelopeRequest}), then sign the canonicalized request with the
+ * intent-author key. The generic core shared by `buildProposeIntentBody`
+ * (native transactions) and the `CustodyApi.propose` passthrough.
+ *
+ * @param intentSigner - Signs the canonicalized request.
+ * @param input - The payload, the domain/author context, and any overrides.
+ * @returns The signed `{ request, signature }` body ready to POST to
+ * `/v1/intents`.
+ */
+export async function buildProposeEnvelope(
+  intentSigner: IntentSigner,
+  input: ProposeEnvelopeInput,
+): Promise<ProposeIntentBody> {
+  return intentSigner.signEnvelope({
+    request: { ...buildEnvelopeRequest(input), type: 'Propose' as const },
+  })
 }

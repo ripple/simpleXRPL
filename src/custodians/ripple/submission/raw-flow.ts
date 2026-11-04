@@ -19,7 +19,7 @@ import { assembleSignedTransaction, buildSigningPreimage } from './raw-sign.js'
 /** Runs the custodian's dry-run pre-flight for an intent payload, if enabled. */
 interface DryRunStep {
   (
-    payload: components['schemas']['Core_IntentDryRunRequest']['payload'],
+    payload: components['schemas']['Core_ProposeUserIntentPayload'],
     customProperties: components['schemas']['Core_StringsMap'],
   ): Promise<void>
 }
@@ -72,7 +72,7 @@ export function assertRawEligible(
  */
 async function buildManifestEnvelope(options: SignRawOptions): Promise<{
   preparedTx: Transaction
-  body: ReturnType<typeof buildSignManifestIntentBody>
+  body: Awaited<ReturnType<typeof buildSignManifestIntentBody>>
 }> {
   const { state, tx, ctx, accountId } = options
   const publicKeyBase64 = await resolveSigningPublicKey(
@@ -84,7 +84,7 @@ async function buildManifestEnvelope(options: SignRawOptions): Promise<{
     tx,
     publicKeyBase64,
   )
-  const body = buildSignManifestIntentBody(
+  const body = await buildSignManifestIntentBody(
     state.intentSigner,
     buildCustomProperties(tx),
     {
@@ -142,6 +142,7 @@ export async function signRawTransaction(
 ): Promise<SignedEnvelope> {
   const { state, tx, ctx, accountId, maybeDryRun } = options
   assertRawEligible(state, tx.TransactionType)
+  state.versionGuard.assertRawSigning(tx.TransactionType)
   const { preparedTx, body } = await buildManifestEnvelope(options)
   await maybeDryRun(body.request.payload, body.request.customProperties)
   await state.client.post('/v1/intents', body)

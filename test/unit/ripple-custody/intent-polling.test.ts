@@ -1,9 +1,13 @@
-import { pollIntentUntilExecuted } from '../../../src/custodians/ripple/submission/intent-polling.js'
+import {
+  pollIntentUntilExecuted,
+  waitForIntentOutcome,
+} from '../../../src/custodians/ripple/submission/intent-polling.js'
 import {
   CustodyApiError,
   IntentPendingError,
   IntentValidationError,
 } from '../../../src/errors.js'
+import type { components } from '../../../src/generated/custody.js'
 
 import {
   DOMAIN_ID,
@@ -198,5 +202,184 @@ describe('pollIntentUntilExecuted — the intent is not readable yet', () => {
         timeoutMs: 5000,
       }),
     ).rejects.toBeInstanceOf(CustodyApiError)
+  })
+})
+
+describe('waitForIntentOutcome', () => {
+  /**
+   * A reader over fixed responses: each entry is a status to return, `404` for
+   * "not readable yet", or an error to throw.
+   *
+   * @param script - What each successive read does; the last one repeats.
+   * @returns The reader and its call count.
+   */
+  function reader(script: Array<string | 404 | Error>): {
+    readIntent: () => Promise<components['schemas']['Core_TrustedIntent']>
+    calls: () => number
+  } {
+    let calls = 0
+    return {
+      calls: () => calls,
+      async readIntent(): Promise<components['schemas']['Core_TrustedIntent']> {
+        const step = script[Math.min(calls, script.length - 1)]
+        calls += 1
+        if (step === 404) {
+          throw new CustodyApiError(404, { reason: 'EntityNotFoundError' })
+        }
+        if (step instanceof Error) {
+          throw step
+        }
+        return intentBody('intent-1', step, {
+          code: 'PolicyRejected',
+          message: 'no approver',
+        }) as unknown as components['schemas']['Core_TrustedIntent']
+      },
+    }
+  }
+
+  it('reports an executed intent as a success, with no reason', async () => {
+    const { readIntent } = reader(['Executed'])
+
+    const outcome = await waitForIntentOutcome({
+      readIntent,
+      intentId: 'intent-1',
+      timeoutMs: 5000,
+    })
+
+    expect(outcome).toMatchObject({
+      intentId: 'intent-1',
+      status: 'Executed',
+      isTerminal: true,
+      isSuccess: true,
+      reason: undefined,
+    })
+    expect(outcome.intent?.data.id).toBe('intent-1')
+  })
+
+  it.each(['Rejected', 'Expired', 'Failed'])(
+    'reports %s as terminal, without throwing, naming the reason',
+    async (status) => {
+      const { readIntent } = reader([status])
+
+      const outcome = await waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 5000,
+      })
+
+      expect(outcome).toMatchObject({
+        status,
+        isTerminal: true,
+        isSuccess: false,
+        reason: `Custody intent intent-1 did not execute: status=${status} (PolicyRejected: no approver)`,
+      })
+    },
+  )
+
+  it('reports an intent still Open when time runs out as likely awaiting approval', async () => {
+    jest.useFakeTimers()
+    try {
+      const { readIntent } = reader(['Open'])
+
+      const promise = waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 3000,
+      })
+      await jest.advanceTimersByTimeAsync(5000)
+
+      await expect(promise).resolves.toMatchObject({
+        status: 'Open',
+        isTerminal: false,
+        isSuccess: false,
+        reason:
+          'Custody intent intent-1 is still Open after 3000 ms; it is most likely waiting for an approval',
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('reports an intent still Executing without the approval hint', async () => {
+    jest.useFakeTimers()
+    try {
+      const { readIntent } = reader(['Executing'])
+
+      const promise = waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 3000,
+      })
+      await jest.advanceTimersByTimeAsync(5000)
+
+      await expect(promise).resolves.toMatchObject({
+        reason: 'Custody intent intent-1 is still Executing after 3000 ms',
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('waits through 404s, and reports a never-readable intent', async () => {
+    jest.useFakeTimers()
+    try {
+      const { readIntent } = reader([404])
+
+      const promise = waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 3000,
+      })
+      await jest.advanceTimersByTimeAsync(5000)
+
+      await expect(promise).resolves.toMatchObject({
+        status: undefined,
+        isTerminal: false,
+        intent: undefined,
+        reason:
+          'Custody intent intent-1 was not readable within 3000 ms; check the intent id and domain',
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('calls onStatusCheck with each status read and its attempt', async () => {
+    jest.useFakeTimers()
+    try {
+      const { readIntent } = reader([404, 'Open', 'Executing', 'Executed'])
+      const checks: Array<[string, number]> = []
+
+      const promise = waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 30_000,
+        onStatusCheck: (status, attempt) => checks.push([status, attempt]),
+      })
+      await jest.advanceTimersByTimeAsync(30_000)
+      await promise
+
+      // The 404 read (attempt 1) has no status to report.
+      expect(checks).toEqual([
+        ['Open', 2],
+        ['Executing', 3],
+        ['Executed', 4],
+      ])
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('throws errors other than a 404', async () => {
+    const failure = new CustodyApiError(500, { reason: 'InternalError' })
+    const { readIntent } = reader([failure])
+
+    await expect(
+      waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 5000,
+      }),
+    ).rejects.toBe(failure)
   })
 })

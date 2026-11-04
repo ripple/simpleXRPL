@@ -85,6 +85,7 @@ export class Credential {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
@@ -115,6 +116,7 @@ export class Credential {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
@@ -150,6 +152,7 @@ export class Credential {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { credType: params.credType })

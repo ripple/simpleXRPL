@@ -1,44 +1,65 @@
-import { readFileSync } from 'node:fs'
-
-import {
-  GetSecretValueCommand,
-  SecretsManagerClient,
-} from '@aws-sdk/client-secrets-manager'
-
 import type { FeeIntent } from '../../domain/index.js'
-import { CustodyAuthError, SimpleXRPLError } from '../../errors.js'
+import { SimpleXRPLError } from '../../errors.js'
 import type { components } from '../../generated/custody.js'
+import { withHttpLogging } from '../http-logging.js'
+import type { HttpDebugOption } from '../http-logging.js'
 
 import {
   CustodyAuthService,
   IntentSigner,
-  KeypairService,
+  resolveKeySigner,
 } from './auth/index.js'
+import type { CustodySignerPort } from './auth/index.js'
+import { resolveSigningKey } from './auth/signing-key.js'
+import { resolveDomain } from './discovery/domain-resolution.js'
 import { CustodyHttpClient } from './transport/custody-http-client.js'
 import { FetchHttpPort } from './transport/fetch-http-port.js'
 import { HttpCustodyAuthPort } from './transport/http-custody-auth-port.js'
 import type { CustodyHttpPort } from './transport/http-port.js'
+import { resolveVersionGuard } from './versioning/detect.js'
+import type { CustodyVersionOptions } from './versioning/detect.js'
+import type { VersionGuard } from './versioning/version-guard.js'
 
 const DEFAULT_TIMEOUT_MS = 60_000
 
-/** Auth construction options. */
-export interface RippleCustodyAuthOptions {
-  /** Intent-author private key: PEM contents, or a path to a `.pem` file. */
-  readonly signingKey: string
+/**
+ * Auth construction options. The Custody API user's key — which signs the
+ * login challenge and every intent — is given exactly one way: `signingKey`
+ * (a PEM held in process) or `signer` (an HSM or KMS, so the private key never
+ * enters the process).
+ */
+export type RippleCustodyAuthOptions = {
   /** The Custody token endpoint URL. */
   readonly tokenUrl: string
   /** The OIDC client id to authenticate as. Defaults to `'customer_api'`. */
   readonly clientId?: string
-}
+} & (
+  | {
+      /** The API user's private key, as PEM contents. */
+      readonly signingKey: string
+      readonly signer?: never
+    }
+  | {
+      /**
+       * The API user's key in an HSM or KMS. See {@link CustodySignerPort};
+       * `simplexrpl/aws-kms` ships an AWS KMS implementation.
+       */
+      readonly signer: CustodySignerPort
+      readonly signingKey?: never
+    }
+)
 
 /** Construction options for {@link RippleCustody.create}. */
-export interface RippleCustodyOptions {
+export interface RippleCustodyOptions extends CustodyVersionOptions {
   /** The Custody gateway base URL. */
   readonly gatewayUrl: string
   /** Intent-author credentials and token endpoint. */
   readonly auth: RippleCustodyAuthOptions
-  /** The Custody domain this custodian operates in. */
-  readonly domainId: string
+  /**
+   * The Custody domain this custodian operates in. Omitted, it is the domain
+   * that holds the `primary` address, looked up at creation.
+   */
+  readonly domainId?: string
   /** The primary account's r-address; validated against the discovered set. */
   readonly primary: string
   /**
@@ -67,12 +88,30 @@ export interface RippleCustodyOptions {
   readonly defaultTimeoutMs?: number
   /** Injectable transport; defaults to `FetchHttpPort`. */
   readonly http?: CustodyHttpPort
+  /**
+   * Log every Custody HTTP request — method, URL, status, duration, and the
+   * bodies with credentials masked: `true` to `console.debug`, or to a logger
+   * with a `debug(message, fields)` method.
+   */
+  readonly debug?: HttpDebugOption
+  /**
+   * Abort each Custody API or token request after this many milliseconds, so a
+   * hung connection surfaces as an error instead of stalling the caller.
+   *
+   * @defaultValue 30 000
+   */
+  readonly requestTimeoutMs?: number
 }
 
 /** Construction options for {@link RippleCustody.fromEnv}. */
-export interface RippleCustodyFromEnvOptions {
+export interface RippleCustodyFromEnvOptions extends CustodyVersionOptions {
   /** The primary account's r-address; validated against the discovered set. */
   readonly primary: string
+  /**
+   * The API user's key in an HSM or KMS, instead of
+   * `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` (which is then not read).
+   */
+  readonly signer?: CustodySignerPort
   /**
    * Enable the raw-signing fallback for transactors and fields this backend has
    * no native operation for.
@@ -101,6 +140,19 @@ export interface RippleCustodyFromEnvOptions {
   readonly env?: Readonly<Record<string, string | undefined>>
   /** Injectable transport; defaults to `FetchHttpPort`. */
   readonly http?: CustodyHttpPort
+  /**
+   * Log every Custody HTTP request — method, URL, status, duration, and the
+   * bodies with credentials masked: `true` to `console.debug`, or to a logger
+   * with a `debug(message, fields)` method.
+   */
+  readonly debug?: HttpDebugOption
+  /**
+   * Abort each Custody API or token request after this many milliseconds, so a
+   * hung connection surfaces as an error instead of stalling the caller.
+   *
+   * @defaultValue 30 000
+   */
+  readonly requestTimeoutMs?: number
 }
 
 /** Fully assembled construction state, ready to hand to `new RippleCustody(...)`. */
@@ -115,156 +167,8 @@ export interface RippleCustodyState {
   readonly defaultDryRun: boolean
   readonly defaultTimeoutMs: number
   readonly primaryAddress: string
-}
-
-/** A PEM private key starts with this marker; anything else is a file path. */
-const PEM_MARKER = '-----BEGIN'
-
-/** An AWS Secrets Manager secret ARN starts with this marker. */
-const SECRETS_MANAGER_ARN_PREFIX = 'arn:aws:secretsmanager:'
-
-/**
- * The Custody signing-key secret's shape in AWS Secrets Manager: a JSON object,
- * not a raw PEM string. `user_alias` identifies which Custody user this keypair
- * belongs to; it isn't consumed here since the adapter resolves its author
- * identity from `/v1/me` instead, but is validated as present so a
- * mismatched/incomplete secret fails fast.
- */
-interface CustodySigningKeySecret {
-  readonly private_key?: string
-  readonly user_alias?: string
-}
-
-/** A resolved signing key. The public key is derived from it, never carried. */
-interface ResolvedSigningKey {
-  readonly privateKeyPem: string
-}
-
-/**
- * Parse a Custody signing-key secret's JSON body.
- *
- * @param body - The secret's raw JSON string.
- * @returns The parsed fields, or `undefined` if not a JSON object.
- */
-function parseSigningKeySecret(
-  body: string,
-): CustodySigningKeySecret | undefined {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(body)
-  } catch {
-    return undefined
-  }
-  if (typeof parsed !== 'object' || parsed === null) {
-    return undefined
-  }
-  return {
-    private_key:
-      'private_key' in parsed && typeof parsed.private_key === 'string'
-        ? parsed.private_key
-        : undefined,
-    user_alias:
-      'user_alias' in parsed && typeof parsed.user_alias === 'string'
-        ? parsed.user_alias
-        : undefined,
-  }
-}
-
-/**
- * Fetch and parse the Custody signing-key secret from AWS Secrets Manager. No
- * explicit credentials are passed to the client — it relies on the default AWS
- * SDK credential provider chain (env vars, shared profile, or the runtime's
- * role).
- *
- * @param secretId - The secret's ARN.
- * @returns The parsed private/public key pair.
- * @throws {@link SimpleXRPLError} if the secret string is empty, isn't valid
- * JSON, or is missing `private_key` or `user_alias`.
- */
-async function fetchSigningKeySecret(
-  secretId: string,
-): Promise<ResolvedSigningKey> {
-  const client = new SecretsManagerClient({})
-  const secretResponse = await client.send(
-    new GetSecretValueCommand({ SecretId: secretId }),
-  )
-  if (!secretResponse.SecretString) {
-    throw new SimpleXRPLError('Secret string is empty')
-  }
-
-  const secret = parseSigningKeySecret(secretResponse.SecretString)
-  if (secret === undefined) {
-    throw new SimpleXRPLError(
-      `Secrets Manager secret '${secretId}' is not valid JSON`,
-    )
-  }
-  if (!secret.private_key || !secret.user_alias) {
-    throw new SimpleXRPLError('private_key or user_alias not found in secret')
-  }
-
-  // Same escaped-newline hazard as the env var: a PEM stored in a JSON secret
-  // field commonly arrives with its line breaks escaped.
-  return {
-    privateKeyPem: normalizePem(secret.private_key),
-  }
-}
-
-/**
- * Strip one layer of wrapping single or double quotes.
- *
- * Secret stores and `.env` parsers routinely hand back a quoted value. A quoted
- * PEM matches none of the prefixes {@link resolveSigningKey} tests, so it would
- * otherwise fall through to being treated as a file path.
- *
- * @param value - The raw value.
- * @returns `value` without a matched pair of surrounding quotes.
- */
-function stripWrappingQuotes(value: string): string {
-  const trimmed = value.trim()
-  const quoted =
-    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
-  return quoted && trimmed.length >= 2 ? trimmed.slice(1, -1) : trimmed
-}
-
-/**
- * Restore real newlines in a PEM whose line breaks were escaped in transit.
- *
- * A PEM is inherently multi-line, but the places it travels through — GitHub
- * Actions secrets, `.env` files, JSON string fields, shell exports — frequently
- * turn each newline into a literal backslash-n. `createPrivateKey` then rejects
- * the value outright, and because the algorithm can no longer be detected the
- * failure surfaced as "unsupported private key algorithm", which points at the
- * key's curve rather than at its formatting. This is the single most common way
- * a valid Custody signing key fails to load, so normalize it rather than making
- * every operator rediscover it.
- *
- * @param pem - PEM contents, possibly carrying escaped newlines.
- * @returns The PEM with `\n` / `\r\n` escape sequences replaced by real
- *   newlines, and a trailing newline ensured.
- */
-function normalizePem(pem: string): string {
-  const withNewlines = pem.replace(/(?:\\r)?\\n/gu, '\n').trim()
-  return `${withNewlines}\n`
-}
-
-/**
- * Resolve `RIPPLE_CUSTODY_AUTH_SIGNING_KEY`: literal PEM contents, a path to a
- * `.pem` file, or an AWS Secrets Manager secret ARN.
- *
- * @param value - The env var's raw value.
- * @returns The resolved private/public key pair.
- */
-async function resolveSigningKey(value: string): Promise<ResolvedSigningKey> {
-  const unquoted = stripWrappingQuotes(value)
-  if (unquoted.startsWith(SECRETS_MANAGER_ARN_PREFIX)) {
-    return fetchSigningKeySecret(unquoted)
-  }
-  if (unquoted.startsWith(PEM_MARKER)) {
-    return { privateKeyPem: normalizePem(unquoted) }
-  }
-  // eslint-disable-next-line n/no-sync -- One-time startup config read, not on any request path.
-  return { privateKeyPem: readFileSync(value, 'utf8') }
+  /** Blocks calls the instance's Custody version can't serve. */
+  readonly versionGuard: VersionGuard
 }
 
 /**
@@ -289,56 +193,81 @@ function requireEnv(
 }
 
 /**
+ * Assemble the authenticated HTTP client and the intent signer, both backed by
+ * the API user's key.
+ *
+ * @param options - Gateway and auth config.
+ * @param http - The transport.
+ * @returns The client and intent signer.
+ */
+async function createClientAndSigner(
+  options: RippleCustodyOptions,
+  http: CustodyHttpPort,
+): Promise<{ client: CustodyHttpClient; intentSigner: IntentSigner }> {
+  const keySigner = await resolveKeySigner(options.auth)
+  const authService = new CustodyAuthService({
+    authPort: new HttpCustodyAuthPort({
+      tokenUrl: options.auth.tokenUrl,
+      http,
+      clientId: options.auth.clientId,
+      timeoutMs: options.requestTimeoutMs,
+    }),
+    keySigner,
+  })
+  return {
+    client: new CustodyHttpClient({
+      gatewayUrl: options.gatewayUrl,
+      http,
+      auth: authService,
+      timeoutMs: options.requestTimeoutMs,
+    }),
+    intentSigner: new IntentSigner(keySigner),
+  }
+}
+
+/**
  * Authenticate with Custody and resolve the intent-author's identity for a
  * new RippleCustody. Account discovery and primary validation
  * happen after this, in {@link RippleCustody.create} — they need a
  * constructed instance to back-reference.
  *
  * @param options - Gateway/auth/domain config, the primary account, and
- * optional raw-signing/fee/dry-run/timeout defaults.
+ * optional raw-signing/fee/dry-run/timeout/version defaults.
  * @returns The assembled construction state.
  * @throws {@link CustodyAuthError} if the authenticated user has no access
  * to `options.domainId`.
+ * @throws {@link SimpleXRPLError} for an unknown `apiVersion`, or when no
+ * `domainId` is set and the primary address isn't in exactly one domain.
  */
 export async function buildRippleCustodyState(
   options: RippleCustodyOptions,
 ): Promise<RippleCustodyState> {
-  const http = options.http ?? new FetchHttpPort()
-  const keypair = KeypairService.fromPrivateKey(options.auth.signingKey)
-  const authService = new CustodyAuthService({
-    authPort: new HttpCustodyAuthPort({
-      tokenUrl: options.auth.tokenUrl,
-      http,
-      clientId: options.auth.clientId,
-    }),
-    privateKey: options.auth.signingKey,
-  })
-  const client = new CustodyHttpClient({
-    gatewayUrl: options.gatewayUrl,
-    http,
-    auth: authService,
-  })
-  const intentSigner = new IntentSigner(keypair, options.auth.signingKey)
+  const http = withHttpLogging(
+    options.http ?? new FetchHttpPort(),
+    options.debug,
+    { custodian: 'ripple-custody', label: 'Ripple Custody' },
+  )
+  const { client, intentSigner } = await createClientAndSigner(options, http)
 
-  const me =
-    await client.get<components['schemas']['Core_MeReference']>('/v1/me')
-  const domain = me.domains.find((entry) => entry.id === options.domainId)
-  if (domain === undefined) {
-    throw new CustodyAuthError(
-      `The authenticated Custody user has no access to domain '${options.domainId}'`,
-    )
-  }
+  // Version detection reads the instance's own OpenAPI document; run it
+  // alongside the identity lookup so it adds no latency to create().
+  const [me, versionGuard] = await Promise.all([
+    client.get<components['schemas']['Core_MeReference']>('/v1/me'),
+    resolveVersionGuard(options, http, options.gatewayUrl),
+  ])
+  const { domainId, authorUserId } = await resolveDomain(client, me, options)
 
   return {
     client,
-    domainId: options.domainId,
-    authorUserId: domain.userReference.id,
+    domainId,
+    authorUserId,
     intentSigner,
     allowRawSigning: options.allowRawSigning ?? false,
     defaultFee: options.defaultFee,
     defaultDryRun: options.defaultDryRun ?? false,
     defaultTimeoutMs: options.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
     primaryAddress: options.primary,
+    versionGuard,
   }
 }
 
@@ -355,22 +284,39 @@ export async function resolveFromEnvOptions(
 ): Promise<RippleCustodyOptions> {
   // eslint-disable-next-line n/no-process-env -- fromEnv reads config from the environment by design.
   const env = options.env ?? process.env
-  const signingKey = await resolveSigningKey(
-    requireEnv(env, 'RIPPLE_CUSTODY_AUTH_SIGNING_KEY'),
-  )
+  const tokenUrl = requireEnv(env, 'RIPPLE_CUSTODY_AUTH_TOKEN_URL')
+  const clientId = env.RIPPLE_CUSTODY_AUTH_CLIENT_ID
+  // With a signer the key lives in an HSM/KMS, so the key variable isn't read.
+  const auth: RippleCustodyAuthOptions =
+    options.signer === undefined
+      ? {
+          signingKey: (
+            await resolveSigningKey(
+              requireEnv(env, 'RIPPLE_CUSTODY_AUTH_SIGNING_KEY'),
+            )
+          ).privateKeyPem,
+          tokenUrl,
+          clientId,
+        }
+      : { signer: options.signer, tokenUrl, clientId }
   return {
     gatewayUrl: requireEnv(env, 'RIPPLE_CUSTODY_GATEWAY_URL'),
-    auth: {
-      signingKey: signingKey.privateKeyPem,
-      tokenUrl: requireEnv(env, 'RIPPLE_CUSTODY_AUTH_TOKEN_URL'),
-      clientId: env.RIPPLE_CUSTODY_AUTH_CLIENT_ID,
-    },
-    domainId: requireEnv(env, 'RIPPLE_CUSTODY_DOMAIN_ID'),
+    auth,
+    // Unset or empty: the domain is found from the primary address.
+    domainId:
+      env.RIPPLE_CUSTODY_DOMAIN_ID === ''
+        ? undefined
+        : env.RIPPLE_CUSTODY_DOMAIN_ID,
     primary: options.primary,
     allowRawSigning: options.allowRawSigning,
     defaultFee: options.defaultFee,
     defaultDryRun: options.defaultDryRun,
     defaultTimeoutMs: options.defaultTimeoutMs,
     http: options.http,
+    debug: options.debug,
+    requestTimeoutMs: options.requestTimeoutMs,
+    apiVersion: options.apiVersion,
+    autoDetectVersion: options.autoDetectVersion,
+    openApiUrl: options.openApiUrl,
   }
 }

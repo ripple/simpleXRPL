@@ -84,6 +84,212 @@ Which transactors are native differs per backend — see
 matrix, and note that a transactor can be native while a specific _field_ on it
 is not, in which case that call also takes the raw path.
 
+## Ripple Custody API
+
+Beyond the verticals, a `RippleCustody` exposes the whole Custody API, typed
+from the bundled spec:
+
+```ts
+// Any endpoint by operationId, or by method and path (including the ones
+// with no operationId, such as user invitations).
+await custody.api.call('getIntent', { path: { domainId, intentId } })
+await custody.api.request('GET', '/v1/domains/{domainId}/users/invitations', {
+  path: { domainId },
+})
+
+// Governed intents, signed with the API user key. The returned intentId is
+// the handle for reading, awaiting, approving, or rejecting the intent.
+const { intentId } = await custody.api.propose(payload)
+await custody.api.approve(intentId, { reason: 'within limits' })
+await custody.api.reject(intentId, { reason: 'unexpected destination' })
+```
+
+`approve` and `reject` fetch the intent and sign the decision for you; the API
+user must be allowed to decide on that intent under its policy.
+
+To find out how an intent ended, `api.waitForIntent` reports the outcome
+instead of throwing. A rejected, expired, or failed intent, or one still
+pending when the wait runs out, comes back as an answer:
+
+```ts
+const outcome = await custody.api.waitForIntent(intentId, { timeoutMs: 30_000 })
+// → { status, isTerminal, isSuccess, reason, intent }
+if (!outcome.isSuccess) console.log(outcome.reason)
+
+// Or propose and wait in one call.
+const result = await custody.api.proposeAndWait(payload)
+```
+
+An intent still `Open` when the wait ends is most likely waiting for a person
+to approve it, so keep the `intentId` and check back later.
+`client.intent.outcome(intentId)` does the same from a `SimpleXRPL` client.
+
+`api.dryRun` asks Custody whether an intent would go through, without creating
+it, and returns the verdict instead of throwing. `api.dryRunTransaction` does
+the same for an XRPL transaction, and includes the fee estimate:
+
+```ts
+const check = await custody.api.dryRunTransaction(payment, { ledgerId: 'xrpl' })
+// → { success, errors, result, estimate: { fee, minimumCostInDrops, ... } }
+```
+
+To pre-flight a single vertical write, pass `dryRun: true`, e.g.
+`client.xrp.transfer(params, { dryRun: true })`. If the dry-run fails, the
+write throws a `DryRunFailedError` (carrying Custody's full response) and
+nothing is submitted. This works for Ripple Custody accounts; other signers
+reject the option.
+
+List endpoints return one page at a time. `api.paginate` follows the
+`nextStartingAfter` cursor and yields every item, fetching each page only when
+the loop needs it:
+
+```ts
+for await (const account of custody.api.paginate('getAccounts', {
+  path: { domainId },
+  query: { limit: 100 },
+})) {
+  // every account in the domain
+}
+```
+
+`api.findByAddress` finds the account that holds an address, across every
+domain the API user can see:
+
+```ts
+const ref = await custody.api.findByAddress('r...', { ledgerId: 'xrpl' })
+// → { domainId, accountId, ledgerId, ... }, or undefined if no account holds it
+```
+
+It throws if more than one account matches. That includes one account holding
+the address on several ledgers, so pass `ledgerId` and/or `domainId` to pick
+one.
+
+`domainId` is optional when creating a `RippleCustody`. If it's left out, the
+domain holding the `primary` address is looked up when the custodian is
+created; `custody.domainId` returns it either way.
+
+## Creating a Ripple Custody API key
+
+`generateCustodyKeypair` makes a new key pair for an API user, in any of the
+three algorithms Custody supports:
+
+```ts
+import { generateCustodyKeypair } from 'simplexrpl'
+
+const { privateKey, publicKey } = await generateCustodyKeypair('ed25519') // or 'secp256k1', 'secp256r1'
+```
+
+Register `publicKey` (base64 SPKI DER) for the API user in Custody, and store
+`privateKey` (PKCS#8 PEM) wherever the SDK reads its signing key from:
+`auth.signingKey`, or `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` as the PEM itself, a
+path to a `.pem` file, or an AWS Secrets Manager secret ARN. To keep the key in
+an HSM or KMS instead, generate it there; see below.
+
+## Ripple Custody API key in an HSM or KMS
+
+The Ripple Custody API user's key signs the login challenge and every intent
+the SDK proposes. By default it is a PEM key held in the process
+(`auth.signingKey`, or `RIPPLE_CUSTODY_AUTH_SIGNING_KEY` with `fromEnv`). To
+keep it inside an HSM or KMS instead, pass a `signer`:
+
+```ts
+import { RippleCustody } from 'simplexrpl'
+import { AwsKmsCustodySigner } from 'simplexrpl/aws-kms'
+
+const signer = await AwsKmsCustodySigner.create({
+  keyId: 'alias/custody-api-user', // an ECC_SECG_P256K1 or ECC_NIST_P256 key
+  region: 'us-east-1',
+})
+const custody = await RippleCustody.fromEnv({ primary: 'r...', signer })
+```
+
+Other HSMs and KMSs implement `CustodySignerPort`: `algorithm`, `publicKey()`,
+and `sign(data, context)`, which runs only the raw signing primitive.
+
+- **secp256k1 and secp256r1** keys receive a 32-byte SHA-256 digest to sign as
+  a digest, and return a DER signature.
+- **ed25519** keys receive the exact bytes to sign, and return the raw 64-byte
+  signature.
+
+`context` (`'auth-challenge'` or `'intent'`) lets an HSM policy treat the two
+differently. The SDK checks every signature against the public key before
+sending it, so a misconfigured signer fails with a clear error rather than a
+401 from Custody.
+
+## Ripple Custody versions
+
+Each Custody instance runs its own version, so not every instance serves every
+endpoint or operation the SDK knows about. `RippleCustody.create()` reads the
+instance's version from the OpenAPI document it serves, and blocks a call the
+instance can't handle — an `api.call` endpoint, an `api.propose` intent type, or
+a vertical's native XRPL operation — with an `UnsupportedInVersionError` naming
+what is missing, before anything is sent.
+
+```ts
+const custody = await RippleCustody.fromEnv({ primary: 'r...' })
+custody.backendVersion // e.g. '1.43.4'
+```
+
+To skip the detection request, pin the version instead; calls are then checked
+against data bundled with the SDK (one entry per minor version):
+
+```ts
+await RippleCustody.fromEnv({ primary: 'r...', apiVersion: '1.43' })
+```
+
+The error also says where the missing piece _is_ available — e.g. `official
+1.37+`, or `pre-release Custody builds` for a feature only those have so far. The
+full table is in [`docs/custody-endpoints.md`](./docs/custody-endpoints.md).
+
+If the version can't be detected, the SDK emits a single Node warning
+(`SIMPLEXRPL_CUSTODY_VERSION_UNDETECTED`) and lets every call through to the
+server. `autoDetectVersion: false` turns detection off without the warning, and
+`openApiUrl` points it at a different document URL.
+
+## Ripple Custody errors
+
+A failed Custody call throws a `CustodyApiError` whose message leads with
+Custody's own reason and explanation:
+
+```
+Custody API error (404 EntityNotFoundError): Intent 3f1c… not found.
+```
+
+The same parts are fields, beside the full response body: `status`, `reason`,
+`detail`, `hint`, and `raw`. `toJSON()` gives a plain object for structured
+logs.
+
+A `401` that a token refresh doesn't fix throws a `CustodyAuthError` named for
+its reason: `CustodySignatureError` (`InvalidSignatureError`) or
+`CustodyPermissionError` (`PermissionDeniedError`). Its `apiError` is the
+underlying `CustodyApiError`.
+
+When a failure matches a known Custody server bug, `hint` says how to work
+around it. For example, a `quarantineStatus` filter can return a 500 on the
+transfers endpoint.
+
+## Debug logging
+
+To see a custodian's HTTP traffic, pass `debug` to `RippleCustody.create()` /
+`fromEnv()` or `PalisadeCustody.create()`. Each request is logged at debug
+level with its method, URL, status and duration, plus the request headers and
+bodies:
+
+```
+Ripple Custody GET https://…/v1/me → 200 (328 ms)
+```
+
+`debug: true` logs to `console.debug`. To use your own logger, pass any object
+with a `debug(message, fields)` method, such as pino or winston. The `fields`
+object carries the details.
+
+```ts
+await RippleCustody.fromEnv({ primary: 'r...', debug: logger })
+```
+
+Credentials are masked before anything is logged: the `Authorization` header,
+access/ID/refresh tokens, and client secrets. Bodies longer than 8 KB are cut.
+
 ## Development
 
 Install dependencies with `npm install`.

@@ -41,23 +41,32 @@ export interface BuildEnvelopeOptions {
   readonly idempotencyKey?: string
 }
 
+/** An unsigned `v0_CreateTransactionOrder` payload, and the id it carries. */
+export interface TransactionOrderPayload {
+  /** The payload, ready to propose or dry-run. */
+  readonly payload: Extract<
+    components['schemas']['Core_ProposeUserIntentPayload'],
+    { type: 'v0_CreateTransactionOrder' }
+  >
+  /** The intent id: the payload's own id, which the envelope must match. */
+  readonly intentId: string
+  /** The human-readable summary the intent carries. */
+  readonly customProperties: components['schemas']['Core_StringsMap']
+}
+
 /**
- * Build and sign a `v0_CreateTransactionOrder` intent envelope: map the
- * transaction to Custody's native operation, attach the fee strategy and a
- * human-readable `customProperties` summary, then sign the canonicalized
- * request with the intent-author key.
+ * Map a transaction to an unsigned `v0_CreateTransactionOrder` payload: the
+ * native operation, the fee strategy, memos, and a human-readable
+ * `customProperties` summary.
  *
- * @param intentSigner - Signs the canonicalized request.
- * @param options - The domain, author, account, transaction, and fee.
- * @returns The signed `{ request, signature }` body ready to POST to
- * `/v1/intents`.
+ * @param options - The account, transaction, fee, and idempotency key.
+ * @returns The payload, its intent id, and its custom properties.
  * @throws {@link SignerCapabilityError} if the transactor (or one of its
  * fields) has no native Custody representation.
  */
-export function buildProposeIntentBody(
-  intentSigner: IntentSigner,
-  options: BuildEnvelopeOptions,
-): ProposeIntentBody {
+export function buildTransactionOrderPayload(
+  options: Omit<BuildEnvelopeOptions, 'domainId' | 'authorUserId'>,
+): TransactionOrderPayload {
   const operation = txToOperation(options.transaction)
   const { feeStrategy, maximumFee } = toFeeStrategy(options.fee)
   const customProperties = buildCustomProperties(options.transaction)
@@ -73,13 +82,9 @@ export function buildProposeIntentBody(
 
   // The payload carries its own id, which must match the envelope id — the
   // caller's idempotency key resolves a retry to the same intent. Resolve it
-  // once here (falling back to a fresh id) so both stay in sync, since
-  // `buildProposeEnvelope` would otherwise generate the envelope id on its own.
+  // once here (falling back to a fresh id) so both stay in sync.
   const intentId = options.idempotencyKey ?? uuidV7()
-
-  return buildProposeEnvelope(intentSigner, {
-    domainId: options.domainId,
-    authorUserId: options.authorUserId,
+  return {
     payload: {
       id: intentId,
       accountId: options.accountId,
@@ -88,6 +93,34 @@ export function buildProposeIntentBody(
       customProperties,
       type: 'v0_CreateTransactionOrder',
     },
+    intentId,
+    customProperties,
+  }
+}
+
+/**
+ * Build and sign a `v0_CreateTransactionOrder` intent envelope: map the
+ * transaction to Custody's native operation (see
+ * {@link buildTransactionOrderPayload}), then sign the canonicalized request
+ * with the intent-author key.
+ *
+ * @param intentSigner - Signs the canonicalized request.
+ * @param options - The domain, author, account, transaction, and fee.
+ * @returns The signed `{ request, signature }` body ready to POST to
+ * `/v1/intents`.
+ * @throws {@link SignerCapabilityError} if the transactor (or one of its
+ * fields) has no native Custody representation.
+ */
+export async function buildProposeIntentBody(
+  intentSigner: IntentSigner,
+  options: BuildEnvelopeOptions,
+): Promise<ProposeIntentBody> {
+  const { payload, intentId, customProperties } =
+    buildTransactionOrderPayload(options)
+  return buildProposeEnvelope(intentSigner, {
+    domainId: options.domainId,
+    authorUserId: options.authorUserId,
+    payload,
     overrides: { id: intentId, customProperties },
   })
 }

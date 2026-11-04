@@ -5,7 +5,6 @@ import { Wallet } from 'xrpl'
 import { PalisadeAuthService } from '../../../src/custodians/palisade/auth/palisade-auth.service.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
-import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import { LocalSigner } from '../../../src/index.js'
 import { generateTestKey } from '../custody-auth/test-utils.js'
 
@@ -117,7 +116,7 @@ describe('PalisadeAuthService', () => {
 describe('IntentSigner', () => {
   it('does not expose the key it signs with', () => {
     const pem = generateTestKey('ed25519')
-    const signer = new IntentSigner(KeypairService.fromPrivateKey(pem), pem)
+    const signer = IntentSigner.fromPrivateKey(pem)
     expectNotLeaked(signer, keyBody(pem))
   })
 })

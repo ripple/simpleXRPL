@@ -1,22 +1,36 @@
+import { createPrivateKey, createPublicKey, verify } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { p256 } from '@noble/curves/p256'
+import canonicalizeImport from 'canonicalize'
 import { Wallet } from 'xrpl'
 import type { OfferCancel, Payment, TxResponse } from 'xrpl'
 
+import type { CustodyProposePayload } from '../../../src/custodians/ripple/api.js'
+import type {
+  CustodySignContext,
+  CustodySignerPort,
+} from '../../../src/custodians/ripple/auth/signer-port.js'
 import { RippleCustody } from '../../../src/custodians/ripple/ripple-custody.js'
 import type {
   HttpRequest,
   HttpResponse,
 } from '../../../src/custodians/ripple/transport/http-port.js'
+import type { CustodyApiVersion } from '../../../src/custodians/ripple/versioning/capabilities.js'
 import type { SubmissionContext } from '../../../src/domain/index.js'
 import {
   AccountNotFoundError,
   CustodyAuthError,
+  DryRunFailedError,
   IntentPendingError,
   IntentValidationError,
   SignerCapabilityError,
   SimpleXRPLError,
+  UnsupportedInVersionError,
   XrpldSubmitError,
 } from '../../../src/errors.js'
-import { makeJwt } from '../custody-auth/test-utils.js'
+import { generateTestKey, makeJwt } from '../custody-auth/test-utils.js'
 import {
   accountsBody,
   addressesBody,
@@ -52,7 +66,17 @@ interface Routes {
   transactions?: () => HttpResponse
   manifestGet?: () => HttpResponse
   dryRun?: (body: unknown) => HttpResponse
+  openApi?: () => HttpResponse
 }
+
+/**
+ * The instance's OpenAPI document version detection reads: by default the
+ * vendored spec, so the custodian resolves the version the SDK is built against.
+ */
+const VENDORED_SPEC = readFileSync(
+  join(process.cwd(), 'openapi', 'custody', 'official', 'public.json'),
+  'utf8',
+)
 
 /**
  * A one-item transactions collection linking a Confirmed on-ledger transaction
@@ -98,6 +122,13 @@ function buildRoutes(routes: Routes): Route[] {
       test: (request): boolean => request.url.includes('auth.example.com'),
       respond: (): HttpResponse =>
         ok({ access_token: makeJwt({ exp: 9_999_999_999 }) }),
+    },
+    {
+      test: (request): boolean => request.url.includes('/api/OpenAPI'),
+      respond: (): HttpResponse =>
+        (
+          routes.openApi ?? ((): HttpResponse => ok(JSON.parse(VENDORED_SPEC)))
+        )(),
     },
     {
       test: (request): boolean => request.url.endsWith('/v1/me'),
@@ -228,11 +259,18 @@ function buildHttp(routes: Routes = {}): FakeHttpPort {
  * @param options - Construction overrides.
  * @param options.allowRawSigning - Enable the raw-signing fallback.
  * @param options.defaultDryRun - Pre-flight every write through dry-run.
+ * @param options.apiVersion - Pin the Custody version instead of detecting it.
+ * @param options.autoDetectVersion - Detect the version from the instance.
  * @returns The ready custodian and the underlying fake port.
  */
 async function makeCustody(
   routes: Routes = {},
-  options: { allowRawSigning?: boolean; defaultDryRun?: boolean } = {},
+  options: {
+    allowRawSigning?: boolean
+    defaultDryRun?: boolean
+    apiVersion?: CustodyApiVersion
+    autoDetectVersion?: boolean
+  } = {},
 ): Promise<{ custody: RippleCustody; http: FakeHttpPort }> {
   const http = buildHttp(routes)
   const custody = await RippleCustody.create({
@@ -245,6 +283,8 @@ async function makeCustody(
     primary: PRIMARY_ADDRESS,
     allowRawSigning: options.allowRawSigning,
     defaultDryRun: options.defaultDryRun,
+    apiVersion: options.apiVersion,
+    autoDetectVersion: options.autoDetectVersion,
     http,
   })
   return { custody, http }
@@ -385,9 +425,15 @@ describe('RippleCustody.sign', () => {
       { allowRawSigning: true },
     )
 
-    await expect(
-      custody.sign(OFFER_CANCEL_TX, makeContext(custody, { dryRun: true })),
-    ).rejects.toThrow(IntentValidationError)
+    const signing = custody.sign(
+      OFFER_CANCEL_TX,
+      makeContext(custody, { dryRun: true }),
+    )
+    await expect(signing).rejects.toThrow(IntentValidationError)
+    await expect(signing).rejects.toBeInstanceOf(DryRunFailedError)
+    await expect(signing).rejects.toMatchObject({
+      response: { success: false, errors: ['nope'] },
+    })
 
     expect(
       http.requests.some(
@@ -614,5 +660,434 @@ describe('RippleCustody.submitAsync', () => {
     await expect(
       custody.submitAsync(OFFER_CANCEL_TX, makeContext(custody)),
     ).rejects.toThrow(SimpleXRPLError)
+  })
+})
+
+describe('RippleCustody version checks', () => {
+  const VENDORED_VERSION: unknown =
+    JSON.parse(VENDORED_SPEC).info['x-app-version']
+
+  /**
+   * Whether any recorded request hit a URL containing `fragment`.
+   *
+   * @param http - The fake transport.
+   * @param fragment - The URL fragment to look for.
+   * @returns `true` if a request matched.
+   */
+  const requested = (http: FakeHttpPort, fragment: string): boolean =>
+    http.requests.some((request) => request.url.includes(fragment))
+
+  let warn: jest.SpyInstance
+  beforeEach(() => {
+    warn = jest.spyOn(process, 'emitWarning').mockReturnValue(undefined)
+  })
+  afterEach(() => {
+    warn.mockRestore()
+  })
+
+  it('detects the version from the instance OpenAPI document, without credentials', async () => {
+    const { custody, http } = await makeCustody()
+
+    expect(custody.backendVersion).toBe(VENDORED_VERSION)
+    const specRequest = http.requests.find((request) =>
+      request.url.includes('/api/OpenAPI'),
+    )
+    expect(specRequest?.url).toBe(
+      'https://custody.example.com/api/OpenAPI?scope=&layout=',
+    )
+    expect(specRequest?.headers.Authorization).toBeUndefined()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('uses a pinned version without fetching the document', async () => {
+    const { custody, http } = await makeCustody({}, { apiVersion: '1.35' })
+
+    expect(custody.backendVersion).toBe('1.35')
+    expect(requested(http, '/api/OpenAPI')).toBe(false)
+  })
+
+  it('rejects an unknown pinned version', async () => {
+    await expect(
+      makeCustody({}, { apiVersion: '9.99' as CustodyApiVersion }),
+    ).rejects.toThrow(/Unknown Ripple Custody apiVersion '9\.99'/u)
+  })
+
+  it('blocks a native write the version has no operation for, before posting an intent', async () => {
+    // Custody 1.23–1.31 modelled XRPL orders as plain payments, with no
+    // native operations at all.
+    const { custody, http } = await makeCustody({}, { apiVersion: '1.31' })
+
+    const submission = custody.submitAndWait(PAYMENT_TX, makeContext(custody))
+
+    await expect(submission).rejects.toBeInstanceOf(UnsupportedInVersionError)
+    await expect(submission).rejects.toMatchObject({
+      kind: 'xrplOperation',
+      capability: 'Payment',
+      sdkMethod: 'submitting Payment',
+      appVersion: '1.31',
+      source: 'pinned',
+    })
+    expect(
+      http.requests.some(
+        (request) =>
+          request.method === 'POST' && request.url.endsWith('/v1/intents'),
+      ),
+    ).toBe(false)
+  })
+
+  it('blocks api.call for an endpoint the version does not serve', async () => {
+    // GET /v1/health arrived in 1.36.
+    const { custody, http } = await makeCustody({}, { apiVersion: '1.35' })
+
+    await expect(
+      custody.api.call('HealthController_liveness'),
+    ).rejects.toMatchObject({
+      kind: 'endpoint',
+      capability: 'GET /v1/health',
+      sdkMethod: "api.call('HealthController_liveness')",
+    })
+    expect(requested(http, '/v1/health')).toBe(false)
+  })
+
+  it('blocks api.propose of a transaction order whose XRPL operation the version lacks', async () => {
+    const { custody } = await makeCustody({}, { apiVersion: '1.31' })
+    const payload = {
+      type: 'v0_CreateTransactionOrder',
+      id: '00000000-0000-7000-8000-000000000000',
+      accountId: ACCOUNT_ID,
+      parameters: {
+        type: 'XRPL',
+        operation: { type: 'TrustSet' },
+      },
+      customProperties: {},
+    } as unknown as CustodyProposePayload
+
+    await expect(custody.api.propose(payload)).rejects.toMatchObject({
+      kind: 'xrplOperation',
+      capability: 'TrustSet',
+      sdkMethod: 'api.propose',
+    })
+  })
+
+  it('lets calls through, warning once, when the document cannot be fetched', async () => {
+    const { custody } = await makeCustody({ openApi: () => status(404) })
+
+    expect(custody.backendVersion).toBeUndefined()
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('HTTP 404'),
+      expect.objectContaining({
+        code: 'SIMPLEXRPL_CUSTODY_VERSION_UNDETECTED',
+      }),
+    )
+    await expect(
+      custody.submitAndWait(PAYMENT_TX, makeContext(custody)),
+    ).resolves.toMatchObject({ source: 'custody' })
+  })
+
+  it('blocks a devbox-only endpoint on an official instance, naming the devbox build', async () => {
+    const { custody, http } = await makeCustody()
+
+    await expect(
+      custody.api.call('initiateParametersCompute', {
+        path: { domainId: DOMAIN_ID, accountId: ACCOUNT_ID },
+        body: {} as never,
+      }),
+    ).rejects.toMatchObject({
+      kind: 'endpoint',
+      availability: 'pre-release Custody builds',
+    })
+    expect(requested(http, '/parameters-compute')).toBe(false)
+  })
+
+  it('skips detection silently when autoDetectVersion is false', async () => {
+    const { custody, http } = await makeCustody(
+      {},
+      { autoDetectVersion: false },
+    )
+
+    expect(custody.backendVersion).toBeUndefined()
+    expect(requested(http, '/api/OpenAPI')).toBe(false)
+    expect(warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('RippleCustody with an HSM/KMS signer', () => {
+  const canonicalize = canonicalizeImport as unknown as (
+    value: unknown,
+  ) => string
+  const HSM_KEY = generateTestKey('secp256r1')
+  const HSM_PUBLIC = createPublicKey(HSM_KEY)
+
+  /**
+   * A secp256r1 port that signs digests like an HSM, recording the contexts it
+   * was asked to sign for.
+   *
+   * @returns The port and its recorded contexts.
+   */
+  function hsmPort(): {
+    port: CustodySignerPort
+    contexts: CustodySignContext[]
+  } {
+    const contexts: CustodySignContext[] = []
+    const { d: scalar } = createPrivateKey(HSM_KEY).export({ format: 'jwk' })
+    const port: CustodySignerPort = {
+      algorithm: 'secp256r1',
+      publicKey: async () =>
+        HSM_PUBLIC.export({ type: 'spki', format: 'pem' }).toString(),
+      async sign(digest, context) {
+        contexts.push(context)
+        return p256
+          .sign(digest, Buffer.from(scalar ?? '', 'base64url'))
+          .toDERRawBytes()
+      },
+    }
+    return { port, contexts }
+  }
+
+  const createWith = async (
+    auth: Parameters<typeof RippleCustody.create>[0]['auth'],
+  ): Promise<{ custody: RippleCustody; http: FakeHttpPort }> => {
+    const http = buildHttp()
+    const custody = await RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth,
+      domainId: DOMAIN_ID,
+      primary: PRIMARY_ADDRESS,
+      http,
+    })
+    return { custody, http }
+  }
+
+  it('logs in with the signer’s public key and a challenge signature it made', async () => {
+    const { port, contexts } = hsmPort()
+
+    const { http } = await createWith({
+      signer: port,
+      tokenUrl: 'https://auth.example.com/token',
+    })
+
+    const login = http.requests.find((request) =>
+      request.url.includes('auth.example.com'),
+    )
+    const form = new URLSearchParams(login?.body ?? '')
+    expect(form.get('public_key')).toBe(
+      HSM_PUBLIC.export({ type: 'spki', format: 'der' }).toString('base64'),
+    )
+    expect(
+      verify(
+        'sha256',
+        Buffer.from(form.get('challenge') ?? ''),
+        HSM_PUBLIC,
+        Buffer.from(form.get('signature') ?? '', 'base64'),
+      ),
+    ).toBe(true)
+    expect(contexts).toEqual(['auth-challenge'])
+  })
+
+  it('signs the intents it proposes through the signer', async () => {
+    const { port, contexts } = hsmPort()
+    const { custody, http } = await createWith({
+      signer: port,
+      tokenUrl: 'https://auth.example.com/token',
+    })
+
+    await custody.submitAndWait(PAYMENT_TX, makeContext(custody))
+
+    const posted = http.requests.find(
+      (request) =>
+        request.method === 'POST' && request.url.endsWith('/v1/intents'),
+    )
+    const body = JSON.parse(posted?.body ?? '{}') as {
+      request: unknown
+      signature: string
+    }
+    expect(
+      verify(
+        'sha256',
+        Buffer.from(canonicalize(body.request)),
+        HSM_PUBLIC,
+        Buffer.from(body.signature, 'base64'),
+      ),
+    ).toBe(true)
+    expect(contexts).toEqual(['auth-challenge', 'intent'])
+  })
+
+  it('refuses a signing key and a signer together', async () => {
+    const { port } = hsmPort()
+
+    await expect(
+      createWith({
+        signingKey: SIGNING_KEY,
+        signer: port,
+        tokenUrl: 'https://auth.example.com/token',
+      } as unknown as Parameters<typeof RippleCustody.create>[0]['auth']),
+    ).rejects.toThrow(
+      'RippleCustody auth takes either signingKey or signer, not both',
+    )
+  })
+})
+
+describe('RippleCustody debug logging', () => {
+  it('logs every request with its credentials masked', async () => {
+    const entries: Array<{
+      message: string
+      fields?: Record<string, unknown>
+    }> = []
+    const jwt = makeJwt({ exp: 9_999_999_999 })
+
+    await RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth: {
+        signingKey: SIGNING_KEY,
+        tokenUrl: 'https://auth.example.com/token',
+      },
+      domainId: DOMAIN_ID,
+      primary: PRIMARY_ADDRESS,
+      http: buildHttp(),
+      debug: {
+        debug(message, fields): void {
+          entries.push({ message, fields })
+        },
+      },
+    })
+
+    const messages = entries.map((entry) => entry.message)
+    // The token exchange, version detection, and API calls alike.
+    expect(messages).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /^Ripple Custody POST https:\/\/auth\.example\.com\/token → 200 \(\d+ ms\)$/u,
+        ),
+        expect.stringMatching(
+          /^Ripple Custody GET \S+\/api\/OpenAPI\S* → 200/u,
+        ),
+        expect.stringMatching(
+          /^Ripple Custody GET https:\/\/custody\.example\.com\/v1\/me → 200/u,
+        ),
+      ]),
+    )
+    const me = entries.find((entry) => entry.message.includes('/v1/me'))
+    expect(me?.fields?.requestHeaders).toMatchObject({
+      Authorization: 'Bearer [REDACTED]',
+    })
+    expect(JSON.stringify(entries)).not.toContain(jwt)
+  })
+})
+
+describe('RippleCustody requestTimeoutMs', () => {
+  it('bounds the auth and API requests, leaving detection its own budget', async () => {
+    const http = buildHttp()
+
+    await RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth: {
+        signingKey: SIGNING_KEY,
+        tokenUrl: 'https://auth.example.com/token',
+      },
+      domainId: DOMAIN_ID,
+      primary: PRIMARY_ADDRESS,
+      requestTimeoutMs: 5000,
+      http,
+    })
+
+    const timeoutFor = (fragment: string): number | undefined =>
+      http.requests.find((request) => request.url.includes(fragment))?.timeoutMs
+    expect(timeoutFor('auth.example.com')).toBe(5000)
+    expect(timeoutFor('/v1/me')).toBe(5000)
+    // Version detection keeps its own, shorter budget.
+    expect(timeoutFor('/api/OpenAPI')).toBe(15_000)
+  })
+})
+
+describe('RippleCustody without a domainId', () => {
+  /**
+   * Create a RippleCustody with no domainId, over the default routes plus a
+   * `GET /v1/addresses` answer.
+   *
+   * @param addresses - The address references `/v1/addresses` lists.
+   * @param me - The `/v1/me` body.
+   * @returns The custodian.
+   */
+  async function createWithout(
+    addresses: Array<Record<string, unknown>>,
+    me: unknown = meBody(DOMAIN_ID, AUTHOR_USER_ID),
+  ): Promise<RippleCustody> {
+    const base = buildHttp({ me: (): HttpResponse => ok(me) })
+    return RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth: {
+        signingKey: SIGNING_KEY,
+        tokenUrl: 'https://auth.example.com/token',
+      },
+      primary: PRIMARY_ADDRESS,
+      autoDetectVersion: false,
+      http: {
+        async send(request: HttpRequest): Promise<HttpResponse> {
+          if (request.url.includes('/v1/addresses?')) {
+            return ok({ items: addresses, count: addresses.length })
+          }
+          return base.send(request)
+        },
+      },
+    })
+  }
+
+  /**
+   * An account address reference for the primary.
+   *
+   * @param domainId - The domain holding it.
+   * @param ledgerId - The ledger it is on.
+   * @returns The reference.
+   */
+  function primaryIn(
+    domainId: string,
+    ledgerId = 'xrpl-1',
+  ): Record<string, unknown> {
+    return {
+      id: `${domainId}-${ledgerId}`,
+      type: 'AccountAddressReference',
+      address: PRIMARY_ADDRESS,
+      ledgerId,
+      domainId,
+      accountId: ACCOUNT_ID,
+      createdAt: '2026-01-01T00:00:00Z',
+      custodyType: 'SubCustody',
+    }
+  }
+
+  it('finds the domain from the primary address', async () => {
+    // On two ledgers in the user's domain, and in a domain the user can't use.
+    const custody = await createWithout([
+      primaryIn(DOMAIN_ID),
+      primaryIn(DOMAIN_ID, 'xrpl-0'),
+      primaryIn('not-my-domain'),
+    ])
+
+    expect(custody.domainId).toBe(DOMAIN_ID)
+    expect(custody.primary.address).toBe(PRIMARY_ADDRESS)
+  })
+
+  it('throws when none of the user’s domains holds the primary', async () => {
+    await expect(createWithout([primaryIn('not-my-domain')])).rejects.toThrow(
+      `No Custody account in the API user's domains holds the primary address ${PRIMARY_ADDRESS}; check the address, or set domainId`,
+    )
+  })
+
+  it('throws when several of the user’s domains hold the primary', async () => {
+    const me = {
+      publicKey: '',
+      domains: ['domain-a', 'domain-b'].map((id) => ({
+        id,
+        alias: id,
+        userReference: { id: AUTHOR_USER_ID, alias: 'author', roles: [] },
+      })),
+    }
+
+    await expect(
+      createWithout([primaryIn('domain-a'), primaryIn('domain-b')], me),
+    ).rejects.toThrow(
+      `The primary address ${PRIMARY_ADDRESS} is held in 2 Custody domains (domain-a, domain-b); set domainId to pick one`,
+    )
   })
 })

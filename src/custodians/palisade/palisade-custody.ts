@@ -22,6 +22,7 @@ import {
 import type { PalisadeScope } from '../../generated/palisade-routes.js'
 import type { components } from '../../generated/palisade.js'
 import { assertDryRunHonored, assertFeeHonored } from '../context-guards.js'
+import { withHttpLogging } from '../http-logging.js'
 import { assertOnLedgerSuccess, engineResultOf } from '../on-ledger-result.js'
 
 import { PalisadeApi } from './api.js'
@@ -40,12 +41,38 @@ import {
 } from './mapping/index.js'
 import { FetchHttpPort } from './transport/fetch-http-port.js'
 import { HttpPalisadeAuthPort } from './transport/http-palisade-auth-port.js'
+import type { PalisadeHttpPort } from './transport/http-port.js'
 import { PalisadeHttpClient } from './transport/palisade-http-client.js'
 import { PalisadeTxTracker } from './tx-tracker.js'
 
 type PalisadeTransaction = components['schemas']['transactionsv2Transaction']
 
 const DEFAULT_TIMEOUT_MS = 60_000
+
+/**
+ * An authenticated Palisade client for one credential.
+ *
+ * @param config - The custodian config (base URL and clock).
+ * @param http - The transport.
+ * @param creds - The credential the client authenticates with.
+ * @returns The client.
+ */
+function authenticatedClient(
+  config: PalisadeCustodyConfig,
+  http: PalisadeHttpPort,
+  creds: PalisadeClientCredentials,
+): PalisadeHttpClient {
+  return new PalisadeHttpClient({
+    baseUrl: config.baseUrl,
+    http,
+    auth: new PalisadeAuthService({
+      authPort: new HttpPalisadeAuthPort({ baseUrl: config.baseUrl, http }),
+      clientId: creds.clientId,
+      clientSecret: creds.clientSecret,
+      now: config.now,
+    }),
+  })
+}
 
 /**
  * The Palisade custodian: signs and submits through Palisade's vault/wallet API.
@@ -123,30 +150,30 @@ export class PalisadeCustody implements Custodian {
   public static async create(
     config: PalisadeCustodyConfig,
   ): Promise<PalisadeCustody> {
-    const http = config.http ?? new FetchHttpPort()
+    const http = withHttpLogging(
+      config.http ?? new FetchHttpPort(),
+      config.debug,
+      { custodian: 'palisade-custody', label: 'Palisade' },
+    )
     // A separate authenticated client per credential: discovery runs on the
     // wallet-read credential, signing/submission on the transactions one.
-    function clientFor(creds: PalisadeClientCredentials): PalisadeHttpClient {
-      return new PalisadeHttpClient({
-        baseUrl: config.baseUrl,
-        http,
-        auth: new PalisadeAuthService({
-          authPort: new HttpPalisadeAuthPort({ baseUrl: config.baseUrl, http }),
-          clientId: creds.clientId,
-          clientSecret: creds.clientSecret,
-          now: config.now,
-        }),
-      })
-    }
-    const walletsClient = clientFor(config.credentials.wallets)
-    const transactionsClient = clientFor(config.credentials.transactions)
+    const walletsClient = authenticatedClient(
+      config,
+      http,
+      config.credentials.wallets,
+    )
+    const transactionsClient = authenticatedClient(
+      config,
+      http,
+      config.credentials.transactions,
+    )
     // Per-scope clients for tag-based routing (option b) on `palisade.api`.
     const byScope: PalisadeScopedClients = {}
     for (const [scope, creds] of Object.entries(
       config.credentials.scoped ?? {},
     )) {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Object.entries widens the key to string.
-      byScope[scope as PalisadeScope] = clientFor(creds)
+      byScope[scope as PalisadeScope] = authenticatedClient(config, http, creds)
     }
     const custodian = new PalisadeCustody(
       { transactions: transactionsClient, wallets: walletsClient, byScope },

@@ -41,9 +41,12 @@ export const REDACTED_FIELDS: readonly string[] = [
   'apiKey',
   'clientSecret',
   'client_secret',
-  // Bearer tokens.
+  // Bearer tokens, and the header that carries them.
   'accessToken',
   'access_token',
   'refreshToken',
   'refresh_token',
+  'idToken',
+  'id_token',
+  'authorization',
 ]

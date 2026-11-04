@@ -5,6 +5,7 @@ import type {
   TokenResponse,
 } from '../auth/ports.js'
 
+import { DEFAULT_REQUEST_TIMEOUT_MS } from './http-port.js'
 import type { CustodyHttpPort } from './http-port.js'
 
 const HTTP_ERROR_THRESHOLD = 400
@@ -25,6 +26,8 @@ export interface HttpCustodyAuthPortOptions {
   http: CustodyHttpPort
   /** The OIDC client id to authenticate as. Defaults to `'customer_api'`. */
   clientId?: string
+  /** Abort the token request after this many milliseconds. Defaults to 30 000. */
+  timeoutMs?: number
 }
 
 /**
@@ -35,6 +38,7 @@ export class HttpCustodyAuthPort implements CustodyAuthPort {
   private readonly tokenUrl: string
   private readonly http: CustodyHttpPort
   private readonly clientId: string
+  private readonly timeoutMs: number
 
   /**
    * Construct an HttpCustodyAuthPort.
@@ -51,6 +55,7 @@ export class HttpCustodyAuthPort implements CustodyAuthPort {
     this.tokenUrl = options.tokenUrl
     this.http = options.http
     this.clientId = options.clientId ?? DEFAULT_CLIENT_ID
+    this.timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
   }
 
   /**
@@ -74,6 +79,7 @@ export class HttpCustodyAuthPort implements CustodyAuthPort {
       url: this.tokenUrl,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
+      timeoutMs: this.timeoutMs,
     })
 
     if (response.status >= HTTP_ERROR_THRESHOLD) {

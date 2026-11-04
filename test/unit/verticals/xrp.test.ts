@@ -11,6 +11,7 @@ import type {
 import {
   IntentValidationError,
   LocalSigner,
+  SignerCapabilityError,
   SimpleXRPL,
 } from '../../../src/index.js'
 import type { SimpleXRPLClient } from '../../../src/index.js'
@@ -232,5 +233,46 @@ describe('XRP.transfer', () => {
         amount: 'abc',
       }),
     ).rejects.toBeInstanceOf(IntentValidationError)
+  })
+})
+
+describe('the per-call dryRun option', () => {
+  // A LocalSigner can't dry-run, and refuses rather than submit for real — so
+  // the refusal proves the option travelled from the vertical to the signer.
+  it.each([
+    [
+      'XRP.transfer',
+      async (client: SimpleXRPLClient): Promise<unknown> =>
+        client.xrp.transfer(
+          { to: Wallet.generate().classicAddress, amount: '1' },
+          { dryRun: true },
+        ),
+    ],
+    [
+      'Account.set',
+      async (client: SimpleXRPLClient): Promise<unknown> =>
+        client.account.set({ defaultRipple: true }, { dryRun: true }),
+    ],
+    [
+      'XRP.cancelOffer',
+      async (client: SimpleXRPLClient): Promise<unknown> =>
+        client.xrp.cancelOffer({ offerSequence: 7 }, { dryRun: true }),
+    ],
+  ])('%s passes it to the signer', async (_name, write) => {
+    const { client } = await xrpClient()
+
+    await expect(write(client)).rejects.toThrow(SignerCapabilityError)
+    await expect(write(client)).rejects.toThrow(/dryRun/u)
+  })
+
+  it('submits normally when dryRun is false', async () => {
+    const { client, txs } = await xrpClient()
+
+    await client.xrp.transfer(
+      { to: Wallet.generate().classicAddress, amount: '1' },
+      { dryRun: false },
+    )
+
+    expect(txs).toHaveLength(1)
   })
 })

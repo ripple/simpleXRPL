@@ -28,13 +28,16 @@ jobs:
       - name: Pin npm to v10
         run: npm i -g npm@10 --registry=https://registry.npmjs.org
       - run: npm ci
-      # Generated custodian types are committed; regenerate and fail if they're
-      # stale relative to the vendored specs.
+      # Generated custodian types (and the Custody availability table) are
+      # committed; regenerate and fail if they're stale relative to the
+      # vendored specs.
       - name: Verify generated types are up to date
         run: |
           npm run typegen
-          git diff --exit-code src/generated \
-            || (echo "::error::src/generated is stale — run 'npm run typegen' and commit." && exit 1)
+          git diff --exit-code src/generated docs/custody-endpoints.md \
+            || (echo "::error::generated files are stale — run 'npm run typegen' and commit." && exit 1)
+      # Tests for the spec tooling in scripts/ (merge, layout, normalization).
+      - run: npm run test:scripts
       # src/version.ts is generated from package.json at build; regenerate and
       # fail if the committed copy drifts from the declared version.
       - name: Verify generated version is up to date
