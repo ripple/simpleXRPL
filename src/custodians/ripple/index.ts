@@ -11,6 +11,7 @@ export type {
   CustodyOperationId,
   CustodyProposeOptions,
   CustodyProposePayload,
+  CustodyProposeResponse,
   CustodyRequestArgs,
   CustodyRequestPath,
   CustodyRequestResponse,

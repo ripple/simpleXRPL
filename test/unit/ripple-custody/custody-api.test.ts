@@ -243,17 +243,30 @@ describe('CustodyApi.propose', () => {
       })
     ).request.payload
 
-    await api.propose(order)
+    const { intentId } = await api.propose(order)
 
     expect(proposedBody(http).request.id).toBe('order-id-1')
+    expect(intentId).toBe('order-id-1')
   })
 
-  it('returns the Custody intent acknowledgement', async () => {
-    const { api } = apiOn({ requestId: 'req-42' })
+  it('returns the Custody acknowledgement and the signed intent id', async () => {
+    const { api, http } = apiOn({ requestId: 'req-42' })
 
     const response = await api.propose(RELEASE_PAYLOAD)
 
+    // Custody acks with only a requestId; the intent id the envelope was
+    // signed under is the handle for everything after, so propose returns it.
     expect(response.requestId).toBe('req-42')
+    expect(response.intentId).toBe(proposedBody(http).request.id)
+    expect(response.intentId).toBeTruthy()
+  })
+
+  it('returns the overridden id as the intent id', async () => {
+    const { api } = apiOn()
+
+    const { intentId } = await api.propose(RELEASE_PAYLOAD, { id: 'idem-1' })
+
+    expect(intentId).toBe('idem-1')
   })
 })
 

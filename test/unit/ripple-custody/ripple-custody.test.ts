@@ -968,6 +968,31 @@ describe('RippleCustody debug logging', () => {
   })
 })
 
+describe('RippleCustody requestTimeoutMs', () => {
+  it('bounds the auth and API requests, leaving detection its own budget', async () => {
+    const http = buildHttp()
+
+    await RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth: {
+        signingKey: SIGNING_KEY,
+        tokenUrl: 'https://auth.example.com/token',
+      },
+      domainId: DOMAIN_ID,
+      primary: PRIMARY_ADDRESS,
+      requestTimeoutMs: 5000,
+      http,
+    })
+
+    const timeoutFor = (fragment: string): number | undefined =>
+      http.requests.find((request) => request.url.includes(fragment))?.timeoutMs
+    expect(timeoutFor('auth.example.com')).toBe(5000)
+    expect(timeoutFor('/v1/me')).toBe(5000)
+    // Version detection keeps its own, shorter budget.
+    expect(timeoutFor('/api/OpenAPI')).toBe(15_000)
+  })
+})
+
 describe('RippleCustody without a domainId', () => {
   /**
    * Create a RippleCustody with no domainId, over the default routes plus a

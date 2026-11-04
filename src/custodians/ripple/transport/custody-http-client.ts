@@ -7,6 +7,7 @@ import {
 } from '../../../errors.js'
 import type { CustodyAuthService } from '../auth/custody-auth.service.js'
 
+import { DEFAULT_REQUEST_TIMEOUT_MS } from './http-port.js'
 import type { CustodyHttpPort, HttpResponse } from './http-port.js'
 import { knownIssueHint, type FailedRequest } from './known-issues.js'
 
@@ -21,6 +22,8 @@ export interface CustodyHttpClientOptions {
   http: CustodyHttpPort
   /** Supplies and refreshes the bearer token. */
   auth: CustodyAuthService
+  /** Abort each request after this many milliseconds. Defaults to 30 000. */
+  timeoutMs?: number
 }
 
 /** A query value; `undefined`/`null`/non-scalar entries are dropped. */
@@ -118,6 +121,7 @@ export class CustodyHttpClient {
   private readonly gatewayUrl: string
   private readonly http: CustodyHttpPort
   private readonly auth: CustodyAuthService
+  private readonly timeoutMs: number
 
   /**
    * Construct a CustodyHttpClient.
@@ -134,6 +138,7 @@ export class CustodyHttpClient {
     this.gatewayUrl = options.gatewayUrl.replace(/\/+$/u, '')
     this.http = options.http
     this.auth = options.auth
+    this.timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
   }
 
   /**
@@ -213,7 +218,13 @@ export class CustodyHttpClient {
       if (body !== undefined) {
         headers['Content-Type'] = 'application/json'
       }
-      return this.http.send({ method, url, headers, body })
+      return this.http.send({
+        method,
+        url,
+        headers,
+        body,
+        timeoutMs: this.timeoutMs,
+      })
     }
 
     let response = await attempt(false)

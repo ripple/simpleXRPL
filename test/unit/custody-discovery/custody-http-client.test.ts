@@ -321,6 +321,37 @@ describe('CustodyHttpClient', () => {
     expect((error as CustodyApiError).raw).toBe('Internal Server Error')
   })
 
+  describe('bounds every request with a timeout', () => {
+    it('of 30 s by default, on the original call and the 401 replay', async () => {
+      const { auth } = makeAuth()
+      const http = new FakeHttpPort((_req, callIndex) => {
+        return callIndex === 0 ? status(401) : ok({})
+      })
+      const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
+
+      await client.get('/v1/thing')
+
+      expect(http.requests.map((request) => request.timeoutMs)).toEqual([
+        30_000, 30_000,
+      ])
+    })
+
+    it('of the configured timeoutMs', async () => {
+      const { auth } = makeAuth()
+      const http = new FakeHttpPort(() => ok({}))
+      const client = new CustodyHttpClient({
+        gatewayUrl: GATEWAY,
+        http,
+        auth,
+        timeoutMs: 5000,
+      })
+
+      await client.post('/v1/orders', {})
+
+      expect(http.requests[0]?.timeoutMs).toBe(5000)
+    })
+  })
+
   it('normalizes a trailing-slash gateway URL (no double slash)', async () => {
     const { auth } = makeAuth()
     const http = new FakeHttpPort(() => ok({}))
