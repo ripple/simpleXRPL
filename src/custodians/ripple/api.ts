@@ -43,6 +43,17 @@ export type CustodyProposePayload =
 /** Per-call envelope overrides for {@link CustodyApi.propose}. */
 export type CustodyProposeOptions = ProposeEnvelopeOverrides
 
+/**
+ * What {@link CustodyApi.propose} returns: Custody's acknowledgement plus the
+ * `intentId` the proposal was signed under — the handle for reading, awaiting,
+ * approving, or rejecting the intent.
+ */
+export type CustodyProposeResponse =
+  components['schemas']['Core_IntentResponse'] & {
+    /** The proposed intent's id (the signed envelope's `request.id`). */
+    readonly intentId: string
+  }
+
 /** The typed arguments for one operation: path params, query, and/or body. */
 export type CustodyCallArgs<Op extends CustodyOperationId> = CallArgs<
   operations,
@@ -341,7 +352,10 @@ export class CustodyApi {
    * @param payload - The governed-intent payload (any `v0_*` variant).
    * @param options - Optional envelope overrides (idempotency id, expiry,
    *   custom properties, and so on).
-   * @returns The Custody `{ requestId }` acknowledging the accepted intent.
+   * @returns The Custody `{ requestId }` acknowledging the accepted intent,
+   *   plus `intentId` — the id the proposal was signed under (`options.id`,
+   *   the payload's own id, or a fresh one), which Custody's response does not
+   *   echo back. Poll, await, approve, or reject the intent with it.
    * @throws {@link UnsupportedInVersionError} if the instance's Custody
    *   version doesn't accept the intent type, or the XRPL operation a
    *   transaction order carries.
@@ -351,7 +365,7 @@ export class CustodyApi {
   public async propose(
     payload: CustodyProposePayload,
     options?: CustodyProposeOptions,
-  ): Promise<components['schemas']['Core_IntentResponse']> {
+  ): Promise<CustodyProposeResponse> {
     this.versionGuard.assertIntentType(payload.type, 'api.propose')
     if (
       payload.type === 'v0_CreateTransactionOrder' &&
@@ -369,11 +383,10 @@ export class CustodyApi {
       overrides: options,
     })
     const route = CUSTODY_ROUTES.createIntent
-    return this.client.invoke<components['schemas']['Core_IntentResponse']>(
-      route.method,
-      route.path,
-      { body },
-    )
+    const response = await this.client.invoke<
+      components['schemas']['Core_IntentResponse']
+    >(route.method, route.path, { body })
+    return { ...response, intentId: body.request.id }
   }
 
   /**

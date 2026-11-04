@@ -97,8 +97,9 @@ await custody.api.request('GET', '/v1/domains/{domainId}/users/invitations', {
   path: { domainId },
 })
 
-// Governed intents, signed with the API user key.
-await custody.api.propose(payload)
+// Governed intents, signed with the API user key. The returned intentId is
+// the handle for reading, awaiting, approving, or rejecting the intent.
+const { intentId } = await custody.api.propose(payload)
 await custody.api.approve(intentId, { reason: 'within limits' })
 await custody.api.reject(intentId, { reason: 'unexpected destination' })
 ```

@@ -580,6 +580,9 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         })
         expect(typeof response.requestId).toBe('string')
         expect(response.requestId).toBeTruthy()
+        // The intent id the envelope was signed under comes back as the
+        // caller's handle on the intent.
+        expect(response.intentId).toBe(intentId)
       },
       LIVE_TIMEOUT_MS,
     )
