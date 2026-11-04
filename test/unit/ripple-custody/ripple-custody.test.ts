@@ -967,3 +967,95 @@ describe('RippleCustody debug logging', () => {
     expect(JSON.stringify(entries)).not.toContain(jwt)
   })
 })
+
+describe('RippleCustody without a domainId', () => {
+  /**
+   * Create a RippleCustody with no domainId, over the default routes plus a
+   * `GET /v1/addresses` answer.
+   *
+   * @param addresses - The address references `/v1/addresses` lists.
+   * @param me - The `/v1/me` body.
+   * @returns The custodian.
+   */
+  async function createWithout(
+    addresses: Array<Record<string, unknown>>,
+    me: unknown = meBody(DOMAIN_ID, AUTHOR_USER_ID),
+  ): Promise<RippleCustody> {
+    const base = buildHttp({ me: (): HttpResponse => ok(me) })
+    return RippleCustody.create({
+      gatewayUrl: 'https://custody.example.com',
+      auth: {
+        signingKey: SIGNING_KEY,
+        tokenUrl: 'https://auth.example.com/token',
+      },
+      primary: PRIMARY_ADDRESS,
+      autoDetectVersion: false,
+      http: {
+        async send(request: HttpRequest): Promise<HttpResponse> {
+          if (request.url.includes('/v1/addresses?')) {
+            return ok({ items: addresses, count: addresses.length })
+          }
+          return base.send(request)
+        },
+      },
+    })
+  }
+
+  /**
+   * An account address reference for the primary.
+   *
+   * @param domainId - The domain holding it.
+   * @param ledgerId - The ledger it is on.
+   * @returns The reference.
+   */
+  function primaryIn(
+    domainId: string,
+    ledgerId = 'xrpl-1',
+  ): Record<string, unknown> {
+    return {
+      id: `${domainId}-${ledgerId}`,
+      type: 'AccountAddressReference',
+      address: PRIMARY_ADDRESS,
+      ledgerId,
+      domainId,
+      accountId: ACCOUNT_ID,
+      createdAt: '2026-01-01T00:00:00Z',
+      custodyType: 'SubCustody',
+    }
+  }
+
+  it('finds the domain from the primary address', async () => {
+    // On two ledgers in the user's domain, and in a domain the user can't use.
+    const custody = await createWithout([
+      primaryIn(DOMAIN_ID),
+      primaryIn(DOMAIN_ID, 'xrpl-0'),
+      primaryIn('not-my-domain'),
+    ])
+
+    expect(custody.domainId).toBe(DOMAIN_ID)
+    expect(custody.primary.address).toBe(PRIMARY_ADDRESS)
+  })
+
+  it('throws when none of the user’s domains holds the primary', async () => {
+    await expect(createWithout([primaryIn('not-my-domain')])).rejects.toThrow(
+      `No Custody account in the API user's domains holds the primary address ${PRIMARY_ADDRESS}; check the address, or set domainId`,
+    )
+  })
+
+  it('throws when several of the user’s domains hold the primary', async () => {
+    const me = {
+      publicKey: '',
+      domains: ['domain-a', 'domain-b'].map((id) => ({
+        id,
+        alias: id,
+        userReference: { id: AUTHOR_USER_ID, alias: 'author', roles: [] },
+      })),
+    }
+
+    await expect(
+      createWithout([primaryIn('domain-a'), primaryIn('domain-b')], me),
+    ).rejects.toThrow(
+      `The primary address ${PRIMARY_ADDRESS} is held in 2 Custody domains (domain-a, domain-b); set domainId to pick one`,
+    )
+  })
+})

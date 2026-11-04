@@ -3,6 +3,7 @@ import type { Payment } from 'xrpl'
 import { CustodyApi } from '../../../src/custodians/ripple/api.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
+import type { CustodyAddressReference } from '../../../src/custodians/ripple/discovery/address-lookup.js'
 import { buildProposeIntentBody } from '../../../src/custodians/ripple/mapping/envelope.js'
 import { CustodyHttpClient } from '../../../src/custodians/ripple/transport/custody-http-client.js'
 import type {
@@ -420,6 +421,195 @@ describe('CustodyApi.approve / reject', () => {
     await expect(
       api.approve(INTENT_ID, { reason: 'x'.repeat(5001) }),
     ).rejects.toThrow(SimpleXRPLError)
+    expect(http.requests).toHaveLength(0)
+  })
+})
+
+/**
+ * Answer each request with the page its `startingAfter` cursor names.
+ *
+ * @param pages - The pages, keyed by cursor (`''` for the first).
+ * @returns A request handler.
+ */
+function pagedBy(
+  pages: Readonly<Record<string, unknown>>,
+): (request: HttpRequest) => HttpResponse {
+  return (request) =>
+    ok(pages[new URL(request.url).searchParams.get('startingAfter') ?? ''])
+}
+
+/**
+ * An account address reference, as `GET /v1/addresses` lists it.
+ *
+ * @param overrides - Fields to change.
+ * @returns The reference.
+ */
+function addressRef(
+  overrides: Partial<CustodyAddressReference> = {},
+): CustodyAddressReference {
+  return {
+    id: 'ref-1',
+    type: 'AccountAddressReference',
+    address: 'rHolder',
+    ledgerId: 'xrpl-testnet',
+    domainId: DOMAIN,
+    accountId: 'account-1',
+    createdAt: '2026-01-01T00:00:00Z',
+    custodyType: 'SubCustody',
+    ...overrides,
+  }
+}
+
+describe('CustodyApi.paginate', () => {
+  it('follows the cursor across pages, keeping the caller’s query', async () => {
+    const { api, http } = apiOn(
+      pagedBy({
+        '': {
+          items: [{ data: { id: 'a' } }, { data: { id: 'b' } }],
+          count: 2,
+          nextStartingAfter: 'page2',
+        },
+        page2: {
+          items: [{ data: { id: 'c' } }],
+          count: 1,
+          nextStartingAfter: null,
+        },
+      }),
+    )
+
+    const ids: string[] = []
+    for await (const account of api.paginate('getAccounts', {
+      path: { domainId: 'D' },
+      query: { limit: 2 },
+    })) {
+      ids.push(account.data.id)
+    }
+
+    expect(ids).toEqual(['a', 'b', 'c'])
+    expect(http.requests.map((request) => request.url)).toEqual([
+      `${GATEWAY}/v1/domains/D/accounts?limit=2`,
+      `${GATEWAY}/v1/domains/D/accounts?limit=2&startingAfter=page2`,
+    ])
+  })
+
+  it('resumes after a startingAfter the caller passes', async () => {
+    const { api, http } = apiOn({ items: [], count: 0 })
+
+    for await (const _ledger of api.paginate('getLedgers', {
+      query: { startingAfter: 'x' },
+    })) {
+      // none
+    }
+
+    expect(http.requests[0]?.url).toBe(`${GATEWAY}/v1/ledgers?startingAfter=x`)
+  })
+
+  it('is checked against the Custody version before any request', () => {
+    // GET /v1/health is not paginated; GET /v1/addresses arrived in 1.21.
+    const { api, http } = apiOn(
+      {},
+      new VersionGuard(pinnedCapabilities('1.15')),
+    )
+
+    expect(() =>
+      api.paginate('getAllDomainsAddresses', { query: { address: 'r' } }),
+    ).toThrow(UnsupportedInVersionError)
+    expect(http.requests).toHaveLength(0)
+  })
+
+  it('accepts only operations whose response is paginated', () => {
+    const { api } = apiOn()
+
+    // Compile-time check: this never runs.
+    const notPaginated = async (): Promise<unknown> =>
+      // @ts-expect-error -- getMe returns a single object, not a page
+      api.paginate('getMe')
+
+    expect(notPaginated).toBeInstanceOf(Function)
+  })
+})
+
+describe('CustodyApi.findByAddress', () => {
+  it('reads every page and returns the account address', async () => {
+    const match = addressRef({ id: 'ref-2' })
+    const { api, http } = apiOn(
+      pagedBy({
+        '': {
+          items: [{ id: 'other', type: 'DepositInstructionsReference' }],
+          count: 1,
+          nextStartingAfter: 'other',
+        },
+        other: { items: [match], count: 1 },
+      }),
+    )
+
+    await expect(api.findByAddress('rHolder')).resolves.toEqual(match)
+    expect(http.requests.map((request) => request.url)).toEqual([
+      `${GATEWAY}/v1/addresses?address=rHolder`,
+      `${GATEWAY}/v1/addresses?address=rHolder&startingAfter=other`,
+    ])
+  })
+
+  it('returns undefined when no account holds the address', async () => {
+    // Custody matches loosely; only the exact address counts.
+    const { api } = apiOn({
+      items: [addressRef({ address: 'rHolderX' })],
+      count: 1,
+    })
+
+    await expect(api.findByAddress('rHolder')).resolves.toBeUndefined()
+  })
+
+  it('narrows by ledgerId and domainId', async () => {
+    const onMainnet = addressRef({ id: 'm', ledgerId: 'xrpl' })
+    const elsewhere = addressRef({ id: 'e', domainId: 'domain-2' })
+    const { api } = apiOn({
+      items: [addressRef(), onMainnet, elsewhere],
+      count: 3,
+    })
+
+    await expect(
+      api.findByAddress('rHolder', { ledgerId: 'xrpl' }),
+    ).resolves.toEqual(onMainnet)
+    await expect(
+      api.findByAddress('rHolder', { domainId: 'domain-2' }),
+    ).resolves.toEqual(elsewhere)
+  })
+
+  it('throws when one account holds the address on several ledgers', async () => {
+    const { api } = apiOn({
+      items: [addressRef(), addressRef({ id: 'm', ledgerId: 'xrpl' })],
+      count: 2,
+    })
+
+    await expect(api.findByAddress('rHolder')).rejects.toThrow(
+      `Custody account account-1 in domain ${DOMAIN} holds rHolder on 2 ledgers (xrpl-testnet, xrpl); pass ledgerId to pick one`,
+    )
+  })
+
+  it('throws when several accounts hold the address', async () => {
+    const { api } = apiOn({
+      items: [
+        addressRef(),
+        addressRef({ id: 'x', domainId: 'domain-2', accountId: 'account-2' }),
+      ],
+      count: 2,
+    })
+
+    await expect(api.findByAddress('rHolder')).rejects.toThrow(
+      /^2 Custody accounts hold rHolder \(account account-1 in domain domain-1 on ledger xrpl-testnet; account account-2 in domain domain-2 on ledger xrpl-testnet\); pass ledgerId and\/or domainId to pick one$/u,
+    )
+  })
+
+  it('is checked against the Custody version', async () => {
+    const { api, http } = apiOn(
+      {},
+      new VersionGuard(pinnedCapabilities('1.15')),
+    )
+
+    await expect(api.findByAddress('rHolder')).rejects.toMatchObject({
+      sdkMethod: 'api.findByAddress',
+    })
     expect(http.requests).toHaveLength(0)
   })
 })

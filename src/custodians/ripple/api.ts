@@ -10,6 +10,14 @@ import type {
   ResponseBody,
 } from './api-call.js'
 import type { IntentSigner } from './auth/intent-signer.js'
+import {
+  ambiguousAddressMessage,
+  findAddressReferences,
+} from './discovery/address-lookup.js'
+import type {
+  CustodyAddressReference,
+  CustodyFindByAddressOptions,
+} from './discovery/address-lookup.js'
 import { buildDecisionEnvelope } from './mapping/decision-envelope.js'
 import type { IntentDecision } from './mapping/decision-envelope.js'
 import {
@@ -17,6 +25,12 @@ import {
   type ProposeEnvelopeContext,
   type ProposeEnvelopeOverrides,
 } from './mapping/propose-envelope.js'
+import { paginate } from './pagination.js'
+import type {
+  CursorPage,
+  CustodyPageItem,
+  CustodyPaginatedOperationId,
+} from './pagination.js'
 import type { CustodyHttpClient } from './transport/custody-http-client.js'
 import { VersionGuard } from './versioning/version-guard.js'
 
@@ -183,6 +197,98 @@ export class CustodyApi {
       fillPath(path, args?.path),
       { query: args?.query, body: args?.body },
     )
+  }
+
+  /**
+   * Walk every page of a paginated Custody list, yielding each item. List
+   * endpoints return one page plus a `nextStartingAfter` cursor, so reading
+   * (or filtering) a single page can miss records; this follows the cursor to
+   * the end. Pages are fetched lazily, so breaking out of the loop stops the
+   * requests.
+   *
+   * ```ts
+   * for await (const account of custody.api.paginate('getAccounts', {
+   *   path: { domainId },
+   *   query: { limit: 100 },
+   * })) {
+   *   // every account in the domain
+   * }
+   * ```
+   *
+   * @param operationId - A Custody operationId whose response is paginated.
+   * @param args - Typed path params, query params, and/or JSON body, as for
+   *   {@link call}. `query.startingAfter`, if set, resumes after that cursor;
+   *   `query.limit` sets the page size.
+   * @returns The items, across all pages.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version doesn't serve the endpoint.
+   * @throws {@link SimpleXRPLError} if a required path parameter is missing,
+   *   or the cursor stops advancing.
+   * @throws A `CustodyApiError` if the API rejects a page request.
+   */
+  public paginate<Op extends CustodyPaginatedOperationId>(
+    operationId: Op,
+    args?: CustodyCallArgs<Op>,
+  ): AsyncGenerator<CustodyPageItem<Op>, void, undefined> {
+    const route = CUSTODY_ROUTES[operationId]
+    this.versionGuard.assertEndpoint(
+      route.method,
+      route.path,
+      `api.paginate('${operationId}')`,
+    )
+    const path = fillPath(route.path, args?.path)
+    const query: Readonly<Record<string, unknown>> = { ...args?.query }
+    const { startingAfter } = query
+    return paginate(
+      async (cursor) =>
+        this.client.invoke<CursorPage<CustodyPageItem<Op>>>(
+          route.method,
+          path,
+          { query: { ...query, startingAfter: cursor }, body: args?.body },
+        ),
+      typeof startingAfter === 'string' ? startingAfter : undefined,
+    )
+  }
+
+  /**
+   * Find the Custody account that holds an address — e.g. an XRPL r-address —
+   * across every domain the API user can see, for the `domainId` and
+   * `accountId` other calls take. Built on `GET /v1/addresses`; every page is
+   * read, and only account addresses equal to `address` count.
+   *
+   * @param address - The address to look up.
+   * @param options - Narrow the match when the address is on several ledgers
+   *   or in several domains.
+   * @param options.ledgerId - Only match on this ledger.
+   * @param options.domainId - Only match in this domain.
+   * @returns The account address (with its `domainId`, `accountId`, and
+   *   `ledgerId`), or `undefined` if no account holds it.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version doesn't serve the endpoint.
+   * @throws {@link SimpleXRPLError} if more than one account matches; pass
+   *   `ledgerId` and/or `domainId` to pick one.
+   */
+  public async findByAddress(
+    address: string,
+    options: CustodyFindByAddressOptions = {},
+  ): Promise<CustodyAddressReference | undefined> {
+    const route = CUSTODY_ROUTES.getAllDomainsAddresses
+    this.versionGuard.assertEndpoint(
+      route.method,
+      route.path,
+      'api.findByAddress',
+    )
+    const matches = (await findAddressReferences(this.client, address)).filter(
+      (reference) =>
+        (options.ledgerId === undefined ||
+          reference.ledgerId === options.ledgerId) &&
+        (options.domainId === undefined ||
+          reference.domainId === options.domainId),
+    )
+    if (matches.length > 1) {
+      throw new SimpleXRPLError(ambiguousAddressMessage(address, matches))
+    }
+    return matches[0]
   }
 
   /**

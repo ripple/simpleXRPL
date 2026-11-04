@@ -15,6 +15,14 @@ export type {
   CustodyRequestPath,
   CustodyRequestResponse,
 } from './api.js'
+export type {
+  CustodyAddressReference,
+  CustodyFindByAddressOptions,
+} from './discovery/address-lookup.js'
+export type {
+  CustodyPageItem,
+  CustodyPaginatedOperationId,
+} from './pagination.js'
 export { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
 export type { CustodyRoute } from '../../generated/custody-routes.js'
 export type { CustodyApiVersion } from './versioning/capabilities.js'

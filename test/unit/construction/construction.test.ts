@@ -67,6 +67,21 @@ describe('resolveFromEnvOptions', () => {
     expect(options.debug).toBe(logger)
   })
 
+  it.each([
+    ['unset', undefined],
+    ['empty', ''],
+  ])(
+    'leaves domainId to be resolved when the variable is %s',
+    async (_case, value) => {
+      const options = await resolveFromEnvOptions({
+        primary: 'rPrimary',
+        env: { ...envWith(SIGNING_KEY_PEM), RIPPLE_CUSTODY_DOMAIN_ID: value },
+      })
+
+      expect(options.domainId).toBeUndefined()
+    },
+  )
+
   it('resolves a literal PEM signing key unchanged', async () => {
     const options = await resolveFromEnvOptions({
       primary: 'rPrimary',

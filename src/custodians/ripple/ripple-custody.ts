@@ -93,6 +93,16 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
+   * The Custody domain this custodian operates in: the configured `domainId`,
+   * or the one found to hold the primary address.
+   *
+   * @returns The domain id.
+   */
+  public get domainId(): string {
+    return this.state.domainId
+  }
+
+  /**
    * The Ripple Custody version calls are checked against: the instance's own
    * version when detected (e.g. `'1.43.4'`), the pinned `apiVersion`, or
    * `undefined` when neither is available and nothing is blocked.

@@ -458,7 +458,7 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
     )
   })
 
-  describe('api passthrough (call + request + propose)', () => {
+  describe('api passthrough (call + request + paginate + propose)', () => {
     it(
       'api.call resolves getMe and the response parses to the expected shape',
       async () => {
@@ -498,6 +498,56 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         })
         expect(Array.isArray(accounts.items)).toBe(true)
         expect(typeof accounts.count).toBe('number')
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.paginate follows the cursor to every account',
+      async () => {
+        // A page size of 1 forces the cursor to be followed; the walk must
+        // reach the same accounts one large page holds.
+        const walked: string[] = []
+        for await (const account of custody.api.paginate('getAccounts', {
+          path: { domainId: state.domainId },
+          query: { limit: 1 },
+        })) {
+          walked.push(account.data.id)
+        }
+        const page = await custody.api.call('getAccounts', {
+          path: { domainId: state.domainId },
+          query: { limit: 100 },
+        })
+        expect(walked).toEqual(page.items.map((account) => account.data.id))
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.findByAddress finds the primary, and creation finds its domain',
+      async () => {
+        const { accountId, ledgerId } = requirePrimary(
+          await custody.listAccounts(),
+        )
+
+        const reference = await custody.api.findByAddress(SANDBOX_PRIMARY, {
+          ledgerId,
+        })
+        expect(reference).toMatchObject({
+          type: 'AccountAddressReference',
+          address: SANDBOX_PRIMARY,
+          domainId: state.domainId,
+          accountId,
+          ledgerId,
+        })
+
+        // eslint-disable-next-line n/no-process-env -- the same credentials, minus the domain
+        const { RIPPLE_CUSTODY_DOMAIN_ID: _domain, ...env } = process.env
+        const withoutDomain = await RippleCustody.fromEnv({
+          primary: SANDBOX_PRIMARY,
+          env,
+        })
+        expect(withoutDomain.domainId).toBe(state.domainId)
       },
       LIVE_TIMEOUT_MS,
     )
