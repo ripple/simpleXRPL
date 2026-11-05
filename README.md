@@ -164,6 +164,14 @@ It throws if more than one account matches. That includes one account holding
 the address on several ledgers, so pass `ledgerId` and/or `domainId` to pick
 one.
 
+`api.getPublicKey` reads that account's XRPL public key in the form XRPL uses
+(compressed, uppercase hex), e.g. to set up a regular key or a signer list:
+
+```ts
+const publicKey = await custody.api.getPublicKey('r...', { ledgerId: 'xrpl' })
+// → '02218AB4…'
+```
+
 `domainId` is optional when creating a `RippleCustody`. If it's left out, the
 domain holding the `primary` address is looked up when the custodian is
 created; `custody.domainId` returns it either way.

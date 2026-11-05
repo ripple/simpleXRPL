@@ -75,15 +75,12 @@ async function buildManifestEnvelope(options: SignRawOptions): Promise<{
   body: Awaited<ReturnType<typeof buildSignManifestIntentBody>>
 }> {
   const { state, tx, ctx, accountId } = options
-  const publicKeyBase64 = await resolveSigningPublicKey(
+  const signingPubKey = await resolveSigningPublicKey(
     state.client,
     state.domainId,
     accountId,
   )
-  const { preparedTx, preimageBase64 } = buildSigningPreimage(
-    tx,
-    publicKeyBase64,
-  )
+  const { preparedTx, preimageBase64 } = buildSigningPreimage(tx, signingPubKey)
   const body = await buildSignManifestIntentBody(
     state.intentSigner,
     buildCustomProperties(tx),
