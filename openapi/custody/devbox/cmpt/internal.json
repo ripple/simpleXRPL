@@ -1055,6 +1055,9 @@
           "sequencing": {
             "$ref": "#/components/schemas/Internal_ParticipantSequencing"
           },
+          "sponsorship": {
+            "$ref": "#/components/schemas/Internal_XrplSponsorshipParams"
+          },
           "type": {
             "enum": [
               "ParticipantOperation"
@@ -1077,6 +1080,9 @@
           },
           "sequencing": {
             "$ref": "#/components/schemas/Internal_Sequencing"
+          },
+          "sponsorship": {
+            "$ref": "#/components/schemas/Internal_XrplSponsorshipParams"
           },
           "type": {
             "enum": [
@@ -1563,6 +1569,12 @@
             "maximum": 4294967295,
             "minimum": 0,
             "type": "integer"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Internal_Xrpl_PaymentFlag"
+            },
+            "type": "array"
           },
           "type": {
             "enum": [
@@ -9847,6 +9859,9 @@
             "minimum": 0,
             "type": "integer"
           },
+          "sponsorship": {
+            "$ref": "#/components/schemas/Internal_XrplSponsorshipParams"
+          },
           "type": {
             "enum": [
               "XRPL"
@@ -12273,6 +12288,8 @@
             "MPTokenIssuanceSet": "#/components/schemas/Internal_XrplOperation_MPTokenIssuanceSet",
             "OfferCreate": "#/components/schemas/Internal_XrplOperation_OfferCreate",
             "Payment": "#/components/schemas/Internal_XrplOperation_Payment",
+            "SponsorshipSetAsSponsee": "#/components/schemas/Internal_XrplOperation_SponsorshipSetAsSponsee",
+            "SponsorshipSetAsSponsor": "#/components/schemas/Internal_XrplOperation_SponsorshipSetAsSponsor",
             "TicketCreate": "#/components/schemas/Internal_XrplOperation_TicketCreate",
             "TrustSet": "#/components/schemas/Internal_XrplOperation_TrustSet"
           },
@@ -12326,6 +12343,12 @@
           },
           {
             "$ref": "#/components/schemas/Internal_XrplOperation_Payment"
+          },
+          {
+            "$ref": "#/components/schemas/Internal_XrplOperation_SponsorshipSetAsSponsee"
+          },
+          {
+            "$ref": "#/components/schemas/Internal_XrplOperation_SponsorshipSetAsSponsor"
           },
           {
             "$ref": "#/components/schemas/Internal_XrplOperation_TicketCreate"
@@ -12802,6 +12825,12 @@
             "minimum": 0,
             "type": "integer"
           },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Internal_Xrpl_PaymentFlag"
+            },
+            "type": "array"
+          },
           "type": {
             "enum": [
               "Payment"
@@ -12812,6 +12841,62 @@
         "required": [
           "destination",
           "amount",
+          "type"
+        ],
+        "type": "object"
+      },
+      "Internal_XrplOperation_SponsorshipSetAsSponsee": {
+        "properties": {
+          "sponsor": {
+            "$ref": "#/components/schemas/Internal_TransactionDestination"
+          },
+          "type": {
+            "enum": [
+              "SponsorshipSetAsSponsee"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "sponsor",
+          "type"
+        ],
+        "type": "object"
+      },
+      "Internal_XrplOperation_SponsorshipSetAsSponsor": {
+        "properties": {
+          "feeAmountDelta": {
+            "description": "This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.",
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Internal_Xrpl_SponsorshipSetFlag"
+            },
+            "type": "array"
+          },
+          "maxFee": {
+            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.",
+            "minimum": 0,
+            "type": "string"
+          },
+          "remainingOwnerCountDelta": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sponsee": {
+            "$ref": "#/components/schemas/Internal_TransactionDestination"
+          },
+          "type": {
+            "enum": [
+              "SponsorshipSetAsSponsor"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "sponsee",
+          "flags",
           "type"
         ],
         "type": "object"
@@ -12949,6 +13034,24 @@
         "required": [
           "tickerId",
           "type"
+        ],
+        "type": "object"
+      },
+      "Internal_XrplSponsorshipParams": {
+        "properties": {
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Internal_Xrpl_SponsorFlag"
+            },
+            "type": "array"
+          },
+          "sponsor": {
+            "$ref": "#/components/schemas/Internal_TransactionDestination"
+          }
+        },
+        "required": [
+          "sponsor",
+          "flags"
         ],
         "type": "object"
       },
@@ -13204,6 +13307,30 @@
           "tfImmediateOrCancel",
           "tfFillOrKill",
           "tfSell"
+        ],
+        "type": "string"
+      },
+      "Internal_Xrpl_PaymentFlag": {
+        "enum": [
+          "tfSponsorCreatedAccount"
+        ],
+        "type": "string"
+      },
+      "Internal_Xrpl_SponsorFlag": {
+        "description": "spfSponsorFee sponsors the transaction fee, spfSponsorReserve the owner reserve. spfSponsorReserve is rejected on transaction types for which the ledger does not allow reserve sponsorship (e.g. OfferCreate, TicketCreate, ConfidentialMPT operations)",
+        "enum": [
+          "spfSponsorFee",
+          "spfSponsorReserve"
+        ],
+        "type": "string"
+      },
+      "Internal_Xrpl_SponsorshipSetFlag": {
+        "enum": [
+          "tfRequireSignForFee",
+          "tfClearRequireSignForFee",
+          "tfRequireSignForReserve",
+          "tfClearRequireSignForReserve",
+          "tfDeleteObject"
         ],
         "type": "string"
       },

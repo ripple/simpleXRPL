@@ -3538,10 +3538,15 @@
         ],
         "type": "object"
       },
-      "Core_ApiBatchSigningData": {
+      "Core_ApiBatchSignerSigningData": {
         "properties": {
-          "executionMode": {
-            "$ref": "#/components/schemas/Core_Xrpl_BatchExecutionMode"
+          "account": {
+            "maxLength": 35,
+            "minLength": 25,
+            "type": "string"
+          },
+          "participant": {
+            "$ref": "#/components/schemas/Core_Participant"
           },
           "signingPayload": {
             "description": "Hex encoded string.",
@@ -3550,6 +3555,39 @@
           },
           "signingPayloadHash": {
             "description": "Hex encoded string.",
+            "pattern": "^[A-Fa-f0-9]*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant",
+          "account",
+          "signingPayload",
+          "signingPayloadHash"
+        ],
+        "type": "object"
+      },
+      "Core_ApiBatchSigningData": {
+        "properties": {
+          "executionMode": {
+            "$ref": "#/components/schemas/Core_Xrpl_BatchExecutionMode"
+          },
+          "signers": {
+            "description": "One entry per required BatchSigner, sorted by AccountID. Sign signingPayload and return the signature in batchSigners with the same participant.",
+            "items": {
+              "$ref": "#/components/schemas/Core_ApiBatchSignerSigningData"
+            },
+            "type": "array"
+          },
+          "signingPayload": {
+            "deprecated": true,
+            "description": "Deprecated: not signable under Batch v1.1; use signers[].signingPayload",
+            "pattern": "^[A-Fa-f0-9]*$",
+            "type": "string"
+          },
+          "signingPayloadHash": {
+            "deprecated": true,
+            "description": "Deprecated: not signable under Batch v1.1; use signers[].signingPayload",
             "pattern": "^[A-Fa-f0-9]*$",
             "type": "string"
           },
@@ -3565,7 +3603,8 @@
           "signingPayload",
           "signingPayloadHash",
           "executionMode",
-          "transactions"
+          "transactions",
+          "signers"
         ],
         "type": "object"
       },
@@ -3591,6 +3630,7 @@
           "InternalError",
           "InvalidAccountStateOnLedger",
           "InvalidAmount",
+          "InvalidBatchSignature",
           "InvalidContractParameters",
           "InvalidDestination",
           "InvalidUserPayload",
@@ -3611,6 +3651,7 @@
           "InternalError",
           "InvalidAccountStateOnLedger",
           "InvalidAmount",
+          "InvalidBatchSignature",
           "InvalidContractParameters",
           "InvalidDestination",
           "InvalidUserPayload",
@@ -4895,6 +4936,9 @@
           "sequencing": {
             "$ref": "#/components/schemas/Core_ParticipantSequencing"
           },
+          "sponsorship": {
+            "$ref": "#/components/schemas/Core_XrplSponsorshipParams"
+          },
           "type": {
             "enum": [
               "ParticipantOperation"
@@ -4917,6 +4961,9 @@
           },
           "sequencing": {
             "$ref": "#/components/schemas/Core_Sequencing"
+          },
+          "sponsorship": {
+            "$ref": "#/components/schemas/Core_XrplSponsorshipParams"
           },
           "type": {
             "enum": [
@@ -5403,6 +5450,12 @@
             "maximum": 4294967295,
             "minimum": 0,
             "type": "integer"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Core_Xrpl_PaymentFlag"
+            },
+            "type": "array"
           },
           "type": {
             "enum": [
@@ -13217,6 +13270,187 @@
         ],
         "type": "string"
       },
+      "Core_Sponsorship": {
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "feeAmount": {
+            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.",
+            "minimum": 0,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "index": {
+            "type": "string"
+          },
+          "lastUpdatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "ledgerId": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxFee": {
+            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.",
+            "minimum": 0,
+            "type": "string"
+          },
+          "remainingOwnerCount": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "requireSignForFee": {
+            "type": "boolean"
+          },
+          "requireSignForReserve": {
+            "type": "boolean"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Core_SponsorshipRole"
+          },
+          "sponsee": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sponsor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "ledgerId",
+          "index",
+          "sponsor",
+          "sponsee",
+          "feeAmount",
+          "remainingOwnerCount",
+          "requireSignForFee",
+          "requireSignForReserve",
+          "active",
+          "lastUpdatedAt"
+        ],
+        "type": "object"
+      },
+      "Core_SponsorshipMovement": {
+        "properties": {
+          "amount": {
+            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.",
+            "minimum": 0,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "movement": {
+            "$ref": "#/components/schemas/Core_Xrpl_SponsorshipMovement"
+          },
+          "onLedgerTransactionId": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "registeredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "sponsee": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sponsor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sponsorshipIndex": {
+            "type": "string"
+          },
+          "transactionId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "movement",
+          "sponsorshipIndex",
+          "sponsor",
+          "sponsee",
+          "amount",
+          "onLedgerTransactionId",
+          "registeredAt"
+        ],
+        "type": "object"
+      },
+      "Core_SponsorshipMovementsCollection": {
+        "properties": {
+          "count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "currentStartingAfter": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Core_SponsorshipMovement"
+            },
+            "type": "array"
+          },
+          "nextStartingAfter": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "type": "object"
+      },
+      "Core_SponsorshipRole": {
+        "enum": [
+          "Sponsor",
+          "Sponsee"
+        ],
+        "type": "string"
+      },
+      "Core_SponsorshipsCollection": {
+        "properties": {
+          "count": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "currentStartingAfter": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Core_Sponsorship"
+            },
+            "type": "array"
+          },
+          "nextStartingAfter": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "type": "object"
+      },
       "Core_StateReviewAuthorityValue": {
         "properties": {
           "publicKey": {
@@ -16369,6 +16603,9 @@
             "minimum": 0,
             "type": "integer"
           },
+          "sponsorship": {
+            "$ref": "#/components/schemas/Core_XrplSponsorshipParams"
+          },
           "type": {
             "enum": [
               "XRPL"
@@ -18940,6 +19177,8 @@
             "MPTokenIssuanceSet": "#/components/schemas/Core_XrplOperation_MPTokenIssuanceSet",
             "OfferCreate": "#/components/schemas/Core_XrplOperation_OfferCreate",
             "Payment": "#/components/schemas/Core_XrplOperation_Payment",
+            "SponsorshipSetAsSponsee": "#/components/schemas/Core_XrplOperation_SponsorshipSetAsSponsee",
+            "SponsorshipSetAsSponsor": "#/components/schemas/Core_XrplOperation_SponsorshipSetAsSponsor",
             "TicketCreate": "#/components/schemas/Core_XrplOperation_TicketCreate",
             "TrustSet": "#/components/schemas/Core_XrplOperation_TrustSet"
           },
@@ -18993,6 +19232,12 @@
           },
           {
             "$ref": "#/components/schemas/Core_XrplOperation_Payment"
+          },
+          {
+            "$ref": "#/components/schemas/Core_XrplOperation_SponsorshipSetAsSponsee"
+          },
+          {
+            "$ref": "#/components/schemas/Core_XrplOperation_SponsorshipSetAsSponsor"
           },
           {
             "$ref": "#/components/schemas/Core_XrplOperation_TicketCreate"
@@ -19469,6 +19714,12 @@
             "minimum": 0,
             "type": "integer"
           },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Core_Xrpl_PaymentFlag"
+            },
+            "type": "array"
+          },
           "type": {
             "enum": [
               "Payment"
@@ -19479,6 +19730,62 @@
         "required": [
           "destination",
           "amount",
+          "type"
+        ],
+        "type": "object"
+      },
+      "Core_XrplOperation_SponsorshipSetAsSponsee": {
+        "properties": {
+          "sponsor": {
+            "$ref": "#/components/schemas/Core_TransactionDestination"
+          },
+          "type": {
+            "enum": [
+              "SponsorshipSetAsSponsee"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "sponsor",
+          "type"
+        ],
+        "type": "object"
+      },
+      "Core_XrplOperation_SponsorshipSetAsSponsor": {
+        "properties": {
+          "feeAmountDelta": {
+            "description": "This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.",
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Core_Xrpl_SponsorshipSetFlag"
+            },
+            "type": "array"
+          },
+          "maxFee": {
+            "description": "This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.",
+            "minimum": 0,
+            "type": "string"
+          },
+          "remainingOwnerCountDelta": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sponsee": {
+            "$ref": "#/components/schemas/Core_TransactionDestination"
+          },
+          "type": {
+            "enum": [
+              "SponsorshipSetAsSponsor"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "sponsee",
+          "flags",
           "type"
         ],
         "type": "object"
@@ -19616,6 +19923,24 @@
         "required": [
           "tickerId",
           "type"
+        ],
+        "type": "object"
+      },
+      "Core_XrplSponsorshipParams": {
+        "properties": {
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Core_Xrpl_SponsorFlag"
+            },
+            "type": "array"
+          },
+          "sponsor": {
+            "$ref": "#/components/schemas/Core_TransactionDestination"
+          }
+        },
+        "required": [
+          "sponsor",
+          "flags"
         ],
         "type": "object"
       },
@@ -19919,6 +20244,12 @@
           "tfImmediateOrCancel",
           "tfFillOrKill",
           "tfSell"
+        ],
+        "type": "string"
+      },
+      "Core_Xrpl_PaymentFlag": {
+        "enum": [
+          "tfSponsorCreatedAccount"
         ],
         "type": "string"
       },
@@ -20590,6 +20921,32 @@
           "type"
         ],
         "type": "object"
+      },
+      "Core_Xrpl_SponsorFlag": {
+        "description": "spfSponsorFee sponsors the transaction fee, spfSponsorReserve the owner reserve. spfSponsorReserve is rejected on transaction types for which the ledger does not allow reserve sponsorship (e.g. OfferCreate, TicketCreate, ConfidentialMPT operations)",
+        "enum": [
+          "spfSponsorFee",
+          "spfSponsorReserve"
+        ],
+        "type": "string"
+      },
+      "Core_Xrpl_SponsorshipMovement": {
+        "enum": [
+          "Funded",
+          "Spent",
+          "Returned"
+        ],
+        "type": "string"
+      },
+      "Core_Xrpl_SponsorshipSetFlag": {
+        "enum": [
+          "tfRequireSignForFee",
+          "tfClearRequireSignForFee",
+          "tfRequireSignForReserve",
+          "tfClearRequireSignForReserve",
+          "tfDeleteObject"
+        ],
+        "type": "string"
       },
       "Core_Xrpl_TrustSetFlag": {
         "enum": [
@@ -26664,6 +27021,287 @@
         "summary": "Get the status of a cMPT parameter computation",
         "tags": [
           "ParametersCompute"
+        ]
+      }
+    },
+    "/v1/domains/{domainId}/accounts/{accountId}/sponsorship-movements": {
+      "get": {
+        "operationId": "getAccountSponsorshipMovements",
+        "parameters": [
+          {
+            "description": "Unique identifier for the domain.",
+            "in": "path",
+            "name": "domainId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Ledger the sponsorships live on.",
+            "in": "query",
+            "name": "ledgerId",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Return movements produced by any of the given transactionIds.",
+            "example": [
+              "90c4cf2f-ebe0-4bf7-91cd-4c45cd02277b",
+              "fdeeeb4b-f987-4ec4-9880-1eb280581d49"
+            ],
+            "in": "query",
+            "name": "transactionId",
+            "schema": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Return movements matching any of the given kinds. Values: Funded, Spent, Returned.",
+            "example": [
+              "Funded",
+              "Returned"
+            ],
+            "in": "query",
+            "name": "movement",
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Core_Xrpl_SponsorshipMovement"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Return movements of the sponsorship with the given ledger index.",
+            "example": "DB8A3D1C5E7F24B6A09C8E1F3D5B7A9C2E4F6081B3D5F7092A4C6E8F0B2D4F61",
+            "in": "query",
+            "name": "sponsorshipIndex",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The number of entities to return.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "SponsorshipMovement id used to the determine beginning of query results.",
+            "in": "query",
+            "name": "startingAfter",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Property name used to sort the query results.",
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "enum": [
+                "registeredAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort order applied to the query results.",
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "$ref": "#/components/schemas/Core_SortOrder"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_SponsorshipMovementsCollection"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_ErrorMessage"
+                }
+              }
+            },
+            "description": "One of: Domain locked (DomainLockedError); Requester locked (RequesterLockedError)"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_ErrorMessage"
+                }
+              }
+            },
+            "description": "One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_ErrorMessage"
+                }
+              }
+            },
+            "description": "Entity or Domain not found (EntityNotFoundError)"
+          }
+        },
+        "security": [
+          {
+            "httpAuth": []
+          }
+        ],
+        "summary": "Get movements of the XRPL sponsorships the account is sponsor or sponsee of",
+        "tags": [
+          "Accounts"
+        ]
+      }
+    },
+    "/v1/domains/{domainId}/accounts/{accountId}/sponsorships": {
+      "get": {
+        "operationId": "getAccountSponsorships",
+        "parameters": [
+          {
+            "description": "Unique identifier for the domain.",
+            "in": "path",
+            "name": "domainId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Ledger the sponsorships live on.",
+            "in": "query",
+            "name": "ledgerId",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Also return sponsorships deleted on-ledger. Defaults to false.",
+            "in": "query",
+            "name": "includeInactive",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "The number of entities to return.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Sponsorship id used to the determine beginning of query results.",
+            "in": "query",
+            "name": "startingAfter",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_SponsorshipsCollection"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_ErrorMessage"
+                }
+              }
+            },
+            "description": "One of: Domain locked (DomainLockedError); Requester locked (RequesterLockedError)"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_ErrorMessage"
+                }
+              }
+            },
+            "description": "One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Core_ErrorMessage"
+                }
+              }
+            },
+            "description": "Entity or Domain not found (EntityNotFoundError)"
+          }
+        },
+        "security": [
+          {
+            "httpAuth": []
+          }
+        ],
+        "summary": "Get XRPL sponsorships the account is sponsor or sponsee of",
+        "tags": [
+          "Accounts"
         ]
       }
     },

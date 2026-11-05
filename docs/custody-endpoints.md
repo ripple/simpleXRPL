@@ -53,6 +53,8 @@ call them by method and path with `api.request`.
 | `GET /v1/domains/{domainId}/accounts/{accountId}/manifests`                                                                                   | `getManifests`                                                  | 1.15+       | cmpt   |
 | `GET /v1/domains/{domainId}/accounts/{accountId}/manifests/{manifestId}`                                                                      | `getManifest`                                                   | 1.15+       | cmpt   |
 | `GET /v1/domains/{domainId}/accounts/{accountId}/parameters-compute/{computeId}`                                                              | `getParametersComputeStatus`                                    | —           | cmpt   |
+| `GET /v1/domains/{domainId}/accounts/{accountId}/sponsorship-movements`                                                                       | `getAccountSponsorshipMovements`                                | —           | cmpt   |
+| `GET /v1/domains/{domainId}/accounts/{accountId}/sponsorships`                                                                                | `getAccountSponsorships`                                        | —           | cmpt   |
 | `GET /v1/domains/{domainId}/channels`                                                                                                         | `getAllChannels`                                                | 1.19+       | cmpt   |
 | `GET /v1/domains/{domainId}/channels/{channelId}`                                                                                             | `getChannel`                                                    | 1.19+       | cmpt   |
 | `GET /v1/domains/{domainId}/channels/{channelId}/events`                                                                                      | `getAllChannelEvents`                                           | 1.19+       | cmpt   |
@@ -203,6 +205,8 @@ call them by method and path with `api.request`.
 | `MPTokenIssuanceSet`         | 1.32+            | cmpt   |
 | `OfferCreate`                | 1.15–1.22, 1.32+ | cmpt   |
 | `Payment`                    | 1.15–1.22, 1.32+ | cmpt   |
+| `SponsorshipSetAsSponsee`    | —                | cmpt   |
+| `SponsorshipSetAsSponsor`    | —                | cmpt   |
 | `TicketCreate`               | —                | cmpt   |
 | `TrustSet`                   | 1.15–1.22, 1.32+ | cmpt   |
 

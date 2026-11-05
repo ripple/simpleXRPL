@@ -154,6 +154,12 @@ export const CUSTODY_AVAILABILITY: {
     'GET /v1/domains/{}/accounts/{}/parameters-compute/{}': {
       devbox: ['cmpt'],
     },
+    'GET /v1/domains/{}/accounts/{}/sponsorship-movements': {
+      devbox: ['cmpt'],
+    },
+    'GET /v1/domains/{}/accounts/{}/sponsorships': {
+      devbox: ['cmpt'],
+    },
     'GET /v1/domains/{}/channels': {
       official: '1.19+',
       devbox: ['cmpt'],
@@ -694,6 +700,12 @@ export const CUSTODY_AVAILABILITY: {
     },
     Payment: {
       official: '1.15–1.22, 1.32+',
+      devbox: ['cmpt'],
+    },
+    SponsorshipSetAsSponsee: {
+      devbox: ['cmpt'],
+    },
+    SponsorshipSetAsSponsor: {
       devbox: ['cmpt'],
     },
     TicketCreate: {

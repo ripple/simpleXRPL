@@ -114,6 +114,14 @@ export const CUSTODY_ROUTES = {
     path: '/v1/domains/{domainId}/accounts/{accountId}/confirmed-balance/{tickerId}',
   },
   getAccounts: { method: 'GET', path: '/v1/domains/{domainId}/accounts' },
+  getAccountSponsorshipMovements: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/accounts/{accountId}/sponsorship-movements',
+  },
+  getAccountSponsorships: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/accounts/{accountId}/sponsorships',
+  },
   getAddresses: {
     method: 'GET',
     path: '/v1/domains/{domainId}/accounts/{accountId}/addresses',
