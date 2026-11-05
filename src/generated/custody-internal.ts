@@ -4438,6 +4438,7 @@ export interface components {
        * @enum {string}
        */
       type: 'XRPL'
+      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
     }
     Internal_TransactionPending: {
       /** Format: uuid */
@@ -5430,6 +5431,8 @@ export interface components {
       | components['schemas']['Internal_XrplOperation_ConfidentialMPTConvertBack']
       | components['schemas']['Internal_XrplOperation_ConfidentialMPTMergeInbox']
       | components['schemas']['Internal_XrplOperation_ConfidentialMPTSend']
+      | components['schemas']['Internal_XrplOperation_SponsorshipSetAsSponsee']
+      | components['schemas']['Internal_XrplOperation_SponsorshipSetAsSponsor']
       | components['schemas']['Internal_XrplOperation_TicketCreate']
     Internal_XrplOperation_AccountSet: {
       clearFlag?: components['schemas']['Internal_Xrpl_AccountSetFlag']
@@ -5548,6 +5551,7 @@ export interface components {
        * @enum {string}
        */
       type: 'Payment'
+      flags?: components['schemas']['Internal_Xrpl_PaymentFlag'][]
     }
     Internal_XrplOperation_TrustSet: {
       enableRippling?: boolean
@@ -6459,6 +6463,7 @@ export interface components {
       operation: components['schemas']['Internal_BatchInnerOperation']
       participant: components['schemas']['Internal_Participant']
       sequencing: components['schemas']['Internal_ParticipantSequencing']
+      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -6468,6 +6473,7 @@ export interface components {
     Internal_BatchEntry_SubmitterOperation: {
       operation: components['schemas']['Internal_BatchInnerOperation']
       sequencing: components['schemas']['Internal_Sequencing']
+      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -6647,6 +6653,7 @@ export interface components {
       destination: components['schemas']['Internal_TransactionDestination']
       /** Format: int64 */
       destinationTag?: number
+      flags?: components['schemas']['Internal_Xrpl_PaymentFlag'][]
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -6972,6 +6979,29 @@ export interface components {
        */
       type: 'ConfidentialMPTSend'
     }
+    Internal_XrplOperation_SponsorshipSetAsSponsee: {
+      sponsor: components['schemas']['Internal_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SponsorshipSetAsSponsee'
+    }
+    Internal_XrplOperation_SponsorshipSetAsSponsor: {
+      /** @description This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      feeAmountDelta?: string
+      flags: components['schemas']['Internal_Xrpl_SponsorshipSetFlag'][]
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      maxFee?: string
+      /** Format: int32 */
+      remainingOwnerCountDelta?: number
+      sponsee: components['schemas']['Internal_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SponsorshipSetAsSponsor'
+    }
     Internal_XrplOperation_TicketCreate: {
       /**
        * Format: int32
@@ -6983,6 +7013,10 @@ export interface components {
        * @enum {string}
        */
       type: 'TicketCreate'
+    }
+    Internal_XrplSponsorshipParams: {
+      flags: components['schemas']['Internal_Xrpl_SponsorFlag'][]
+      sponsor: components['schemas']['Internal_TransactionDestination']
     }
     Internal_XrplTickerProperties_ConfidentialMultiPurposeToken: {
       /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
@@ -6998,6 +7032,20 @@ export interface components {
       'AllOrNothing' | 'OnlyOne' | 'UntilFailure' | 'Independent'
     /** @enum {string} */
     Internal_Xrpl_MPTokenIssuanceMutableFlag: 'MPTSetCanConfidentialAmount'
+    /** @enum {string} */
+    Internal_Xrpl_PaymentFlag: 'tfSponsorCreatedAccount'
+    /**
+     * @description spfSponsorFee sponsors the transaction fee, spfSponsorReserve the owner reserve. spfSponsorReserve is rejected on transaction types for which the ledger does not allow reserve sponsorship (e.g. OfferCreate, TicketCreate, ConfidentialMPT operations)
+     * @enum {string}
+     */
+    Internal_Xrpl_SponsorFlag: 'spfSponsorFee' | 'spfSponsorReserve'
+    /** @enum {string} */
+    Internal_Xrpl_SponsorshipSetFlag:
+      | 'tfRequireSignForFee'
+      | 'tfClearRequireSignForFee'
+      | 'tfRequireSignForReserve'
+      | 'tfClearRequireSignForReserve'
+      | 'tfDeleteObject'
     Internal_v0_ProvisionElGamalKeyPair: {
       /** Format: uuid */
       accountId: string

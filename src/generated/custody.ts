@@ -3206,6 +3206,40 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/v1/domains/{domainId}/accounts/{accountId}/sponsorship-movements': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get movements of the XRPL sponsorships the account is sponsor or sponsee of */
+    get: operations['getAccountSponsorshipMovements']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/accounts/{accountId}/sponsorships': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get XRPL sponsorships the account is sponsor or sponsee of */
+    get: operations['getAccountSponsorships']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -3706,6 +3740,7 @@ export interface components {
       | 'TransactionNotEligibleForReplacement'
       | 'TransactionRejected'
       | 'TransientIssue'
+      | 'InvalidBatchSignature'
     /** @enum {string} */
     Core_ApiFailedTransactionProcessingHint:
       | 'AccountAlreadyActivatedOnLedger'
@@ -3722,6 +3757,7 @@ export interface components {
       | 'TransactionNotEligibleForReplacement'
       | 'TransactionRejected'
       | 'TransientIssue'
+      | 'InvalidBatchSignature'
     /** @enum {string} */
     Core_ApiInterruptedTransactionCause:
       'Cancellation' | 'Internal' | 'Replacement'
@@ -7988,6 +8024,7 @@ export interface components {
        * @enum {string}
        */
       type: 'XRPL'
+      sponsorship?: components['schemas']['Core_XrplSponsorshipParams']
     }
     Core_TransactionOrderReference: {
       /** Format: uuid */
@@ -9012,6 +9049,8 @@ export interface components {
       | components['schemas']['Core_XrplOperation_ConfidentialMPTConvertBack']
       | components['schemas']['Core_XrplOperation_ConfidentialMPTMergeInbox']
       | components['schemas']['Core_XrplOperation_ConfidentialMPTSend']
+      | components['schemas']['Core_XrplOperation_SponsorshipSetAsSponsee']
+      | components['schemas']['Core_XrplOperation_SponsorshipSetAsSponsor']
       | components['schemas']['Core_XrplOperation_TicketCreate']
     Core_XrplOperation_AccountSet: {
       setFlag?: components['schemas']['Core_Xrpl_AccountSetFlag']
@@ -9130,6 +9169,7 @@ export interface components {
        * @enum {string}
        */
       type: 'Payment'
+      flags?: components['schemas']['Core_Xrpl_PaymentFlag'][]
     }
     Core_XrplOperation_TrustSet: {
       flags: components['schemas']['Core_Xrpl_TrustSetFlag'][]
@@ -12222,11 +12262,27 @@ export interface components {
        */
       format: 'CSV' | 'JSON'
     }
-    Core_ApiBatchSigningData: {
-      executionMode: components['schemas']['Core_Xrpl_BatchExecutionMode']
+    Core_ApiBatchSignerSigningData: {
+      account: string
+      participant: components['schemas']['Core_Participant']
       /** @description Hex encoded string. */
       signingPayload: string
       /** @description Hex encoded string. */
+      signingPayloadHash: string
+    }
+    Core_ApiBatchSigningData: {
+      executionMode: components['schemas']['Core_Xrpl_BatchExecutionMode']
+      /** @description One entry per required BatchSigner, sorted by AccountID. Sign signingPayload and return the signature in batchSigners with the same participant. */
+      signers: components['schemas']['Core_ApiBatchSignerSigningData'][]
+      /**
+       * @deprecated
+       * @description Deprecated: not signable under Batch v1.1; use signers[].signingPayload
+       */
+      signingPayload: string
+      /**
+       * @deprecated
+       * @description Deprecated: not signable under Batch v1.1; use signers[].signingPayload
+       */
       signingPayloadHash: string
       transactions: components['schemas']['Core_ApiInnerTransactionData'][]
     }
@@ -12320,6 +12376,7 @@ export interface components {
       operation: components['schemas']['Core_BatchInnerOperation']
       participant: components['schemas']['Core_Participant']
       sequencing: components['schemas']['Core_ParticipantSequencing']
+      sponsorship?: components['schemas']['Core_XrplSponsorshipParams']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -12329,6 +12386,7 @@ export interface components {
     Core_BatchEntry_SubmitterOperation: {
       operation: components['schemas']['Core_BatchInnerOperation']
       sequencing: components['schemas']['Core_Sequencing']
+      sponsorship?: components['schemas']['Core_XrplSponsorshipParams']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -12508,6 +12566,7 @@ export interface components {
       destination: components['schemas']['Core_TransactionDestination']
       /** Format: int64 */
       destinationTag?: number
+      flags?: components['schemas']['Core_Xrpl_PaymentFlag'][]
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -12756,6 +12815,57 @@ export interface components {
       /** Format: int64 */
       value: number
     }
+    Core_Sponsorship: {
+      active: boolean
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      feeAmount: string
+      /** Format: uuid */
+      id: string
+      index: string
+      /** Format: date-time */
+      lastUpdatedAt: string
+      ledgerId: string
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      maxFee?: string
+      /** Format: int32 */
+      remainingOwnerCount: number
+      requireSignForFee: boolean
+      requireSignForReserve: boolean
+      role: components['schemas']['Core_SponsorshipRole']
+      sponsee: string
+      sponsor: string
+    }
+    Core_SponsorshipMovement: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      /** Format: uuid */
+      id: string
+      movement: components['schemas']['Core_Xrpl_SponsorshipMovement']
+      onLedgerTransactionId: string
+      /** Format: date-time */
+      registeredAt: string
+      sponsee: string
+      sponsor: string
+      sponsorshipIndex: string
+      /** Format: uuid */
+      transactionId?: string
+    }
+    Core_SponsorshipMovementsCollection: {
+      /** Format: int32 */
+      count: number
+      currentStartingAfter?: string
+      items: components['schemas']['Core_SponsorshipMovement'][]
+      nextStartingAfter?: string
+    }
+    /** @enum {string} */
+    Core_SponsorshipRole: 'Sponsor' | 'Sponsee'
+    Core_SponsorshipsCollection: {
+      /** Format: int32 */
+      count: number
+      currentStartingAfter?: string
+      items: components['schemas']['Core_Sponsorship'][]
+      nextStartingAfter?: string
+    }
     Core_XrplOperation_Batch: {
       batchSigners: components['schemas']['Core_BatchSigner'][]
       entries: components['schemas']['Core_BatchEntry'][]
@@ -12823,6 +12933,29 @@ export interface components {
        */
       type: 'ConfidentialMPTSend'
     }
+    Core_XrplOperation_SponsorshipSetAsSponsee: {
+      sponsor: components['schemas']['Core_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SponsorshipSetAsSponsee'
+    }
+    Core_XrplOperation_SponsorshipSetAsSponsor: {
+      /** @description This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      feeAmountDelta?: string
+      flags: components['schemas']['Core_Xrpl_SponsorshipSetFlag'][]
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      maxFee?: string
+      /** Format: int32 */
+      remainingOwnerCountDelta?: number
+      sponsee: components['schemas']['Core_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SponsorshipSetAsSponsor'
+    }
     Core_XrplOperation_TicketCreate: {
       /**
        * Format: int32
@@ -12834,6 +12967,10 @@ export interface components {
        * @enum {string}
        */
       type: 'TicketCreate'
+    }
+    Core_XrplSponsorshipParams: {
+      flags: components['schemas']['Core_Xrpl_SponsorFlag'][]
+      sponsor: components['schemas']['Core_TransactionDestination']
     }
     Core_XrplTickerProperties_ConfidentialMultiPurposeToken: {
       /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
@@ -12865,6 +13002,8 @@ export interface components {
     }
     /** @enum {string} */
     Core_Xrpl_MPTokenIssuanceMutableFlag: 'MPTSetCanConfidentialAmount'
+    /** @enum {string} */
+    Core_Xrpl_PaymentFlag: 'tfSponsorCreatedAccount'
     Core_Xrpl_ResolvedAssetQuantity: {
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
       amount: string
@@ -13095,6 +13234,20 @@ export interface components {
        */
       type: 'MultiPurposeToken'
     }
+    /**
+     * @description spfSponsorFee sponsors the transaction fee, spfSponsorReserve the owner reserve. spfSponsorReserve is rejected on transaction types for which the ledger does not allow reserve sponsorship (e.g. OfferCreate, TicketCreate, ConfidentialMPT operations)
+     * @enum {string}
+     */
+    Core_Xrpl_SponsorFlag: 'spfSponsorFee' | 'spfSponsorReserve'
+    /** @enum {string} */
+    Core_Xrpl_SponsorshipMovement: 'Funded' | 'Spent' | 'Returned'
+    /** @enum {string} */
+    Core_Xrpl_SponsorshipSetFlag:
+      | 'tfRequireSignForFee'
+      | 'tfClearRequireSignForFee'
+      | 'tfRequireSignForReserve'
+      | 'tfClearRequireSignForReserve'
+      | 'tfDeleteObject'
     Core_v0_ProvisionElGamalKeyPair: {
       /** Format: uuid */
       accountId: string
@@ -21060,6 +21213,147 @@ export interface operations {
         }
         content: {
           'text/plain': string
+        }
+      }
+      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+      /** @description Entity or Domain not found (EntityNotFoundError) */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+    }
+  }
+  getAccountSponsorshipMovements: {
+    parameters: {
+      query: {
+        /** @description Ledger the sponsorships live on. */
+        ledgerId: string
+        /**
+         * @description Return movements produced by any of the given transactionIds.
+         * @example [
+         *       "90c4cf2f-ebe0-4bf7-91cd-4c45cd02277b",
+         *       "fdeeeb4b-f987-4ec4-9880-1eb280581d49"
+         *     ]
+         */
+        transactionId?: string[]
+        /**
+         * @description Return movements matching any of the given kinds. Values: Funded, Spent, Returned.
+         * @example [
+         *       "Funded",
+         *       "Returned"
+         *     ]
+         */
+        movement?: components['schemas']['Core_Xrpl_SponsorshipMovement'][]
+        /**
+         * @description Return movements of the sponsorship with the given ledger index.
+         * @example DB8A3D1C5E7F24B6A09C8E1F3D5B7A9C2E4F6081B3D5F7092A4C6E8F0B2D4F61
+         */
+        sponsorshipIndex?: string
+        /** @description The number of entities to return. */
+        limit?: number
+        /** @description SponsorshipMovement id used to the determine beginning of query results. */
+        startingAfter?: string
+        /** @description Property name used to sort the query results. */
+        sortBy?: 'registeredAt'
+        /** @description Sort order applied to the query results. */
+        sortOrder?: components['schemas']['Core_SortOrder']
+      }
+      header?: never
+      path: {
+        /** @description Unique identifier for the domain. */
+        domainId: string
+        accountId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_SponsorshipMovementsCollection']
+        }
+      }
+      /** @description One of: Domain locked (DomainLockedError); Requester locked (RequesterLockedError) */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+      /** @description Entity or Domain not found (EntityNotFoundError) */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
+        }
+      }
+    }
+  }
+  getAccountSponsorships: {
+    parameters: {
+      query: {
+        /** @description Ledger the sponsorships live on. */
+        ledgerId: string
+        /** @description Also return sponsorships deleted on-ledger. Defaults to false. */
+        includeInactive?: boolean
+        /** @description The number of entities to return. */
+        limit?: number
+        /** @description Sponsorship id used to the determine beginning of query results. */
+        startingAfter?: string
+      }
+      header?: never
+      path: {
+        /** @description Unique identifier for the domain. */
+        domainId: string
+        accountId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_SponsorshipsCollection']
+        }
+      }
+      /** @description One of: Domain locked (DomainLockedError); Requester locked (RequesterLockedError) */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Core_ErrorMessage']
         }
       }
       /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
