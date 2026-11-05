@@ -81,6 +81,7 @@ export default [
       'src/custodians/palisade/palisade-custody.ts',
       'src/custodians/ripple/ripple-custody.ts',
       'src/custodians/ripple/api.ts',
+      'src/errors.ts',
     ],
     rules: {
       'max-lines': [

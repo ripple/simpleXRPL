@@ -187,6 +187,64 @@ describe('withHttpLogging', () => {
     })
   })
 
+  it('masks the signed challenge in a Custody token request', async () => {
+    const { logger, entries } = recordingLogger()
+    const port = withHttpLogging(
+      answering({ status: 200, body: '{"access_token":"jwt"}' }),
+      logger,
+      OPTIONS,
+    )
+
+    // The form HttpCustodyAuthPort sends: the SDK picks the challenge, so the
+    // challenge + signature pair is exchangeable for a token.
+    await port.send({
+      method: 'POST',
+      url: 'https://auth.example.com/token',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'password',
+        client_id: 'customer_api',
+        signature: 'MEUCIQDsigned',
+        challenge: '738d4753-1f2e-4c3d-9b8a-112233445566',
+        public_key: 'MCowBQYDK2VwAyEA',
+      }).toString(),
+    })
+
+    const logged = JSON.stringify(entries)
+    expect(logged).not.toContain('MEUCIQDsigned')
+    expect(logged).not.toContain('738d4753')
+    expect(logged).not.toContain('"jwt"')
+    expect(entries[0]?.fields.requestBody).toBe(
+      'grant_type=password&client_id=customer_api&signature=%5BREDACTED%5D' +
+        '&challenge=%5BREDACTED%5D&public_key=MCowBQYDK2VwAyEA',
+    )
+  })
+
+  it('masks other secrets an api.call body can carry', async () => {
+    const { logger, entries } = recordingLogger()
+    const port = withHttpLogging(
+      answering({
+        status: 200,
+        body: JSON.stringify({ backup: { encryptedSeed: 'seed-bytes' } }),
+      }),
+      logger,
+      OPTIONS,
+    )
+
+    await port.send({
+      ...GET,
+      method: 'POST',
+      body: JSON.stringify({
+        credential: { apiKey: 'k', secret: 's3cret', password: 'pw' },
+      }),
+    })
+
+    const logged = JSON.stringify(entries)
+    for (const value of ['seed-bytes', 's3cret', '"pw"']) {
+      expect(logged).not.toContain(value)
+    }
+  })
+
   it('cuts a long body', async () => {
     const { logger, entries } = recordingLogger()
     const port = withHttpLogging(

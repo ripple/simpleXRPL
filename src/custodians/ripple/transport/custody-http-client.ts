@@ -3,6 +3,7 @@ import {
   CustodyAuthError,
   CustodyPermissionError,
   CustodySignatureError,
+  CustodyTimeoutError,
   SimpleXRPLError,
 } from '../../../errors.js'
 import type { CustodyAuthService } from '../auth/custody-auth.service.js'
@@ -110,6 +111,50 @@ function toError(
 }
 
 /**
+ * Whether a transport error is the request timing out (`AbortSignal.timeout`
+ * rejects with a `TimeoutError`; an aborted fetch with an `AbortError`).
+ *
+ * @param error - The transport's error.
+ * @returns `true` for a timeout or abort.
+ */
+function isTimeout(error: unknown): boolean {
+  // Matched by name, not class: the DOMException can come from another realm
+  // (e.g. a Jest sandbox), where `instanceof Error` is false.
+  const name: unknown =
+    typeof error === 'object' && error !== null
+      ? Reflect.get(error, 'name')
+      : undefined
+  return name === 'TimeoutError' || name === 'AbortError'
+}
+
+/**
+ * The intent id a request proposes, if it is an intent proposal.
+ *
+ * @param body - The serialized request body.
+ * @returns The proposed intent's id, or `undefined`.
+ */
+function proposedIntentId(body: string | undefined): string | undefined {
+  try {
+    const parsed: unknown = JSON.parse(body ?? '')
+    const request: unknown =
+      typeof parsed === 'object' && parsed !== null
+        ? Reflect.get(parsed, 'request')
+        : undefined
+    if (
+      typeof request === 'object' &&
+      request !== null &&
+      Reflect.get(request, 'type') === 'Propose'
+    ) {
+      const id: unknown = Reflect.get(request, 'id')
+      return typeof id === 'string' ? id : undefined
+    }
+  } catch {
+    // Not JSON: not a proposal.
+  }
+  return undefined
+}
+
+/**
  * Authenticated client for the Custody gateway API.
  *
  * Injects the JWT from {@link CustodyAuthService} on every call and implements
@@ -203,39 +248,74 @@ export class CustodyHttpClient {
    * @param body - Optional serialized request body.
    * @returns The successful HTTP response.
    * @throws {@link CustodyAuthError} or {@link CustodyApiError} on failure.
+   * @throws {@link CustodyTimeoutError} if no response came within the timeout.
    */
   private async send(
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     url: string,
     body?: string,
   ): Promise<HttpResponse> {
-    const attempt = async (forceRefresh: boolean): Promise<HttpResponse> => {
-      const token = await this.auth.getToken(forceRefresh)
-      const headers: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      }
-      if (body !== undefined) {
-        headers['Content-Type'] = 'application/json'
-      }
-      return this.http.send({
+    let response = await this.sendOnce({ method, url, body }, false)
+    if (response.status === HTTP_UNAUTHORIZED) {
+      // One refresh-and-retry with a fresh challenge-signed token.
+      response = await this.sendOnce({ method, url, body }, true)
+    }
+    if (response.status >= HTTP_ERROR_THRESHOLD) {
+      throw toError({ url, body }, response)
+    }
+    return response
+  }
+
+  /**
+   * Send once with a bearer token, turning a timeout into a typed error.
+   *
+   * @param request - The request.
+   * @param request.method - The HTTP method.
+   * @param request.url - The absolute request URL.
+   * @param request.body - Optional serialized request body.
+   * @param forceRefresh - Fetch a fresh token first.
+   * @returns The HTTP response, whatever its status.
+   * @throws {@link CustodyTimeoutError} if no response came within the timeout.
+   */
+  private async sendOnce(
+    request: {
+      method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+      url: string
+      body: string | undefined
+    },
+    forceRefresh: boolean,
+  ): Promise<HttpResponse> {
+    const { method, url, body } = request
+    const token = await this.auth.getToken(forceRefresh)
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    }
+    if (body !== undefined) {
+      headers['Content-Type'] = 'application/json'
+    }
+    try {
+      return await this.http.send({
         method,
         url,
         headers,
         body,
         timeoutMs: this.timeoutMs,
       })
+    } catch (error) {
+      if (!isTimeout(error)) {
+        throw error
+      }
+      throw new CustodyTimeoutError(
+        {
+          method,
+          path: new URL(url).pathname,
+          timeoutMs: this.timeoutMs,
+          intentId: proposedIntentId(body),
+        },
+        { cause: error },
+      )
     }
-
-    let response = await attempt(false)
-    if (response.status === HTTP_UNAUTHORIZED) {
-      // One refresh-and-retry with a fresh challenge-signed token.
-      response = await attempt(true)
-    }
-    if (response.status >= HTTP_ERROR_THRESHOLD) {
-      throw toError({ url, body }, response)
-    }
-    return response
   }
 
   /**

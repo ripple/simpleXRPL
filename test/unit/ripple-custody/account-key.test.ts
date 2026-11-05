@@ -7,7 +7,7 @@ import {
   resolveSigningPublicKey,
   toXrplPublicKey,
 } from '../../../src/custodians/ripple/submission/account-key.js'
-import { SignerCapabilityError } from '../../../src/errors.js'
+import { SignerCapabilityError, SimpleXRPLError } from '../../../src/errors.js'
 
 import { DOMAIN_ID, makeClient, ok } from './test-utils.js'
 
@@ -90,6 +90,38 @@ describe('toXrplPublicKey', () => {
     expect(
       toXrplPublicKey(Buffer.from(key.xrpl, 'hex').toString('base64')),
     ).toBe(key.xrpl)
+  })
+})
+
+describe('toXrplPublicKey — keys it must not pass on', () => {
+  it('converts an ed25519 SPKI key to XRPL’s ED-prefixed form', () => {
+    const { publicKey } = generateKeyPairSync('ed25519')
+    const spki = publicKey.export({ type: 'spki', format: 'der' })
+    const raw = spki.subarray(spki.length - 32).toString('hex')
+
+    expect(toXrplPublicKey(spki.toString('base64'))).toBe(
+      `ED${raw}`.toUpperCase(),
+    )
+  })
+
+  it('throws for an SPKI key on a curve XRPL can’t use', () => {
+    const { publicKey } = generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    })
+    const spki = publicKey.export({ type: 'spki', format: 'der' })
+
+    expect(() => toXrplPublicKey(spki.toString('base64'))).toThrow(
+      "Custody returned a P-256 public key, which XRPL can't use",
+    )
+  })
+
+  it.each([
+    ['too short', Buffer.from('EDPUBKEY')],
+    ['33 bytes with no key prefix', Buffer.alloc(33, 0x09)],
+  ])('throws for an unrecognised encoding (%s)', (_case, bytes) => {
+    expect(() => toXrplPublicKey(bytes.toString('base64'))).toThrow(
+      SimpleXRPLError,
+    )
   })
 })
 

@@ -1,4 +1,5 @@
 import { createPublicKey } from 'node:crypto'
+import type { JsonWebKey } from 'node:crypto'
 
 import { SignerCapabilityError, SimpleXRPLError } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
@@ -27,33 +28,66 @@ function compressPoint(x: Buffer, y: Buffer): string {
   return `${prefix}${x.toString('hex')}`.toUpperCase()
 }
 
+/** XRPL's 33-byte public key: a secp256k1 key (`02`/`03`) or ed25519 (`ED`). */
+const XRPL_KEY_LENGTH = 33
+const SECP256K1_EVEN_PREFIX = 0x02
+const SECP256K1_ODD_PREFIX = 0x03
+const ED25519_PREFIX = 0xed
+const XRPL_KEY_PREFIXES: ReadonlySet<number> = new Set([
+  SECP256K1_EVEN_PREFIX,
+  SECP256K1_ODD_PREFIX,
+  ED25519_PREFIX,
+])
+
+/**
+ * Read an SPKI key in XRPL's form, if it is one XRPL supports.
+ *
+ * @param bytes - The candidate SPKI DER.
+ * @returns The XRPL key; `undefined` if `bytes` isn't SPKI.
+ * @throws {@link SimpleXRPLError} for an SPKI key on a curve XRPL can't use.
+ */
+function fromSpki(bytes: Buffer): string | undefined {
+  let jwk: JsonWebKey
+  try {
+    jwk = createPublicKey({ key: bytes, format: 'der', type: 'spki' }).export({
+      format: 'jwk',
+    })
+  } catch {
+    return undefined
+  }
+  if (jwk.crv === 'secp256k1' && jwk.x !== undefined && jwk.y !== undefined) {
+    return compressPoint(
+      Buffer.from(jwk.x, 'base64url'),
+      Buffer.from(jwk.y, 'base64url'),
+    )
+  }
+  if (jwk.crv === 'Ed25519' && jwk.x !== undefined) {
+    return `ED${Buffer.from(jwk.x, 'base64url').toString('hex')}`.toUpperCase()
+  }
+  throw new SimpleXRPLError(
+    `Custody returned a ${String(jwk.crv ?? jwk.kty)} public key, which XRPL can't use`,
+  )
+}
+
 /**
  * Convert a public key as Custody encodes it to the form XRPL uses
- * (`SigningPubKey`): compressed secp256k1, uppercase hex.
+ * (`SigningPubKey`): uppercase hex of a compressed secp256k1 key, or of an
+ * `ED`-prefixed ed25519 key.
  *
- * Custody sends vault keys as base64 SPKI DER, which is compressed here; a raw
- * uncompressed point is compressed too, and any other raw bytes (an
- * already-compressed key) are hex-encoded as they are.
+ * Custody sends vault keys as base64 SPKI DER, converted here; a raw
+ * uncompressed secp256k1 point is compressed, and a key already in XRPL's
+ * 33-byte form is kept.
  *
  * @param base64 - The key, base64.
  * @returns The XRPL public key, uppercase hex.
+ * @throws {@link SimpleXRPLError} if the key isn't in an encoding XRPL can use,
+ *   rather than pass on bytes that would fail as a `SigningPubKey`.
  */
 export function toXrplPublicKey(base64: string): string {
   const bytes = Buffer.from(base64, 'base64')
-  try {
-    const jwk = createPublicKey({
-      key: bytes,
-      format: 'der',
-      type: 'spki',
-    }).export({ format: 'jwk' })
-    if (jwk.crv === 'secp256k1' && jwk.x !== undefined && jwk.y !== undefined) {
-      return compressPoint(
-        Buffer.from(jwk.x, 'base64url'),
-        Buffer.from(jwk.y, 'base64url'),
-      )
-    }
-  } catch {
-    // Not SPKI: fall through to the raw encodings.
+  const spki = fromSpki(bytes)
+  if (spki !== undefined) {
+    return spki
   }
   if (
     bytes.length === UNCOMPRESSED_POINT_LENGTH &&
@@ -64,7 +98,12 @@ export function toXrplPublicKey(base64: string): string {
       bytes.subarray(1 + COORDINATE_LENGTH),
     )
   }
-  return bytes.toString('hex').toUpperCase()
+  if (bytes.length === XRPL_KEY_LENGTH && XRPL_KEY_PREFIXES.has(bytes[0])) {
+    return bytes.toString('hex').toUpperCase()
+  }
+  throw new SimpleXRPLError(
+    `Custody returned a ${bytes.length}-byte public key in an encoding the SDK doesn't recognise`,
+  )
 }
 
 /**

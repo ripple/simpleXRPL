@@ -108,6 +108,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/notifications/register-web': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Register web client
+     * @description register web client for event notifications
+     */
+    get: operations['NotificationController.registerWebClient']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/notifications/secured-register-mobile': {
     parameters: {
       query?: never
@@ -122,26 +142,6 @@ export interface paths {
      * @description register mobile phone for event notifications
      */
     post: operations['NotificationController.securedRegisterMobile']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/notifications/secured-unregister-mobile': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Secured unregister mobile
-     * @description Unregister a mobile device. The signature covers "unregister:" + email + pushToken + nonce, signed with the user Core key. See ADR-0005.
-     */
-    post: operations['NotificationController.securedUnregisterMobile']
     delete?: never
     options?: never
     head?: never
@@ -179,9 +179,29 @@ export interface paths {
     put?: never
     /**
      * Send signature to web
-     * @description Store a signed entity for the requester to poll from DELETE /api/notifications/entity/{hash}/signature.
+     * @description Return signed entity to requester
      */
     post: operations['NotificationController.sendSignatureToWeb']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/notifications/unregister-mobile': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Unregister mobile
+     * @description Unregister mobile phone from push notification
+     */
+    post: operations['NotificationController.unregisterMobile']
     delete?: never
     options?: never
     head?: never
@@ -224,7 +244,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/internal/v1/domains/{domainId}/account-balances/query': {
+  '/internal/v1/cmpt-cb-in': {
     parameters: {
       query?: never
       header?: never
@@ -233,8 +253,43 @@ export interface paths {
     }
     get?: never
     put?: never
-    /** Get current balances for up to 1000 account-ticker pairs in one domain */
-    post: operations['queryAccountsBalances']
+    /** Initiate a CB_IN inbox balance decryption for a cMPT account */
+    post: operations['initiateCbInDecryption']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/internal/v1/cmpt-cb-in/{requestId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the status of a CB_IN inbox balance decryption */
+    get: operations['getCbInDecryptionStatus']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/internal/v1/decrypt-cbs/pending': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List pending CBS decryptions */
+    get: operations['getPendingDecryptCbs']
+    put?: never
+    /** Submit a CBS decryption response */
+    post: operations['postDecryptCbsResponse']
     delete?: never
     options?: never
     head?: never
@@ -459,17 +514,18 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/internal/v1/migrations/lar-phase1-migration-sanity-check': {
+  '/internal/v1/parameters-computed/pending': {
     parameters: {
       query?: never
       header?: never
       path?: never
       cookie?: never
     }
-    /** Report the data that would block the LAR phase 1 balance migration */
-    get: operations['getLarPhase1MigrationSanityCheck']
+    /** List pending cMPT parameter computations */
+    get: operations['getPendingParametersComputes']
     put?: never
-    post?: never
+    /** Submit a cMPT parameter computation response */
+    post: operations['postParametersComputeResponse']
     delete?: never
     options?: never
     head?: never
@@ -501,7 +557,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** Returns the shape of the scripting engine v0 evaluation context (documentation-only) */
+    /** Return an example context for scripting engine v0 */
     get: operations['getExampleContextV0']
     put?: never
     post?: never
@@ -617,6 +673,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/internal/v1/users': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Return users by alias, public key, loginId, or loginProviderId */
+    get: operations['getUsers']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/internal/v1/users/conflicts': {
     parameters: {
       query?: never
@@ -646,133 +719,6 @@ export interface paths {
     put?: never
     /** Post a pending vault */
     post: operations['postPendingVault']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/notifications/register-web': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Register web client
-     * @description register web client for event notifications
-     */
-    get: operations['NotificationController.registerWebClient']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/notifications/unregister-mobile': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Unregister mobile
-     * @description Unregister mobile phone from push notification
-     */
-    post: operations['NotificationController.unregisterMobile']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/internal/v1/cmpt-cb-in': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Initiate a CB_IN inbox balance decryption for a cMPT account */
-    post: operations['initiateCbInDecryption']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/internal/v1/cmpt-cb-in/{requestId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get the status of a CB_IN inbox balance decryption */
-    get: operations['getCbInDecryptionStatus']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/internal/v1/decrypt-cbs/pending': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List pending CBS decryptions */
-    get: operations['getPendingDecryptCbs']
-    put?: never
-    /** Submit a CBS decryption response */
-    post: operations['postDecryptCbsResponse']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/internal/v1/parameters-computed/pending': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List pending cMPT parameter computations */
-    get: operations['getPendingParametersComputes']
-    put?: never
-    /** Submit a cMPT parameter computation response */
-    post: operations['postParametersComputeResponse']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/internal/v1/users': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Return users by alias, public key, loginId, or loginProviderId */
-    get: operations['getUsers']
-    put?: never
-    post?: never
     delete?: never
     options?: never
     head?: never
@@ -826,30 +772,11 @@ export interface components {
       domainId: string
       /** Format: uuid */
       id: string
-      /** @deprecated */
       ledgerId?: string
-      ledgerIds?: string[]
       lock: components['schemas']['Internal_LockStatus']
       metadata: components['schemas']['Internal_EntityMetadata']
       providerDetails: components['schemas']['Internal_AccountProviderInformation']
     }
-    Internal_AccountBalanceOutcome: {
-      /** Format: uuid */
-      accountId: string
-      /** @description This field is a large integer that can be negative, zero, or positive. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      availableAmount?: string
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      quarantinedAmount?: string
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      reservedAmount?: string
-      status: components['schemas']['Internal_AccountBalanceStatus']
-      /** Format: uuid */
-      tickerId: string
-      /** @description This field is a large integer that can be negative, zero, or positive. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      totalAmount?: string
-    }
-    /** @enum {string} */
-    Internal_AccountBalanceStatus: 'Found' | 'NotFound'
     Internal_AccountCreated: {
       /** Format: uuid */
       id: string
@@ -868,80 +795,12 @@ export interface components {
       domainId: string
       signedPayload: string
     }
-    Internal_AccountProvider: {
-      alias: string
-      /** Format: uuid */
-      id: string
-      lock: components['schemas']['Internal_LockStatus']
-      metadata: components['schemas']['Internal_EntityMetadata']
-      provider: components['schemas']['Internal_AccountProviderType']
-    }
-    Internal_AccountProviderAction:
-      | components['schemas']['Internal_AccountProviderAction_External']
-      | components['schemas']['Internal_AccountProviderAction_Mco']
-    Internal_AccountProviderAction_External: {
-      publicKey: components['schemas']['Internal_ApiAccountProviderKey']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'External'
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_AccountProviderAction_Mco: {
-      encryptedCreds: string
-      providerKind: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Mco'
-    }
-    Internal_AccountProviderCreated: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'AccountProviderCreated'
-    }
-    Internal_AccountProviderInformation:
-      | components['schemas']['Internal_AccountProviderInformation_External']
-      | components['schemas']['Internal_AccountProviderInformation_Mco']
-      | components['schemas']['Internal_AccountProviderInformation_Vault']
-    Internal_AccountProviderInformation_External: {
-      /** Format: uuid */
-      locationId: string
-      /** Format: uuid */
-      providerAccountId?: string
-      /** Format: uuid */
-      providerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'External'
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_AccountProviderInformation_Mco: {
-      /** Format: uuid */
-      locationId: string
-      /** Format: uuid */
-      providerAccountId?: string
-      /** Format: uuid */
-      providerId: string
-      subcustodianAccountId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Mco'
-    }
+    Internal_AccountProviderInformation: components['schemas']['Internal_AccountProviderInformation_Vault']
     Internal_AccountProviderInformation_Vault: {
       keyInformation: components['schemas']['Internal_VaultAccountKeyInformation']
       keyStrategy: components['schemas']['Internal_AccountKeyStrategy']
       keys?: components['schemas']['Internal_VaultAccountProviderInformation_Key'][]
+      purposeKeys: components['schemas']['Internal_PurposeKey'][]
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -949,54 +808,6 @@ export interface components {
       type: 'Vault'
       /** Format: uuid */
       vaultId: string
-      purposeKeys?: components['schemas']['Internal_PurposeKey'][]
-    }
-    Internal_AccountProviderKey: {
-      details?: string
-      /** Format: base64 */
-      keySignature?: string
-      /** Format: base64 */
-      predecessor?: string
-      /** Format: base64 */
-      publicKey: string
-      status?: components['schemas']['Internal_AccountProviderKeyStatus']
-      /** @description This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      validAfterSequenceId?: string
-    }
-    /** @enum {string} */
-    Internal_AccountProviderKeyStatus:
-      'AwaitingActivation' | 'ActivationFailed' | 'Active' | 'Replaced'
-    Internal_AccountProviderType:
-      | components['schemas']['Internal_AccountProviderType_ExternalProvider']
-      | components['schemas']['Internal_AccountProviderType_Mco']
-    Internal_AccountProviderType_ExternalProvider: {
-      publicKeys: components['schemas']['Internal_AccountProviderKey'][]
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ExternalProvider'
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_AccountProviderType_Mco: {
-      /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-      error?: components['schemas']['Internal_McoProviderError']
-      providerKind: string
-      status: components['schemas']['Internal_McoProviderStatus']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Mco'
-    }
-    Internal_AccountProviderUpdated: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'AccountProviderUpdated'
     }
     Internal_AccountPublicKey:
       | components['schemas']['Internal_AccountPublicKey_ExtendedPublicKey']
@@ -1049,11 +860,6 @@ export interface components {
       /** Format: uuid */
       id: string
     }
-    Internal_AccountTickers: {
-      /** Format: uuid */
-      accountId: string
-      tickerIds: string[]
-    }
     Internal_AccountUpdated: {
       /** Format: uuid */
       id: string
@@ -1062,12 +868,6 @@ export interface components {
        * @enum {string}
        */
       type: 'AccountUpdated'
-    }
-    Internal_AccountsBalancesQuery: {
-      accounts: components['schemas']['Internal_AccountTickers'][]
-    }
-    Internal_AccountsBalancesQueryResult: {
-      balances: components['schemas']['Internal_AccountBalanceOutcome'][]
     }
     Internal_AddressCreated: {
       accountReference: components['schemas']['Internal_AccountReference']
@@ -1116,27 +916,36 @@ export interface components {
        */
       type: 'Native'
     }
-    /** @enum {string} */
-    Internal_AntiRewindMode: 'STRICT' | 'BALANCED' | 'DISABLED'
-    Internal_AntiRewindModeValue: {
-      mode: components['schemas']['Internal_AntiRewindMode']
+    Internal_ApiCbInDecryptionStatusResponse: {
+      decryptedAmount?: string
+      error?: string
+      /** Format: uuid */
+      id: string
+      status: string
     }
-    Internal_ApiAccountProviderKey: {
-      /** Format: base64 */
-      publicKey: string
+    Internal_ApiInitiateCbInDecryptionRequest: {
+      /** Format: uuid */
+      accountId: string
+      /** Format: uuid */
+      domainId: string
+      issuanceId: string
+      ledgerId: string
+    }
+    Internal_ApiInitiateCbInDecryptionResponse: {
+      /** Format: uuid */
+      id: string
+      status: string
     }
     Internal_ApiTicker: {
       data: components['schemas']['Internal_ApiTickerData']
       /**
        * Format: int32
        * @deprecated
-       * @description Deletion target: Mar. 31st 2027
        */
       decimals?: number
       /**
        * Format: uuid
        * @deprecated
-       * @description Deletion target: Mar. 31st 2027
        */
       id: string
       /** @deprecated */
@@ -1146,22 +955,13 @@ export interface components {
         components['schemas']['Internal_TickerLedgerDetails'],
         'type'
       >
-      /**
-       * @deprecated
-       * @description Deletion target: Mar. 31st 2027
-       */
+      /** @deprecated */
       ledgerId: string
-      /**
-       * @deprecated
-       * @description Deletion target: Mar. 31st 2027
-       */
+      /** @deprecated */
       name: string
       /** Format: base64 */
       signature?: string
-      /**
-       * @deprecated
-       * @description Deletion target: Mar. 31st 2027
-       */
+      /** @deprecated */
       symbol?: string
     }
     Internal_ApiTickerData: {
@@ -1200,13 +1000,9 @@ export interface components {
     Internal_ApprovalDecision: 'Approve' | 'Reject'
     Internal_AttemptInterruptTransaction: {
       reason: string
+      signedPayload?: string
       /** Format: uuid */
       transactionId: string
-      signedPayload?: string
-    }
-    Internal_AuthorizationReference: {
-      /** Format: uuid */
-      transactionOrderId: string
     }
     Internal_Backup: {
       data: components['schemas']['Internal_BackupData']
@@ -1276,6 +1072,239 @@ export interface components {
        */
       type: 'BalancesUpdated'
     }
+    Internal_BatchEntry:
+      | components['schemas']['Internal_BatchEntry_ParticipantOperation']
+      | components['schemas']['Internal_BatchEntry_SubmitterOperation']
+    Internal_BatchEntry_ParticipantOperation: {
+      operation: components['schemas']['Internal_BatchInnerOperation']
+      participant: components['schemas']['Internal_Participant']
+      sequencing: components['schemas']['Internal_ParticipantSequencing']
+      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ParticipantOperation'
+    }
+    Internal_BatchEntry_SubmitterOperation: {
+      operation: components['schemas']['Internal_BatchInnerOperation']
+      sequencing: components['schemas']['Internal_Sequencing']
+      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SubmitterOperation'
+    }
+    Internal_BatchInnerOperation:
+      | components['schemas']['Internal_BatchInnerOperation_AccountSet']
+      | components['schemas']['Internal_BatchInnerOperation_Clawback']
+      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTConvert']
+      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTConvertBack']
+      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTMergeInbox']
+      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTSend']
+      | components['schemas']['Internal_BatchInnerOperation_DepositPreauth']
+      | components['schemas']['Internal_BatchInnerOperation_EscrowFinish']
+      | components['schemas']['Internal_BatchInnerOperation_MPTokenAuthorize']
+      | components['schemas']['Internal_BatchInnerOperation_MPTokenIssuanceCreate']
+      | components['schemas']['Internal_BatchInnerOperation_MPTokenIssuanceDestroy']
+      | components['schemas']['Internal_BatchInnerOperation_MPTokenIssuanceSet']
+      | components['schemas']['Internal_BatchInnerOperation_OfferCreate']
+      | components['schemas']['Internal_BatchInnerOperation_Payment']
+      | components['schemas']['Internal_BatchInnerOperation_TicketCreate']
+      | components['schemas']['Internal_BatchInnerOperation_TrustSet']
+    Internal_BatchInnerOperation_AccountSet: {
+      clearFlag?: components['schemas']['Internal_Xrpl_AccountSetFlag']
+      setFlag?: components['schemas']['Internal_Xrpl_AccountSetFlag']
+      /** Format: int32 */
+      transferRate?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSet'
+    }
+    Internal_BatchInnerOperation_Clawback: {
+      currency: components['schemas']['Internal_XrplClawbackCurrency']
+      holder: components['schemas']['Internal_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Clawback'
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      value: string
+    }
+    Internal_BatchInnerOperation_ConfidentialMPTConvert: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvert'
+    }
+    Internal_BatchInnerOperation_ConfidentialMPTConvertBack: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvertBack'
+    }
+    Internal_BatchInnerOperation_ConfidentialMPTMergeInbox: {
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTMergeInbox'
+    }
+    Internal_BatchInnerOperation_ConfidentialMPTSend: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount?: string
+      cryptographicFields?: components['schemas']['Internal_CmptCryptographicFields']
+      destination: components['schemas']['Internal_TransactionDestination']
+      /** @description Hex encoded string. */
+      senderEncryptedBalance?: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion?: number
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTSend'
+    }
+    Internal_BatchInnerOperation_DepositPreauth: {
+      authorize?: components['schemas']['Internal_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'DepositPreauth'
+      unauthorize?: components['schemas']['Internal_TransactionDestination']
+    }
+    Internal_BatchInnerOperation_EscrowFinish: {
+      /** @description Hex encoded string. */
+      condition?: string
+      credentialIds?: string[]
+      /** @description Hex encoded string. */
+      fulfillment?: string
+      /** Format: int64 */
+      offerSequence: number
+      owner: components['schemas']['Internal_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'EscrowFinish'
+    }
+    Internal_BatchInnerOperation_MPTokenAuthorize: {
+      flags: components['schemas']['Internal_Xrpl_MPTokenAuthorizeFlag'][]
+      holder?: components['schemas']['Internal_TransactionDestination']
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenAuthorize'
+    }
+    Internal_BatchInnerOperation_MPTokenIssuanceCreate: {
+      /** Format: int32 */
+      assetScale?: number
+      flags: components['schemas']['Internal_Xrpl_MPTokenIssuanceCreateFlag'][]
+      /** @description This field is a unsigned 64bit integer that can store values in range from 0 to 18446744073709551615.It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      maximumAmount?: string
+      metadata?: components['schemas']['Internal_MPTokenIssuanceMetadata']
+      /**
+       * Format: int32
+       * @description Transfer fee for MultiPurposeToken, must be from 0 to 50000
+       */
+      transferFee?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceCreate'
+    }
+    Internal_BatchInnerOperation_MPTokenIssuanceDestroy: {
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceDestroy'
+    }
+    Internal_BatchInnerOperation_MPTokenIssuanceSet: {
+      auditorEncryptionKey?: string
+      flags: components['schemas']['Internal_Xrpl_MPTokenIssuanceSetFlag'][]
+      holder?: components['schemas']['Internal_TransactionDestination']
+      issuerEncryptionKey?: string
+      mutableFlags: components['schemas']['Internal_Xrpl_MPTokenIssuanceMutableFlag'][]
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'MPTokenIssuanceSet'
+    }
+    Internal_BatchInnerOperation_OfferCreate: {
+      flags: components['schemas']['Internal_Xrpl_OfferCreateFlag'][]
+      takerGets: components['schemas']['Internal_Xrpl_AssetQuantity']
+      takerPays: components['schemas']['Internal_Xrpl_AssetQuantity']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'OfferCreate'
+    }
+    Internal_BatchInnerOperation_Payment: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      currency?: components['schemas']['Internal_XrplPaymentCurrency']
+      destination: components['schemas']['Internal_TransactionDestination']
+      /** Format: int64 */
+      destinationTag?: number
+      flags?: components['schemas']['Internal_Xrpl_PaymentFlag'][]
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Payment'
+    }
+    Internal_BatchInnerOperation_TicketCreate: {
+      /**
+       * Format: int32
+       * @description Number of tickets to create, must be from 1 to 250
+       */
+      ticketCount: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TicketCreate'
+    }
+    Internal_BatchInnerOperation_TrustSet: {
+      enableRippling?: boolean
+      flags: components['schemas']['Internal_Xrpl_TrustSetFlag'][]
+      limitAmount: components['schemas']['Internal_Xrpl_LimitAmount']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TrustSet'
+    }
+    Internal_BatchSigner: {
+      participant: components['schemas']['Internal_Participant']
+      /** @description Hex encoded string. */
+      publicKey: string
+      /** @description Hex encoded string. */
+      signature: string
+    }
     Internal_BitcoinFeeStrategy:
       | components['schemas']['Internal_BitcoinFeeStrategy_Priority']
       | components['schemas']['Internal_BitcoinFeeStrategy_SpecifiedRate']
@@ -1318,129 +1347,6 @@ export interface components {
     }
     Internal_BitcoinTickerProperties: components['schemas']['Internal_BitcoinTickerProperties_Native']
     Internal_BitcoinTickerProperties_Native: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Native'
-    }
-    Internal_CantonOperation:
-      | components['schemas']['Internal_CantonOperation_Accept']
-      | components['schemas']['Internal_CantonOperation_CancelNativeTransferPreapproval']
-      | components['schemas']['Internal_CantonOperation_CancelTokenTransferPreapproval']
-      | components['schemas']['Internal_CantonOperation_CreateNativeTransferPreapproval']
-      | components['schemas']['Internal_CantonOperation_CreateParty']
-      | components['schemas']['Internal_CantonOperation_CreateTokenTransferPreapproval']
-      | components['schemas']['Internal_CantonOperation_NativeTransfer']
-      | components['schemas']['Internal_CantonOperation_Reject']
-      | components['schemas']['Internal_CantonOperation_TokenTransfer']
-      | components['schemas']['Internal_CantonOperation_Withdraw']
-    Internal_CantonOperation_Accept: {
-      contractId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Accept'
-    }
-    /** @description **Experimental** (CantonPreapprovalCancellation): subject to change until 2026-12-31. */
-    Internal_CantonOperation_CancelNativeTransferPreapproval: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CancelNativeTransferPreapproval'
-    }
-    /** @description **Experimental** (CantonPreapprovalCancellation): subject to change until 2026-12-31. */
-    Internal_CantonOperation_CancelTokenTransferPreapproval: {
-      /** Format: uuid */
-      tickerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CancelTokenTransferPreapproval'
-    }
-    Internal_CantonOperation_CreateNativeTransferPreapproval: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CreateNativeTransferPreapproval'
-    }
-    Internal_CantonOperation_CreateParty: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CreateParty'
-    }
-    Internal_CantonOperation_CreateTokenTransferPreapproval: {
-      /** Format: uuid */
-      tickerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CreateTokenTransferPreapproval'
-    }
-    Internal_CantonOperation_NativeTransfer: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      destination: components['schemas']['Internal_TransactionDestination']
-      /** Format: date-time */
-      executeBefore?: string
-      memo?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'NativeTransfer'
-    }
-    Internal_CantonOperation_Reject: {
-      contractId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Reject'
-    }
-    Internal_CantonOperation_TokenTransfer: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      destination: components['schemas']['Internal_TransactionDestination']
-      /** Format: date-time */
-      executeBefore?: string
-      memo?: string
-      /** Format: uuid */
-      tickerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'TokenTransfer'
-    }
-    Internal_CantonOperation_Withdraw: {
-      contractId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Withdraw'
-    }
-    Internal_CantonTickerProperties:
-      | components['schemas']['Internal_CantonTickerProperties_Instrument']
-      | components['schemas']['Internal_CantonTickerProperties_Native']
-    Internal_CantonTickerProperties_Instrument: {
-      instrumentAdmin: string
-      instrumentId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Instrument'
-    }
-    Internal_CantonTickerProperties_Native: {
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -1528,6 +1434,83 @@ export interface components {
        */
       type: 'Native'
     }
+    Internal_CmptCryptographicFields:
+      | components['schemas']['Internal_CmptCryptographicFields_Clawback']
+      | components['schemas']['Internal_CmptCryptographicFields_Convert']
+      | components['schemas']['Internal_CmptCryptographicFields_ConvertBack']
+      | components['schemas']['Internal_CmptCryptographicFields_Send']
+    Internal_CmptCryptographicFields_Clawback: {
+      /** Format: int64 */
+      amount: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Clawback'
+      /** Format: base64 */
+      zkProof: string
+    }
+    Internal_CmptCryptographicFields_Convert: {
+      /** Format: base64 */
+      auditorEncryptedAmount?: string
+      /** Format: base64 */
+      blindingFactor: string
+      /** Format: base64 */
+      holderEncryptedAmount: string
+      /** Format: base64 */
+      issuerEncryptedAmount: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Convert'
+      /** Format: base64 */
+      zkProof?: string
+    }
+    Internal_CmptCryptographicFields_ConvertBack: {
+      /** Format: base64 */
+      auditorEncryptedAmount?: string
+      /** Format: base64 */
+      balanceCommitment: string
+      /** Format: base64 */
+      blindingFactor: string
+      /** Format: base64 */
+      holderEncryptedAmount: string
+      /** Format: base64 */
+      issuerEncryptedAmount: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConvertBack'
+      /** Format: base64 */
+      zkProof: string
+    }
+    Internal_CmptCryptographicFields_Send: {
+      /** Format: base64 */
+      amountCommitment: string
+      /** Format: base64 */
+      auditorEncryptedAmount?: string
+      /** Format: base64 */
+      balanceCommitment: string
+      /** Format: base64 */
+      destinationEncryptedAmount: string
+      /** Format: base64 */
+      issuerEncryptedAmount: string
+      /** Format: base64 */
+      senderEncryptedAmount: string
+      /** Format: base64 */
+      senderEncryptedBalance?: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion?: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Send'
+      /** Format: base64 */
+      zkProof: string
+    }
     Internal_ComplianceConfigurationUpdated: {
       accountReference: components['schemas']['Internal_AccountReference']
       modifiedBy?: components['schemas']['Internal_UserReference']
@@ -1540,8 +1523,6 @@ export interface components {
        */
       type: 'ComplianceConfigurationUpdated'
     }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_Connected: Record<string, never>
     Internal_ContractParameters: components['schemas']['Internal_ContractParameters_Raw']
     Internal_ContractParameters_Raw: {
       /**
@@ -1575,7 +1556,7 @@ export interface components {
       /** Format: uuid */
       id: string
       lock: components['schemas']['Internal_IntentLockStatus']
-      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. Required when proposing or dry-running the intent; absent only on intents created before login ids existed. */
+      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. */
       loginIds?: components['schemas']['Internal_LoginId'][]
       /** Format: base64 */
       publicKey: string
@@ -1606,7 +1587,6 @@ export interface components {
       amount: string
       destination: components['schemas']['Internal_TransactionDestination']
       paysFee?: boolean
-      tag?: components['schemas']['Internal_TransferDestinationTag']
     }
     /** @description A list of all entities created during genesis. */
     Internal_CreatedEntitiesReferences: {
@@ -1643,6 +1623,14 @@ export interface components {
       /** Format: base64 */
       signature: string
     }
+    Internal_DecryptCbsPending: {
+      decryptCbsId: string
+      signedPayload: string
+    }
+    Internal_DecryptCbsPrepared: {
+      decryptCbsId: string
+      signedPayload: string
+    }
     Internal_DelegateRepresentativeParameters: components['schemas']['Internal_DelegateRepresentativeParameters_AlwaysAbstain']
     Internal_DelegateRepresentativeParameters_AlwaysAbstain: {
       /**
@@ -1650,24 +1638,6 @@ export interface components {
        * @enum {string}
        */
       type: 'AlwaysAbstain'
-    }
-    Internal_DepositInstructionsCreated: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'DepositInstructionsCreated'
-    }
-    Internal_DepositInstructionsUpdated: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'DepositInstructionsUpdated'
     }
     Internal_Domain: {
       alias: string
@@ -1702,6 +1672,24 @@ export interface components {
        */
       type: 'DomainUpdated'
     }
+    Internal_ElGamalKeyProvisioned: {
+      /** Format: uuid */
+      id: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ElGamalKeyProvisioned'
+    }
+    Internal_ElGamalKeyProvisioningFailed: {
+      /** Format: uuid */
+      id: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ElGamalKeyProvisioningFailed'
+    }
     Internal_Endpoint: {
       address: string
       alias: string
@@ -1725,11 +1713,7 @@ export interface components {
        */
       type: 'EndpointCreated'
     }
-    Internal_EndpointLedgerParameters:
-      | components['schemas']['Internal_EndpointLedgerParameters_Ethereum']
-      | components['schemas']['Internal_EndpointLedgerParameters_Hedera']
-      | components['schemas']['Internal_EndpointLedgerParameters_Stellar']
-      | components['schemas']['Internal_EndpointLedgerParameters_XRPL']
+    Internal_EndpointLedgerParameters: components['schemas']['Internal_EndpointLedgerParameters_Ethereum']
     Internal_EndpointLedgerParameters_Ethereum: {
       /** @description This field can be used to provide an Application Binary Interface (ABI) for EVM-based smart contracts, Ripple Custody's front-end uses the field to provide an extended support when interacting with smart contracts, therefore it is not recommended to submit invalid ABIs in this field but Ripple Custody will not prevent the submission of invalid ABIs to tolerate use cases outside of Ripple Custody's front-end. */
       ABI?: string
@@ -1738,32 +1722,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Ethereum'
-    }
-    Internal_EndpointLedgerParameters_Hedera: {
-      /** @description String encoded using UTF-8, up to 100-bytes long */
-      memo?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Hedera'
-    }
-    Internal_EndpointLedgerParameters_Stellar: {
-      memo?: components['schemas']['Internal_StellarMemo']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Stellar'
-    }
-    Internal_EndpointLedgerParameters_XRPL: {
-      /** Format: int64 */
-      destinationTag?: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'XRPL'
     }
     Internal_EndpointUpdated: {
       /** Format: uuid */
@@ -1805,7 +1763,6 @@ export interface components {
       | components['schemas']['Internal_EthereumFeeStrategy_Priority']
       | components['schemas']['Internal_EthereumFeeStrategy_SpecifiedRate']
       | components['schemas']['Internal_EthereumFeeStrategy_SpecifiedRateEIP1559']
-      | components['schemas']['Internal_EthereumFeeStrategy_Sponsored']
     Internal_EthereumFeeStrategy_Priority: {
       priority: components['schemas']['Internal_FeePriority']
       /**
@@ -1834,36 +1791,8 @@ export interface components {
        */
       type: 'SpecifiedRateEIP1559'
     }
-    Internal_EthereumFeeStrategy_Sponsored: {
-      /** Format: uuid */
-      sponsor?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sponsored'
-    }
     /** @enum {string} */
     Internal_EthereumLikeVaultLedgerIdentifier: 'eth' | 'etc'
-    Internal_EthereumOperation:
-      | components['schemas']['Internal_EthereumOperation_SetDelegation']
-      | components['schemas']['Internal_EthereumOperation_SubmitAuthorization']
-    Internal_EthereumOperation_SetDelegation: {
-      delegationContract: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'SetDelegation'
-    }
-    Internal_EthereumOperation_SubmitAuthorization: {
-      authorizations: components['schemas']['Internal_AuthorizationReference'][]
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'SubmitAuthorization'
-    }
     Internal_EthereumResourceStrategy: components['schemas']['Internal_EthereumResourceStrategy_OrderReplacement']
     Internal_EthereumResourceStrategy_OrderReplacement: {
       reason?: string
@@ -1921,13 +1850,11 @@ export interface components {
       submitter: components['schemas']['Internal_Submitter']
     }
     Internal_EvaluationContextReferences: {
-      accountProviders: components['schemas']['Internal_Map_AccountProvider']
       accounts: components['schemas']['Internal_Map_Account']
       backups: components['schemas']['Internal_Map_Backup']
       domains: components['schemas']['Internal_Map_Domain']
       endpoints: components['schemas']['Internal_Map_Endpoint']
       ledgers: components['schemas']['Internal_Map_Ledger']
-      locations: components['schemas']['Internal_Map_Location']
       manifests: components['schemas']['Internal_Map_Manifest']
       policies: components['schemas']['Internal_Map_Policy']
       systemProperties: components['schemas']['Internal_Map_SystemProperty']
@@ -1943,29 +1870,6 @@ export interface components {
       items: components['schemas']['Internal_HarmonizeEvent'][]
       nextStartingAfter?: string
     }
-    Internal_ExternalOperation: components['schemas']['Internal_ExternalOperation_Transfer']
-    Internal_ExternalOperation_Transfer: {
-      memo?: string
-      outputs: components['schemas']['Internal_Output'][]
-      /** Format: uuid */
-      tickerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Transfer'
-    }
-    Internal_ExternalTickerProperties: components['schemas']['Internal_ExternalTickerProperties_Asset']
-    Internal_ExternalTickerProperties_Asset: {
-      providerAssetId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Asset'
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_Failed: Record<string, never>
     /** @enum {string} */
     Internal_FeePriority: 'High' | 'Medium' | 'Low'
     /** @description Complete genesis payload, copied in and signed by the notary at genesis. */
@@ -1985,7 +1889,6 @@ export interface components {
       payload: components['schemas']['Internal_GenesisPayload']
     }
     Internal_GenesisPayload: {
-      antiRewindMode?: components['schemas']['Internal_AntiRewindMode']
       cryptoSetup: components['schemas']['Internal_GenesisCryptoSetup']
       ledgers?: components['schemas']['Internal_CreateLedgerGenesis'][]
       rootDomainSetup: components['schemas']['Internal_RootDomainSetup']
@@ -2024,18 +1927,16 @@ export interface components {
     }
     Internal_HarmonizeEventPayload:
       | components['schemas']['Internal_AccountCreated']
-      | components['schemas']['Internal_AccountProviderCreated']
-      | components['schemas']['Internal_AccountProviderUpdated']
       | components['schemas']['Internal_AccountUpdated']
       | components['schemas']['Internal_AddressCreated']
       | components['schemas']['Internal_BackupCreated']
       | components['schemas']['Internal_BackupUpdated']
       | components['schemas']['Internal_BalancesUpdated']
       | components['schemas']['Internal_ComplianceConfigurationUpdated']
-      | components['schemas']['Internal_DepositInstructionsCreated']
-      | components['schemas']['Internal_DepositInstructionsUpdated']
       | components['schemas']['Internal_DomainCreated']
       | components['schemas']['Internal_DomainUpdated']
+      | components['schemas']['Internal_ElGamalKeyProvisioned']
+      | components['schemas']['Internal_ElGamalKeyProvisioningFailed']
       | components['schemas']['Internal_EndpointCreated']
       | components['schemas']['Internal_EndpointUpdated']
       | components['schemas']['Internal_GenesisSucceeded']
@@ -2045,11 +1946,8 @@ export interface components {
       | components['schemas']['Internal_IntentUpdated']
       | components['schemas']['Internal_LedgerCreated']
       | components['schemas']['Internal_LedgerUpdated']
-      | components['schemas']['Internal_LocationCreated']
-      | components['schemas']['Internal_LocationUpdated']
       | components['schemas']['Internal_ManifestCreated']
       | components['schemas']['Internal_ManifestUpdated']
-      | components['schemas']['Internal_McoInstanceRegistered']
       | components['schemas']['Internal_PolicyCreated']
       | components['schemas']['Internal_PolicyUpdated']
       | components['schemas']['Internal_QuarantineApplied']
@@ -2069,8 +1967,6 @@ export interface components {
       | components['schemas']['Internal_VaultKeyMaterialRewrapCompleted']
       | components['schemas']['Internal_VaultKeyMaterialRewrapFailed']
       | components['schemas']['Internal_VaultUpdated']
-      | components['schemas']['Internal_ElGamalKeyProvisioned']
-      | components['schemas']['Internal_ElGamalKeyProvisioningFailed']
     Internal_HederaFeeStrategy: components['schemas']['Internal_HederaFeeStrategy_Priority']
     Internal_HederaFeeStrategy_Priority: {
       priority: components['schemas']['Internal_FeePriority']
@@ -2300,14 +2196,10 @@ export interface components {
       | 'v0_CreateTransferOrder'
       | 'v0_SignManifest'
       | 'v0_SetSystemProperty'
-      | 'v0_ConnectProvider'
-      | 'v0_RegisterMcoInstance'
-      | 'v0_RequestDepositInstructions'
       | 'v0_CreateLedger'
       | 'v0_UpdateLedger'
       | 'v0_AddTrustedPublicKeysForMigration'
       | 'v0_RegisterTrustedPublicKey'
-      | 'v0_AddProviderKey'
       | 'v0_CreateBackup'
       | 'v0_AcknowledgeBackup'
       | 'v0_ProvisionElGamalKeyPair'
@@ -2321,10 +2213,9 @@ export interface components {
       type: 'IntentUpdated'
     }
     /** @enum {string} */
+    Internal_KeyPurpose: 'ElGamal'
+    /** @enum {string} */
     Internal_KeyType: 'Secp256r1' | 'Secp256k1' | 'Ed25519'
-    Internal_LarPhase1MigrationSanityCheck: {
-      quarantineExceedsTotalBalance: components['schemas']['Internal_QuarantineExceedsTotalBalance'][]
-    }
     Internal_Ledger: {
       alias: string
       id: string
@@ -2342,15 +2233,12 @@ export interface components {
     Internal_LedgerParameters:
       | components['schemas']['Internal_LedgerParameters_Algorand']
       | components['schemas']['Internal_LedgerParameters_Bitcoin']
-      | components['schemas']['Internal_LedgerParameters_Canton']
       | components['schemas']['Internal_LedgerParameters_Cardano']
       | components['schemas']['Internal_LedgerParameters_Ethereum']
-      | components['schemas']['Internal_LedgerParameters_External']
       | components['schemas']['Internal_LedgerParameters_Hedera']
       | components['schemas']['Internal_LedgerParameters_Solana']
       | components['schemas']['Internal_LedgerParameters_Stellar']
       | components['schemas']['Internal_LedgerParameters_Substrate']
-      | components['schemas']['Internal_LedgerParameters_Sui']
       | components['schemas']['Internal_LedgerParameters_Tezos']
       | components['schemas']['Internal_LedgerParameters_Tron']
       | components['schemas']['Internal_LedgerParameters_XRPL']
@@ -2381,17 +2269,6 @@ export interface components {
       type: 'Bitcoin'
       vaultLedgerIdentifier: components['schemas']['Internal_BitcoinLikeVaultLedgerIdentifier']
     }
-    Internal_LedgerParameters_Canton: {
-      daRegistryOperator: string
-      dsoPartyId: string
-      operatorId: string
-      synchronizerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
-    }
     Internal_LedgerParameters_Cardano: {
       nativeTickerName: string
       nativeTickerSymbol: string
@@ -2415,13 +2292,6 @@ export interface components {
        */
       type: 'Ethereum'
       vaultLedgerIdentifier: components['schemas']['Internal_EthereumLikeVaultLedgerIdentifier']
-    }
-    Internal_LedgerParameters_External: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'External'
     }
     Internal_LedgerParameters_Hedera: {
       nativeTickerName: string
@@ -2468,15 +2338,6 @@ export interface components {
        */
       type: 'Substrate'
     }
-    Internal_LedgerParameters_Sui: {
-      nativeTickerName: string
-      nativeTickerSymbol: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
-    }
     Internal_LedgerParameters_Tezos: {
       chainId: string
       nativeTickerName: string
@@ -2515,34 +2376,6 @@ export interface components {
        */
       type: 'LedgerUpdated'
     }
-    Internal_Location: {
-      alias: string
-      /** Format: uuid */
-      id: string
-      metadata: components['schemas']['Internal_EntityMetadata']
-      /** Format: uuid */
-      providerId: string
-      /** @description ID of the location as reported by the provider */
-      providerLocationId: string
-    }
-    Internal_LocationCreated: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'LocationCreated'
-    }
-    Internal_LocationUpdated: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'LocationUpdated'
-    }
     /** @enum {string} */
     Internal_LockStatus: 'Unlocked' | 'Locked' | 'Archived'
     Internal_LoginId: {
@@ -2564,7 +2397,6 @@ export interface components {
     Internal_Manifest: {
       /** Format: uuid */
       accountId: string
-      address?: string
       content: components['schemas']['Internal_ManifestContent']
       /** Format: uuid */
       domainId: string
@@ -2685,9 +2517,6 @@ export interface components {
     Internal_Map_Account: {
       [key: string]: components['schemas']['Internal_Account']
     }
-    Internal_Map_AccountProvider: {
-      [key: string]: components['schemas']['Internal_AccountProvider']
-    }
     Internal_Map_Backup: {
       [key: string]: components['schemas']['Internal_Backup']
     }
@@ -2699,9 +2528,6 @@ export interface components {
     }
     Internal_Map_Ledger: {
       [key: string]: components['schemas']['Internal_Ledger']
-    }
-    Internal_Map_Location: {
-      [key: string]: components['schemas']['Internal_Location']
     }
     Internal_Map_Manifest: {
       [key: string]: components['schemas']['Internal_Manifest']
@@ -2723,38 +2549,6 @@ export interface components {
     }
     Internal_Map_Vault: {
       [key: string]: components['schemas']['Internal_Vault']
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_McoInstanceRegistered: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'McoInstanceRegistered'
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_McoProviderError: {
-      code: string
-      message?: string
-    }
-    Internal_McoProviderStatus:
-      | components['schemas']['Internal_Connected']
-      | components['schemas']['Internal_Failed']
-      | components['schemas']['Internal_Pending']
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_McoTicker: {
-      /** Format: uuid */
-      mcoAssetId: string
-      /** Format: uuid */
-      providerId: string
-      /** @description ID of the location as reported by the provider */
-      providerLocationId?: string
-      suggestedLedgerDetails?: components['schemas']['Internal_TickerLedgerDetails']
-      suggestedLedgerId?: string
-      /** Format: uuid */
-      underlyingTickerId?: string
     }
     /** @enum {string} */
     Internal_Network: 'mainnet' | 'testnet' | 'regtest'
@@ -2796,14 +2590,65 @@ export interface components {
     Internal_NotarySystemSigningKeyValue: {
       publicKey: components['schemas']['Internal_AccountPublicKeyOnly']
     }
-    Internal_Output: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      destination: components['schemas']['Internal_TransactionDestination']
-      destinationTag?: string
+    Internal_ParametersComputePending: {
+      parametersId: string
+      signedPayload: string
     }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_Pending: Record<string, never>
+    Internal_ParametersComputePrepared: {
+      parametersId: string
+      signedPayload: string
+    }
+    Internal_Participant:
+      | components['schemas']['Internal_Participant_Account']
+      | components['schemas']['Internal_Participant_Address']
+      | components['schemas']['Internal_Participant_Endpoint']
+    Internal_ParticipantSequencing:
+      | components['schemas']['Internal_ParticipantSequencing_AccountSequence']
+      | components['schemas']['Internal_ParticipantSequencing_Ticket']
+    Internal_ParticipantSequencing_AccountSequence: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSequence'
+      /** Format: int64 */
+      value: number
+    }
+    Internal_ParticipantSequencing_Ticket: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Ticket'
+      /** Format: int64 */
+      value: number
+    }
+    Internal_Participant_Account: {
+      /** Format: uuid */
+      accountId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Account'
+    }
+    Internal_Participant_Address: {
+      address: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Address'
+    }
+    Internal_Participant_Endpoint: {
+      /** Format: uuid */
+      endpointId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Endpoint'
+    }
     Internal_Permissions: {
       readAccess: components['schemas']['Internal_ReadAccess']
     }
@@ -2933,15 +2778,12 @@ export interface components {
     Internal_ProposeTransactionOrderParameters:
       | components['schemas']['Internal_TransactionOrderParameters_Algorand']
       | components['schemas']['Internal_TransactionOrderParameters_Bitcoin']
-      | components['schemas']['Internal_TransactionOrderParameters_Canton']
       | components['schemas']['Internal_TransactionOrderParameters_Cardano']
       | components['schemas']['Internal_TransactionOrderParameters_Ethereum']
-      | components['schemas']['Internal_TransactionOrderParameters_External']
       | components['schemas']['Internal_TransactionOrderParameters_Hedera']
       | components['schemas']['Internal_TransactionOrderParameters_Solana']
       | components['schemas']['Internal_TransactionOrderParameters_Stellar']
       | components['schemas']['Internal_TransactionOrderParameters_Substrate']
-      | components['schemas']['Internal_TransactionOrderParameters_Sui']
       | components['schemas']['Internal_TransactionOrderParameters_Tezos']
       | components['schemas']['Internal_TransactionOrderParameters_Tron']
       | components['schemas']['Internal_TransactionOrderParameters_XRPL']
@@ -2949,10 +2791,8 @@ export interface components {
       | components['schemas']['Internal_Propose_v0_CreateTransactionOrder']
       | components['schemas']['Internal_v0_AcknowledgeBackup']
       | components['schemas']['Internal_v0_AddAccountLedgers']
-      | components['schemas']['Internal_v0_AddProviderKey']
       | components['schemas']['Internal_v0_AddTrustedPublicKeysForMigration']
       | components['schemas']['Internal_v0_AttemptTransactionOrderCancellation']
-      | components['schemas']['Internal_v0_ConnectProvider']
       | components['schemas']['Internal_v0_CreateAccount']
       | components['schemas']['Internal_v0_CreateBackup']
       | components['schemas']['Internal_v0_CreateDomain']
@@ -2973,10 +2813,9 @@ export interface components {
       | components['schemas']['Internal_v0_LockVault']
       | components['schemas']['Internal_v0_MigrateSilo3AccountBatch']
       | components['schemas']['Internal_v0_NotarizeData']
-      | components['schemas']['Internal_v0_RegisterMcoInstance']
+      | components['schemas']['Internal_v0_ProvisionElGamalKeyPair']
       | components['schemas']['Internal_v0_RegisterTrustedPublicKey']
       | components['schemas']['Internal_v0_ReleaseQuarantinedTransfers']
-      | components['schemas']['Internal_v0_RequestDepositInstructions']
       | components['schemas']['Internal_v0_RewrapVaultKeyMaterial']
       | components['schemas']['Internal_v0_SetSystemProperty']
       | components['schemas']['Internal_v0_SignManifest']
@@ -2997,7 +2836,6 @@ export interface components {
       | components['schemas']['Internal_v0_UpdateUser']
       | components['schemas']['Internal_v0_UpdateVault']
       | components['schemas']['Internal_v0_ValidateTickers']
-      | components['schemas']['Internal_v0_ProvisionElGamalKeyPair']
     Internal_Propose_v0_CreateTransactionOrder: {
       /** Format: uuid */
       accountId: string
@@ -3013,6 +2851,12 @@ export interface components {
        */
       type: 'v0_CreateTransactionOrder'
     }
+    Internal_PurposeKey: {
+      ledgerId: string
+      /** Format: base64 */
+      publicKey: string
+      purpose: components['schemas']['Internal_KeyPurpose']
+    }
     Internal_QuarantineApplied: {
       /** Format: uuid */
       transferId: string
@@ -3021,21 +2865,6 @@ export interface components {
        * @enum {string}
        */
       type: 'QuarantineApplied'
-    }
-    Internal_QuarantineExceedsTotalBalance: {
-      /** Format: uuid */
-      accountId: string
-      /** Format: uuid */
-      domainId: string
-      /** @description This field is a large integer that can be negative, zero, or positive. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      excessAmount: string
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      quarantinedAmount: string
-      quarantinedTransfers: components['schemas']['Internal_QuarantinedTransfer'][]
-      /** Format: uuid */
-      tickerId: string
-      /** @description This field is a large integer that can be negative, zero, or positive. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      totalAmount: string
     }
     Internal_QuarantineSkipped: {
       /** Format: uuid */
@@ -3048,16 +2877,6 @@ export interface components {
     }
     /** @enum {string} */
     Internal_QuarantineStatus: 'Quarantined' | 'Released' | 'Skipped'
-    Internal_QuarantinedTransfer: {
-      /** Format: date-time */
-      registeredAt: string
-      /** Format: uuid */
-      transactionId?: string
-      /** Format: uuid */
-      transferId: string
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      value: string
-    }
     Internal_ReadAccess: {
       accounts: string[]
       domains: string[]
@@ -3069,17 +2888,8 @@ export interface components {
       users: string[]
     }
     Internal_ReadWriteSystemPropertyKeyValue:
-      | components['schemas']['Internal_ReadWriteSystemPropertyKeyValue_AntiRewindModeProperty']
       | components['schemas']['Internal_ReadWriteSystemPropertyKeyValue_NotarySystemSignedIntentsEnabledProperty']
       | components['schemas']['Internal_ReadWriteSystemPropertyKeyValue_StateReviewAuthorityProperty']
-    Internal_ReadWriteSystemPropertyKeyValue_AntiRewindModeProperty: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'AntiRewindModeProperty'
-      value: components['schemas']['Internal_AntiRewindModeValue']
-    }
     Internal_ReadWriteSystemPropertyKeyValue_NotarySystemSignedIntentsEnabledProperty: {
       /**
        * @description discriminator enum property added by openapi-typescript
@@ -3102,10 +2912,7 @@ export interface components {
     Internal_RecipientTransferParty_Account: {
       /** Format: uuid */
       accountId: string
-      /**
-       * @deprecated
-       * @description Deletion target: Mar. 31st 2027
-       */
+      /** @deprecated */
       address?: string
       addressDetails?: components['schemas']['Internal_AddressDetails']
       /** Format: uuid */
@@ -3166,10 +2973,7 @@ export interface components {
     Internal_SenderTransferParty_Account: {
       /** Format: uuid */
       accountId: string
-      /**
-       * @deprecated
-       * @description Deletion target: Mar. 31st 2027
-       */
+      /** @deprecated */
       addresses?: string[]
       addressesDetails?: components['schemas']['Internal_AddressDetails'][]
       /** Format: uuid */
@@ -3188,6 +2992,39 @@ export interface components {
        * @enum {string}
        */
       type: 'Address'
+    }
+    Internal_Sequencing:
+      | components['schemas']['Internal_Sequencing_AccountSequence']
+      | components['schemas']['Internal_Sequencing_PlatformManaged']
+      | components['schemas']['Internal_Sequencing_Ticket']
+    Internal_Sequencing_AccountSequence: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'AccountSequence'
+      /** Format: int64 */
+      value: number
+    }
+    Internal_Sequencing_PlatformManaged: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'PlatformManaged'
+    }
+    Internal_Sequencing_Ticket: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Ticket'
+      /** Format: int64 */
+      value: number
+    }
+    Internal_Service: {
+      custodyRoles: string[]
+      subject: string
     }
     Internal_ServicePropose: {
       customProperties: components['schemas']['Internal_StringsMap']
@@ -3269,7 +3106,6 @@ export interface components {
     Internal_SolanaOperation_CreateNonceAccount: {
       /** Format: uuid */
       createOnAccount: string
-      nonceAuthority?: components['schemas']['Internal_TransactionDestination']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -3527,27 +3363,8 @@ export interface components {
       transactionId: string
     }
     Internal_Submitter:
-      | components['schemas']['Internal_Submitter_Service']
-      | components['schemas']['Internal_Submitter_User']
       | components['schemas']['Internal_Service']
       | components['schemas']['Internal_User1']
-    Internal_Submitter_Service: {
-      custodyRoles: string[]
-      subject: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Service'
-    }
-    Internal_Submitter_User: {
-      reference: components['schemas']['Internal_UserReference']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'User'
-    }
     Internal_SubstrateBalancesMethod: components['schemas']['Internal_SubstrateBalancesMethod_TransferKeepAlive']
     Internal_SubstrateBalancesMethod_TransferKeepAlive: {
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
@@ -3777,61 +3594,7 @@ export interface components {
        */
       type: 'Native'
     }
-    Internal_SuiFeeStrategy: components['schemas']['Internal_SuiFeeStrategy_Priority']
-    Internal_SuiFeeStrategy_Priority: {
-      priority: components['schemas']['Internal_FeePriority']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Priority'
-    }
-    Internal_SuiOperation:
-      | components['schemas']['Internal_SuiOperation_CoinTransfer']
-      | components['schemas']['Internal_SuiOperation_NativeTransfer']
-    Internal_SuiOperation_CoinTransfer: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      /** @description Move coin type tag, e.g. 0x2::sui::SUI (no generic type parameters). */
-      coinType: string
-      destination: components['schemas']['Internal_TransactionDestination']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'CoinTransfer'
-    }
-    Internal_SuiOperation_NativeTransfer: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      destination: components['schemas']['Internal_TransactionDestination']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'NativeTransfer'
-    }
-    Internal_SuiTickerProperties:
-      | components['schemas']['Internal_SuiTickerProperties_Coin']
-      | components['schemas']['Internal_SuiTickerProperties_Native']
-    Internal_SuiTickerProperties_Coin: {
-      /** @description Move coin type tag, e.g. 0x2::sui::SUI (no generic type parameters). */
-      coinType: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Coin'
-    }
-    Internal_SuiTickerProperties_Native: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Native'
-    }
     Internal_SystemProperty:
-      | components['schemas']['Internal_SystemProperty_AntiRewindModeSystemProperty']
       | components['schemas']['Internal_SystemProperty_NotaryApiKeySystemProperty']
       | components['schemas']['Internal_SystemProperty_NotaryCollectionsKeySystemProperty']
       | components['schemas']['Internal_SystemProperty_NotaryCommunicationKeySystemProperty']
@@ -3846,7 +3609,6 @@ export interface components {
       | 'STATE_REVIEW_AUTHORITY'
       | 'NOTARY_SYSTEM_SIGNING_KEY'
       | 'NOTARY_SYSTEM_SIGNED_INTENTS_ENABLED'
-      | 'ANTI_REWIND_MODE'
     Internal_SystemPropertySet: {
       id: components['schemas']['Internal_SystemPropertyId']
       /**
@@ -3854,11 +3616,6 @@ export interface components {
        * @enum {string}
        */
       type: 'SystemPropertySet'
-    }
-    Internal_SystemProperty_AntiRewindModeSystemProperty: {
-      id: components['schemas']['Internal_SystemPropertyId']
-      metadata: components['schemas']['Internal_EntityMetadata']
-      value: components['schemas']['Internal_AntiRewindModeValue']
     }
     Internal_SystemProperty_NotaryApiKeySystemProperty: {
       id: components['schemas']['Internal_SystemPropertyId']
@@ -3959,16 +3716,12 @@ export interface components {
     Internal_TickerLedgerDetails:
       | components['schemas']['Internal_TickerLedgerDetails_Algorand']
       | components['schemas']['Internal_TickerLedgerDetails_Bitcoin']
-      | components['schemas']['Internal_TickerLedgerDetails_Canton']
       | components['schemas']['Internal_TickerLedgerDetails_Cardano']
       | components['schemas']['Internal_TickerLedgerDetails_Ethereum']
-      | components['schemas']['Internal_TickerLedgerDetails_External']
       | components['schemas']['Internal_TickerLedgerDetails_Hedera']
-      | components['schemas']['Internal_TickerLedgerDetails_Mco']
       | components['schemas']['Internal_TickerLedgerDetails_Solana']
       | components['schemas']['Internal_TickerLedgerDetails_Stellar']
       | components['schemas']['Internal_TickerLedgerDetails_Substrate']
-      | components['schemas']['Internal_TickerLedgerDetails_Sui']
       | components['schemas']['Internal_TickerLedgerDetails_Tezos']
       | components['schemas']['Internal_TickerLedgerDetails_Tron']
       | components['schemas']['Internal_TickerLedgerDetails_XRPL']
@@ -3988,14 +3741,6 @@ export interface components {
        */
       type: 'Bitcoin'
     }
-    Internal_TickerLedgerDetails_Canton: {
-      properties: components['schemas']['Internal_CantonTickerProperties']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
-    }
     Internal_TickerLedgerDetails_Cardano: {
       properties: components['schemas']['Internal_CardanoTickerProperties']
       /**
@@ -4012,14 +3757,6 @@ export interface components {
        */
       type: 'Ethereum'
     }
-    Internal_TickerLedgerDetails_External: {
-      properties: components['schemas']['Internal_ExternalTickerProperties']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'External'
-    }
     Internal_TickerLedgerDetails_Hedera: {
       properties: components['schemas']['Internal_HederaTickerProperties']
       /**
@@ -4027,16 +3764,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Hedera'
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_TickerLedgerDetails_Mco: {
-      /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-      properties: components['schemas']['Internal_McoTicker']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Mco'
     }
     Internal_TickerLedgerDetails_Solana: {
       properties: components['schemas']['Internal_SolanaTickerProperties']
@@ -4061,14 +3788,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Substrate'
-    }
-    Internal_TickerLedgerDetails_Sui: {
-      properties: components['schemas']['Internal_SuiTickerProperties']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
     }
     Internal_TickerLedgerDetails_Tezos: {
       properties: components['schemas']['Internal_TezosTickerProperties']
@@ -4226,15 +3945,12 @@ export interface components {
       | components['schemas']['Internal_TransactionOrderParameters_Algorand']
       | components['schemas']['Internal_TransactionOrderParameters_Bitcoin']
       | components['schemas']['Internal_TransactionOrderParameters_BitcoinRedirect']
-      | components['schemas']['Internal_TransactionOrderParameters_Canton']
       | components['schemas']['Internal_TransactionOrderParameters_Cardano']
       | components['schemas']['Internal_TransactionOrderParameters_Ethereum']
-      | components['schemas']['Internal_TransactionOrderParameters_External']
       | components['schemas']['Internal_TransactionOrderParameters_Hedera']
       | components['schemas']['Internal_TransactionOrderParameters_Solana']
       | components['schemas']['Internal_TransactionOrderParameters_Stellar']
       | components['schemas']['Internal_TransactionOrderParameters_Substrate']
-      | components['schemas']['Internal_TransactionOrderParameters_Sui']
       | components['schemas']['Internal_TransactionOrderParameters_Tezos']
       | components['schemas']['Internal_TransactionOrderParameters_Tron']
       | components['schemas']['Internal_TransactionOrderParameters_XRPL']
@@ -4275,16 +3991,6 @@ export interface components {
        */
       type: 'BitcoinRedirect'
     }
-    Internal_TransactionOrderParameters_Canton: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      maximumFee?: string
-      operation: components['schemas']['Internal_CantonOperation']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
-    }
     Internal_TransactionOrderParameters_Cardano: {
       feeStrategy: components['schemas']['Internal_CardanoFeeStrategy']
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
@@ -4304,21 +4010,12 @@ export interface components {
       feeStrategy: components['schemas']['Internal_EthereumFeeStrategy']
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
       maximumFee?: string
-      operation?: components['schemas']['Internal_EthereumOperation']
       resourceStrategy?: components['schemas']['Internal_EthereumResourceStrategy']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
        */
       type: 'Ethereum'
-    }
-    Internal_TransactionOrderParameters_External: {
-      operation: components['schemas']['Internal_ExternalOperation']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'External'
     }
     Internal_TransactionOrderParameters_Hedera: {
       feeStrategy: components['schemas']['Internal_HederaFeeStrategy']
@@ -4339,8 +4036,6 @@ export interface components {
       maximumFee?: string
       memos: string[]
       nonceAccount?: components['schemas']['Internal_TransactionDestination']
-      /** Format: uuid */
-      nonceAuthority?: string
       operation: components['schemas']['Internal_SolanaOperation']
       /**
        * @description discriminator enum property added by openapi-typescript
@@ -4371,22 +4066,6 @@ export interface components {
        */
       type: 'Substrate'
     }
-    Internal_TransactionOrderParameters_Sui: {
-      feeStrategy: components['schemas']['Internal_SuiFeeStrategy']
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      maximumFee?: string
-      operation: components['schemas']['Internal_SuiOperation']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
-      /**
-       * Format: int32
-       * @description Expiry window in whole Sui epochs (approximately 24 hours each) from preparation; omit for the platform default.
-       */
-      validityEpochs?: number
-    }
     Internal_TransactionOrderParameters_Tezos: {
       feeStrategy: components['schemas']['Internal_TezosFeeStrategy']
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
@@ -4412,7 +4091,7 @@ export interface components {
     Internal_TransactionOrderParameters_XRPL: {
       /**
        * @deprecated
-       * @description Deletion target: Mar. 31st 2027. This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.
+       * @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision.
        */
       amount?: string
       /** @deprecated */
@@ -4423,7 +4102,6 @@ export interface components {
       /**
        * Format: int64
        * @deprecated
-       * @description Deletion target: Mar. 31st 2027
        */
       destinationTag?: number
       feeStrategy: components['schemas']['Internal_XrplFeeStrategy']
@@ -4433,12 +4111,12 @@ export interface components {
       operation?: components['schemas']['Internal_XrplOperation']
       /** Format: int64 */
       sourceTag?: number
+      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
        */
       type: 'XRPL'
-      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
     }
     Internal_TransactionPending: {
       /** Format: uuid */
@@ -4459,50 +4137,17 @@ export interface components {
        */
       type: 'TransactionUpdated'
     }
-    Internal_TransferDestinationTag:
-      | components['schemas']['Internal_TransferDestinationTag_Hedera']
-      | components['schemas']['Internal_TransferDestinationTag_Stellar']
-      | components['schemas']['Internal_TransferDestinationTag_XRPL']
-    Internal_TransferDestinationTag_Hedera: {
-      /** @description String encoded using UTF-8, up to 100-bytes long */
-      memo: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Hedera'
-    }
-    Internal_TransferDestinationTag_Stellar: {
-      memo: components['schemas']['Internal_StellarMemo']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Stellar'
-    }
-    Internal_TransferDestinationTag_XRPL: {
-      /** Format: int64 */
-      destinationTag: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'XRPL'
-    }
     /** @enum {string} */
     Internal_TransferKind: 'Transfer' | 'Fee' | 'Recovery'
     Internal_TransferMetadata:
       | components['schemas']['Internal_TransferMetadata_Algorand']
       | components['schemas']['Internal_TransferMetadata_Bitcoin']
-      | components['schemas']['Internal_TransferMetadata_Canton']
       | components['schemas']['Internal_TransferMetadata_Cardano']
       | components['schemas']['Internal_TransferMetadata_Ethereum']
-      | components['schemas']['Internal_TransferMetadata_External']
       | components['schemas']['Internal_TransferMetadata_Hedera']
       | components['schemas']['Internal_TransferMetadata_Solana']
       | components['schemas']['Internal_TransferMetadata_Stellar']
       | components['schemas']['Internal_TransferMetadata_Substrate']
-      | components['schemas']['Internal_TransferMetadata_Sui']
       | components['schemas']['Internal_TransferMetadata_Tezos']
       | components['schemas']['Internal_TransferMetadata_Tron']
       | components['schemas']['Internal_TransferMetadata_XRPL']
@@ -4522,14 +4167,6 @@ export interface components {
        */
       type: 'Bitcoin'
     }
-    Internal_TransferMetadata_Canton: {
-      memo?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Canton'
-    }
     Internal_TransferMetadata_Cardano: {
       /**
        * @description discriminator enum property added by openapi-typescript
@@ -4544,16 +4181,7 @@ export interface components {
        */
       type: 'Ethereum'
     }
-    Internal_TransferMetadata_External: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'External'
-    }
     Internal_TransferMetadata_Hedera: {
-      /** @description String encoded using UTF-8, up to 100-bytes long */
-      memo?: string
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -4568,7 +4196,6 @@ export interface components {
       type: 'Solana'
     }
     Internal_TransferMetadata_Stellar: {
-      memo?: components['schemas']['Internal_StellarMemo']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -4581,13 +4208,6 @@ export interface components {
        * @enum {string}
        */
       type: 'Substrate'
-    }
-    Internal_TransferMetadata_Sui: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Sui'
     }
     Internal_TransferMetadata_Tezos: {
       /**
@@ -4756,6 +4376,13 @@ export interface components {
       /** Format: base64 */
       signingKey: string
     }
+    Internal_TrustedUsersCollection: {
+      /** Format: int32 */
+      count: number
+      currentStartingAfter?: string
+      items: components['schemas']['Internal_TrustedUser'][]
+      nextStartingAfter?: string
+    }
     Internal_TrustedVault: {
       data: components['schemas']['Internal_Vault']
       /** Format: base64 */
@@ -4777,6 +4404,9 @@ export interface components {
       publicKey: string
       roles: string[]
     }
+    Internal_User1: {
+      reference: components['schemas']['Internal_UserReference']
+    }
     Internal_UserCreated: {
       /** Format: uuid */
       id: string
@@ -4797,10 +4427,8 @@ export interface components {
     Internal_UserIntentPayload:
       | components['schemas']['Internal_v0_AcknowledgeBackup']
       | components['schemas']['Internal_v0_AddAccountLedgers']
-      | components['schemas']['Internal_v0_AddProviderKey']
       | components['schemas']['Internal_v0_AddTrustedPublicKeysForMigration']
       | components['schemas']['Internal_v0_AttemptTransactionOrderCancellation']
-      | components['schemas']['Internal_v0_ConnectProvider']
       | components['schemas']['Internal_v0_CreateAccount']
       | components['schemas']['Internal_v0_CreateBackup']
       | components['schemas']['Internal_v0_CreateDomain']
@@ -4822,10 +4450,9 @@ export interface components {
       | components['schemas']['Internal_v0_LockVault']
       | components['schemas']['Internal_v0_MigrateSilo3AccountBatch']
       | components['schemas']['Internal_v0_NotarizeData']
-      | components['schemas']['Internal_v0_RegisterMcoInstance']
+      | components['schemas']['Internal_v0_ProvisionElGamalKeyPair']
       | components['schemas']['Internal_v0_RegisterTrustedPublicKey']
       | components['schemas']['Internal_v0_ReleaseQuarantinedTransfers']
-      | components['schemas']['Internal_v0_RequestDepositInstructions']
       | components['schemas']['Internal_v0_RewrapVaultKeyMaterial']
       | components['schemas']['Internal_v0_SetSystemProperty']
       | components['schemas']['Internal_v0_SignManifest']
@@ -4846,7 +4473,6 @@ export interface components {
       | components['schemas']['Internal_v0_UpdateUser']
       | components['schemas']['Internal_v0_UpdateVault']
       | components['schemas']['Internal_v0_ValidateTickers']
-      | components['schemas']['Internal_v0_ProvisionElGamalKeyPair']
     /** @enum {string} */
     Internal_UserOperationRejectionCode:
       | 'AccountLocked'
@@ -4899,16 +4525,11 @@ export interface components {
       | 'VaultNotFound'
       | 'VaultLocked'
       | 'VaultHasRandomKeyAccounts'
-      | 'ExternalProviderNotFound'
-      | 'ExternalProviderLocked'
-      | 'ExternalProviderUnexpectedState'
-      | 'LocationNotFound'
       | 'VaultNotReady'
       | 'InvalidDestination'
       | 'InvalidTransactionOrderState'
       | 'InvalidTransactionOrderParameters'
       | 'InvalidTransferOrderParameters'
-      | 'ConflictingDestinationTag'
       | 'InvalidEndpointUpdateParameters'
       | 'InvalidEndpointCreateParameters'
       | 'InvalidManifestContent'
@@ -4920,7 +4541,6 @@ export interface components {
       | 'DuplicateTickerIdsToValidate'
       | 'DuplicateTickerLedgerDatasToValidate'
       | 'InvalidEntityId'
-      | 'TickerUnderlyingAssetIsNotInMetacoAssets'
       | 'MissingLoginIds'
       | 'DuplicatedLoginIds'
       | 'FeatureFlagDisabled'
@@ -4938,14 +4558,7 @@ export interface components {
       | 'BackupAcknowledgeDenied'
       | 'VaultOperationOnExternalAccount'
       | 'ExternalOperationOnVaultAccount'
-      | 'MalformedCredentials'
-      | 'McoNotRegistered'
-      | 'McoTickerAlreadyValidated'
-      | 'McoTickerUnderlyingNotResolved'
-      | 'McoTickerConflictingChainIdentity'
       | 'ValidateTickersPostProcessingFailure'
-      | 'DepositInstructionPostProcessingFailure'
-      | 'SignManifestAddressResolutionFailure'
     Internal_UserReference: {
       /** Format: uuid */
       domainId: string
@@ -4962,7 +4575,6 @@ export interface components {
       /**
        * Format: date-time
        * @deprecated
-       * @description Deletion target: Mar. 31st 2027
        */
       expiryAt?: string
       /** Format: uuid */
@@ -4999,7 +4611,6 @@ export interface components {
       /**
        * Format: date-time
        * @deprecated
-       * @description Deletion target: Mar. 31st 2027
        */
       expiryAt?: string
       /** Format: uuid */
@@ -5114,14 +4725,12 @@ export interface components {
       | components['schemas']['Internal_VaultAccountProviderInformation_Key_VaultDerived']
       | components['schemas']['Internal_VaultAccountProviderInformation_Key_VaultDerivedNonExtended']
       | components['schemas']['Internal_VaultAccountProviderInformation_Key_VaultRandom']
-      | components['schemas']['Internal_VaultAccountProviderInformation_Key_VaultReserved']
     /** @enum {string} */
     Internal_VaultAccountProviderInformation_KeyId:
       | 'SECP256K1_CUSTODY_1'
       | 'ED25519_CUSTODY_1'
       | 'ED25519_CUSTODY_2'
       | 'ED25519_STAKING_1'
-      | 'ED25519_CANTON_PARTY_1'
     Internal_VaultAccountProviderInformation_Key_VaultDerived: {
       derivationPath: string
       id: components['schemas']['Internal_VaultAccountProviderInformation_KeyId']
@@ -5150,15 +4759,6 @@ export interface components {
        * @enum {string}
        */
       type: 'VaultRandom'
-    }
-    Internal_VaultAccountProviderInformation_Key_VaultReserved: {
-      id: components['schemas']['Internal_VaultAccountProviderInformation_KeyId']
-      publicKey?: components['schemas']['Internal_AccountPublicKeyOnly']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'VaultReserved'
     }
     Internal_VaultApiVersion: {
       /** Format: int32 */
@@ -5415,7 +5015,13 @@ export interface components {
     }
     Internal_XrplOperation:
       | components['schemas']['Internal_XrplOperation_AccountSet']
+      | components['schemas']['Internal_XrplOperation_Batch']
       | components['schemas']['Internal_XrplOperation_Clawback']
+      | components['schemas']['Internal_XrplOperation_ConfidentialMPTClawback']
+      | components['schemas']['Internal_XrplOperation_ConfidentialMPTConvert']
+      | components['schemas']['Internal_XrplOperation_ConfidentialMPTConvertBack']
+      | components['schemas']['Internal_XrplOperation_ConfidentialMPTMergeInbox']
+      | components['schemas']['Internal_XrplOperation_ConfidentialMPTSend']
       | components['schemas']['Internal_XrplOperation_DepositPreauth']
       | components['schemas']['Internal_XrplOperation_EscrowFinish']
       | components['schemas']['Internal_XrplOperation_MPTokenAuthorize']
@@ -5424,16 +5030,10 @@ export interface components {
       | components['schemas']['Internal_XrplOperation_MPTokenIssuanceSet']
       | components['schemas']['Internal_XrplOperation_OfferCreate']
       | components['schemas']['Internal_XrplOperation_Payment']
-      | components['schemas']['Internal_XrplOperation_TrustSet']
-      | components['schemas']['Internal_XrplOperation_Batch']
-      | components['schemas']['Internal_XrplOperation_ConfidentialMPTClawback']
-      | components['schemas']['Internal_XrplOperation_ConfidentialMPTConvert']
-      | components['schemas']['Internal_XrplOperation_ConfidentialMPTConvertBack']
-      | components['schemas']['Internal_XrplOperation_ConfidentialMPTMergeInbox']
-      | components['schemas']['Internal_XrplOperation_ConfidentialMPTSend']
       | components['schemas']['Internal_XrplOperation_SponsorshipSetAsSponsee']
       | components['schemas']['Internal_XrplOperation_SponsorshipSetAsSponsor']
       | components['schemas']['Internal_XrplOperation_TicketCreate']
+      | components['schemas']['Internal_XrplOperation_TrustSet']
     Internal_XrplOperation_AccountSet: {
       clearFlag?: components['schemas']['Internal_Xrpl_AccountSetFlag']
       setFlag?: components['schemas']['Internal_Xrpl_AccountSetFlag']
@@ -5445,6 +5045,19 @@ export interface components {
        */
       type: 'AccountSet'
     }
+    Internal_XrplOperation_Batch: {
+      batchSigners: components['schemas']['Internal_BatchSigner'][]
+      entries: components['schemas']['Internal_BatchEntry'][]
+      executionMode: components['schemas']['Internal_Xrpl_BatchExecutionMode']
+      /** Format: int64 */
+      lastLedgerSequence?: number
+      sequencing: components['schemas']['Internal_Sequencing']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'Batch'
+    }
     Internal_XrplOperation_Clawback: {
       currency: components['schemas']['Internal_XrplClawbackCurrency']
       holder: components['schemas']['Internal_TransactionDestination']
@@ -5455,6 +5068,60 @@ export interface components {
       type: 'Clawback'
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
       value: string
+    }
+    Internal_XrplOperation_ConfidentialMPTClawback: {
+      cryptographicFields?: components['schemas']['Internal_CmptCryptographicFields']
+      holder: components['schemas']['Internal_TransactionDestination']
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTClawback'
+    }
+    Internal_XrplOperation_ConfidentialMPTConvert: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvert'
+    }
+    Internal_XrplOperation_ConfidentialMPTConvertBack: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount: string
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTConvertBack'
+    }
+    Internal_XrplOperation_ConfidentialMPTMergeInbox: {
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTMergeInbox'
+    }
+    Internal_XrplOperation_ConfidentialMPTSend: {
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      amount?: string
+      cryptographicFields?: components['schemas']['Internal_CmptCryptographicFields']
+      destination: components['schemas']['Internal_TransactionDestination']
+      /** @description Hex encoded string. */
+      senderEncryptedBalance?: string
+      /** Format: int64 */
+      senderEncryptedBalanceVersion?: number
+      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMPTSend'
     }
     Internal_XrplOperation_DepositPreauth: {
       authorize?: components['schemas']['Internal_TransactionDestination']
@@ -5517,17 +5184,17 @@ export interface components {
       type: 'MPTokenIssuanceDestroy'
     }
     Internal_XrplOperation_MPTokenIssuanceSet: {
+      auditorEncryptionKey?: string
       flags: components['schemas']['Internal_Xrpl_MPTokenIssuanceSetFlag'][]
       holder?: components['schemas']['Internal_TransactionDestination']
+      issuerEncryptionKey?: string
+      mutableFlags: components['schemas']['Internal_Xrpl_MPTokenIssuanceMutableFlag'][]
       tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
        */
       type: 'MPTokenIssuanceSet'
-      auditorEncryptionKey?: string
-      issuerEncryptionKey?: string
-      mutableFlags?: components['schemas']['Internal_Xrpl_MPTokenIssuanceMutableFlag'][]
     }
     Internal_XrplOperation_OfferCreate: {
       flags: components['schemas']['Internal_Xrpl_OfferCreateFlag'][]
@@ -5546,12 +5213,47 @@ export interface components {
       destination: components['schemas']['Internal_TransactionDestination']
       /** Format: int64 */
       destinationTag?: number
+      flags?: components['schemas']['Internal_Xrpl_PaymentFlag'][]
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
        */
       type: 'Payment'
-      flags?: components['schemas']['Internal_Xrpl_PaymentFlag'][]
+    }
+    Internal_XrplOperation_SponsorshipSetAsSponsee: {
+      sponsor: components['schemas']['Internal_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SponsorshipSetAsSponsee'
+    }
+    Internal_XrplOperation_SponsorshipSetAsSponsor: {
+      /** @description This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      feeAmountDelta?: string
+      flags: components['schemas']['Internal_Xrpl_SponsorshipSetFlag'][]
+      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
+      maxFee?: string
+      /** Format: int32 */
+      remainingOwnerCountDelta?: number
+      sponsee: components['schemas']['Internal_TransactionDestination']
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'SponsorshipSetAsSponsor'
+    }
+    Internal_XrplOperation_TicketCreate: {
+      /**
+       * Format: int32
+       * @description Number of tickets to create, must be from 1 to 250
+       */
+      ticketCount: number
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'TicketCreate'
     }
     Internal_XrplOperation_TrustSet: {
       enableRippling?: boolean
@@ -5594,11 +5296,24 @@ export interface components {
        */
       type: 'TickerId'
     }
+    Internal_XrplSponsorshipParams: {
+      flags: components['schemas']['Internal_Xrpl_SponsorFlag'][]
+      sponsor: components['schemas']['Internal_TransactionDestination']
+    }
     Internal_XrplTickerProperties:
+      | components['schemas']['Internal_XrplTickerProperties_ConfidentialMultiPurposeToken']
       | components['schemas']['Internal_XrplTickerProperties_FungibleToken']
       | components['schemas']['Internal_XrplTickerProperties_MultiPurposeToken']
       | components['schemas']['Internal_XrplTickerProperties_Native']
-      | components['schemas']['Internal_XrplTickerProperties_ConfidentialMultiPurposeToken']
+    Internal_XrplTickerProperties_ConfidentialMultiPurposeToken: {
+      /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
+      issuanceId: string
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: 'ConfidentialMultiPurposeToken'
+    }
     Internal_XrplTickerProperties_FungibleToken: {
       currencyCode: string
       issuer: string
@@ -5639,6 +5354,9 @@ export interface components {
       amount: string
       currency?: components['schemas']['Internal_XrplIouCurrency']
     }
+    /** @enum {string} */
+    Internal_Xrpl_BatchExecutionMode:
+      'AllOrNothing' | 'OnlyOne' | 'UntilFailure' | 'Independent'
     Internal_Xrpl_LimitAmount: {
       currency: components['schemas']['Internal_XrplIouCurrency']
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
@@ -5677,10 +5395,26 @@ export interface components {
       | 'tfMPTCanTrade'
       | 'tfMPTCanConfidentialAmount'
     /** @enum {string} */
+    Internal_Xrpl_MPTokenIssuanceMutableFlag: 'MPTSetCanConfidentialAmount'
+    /** @enum {string} */
     Internal_Xrpl_MPTokenIssuanceSetFlag: 'tfMPTLock' | 'tfMPTUnlock'
     /** @enum {string} */
     Internal_Xrpl_OfferCreateFlag:
       'tfImmediateOrCancel' | 'tfFillOrKill' | 'tfSell'
+    /** @enum {string} */
+    Internal_Xrpl_PaymentFlag: 'tfSponsorCreatedAccount'
+    /**
+     * @description spfSponsorFee sponsors the transaction fee, spfSponsorReserve the owner reserve. spfSponsorReserve is rejected on transaction types for which the ledger does not allow reserve sponsorship (e.g. OfferCreate, TicketCreate, ConfidentialMPT operations)
+     * @enum {string}
+     */
+    Internal_Xrpl_SponsorFlag: 'spfSponsorFee' | 'spfSponsorReserve'
+    /** @enum {string} */
+    Internal_Xrpl_SponsorshipSetFlag:
+      | 'tfRequireSignForFee'
+      | 'tfClearRequireSignForFee'
+      | 'tfRequireSignForReserve'
+      | 'tfClearRequireSignForReserve'
+      | 'tfDeleteObject'
     /** @enum {string} */
     Internal_Xrpl_TrustSetFlag: 'tfSetFreeze' | 'tfClearFreeze' | 'tfSetfAuth'
     Internal_v0_AcknowledgeBackup: {
@@ -5700,17 +5434,6 @@ export interface components {
        * @enum {string}
        */
       type: 'v0_AddAccountLedgers'
-    }
-    Internal_v0_AddProviderKey: {
-      /** Format: uuid */
-      providerId: string
-      /** Format: base64 */
-      publicKey: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'v0_AddProviderKey'
     }
     Internal_v0_AddTrustedPublicKeysForMigration: {
       /** Format: base64 */
@@ -5744,30 +5467,13 @@ export interface components {
        */
       type: 'v0_AttemptTransactionOrderCancellation'
     }
-    Internal_v0_ConnectProvider: {
-      alias: string
-      customProperties: components['schemas']['Internal_StringsMap']
-      description?: string
-      /** Format: uuid */
-      id: string
-      lock: components['schemas']['Internal_LockStatus']
-      provider: components['schemas']['Internal_AccountProviderAction']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'v0_ConnectProvider'
-    }
     Internal_v0_CreateAccount: {
       alias: string
       customProperties: components['schemas']['Internal_StringsMap']
       description?: string
       /** Format: uuid */
       id: string
-      /**
-       * @deprecated
-       * @description Deletion target: Mar. 31st 2027
-       */
+      /** @deprecated */
       ledgerId?: string
       ledgerIds?: string[]
       lock: components['schemas']['Internal_IntentLockStatus']
@@ -5778,34 +5484,7 @@ export interface components {
        */
       type: 'v0_CreateAccount'
     }
-    Internal_v0_CreateAccountProviderDetailsPayload:
-      | components['schemas']['Internal_v0_CreateAccountProviderDetailsPayload_External']
-      | components['schemas']['Internal_v0_CreateAccountProviderDetailsPayload_Mco']
-      | components['schemas']['Internal_v0_CreateAccountProviderDetailsPayload_Vault']
-    Internal_v0_CreateAccountProviderDetailsPayload_External: {
-      /** Format: uuid */
-      locationId: string
-      /** Format: uuid */
-      providerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'External'
-    }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_v0_CreateAccountProviderDetailsPayload_Mco: {
-      /** Format: uuid */
-      locationId: string
-      /** Format: uuid */
-      providerId: string
-      subcustodianAccountId?: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Mco'
-    }
+    Internal_v0_CreateAccountProviderDetailsPayload: components['schemas']['Internal_v0_CreateAccountProviderDetailsPayload_Vault']
     Internal_v0_CreateAccountProviderDetailsPayload_Vault: {
       keyStrategy: components['schemas']['Internal_AccountKeyStrategy']
       /**
@@ -5849,11 +5528,6 @@ export interface components {
     Internal_v0_CreateEndpoint: {
       address: string
       alias: string
-      /**
-       * @deprecated
-       * @description Whether an endpoint duplicating the address, ledger and tag of an existing one is accepted. Defaults to true. Deletion target: Oct. 1st 2027 — after this date such an endpoint is always rejected.
-       */
-      allowDuplicate?: boolean
       customProperties: components['schemas']['Internal_StringsMap']
       description?: string
       /** Format: uuid */
@@ -5941,7 +5615,6 @@ export interface components {
       id: string
       /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
       maximumFee?: string
-      memo?: string
       outputs: components['schemas']['Internal_CreateTransferOrderOutput'][]
       preferredAddressForChange?: components['schemas']['Internal_PreferredAddressForChange']
       /** Format: uuid */
@@ -5959,7 +5632,7 @@ export interface components {
       /** Format: uuid */
       id: string
       lock: components['schemas']['Internal_IntentLockStatus']
-      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. Required when proposing or dry-running the intent; absent only on intents created before login ids existed. */
+      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. */
       loginIds?: components['schemas']['Internal_LoginId'][]
       /** Format: base64 */
       publicKey: string
@@ -6072,23 +5745,15 @@ export interface components {
        */
       type: 'v0_NotarizeData'
     }
-    /** @description **Experimental** (Mco): subject to change until 2026-12-31. */
-    Internal_v0_RegisterMcoInstance: {
-      /** Format: base64 */
-      commPubKey: string
-      customProperties: components['schemas']['Internal_StringsMap']
-      description?: string
-      /** Format: base64 */
-      encPubKey: string
+    Internal_v0_ProvisionElGamalKeyPair: {
       /** Format: uuid */
-      id: string
-      /** Format: uuid */
-      mcoTenantId: string
+      accountId: string
+      ledgerId: string
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
        */
-      type: 'v0_RegisterMcoInstance'
+      type: 'v0_ProvisionElGamalKeyPair'
     }
     Internal_v0_RegisterTrustedPublicKey: {
       /** Format: base64 */
@@ -6109,21 +5774,6 @@ export interface components {
        * @enum {string}
        */
       type: 'v0_ReleaseQuarantinedTransfers'
-    }
-    Internal_v0_RequestDepositInstructions: {
-      /** Format: uuid */
-      accountId: string
-      customProperties: components['schemas']['Internal_StringsMap']
-      description?: string
-      /** Format: uuid */
-      id: string
-      /** Format: uuid */
-      tickerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'v0_RequestDepositInstructions'
     }
     Internal_v0_RewrapVaultKeyMaterial: {
       customProperties: components['schemas']['Internal_StringsMap']
@@ -6149,7 +5799,6 @@ export interface components {
     Internal_v0_SignManifest: {
       /** Format: uuid */
       accountId: string
-      address?: string
       content: components['schemas']['Internal_ManifestContent']
       customProperties: components['schemas']['Internal_StringsMap']
       description?: string
@@ -6252,17 +5901,9 @@ export interface components {
     Internal_v0_UpdateEndpoint: {
       address: string
       alias: string
-      /**
-       * @deprecated
-       * @description Whether an endpoint duplicating the address, ledger and tag of an existing one is accepted. Defaults to true. Deletion target: Oct. 1st 2027 — after this date such an endpoint is always rejected.
-       */
-      allowDuplicate?: boolean
       customProperties: components['schemas']['Internal_StringsMap']
       description?: string
-      /**
-       * @deprecated
-       * @description Deletion target: Mar. 31st 2027
-       */
+      /** @deprecated */
       ledgerId?: string
       parameters?: components['schemas']['Internal_EndpointLedgerParameters']
       reference: components['schemas']['Internal_EntityIdAndRevision']
@@ -6323,7 +5964,7 @@ export interface components {
       alias: string
       customProperties: components['schemas']['Internal_StringsMap']
       description?: string
-      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. Required when proposing or dry-running the intent; absent only on intents created before login ids existed. */
+      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. */
       loginIds?: components['schemas']['Internal_LoginId'][]
       reference: components['schemas']['Internal_EntityIdAndRevision']
       roles: string[]
@@ -6356,17 +5997,11 @@ export interface components {
     Notification_EntityToSign: {
       entity: Record<string, never>
       hash: string
-      verificationCode?: string
-      /** @enum {string} */
-      verificationCodeMode: 'open'
     }
     Notification_ExtendedEntityToSign: {
       entity: Record<string, never>
       hash: string
       intentContext: Record<string, never>
-      verificationCode?: string
-      /** @enum {string} */
-      verificationCodeMode: 'open'
     }
     Notification_RegisterMobile: {
       email: string
@@ -6385,13 +6020,6 @@ export interface components {
       pushToken: string
       signature: string
     }
-    Notification_SecuredUnregisterMobile: {
-      email: string
-      nonce: string
-      publicKey: string
-      pushToken: string
-      signature: string
-    }
     Notification_SignEntity: {
       email: string
       hash: string
@@ -6401,6 +6029,9 @@ export interface components {
       email: string
       entity: Record<string, never>
       hash: string
+    }
+    Notification_UnregisterDevice: {
+      pushToken: string
     }
     Web3Connector_ChangeAccount: {
       ledgerId?: string
@@ -6436,629 +6067,6 @@ export interface components {
       params: string
       sessionId: string
     }
-    Internal_ApiCbInDecryptionStatusResponse: {
-      decryptedAmount?: string
-      error?: string
-      /** Format: uuid */
-      id: string
-      status: string
-    }
-    Internal_ApiInitiateCbInDecryptionRequest: {
-      /** Format: uuid */
-      accountId: string
-      /** Format: uuid */
-      domainId: string
-      issuanceId: string
-      ledgerId: string
-    }
-    Internal_ApiInitiateCbInDecryptionResponse: {
-      /** Format: uuid */
-      id: string
-      status: string
-    }
-    Internal_BatchEntry:
-      | components['schemas']['Internal_BatchEntry_ParticipantOperation']
-      | components['schemas']['Internal_BatchEntry_SubmitterOperation']
-    Internal_BatchEntry_ParticipantOperation: {
-      operation: components['schemas']['Internal_BatchInnerOperation']
-      participant: components['schemas']['Internal_Participant']
-      sequencing: components['schemas']['Internal_ParticipantSequencing']
-      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ParticipantOperation'
-    }
-    Internal_BatchEntry_SubmitterOperation: {
-      operation: components['schemas']['Internal_BatchInnerOperation']
-      sequencing: components['schemas']['Internal_Sequencing']
-      sponsorship?: components['schemas']['Internal_XrplSponsorshipParams']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'SubmitterOperation'
-    }
-    Internal_BatchInnerOperation:
-      | components['schemas']['Internal_BatchInnerOperation_AccountSet']
-      | components['schemas']['Internal_BatchInnerOperation_Clawback']
-      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTConvert']
-      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTConvertBack']
-      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTMergeInbox']
-      | components['schemas']['Internal_BatchInnerOperation_ConfidentialMPTSend']
-      | components['schemas']['Internal_BatchInnerOperation_DepositPreauth']
-      | components['schemas']['Internal_BatchInnerOperation_EscrowFinish']
-      | components['schemas']['Internal_BatchInnerOperation_MPTokenAuthorize']
-      | components['schemas']['Internal_BatchInnerOperation_MPTokenIssuanceCreate']
-      | components['schemas']['Internal_BatchInnerOperation_MPTokenIssuanceDestroy']
-      | components['schemas']['Internal_BatchInnerOperation_MPTokenIssuanceSet']
-      | components['schemas']['Internal_BatchInnerOperation_OfferCreate']
-      | components['schemas']['Internal_BatchInnerOperation_Payment']
-      | components['schemas']['Internal_BatchInnerOperation_TicketCreate']
-      | components['schemas']['Internal_BatchInnerOperation_TrustSet']
-    Internal_BatchInnerOperation_AccountSet: {
-      clearFlag?: components['schemas']['Internal_Xrpl_AccountSetFlag']
-      setFlag?: components['schemas']['Internal_Xrpl_AccountSetFlag']
-      /** Format: int32 */
-      transferRate?: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'AccountSet'
-    }
-    Internal_BatchInnerOperation_Clawback: {
-      currency: components['schemas']['Internal_XrplClawbackCurrency']
-      holder: components['schemas']['Internal_TransactionDestination']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Clawback'
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      value: string
-    }
-    Internal_BatchInnerOperation_ConfidentialMPTConvert: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTConvert'
-    }
-    Internal_BatchInnerOperation_ConfidentialMPTConvertBack: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTConvertBack'
-    }
-    Internal_BatchInnerOperation_ConfidentialMPTMergeInbox: {
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTMergeInbox'
-    }
-    Internal_BatchInnerOperation_ConfidentialMPTSend: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount?: string
-      cryptographicFields?: components['schemas']['Internal_CmptCryptographicFields']
-      destination: components['schemas']['Internal_TransactionDestination']
-      /** @description Hex encoded string. */
-      senderEncryptedBalance?: string
-      /** Format: int64 */
-      senderEncryptedBalanceVersion?: number
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTSend'
-    }
-    Internal_BatchInnerOperation_DepositPreauth: {
-      authorize?: components['schemas']['Internal_TransactionDestination']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'DepositPreauth'
-      unauthorize?: components['schemas']['Internal_TransactionDestination']
-    }
-    Internal_BatchInnerOperation_EscrowFinish: {
-      /** @description Hex encoded string. */
-      condition?: string
-      credentialIds?: string[]
-      /** @description Hex encoded string. */
-      fulfillment?: string
-      /** Format: int64 */
-      offerSequence: number
-      owner: components['schemas']['Internal_TransactionDestination']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'EscrowFinish'
-    }
-    Internal_BatchInnerOperation_MPTokenAuthorize: {
-      flags: components['schemas']['Internal_Xrpl_MPTokenAuthorizeFlag'][]
-      holder?: components['schemas']['Internal_TransactionDestination']
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'MPTokenAuthorize'
-    }
-    Internal_BatchInnerOperation_MPTokenIssuanceCreate: {
-      /** Format: int32 */
-      assetScale?: number
-      flags: components['schemas']['Internal_Xrpl_MPTokenIssuanceCreateFlag'][]
-      /** @description This field is a unsigned 64bit integer that can store values in range from 0 to 18446744073709551615.It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      maximumAmount?: string
-      metadata?: components['schemas']['Internal_MPTokenIssuanceMetadata']
-      /**
-       * Format: int32
-       * @description Transfer fee for MultiPurposeToken, must be from 0 to 50000
-       */
-      transferFee?: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'MPTokenIssuanceCreate'
-    }
-    Internal_BatchInnerOperation_MPTokenIssuanceDestroy: {
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'MPTokenIssuanceDestroy'
-    }
-    Internal_BatchInnerOperation_MPTokenIssuanceSet: {
-      auditorEncryptionKey?: string
-      flags: components['schemas']['Internal_Xrpl_MPTokenIssuanceSetFlag'][]
-      holder?: components['schemas']['Internal_TransactionDestination']
-      issuerEncryptionKey?: string
-      mutableFlags: components['schemas']['Internal_Xrpl_MPTokenIssuanceMutableFlag'][]
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'MPTokenIssuanceSet'
-    }
-    Internal_BatchInnerOperation_OfferCreate: {
-      flags: components['schemas']['Internal_Xrpl_OfferCreateFlag'][]
-      takerGets: components['schemas']['Internal_Xrpl_AssetQuantity']
-      takerPays: components['schemas']['Internal_Xrpl_AssetQuantity']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'OfferCreate'
-    }
-    Internal_BatchInnerOperation_Payment: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      currency?: components['schemas']['Internal_XrplPaymentCurrency']
-      destination: components['schemas']['Internal_TransactionDestination']
-      /** Format: int64 */
-      destinationTag?: number
-      flags?: components['schemas']['Internal_Xrpl_PaymentFlag'][]
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Payment'
-    }
-    Internal_BatchInnerOperation_TicketCreate: {
-      /**
-       * Format: int32
-       * @description Number of tickets to create, must be from 1 to 250
-       */
-      ticketCount: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'TicketCreate'
-    }
-    Internal_BatchInnerOperation_TrustSet: {
-      enableRippling?: boolean
-      flags: components['schemas']['Internal_Xrpl_TrustSetFlag'][]
-      limitAmount: components['schemas']['Internal_Xrpl_LimitAmount']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'TrustSet'
-    }
-    Internal_BatchSigner: {
-      participant: components['schemas']['Internal_Participant']
-      /** @description Hex encoded string. */
-      publicKey: string
-      /** @description Hex encoded string. */
-      signature: string
-    }
-    Internal_CmptCryptographicFields:
-      | components['schemas']['Internal_CmptCryptographicFields_Clawback']
-      | components['schemas']['Internal_CmptCryptographicFields_Convert']
-      | components['schemas']['Internal_CmptCryptographicFields_ConvertBack']
-      | components['schemas']['Internal_CmptCryptographicFields_Send']
-    Internal_CmptCryptographicFields_Clawback: {
-      /** Format: int64 */
-      amount: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Clawback'
-      /** Format: base64 */
-      zkProof: string
-    }
-    Internal_CmptCryptographicFields_Convert: {
-      /** Format: base64 */
-      auditorEncryptedAmount?: string
-      /** Format: base64 */
-      blindingFactor: string
-      /** Format: base64 */
-      holderEncryptedAmount: string
-      /** Format: base64 */
-      issuerEncryptedAmount: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Convert'
-      /** Format: base64 */
-      zkProof?: string
-    }
-    Internal_CmptCryptographicFields_ConvertBack: {
-      /** Format: base64 */
-      auditorEncryptedAmount?: string
-      /** Format: base64 */
-      balanceCommitment: string
-      /** Format: base64 */
-      blindingFactor: string
-      /** Format: base64 */
-      holderEncryptedAmount: string
-      /** Format: base64 */
-      issuerEncryptedAmount: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConvertBack'
-      /** Format: base64 */
-      zkProof: string
-    }
-    Internal_CmptCryptographicFields_Send: {
-      /** Format: base64 */
-      amountCommitment: string
-      /** Format: base64 */
-      auditorEncryptedAmount?: string
-      /** Format: base64 */
-      balanceCommitment: string
-      /** Format: base64 */
-      destinationEncryptedAmount: string
-      /** Format: base64 */
-      issuerEncryptedAmount: string
-      /** Format: base64 */
-      senderEncryptedAmount: string
-      /** Format: base64 */
-      senderEncryptedBalance?: string
-      /** Format: int64 */
-      senderEncryptedBalanceVersion?: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Send'
-      /** Format: base64 */
-      zkProof: string
-    }
-    Internal_DecryptCbsPending: {
-      decryptCbsId: string
-      signedPayload: string
-    }
-    Internal_DecryptCbsPrepared: {
-      decryptCbsId: string
-      signedPayload: string
-    }
-    Internal_ElGamalKeyProvisioned: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ElGamalKeyProvisioned'
-    }
-    Internal_ElGamalKeyProvisioningFailed: {
-      /** Format: uuid */
-      id: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ElGamalKeyProvisioningFailed'
-    }
-    /** @enum {string} */
-    Internal_KeyPurpose: 'ElGamal'
-    Internal_ParametersComputePending: {
-      parametersId: string
-      signedPayload: string
-    }
-    Internal_ParametersComputePrepared: {
-      parametersId: string
-      signedPayload: string
-    }
-    Internal_Participant:
-      | components['schemas']['Internal_Participant_Account']
-      | components['schemas']['Internal_Participant_Address']
-      | components['schemas']['Internal_Participant_Endpoint']
-    Internal_ParticipantSequencing:
-      | components['schemas']['Internal_ParticipantSequencing_AccountSequence']
-      | components['schemas']['Internal_ParticipantSequencing_Ticket']
-    Internal_ParticipantSequencing_AccountSequence: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'AccountSequence'
-      /** Format: int64 */
-      value: number
-    }
-    Internal_ParticipantSequencing_Ticket: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Ticket'
-      /** Format: int64 */
-      value: number
-    }
-    Internal_Participant_Account: {
-      /** Format: uuid */
-      accountId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Account'
-    }
-    Internal_Participant_Address: {
-      address: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Address'
-    }
-    Internal_Participant_Endpoint: {
-      /** Format: uuid */
-      endpointId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Endpoint'
-    }
-    Internal_PurposeKey: {
-      ledgerId: string
-      /** Format: base64 */
-      publicKey: string
-      purpose: components['schemas']['Internal_KeyPurpose']
-    }
-    Internal_Sequencing:
-      | components['schemas']['Internal_Sequencing_AccountSequence']
-      | components['schemas']['Internal_Sequencing_PlatformManaged']
-      | components['schemas']['Internal_Sequencing_Ticket']
-    Internal_Sequencing_AccountSequence: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'AccountSequence'
-      /** Format: int64 */
-      value: number
-    }
-    Internal_Sequencing_PlatformManaged: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'PlatformManaged'
-    }
-    Internal_Sequencing_Ticket: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Ticket'
-      /** Format: int64 */
-      value: number
-    }
-    Internal_Service: {
-      custodyRoles: string[]
-      subject: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Internal_Service'
-    }
-    Internal_TrustedUsersCollection: {
-      /** Format: int32 */
-      count: number
-      currentStartingAfter?: string
-      items: components['schemas']['Internal_TrustedUser'][]
-      nextStartingAfter?: string
-    }
-    Internal_User1: {
-      reference: components['schemas']['Internal_UserReference']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Internal_User1'
-    }
-    Internal_XrplOperation_Batch: {
-      batchSigners: components['schemas']['Internal_BatchSigner'][]
-      entries: components['schemas']['Internal_BatchEntry'][]
-      executionMode: components['schemas']['Internal_Xrpl_BatchExecutionMode']
-      /** Format: int64 */
-      lastLedgerSequence?: number
-      sequencing: components['schemas']['Internal_Sequencing']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'Batch'
-    }
-    Internal_XrplOperation_ConfidentialMPTClawback: {
-      cryptographicFields?: components['schemas']['Internal_CmptCryptographicFields']
-      holder: components['schemas']['Internal_TransactionDestination']
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTClawback'
-    }
-    Internal_XrplOperation_ConfidentialMPTConvert: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTConvert'
-    }
-    Internal_XrplOperation_ConfidentialMPTConvertBack: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount: string
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTConvertBack'
-    }
-    Internal_XrplOperation_ConfidentialMPTMergeInbox: {
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTMergeInbox'
-    }
-    Internal_XrplOperation_ConfidentialMPTSend: {
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      amount?: string
-      cryptographicFields?: components['schemas']['Internal_CmptCryptographicFields']
-      destination: components['schemas']['Internal_TransactionDestination']
-      /** @description Hex encoded string. */
-      senderEncryptedBalance?: string
-      /** Format: int64 */
-      senderEncryptedBalanceVersion?: number
-      tokenIdentifier: components['schemas']['Internal_Xrpl_MPTokenIdentifier']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMPTSend'
-    }
-    Internal_XrplOperation_SponsorshipSetAsSponsee: {
-      sponsor: components['schemas']['Internal_TransactionDestination']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'SponsorshipSetAsSponsee'
-    }
-    Internal_XrplOperation_SponsorshipSetAsSponsor: {
-      /** @description This field is a large integer and represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      feeAmountDelta?: string
-      flags: components['schemas']['Internal_Xrpl_SponsorshipSetFlag'][]
-      /** @description This field is a large integer that can be positive or zero. It is represented as a string because it may contain value that cannot be expressed with JSON number without a loss of precision. */
-      maxFee?: string
-      /** Format: int32 */
-      remainingOwnerCountDelta?: number
-      sponsee: components['schemas']['Internal_TransactionDestination']
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'SponsorshipSetAsSponsor'
-    }
-    Internal_XrplOperation_TicketCreate: {
-      /**
-       * Format: int32
-       * @description Number of tickets to create, must be from 1 to 250
-       */
-      ticketCount: number
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'TicketCreate'
-    }
-    Internal_XrplSponsorshipParams: {
-      flags: components['schemas']['Internal_Xrpl_SponsorFlag'][]
-      sponsor: components['schemas']['Internal_TransactionDestination']
-    }
-    Internal_XrplTickerProperties_ConfidentialMultiPurposeToken: {
-      /** @description XRPL MPToken Issuance ID (192-bit integer hex encoded) */
-      issuanceId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'ConfidentialMultiPurposeToken'
-    }
-    /** @enum {string} */
-    Internal_Xrpl_BatchExecutionMode:
-      'AllOrNothing' | 'OnlyOne' | 'UntilFailure' | 'Independent'
-    /** @enum {string} */
-    Internal_Xrpl_MPTokenIssuanceMutableFlag: 'MPTSetCanConfidentialAmount'
-    /** @enum {string} */
-    Internal_Xrpl_PaymentFlag: 'tfSponsorCreatedAccount'
-    /**
-     * @description spfSponsorFee sponsors the transaction fee, spfSponsorReserve the owner reserve. spfSponsorReserve is rejected on transaction types for which the ledger does not allow reserve sponsorship (e.g. OfferCreate, TicketCreate, ConfidentialMPT operations)
-     * @enum {string}
-     */
-    Internal_Xrpl_SponsorFlag: 'spfSponsorFee' | 'spfSponsorReserve'
-    /** @enum {string} */
-    Internal_Xrpl_SponsorshipSetFlag:
-      | 'tfRequireSignForFee'
-      | 'tfClearRequireSignForFee'
-      | 'tfRequireSignForReserve'
-      | 'tfClearRequireSignForReserve'
-      | 'tfDeleteObject'
-    Internal_v0_ProvisionElGamalKeyPair: {
-      /** Format: uuid */
-      accountId: string
-      ledgerId: string
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'v0_ProvisionElGamalKeyPair'
-    }
-    Notification_UnregisterDevice: {
-      pushToken: string
-    }
   }
   responses: never
   parameters: never
@@ -7086,7 +6094,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['Notification_EntityToSign'][]
+          'application/json': components['schemas']['Notification_EntityToSign']
           'text/html; charset=utf-8': unknown
         }
       }
@@ -7127,15 +6135,8 @@ export interface operations {
           'text/html; charset=utf-8': unknown
         }
       }
-      /** @description Malformed hash */
+      /** @description Bad request */
       400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description No such entity */
-      404: {
         headers: {
           [name: string]: unknown
         }
@@ -7167,11 +6168,11 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': unknown
+          'application/json': components['schemas']['Notification_EntityToSign']
           'text/html; charset=utf-8': unknown
         }
       }
-      /** @description Malformed hash */
+      /** @description Bad request */
       400: {
         headers: {
           [name: string]: unknown
@@ -7208,7 +6209,7 @@ export interface operations {
           'text/html; charset=utf-8': unknown
         }
       }
-      /** @description Malformed hash */
+      /** @description Bad request */
       400: {
         headers: {
           [name: string]: unknown
@@ -7309,6 +6310,60 @@ export interface operations {
       }
     }
   }
+  'NotificationController.registerWebClient': {
+    parameters: {
+      query?: {
+        email?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful response */
+      200: {
+        headers: {
+          Connection?: 'keep-alive'
+          [name: string]: unknown
+        }
+        content: {
+          'text/event-stream': unknown
+          'text/html; charset=utf-8': unknown
+        }
+      }
+      /** @description Push notification not sent */
+      202: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Could not found signing device for this email. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': unknown
+        }
+      }
+      /** @description Internal Server error */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
   'NotificationController.securedRegisterMobile': {
     parameters: {
       query?: never
@@ -7356,60 +6411,6 @@ export interface operations {
       }
     }
   }
-  'NotificationController.securedUnregisterMobile': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description SecuredUnregisterMobile */
-    requestBody?: {
-      content: {
-        'application/json': components['schemas']['Notification_SecuredUnregisterMobile']
-      }
-    }
-    responses: {
-      /** @description Successful response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': unknown
-          'text/html; charset=utf-8': unknown
-        }
-      }
-      /** @description Bad request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Invalid signature, nonce or user */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Internal Server error */
-      500: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description The user directory could not be reached, retry */
-      503: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
   'NotificationController.signWeb': {
     parameters: {
       query?: never
@@ -7443,20 +6444,6 @@ export interface operations {
       }
       /** @description Bad request */
       400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description The caller does not own the requested alias */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Hash already proposed by another user */
-      404: {
         headers: {
           [name: string]: unknown
         }
@@ -7502,13 +6489,6 @@ export interface operations {
         }
         content?: never
       }
-      /** @description Signature verification failed */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
       /** @description Internal Server error */
       500: {
         headers: {
@@ -7516,8 +6496,41 @@ export interface operations {
         }
         content?: never
       }
-      /** @description The user directory could not be reached, retry */
-      503: {
+    }
+  }
+  'NotificationController.unregisterMobile': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description UnregisterDevice */
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['Notification_UnregisterDevice']
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': unknown
+          'text/html; charset=utf-8': unknown
+        }
+      }
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Internal Server error */
+      500: {
         headers: {
           [name: string]: unknown
         }
@@ -7574,15 +6587,6 @@ export interface operations {
       }
       /** @description Domain locked (DomainLockedError) */
       400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-      /** @description Invalid signature (InvalidSignatureError) */
-      401: {
         headers: {
           [name: string]: unknown
         }
@@ -7657,15 +6661,6 @@ export interface operations {
           'application/json': components['schemas']['Internal_ErrorMessage']
         }
       }
-      /** @description Invalid signature (InvalidSignatureError) */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
       /** @description Entity or Domain not found (EntityNotFoundError) */
       404: {
         headers: {
@@ -7677,18 +6672,122 @@ export interface operations {
       }
     }
   }
-  queryAccountsBalances: {
+  initiateCbInDecryption: {
     parameters: {
       query?: never
       header?: never
-      path: {
-        domainId: string
-      }
+      path?: never
       cookie?: never
     }
     requestBody: {
       content: {
-        'application/json': components['schemas']['Internal_AccountsBalancesQuery']
+        'application/json': components['schemas']['Internal_ApiInitiateCbInDecryptionRequest']
+      }
+    }
+    responses: {
+      202: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_ApiInitiateCbInDecryptionResponse']
+        }
+      }
+      /** @description Invalid value for: body */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/plain': string
+        }
+      }
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_ErrorMessage']
+        }
+      }
+    }
+  }
+  getCbInDecryptionStatus: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        requestId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_ApiCbInDecryptionStatusResponse']
+        }
+      }
+      /** @description Invalid value for: path parameter requestId */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/plain': string
+        }
+      }
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_ErrorMessage']
+        }
+      }
+    }
+  }
+  getPendingDecryptCbs: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_DecryptCbsPending'][]
+        }
+      }
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_ErrorMessage']
+        }
+      }
+    }
+  }
+  postDecryptCbsResponse: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description A signed CBS decryption response. */
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Internal_DecryptCbsPrepared']
       }
     }
     responses: {
@@ -7696,30 +6795,18 @@ export interface operations {
         headers: {
           [name: string]: unknown
         }
-        content: {
-          'application/json': components['schemas']['Internal_AccountsBalancesQueryResult']
-        }
+        content?: never
       }
-      /** @description Invalid request (InvalidRequestError) */
+      /** @description Invalid value for: body */
       400: {
         headers: {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
+          'text/plain': string
         }
       }
-      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-      /** @description Entity or Domain not found (EntityNotFoundError) */
-      404: {
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -7865,15 +6952,6 @@ export interface operations {
       }
       /** @description Domain locked (DomainLockedError) */
       400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-      /** @description Invalid signature (InvalidSignatureError) */
-      401: {
         headers: {
           [name: string]: unknown
         }
@@ -8090,7 +7168,7 @@ export interface operations {
       }
     }
   }
-  getLarPhase1MigrationSanityCheck: {
+  getPendingParametersComputes: {
     parameters: {
       query?: never
       header?: never
@@ -8104,11 +7182,49 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['Internal_LarPhase1MigrationSanityCheck']
+          'application/json': components['schemas']['Internal_ParametersComputePending'][]
         }
       }
-      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
-      401: {
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_ErrorMessage']
+        }
+      }
+    }
+  }
+  postParametersComputeResponse: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description A signed cMPT parameter computation response. */
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Internal_ParametersComputePrepared']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Invalid value for: body */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'text/plain': string
+        }
+      }
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -8174,15 +7290,6 @@ export interface operations {
           'text/plain': string
         }
       }
-      /** @description Invalid signature (InvalidSignatureError) */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
       /** @description Entity or Domain not found (EntityNotFoundError) */
       404: {
         headers: {
@@ -8209,15 +7316,6 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['Internal_EvaluationContext']
-        }
-      }
-      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
         }
       }
     }
@@ -8292,15 +7390,6 @@ export interface operations {
       }
       /** @description Invalid request (InvalidRequestError) */
       400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-      /** @description One of: Invalid JWT (InvalidJwtError); User not authorized (PermissionDeniedError) */
-      401: {
         headers: {
           [name: string]: unknown
         }
@@ -8462,6 +7551,43 @@ export interface operations {
       }
     }
   }
+  getUsers: {
+    parameters: {
+      query?: {
+        /** @description Return entities matching given alias. */
+        alias?: string
+        /** @description Return entities matching given public key. */
+        publicKey?: string
+        /** @description Return entities matching given loginId. */
+        loginId?: string
+        /** @description Return entities matching given loginProviderId. */
+        loginProviderId?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_TrustedUsersCollection']
+        }
+      }
+      /** @description Invalid request (InvalidRequestError) */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Internal_ErrorMessage']
+        }
+      }
+    }
+  }
   getUsersConflicts: {
     parameters: {
       query?: never
@@ -8561,358 +7687,8 @@ export interface operations {
           'application/json': components['schemas']['Internal_ErrorMessage']
         }
       }
-      /** @description Invalid signature (InvalidSignatureError) */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
       /** @description Entity or Domain not found (EntityNotFoundError) */
       404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-    }
-  }
-  'NotificationController.registerWebClient': {
-    parameters: {
-      query?: {
-        email?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful response */
-      200: {
-        headers: {
-          Connection?: 'keep-alive'
-          [name: string]: unknown
-        }
-        content: {
-          'text/event-stream': unknown
-          'text/html; charset=utf-8': unknown
-        }
-      }
-      /** @description Push notification not sent */
-      202: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Bad request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Could not found signing device for this email. */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': unknown
-        }
-      }
-      /** @description Internal Server error */
-      500: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  'NotificationController.unregisterMobile': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description UnregisterDevice */
-    requestBody?: {
-      content: {
-        'application/json': components['schemas']['Notification_UnregisterDevice']
-      }
-    }
-    responses: {
-      /** @description Successful response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': unknown
-          'text/html; charset=utf-8': unknown
-        }
-      }
-      /** @description Bad request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Internal Server error */
-      500: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  initiateCbInDecryption: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Internal_ApiInitiateCbInDecryptionRequest']
-      }
-    }
-    responses: {
-      202: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ApiInitiateCbInDecryptionResponse']
-        }
-      }
-      /** @description Invalid value for: body */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'text/plain': string
-        }
-      }
-      default: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-    }
-  }
-  getCbInDecryptionStatus: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        requestId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ApiCbInDecryptionStatusResponse']
-        }
-      }
-      /** @description Invalid value for: path parameter requestId */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'text/plain': string
-        }
-      }
-      default: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-    }
-  }
-  getPendingDecryptCbs: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_DecryptCbsPending'][]
-        }
-      }
-      default: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-    }
-  }
-  postDecryptCbsResponse: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description A signed CBS decryption response. */
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Internal_DecryptCbsPrepared']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Invalid value for: body */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'text/plain': string
-        }
-      }
-      default: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-    }
-  }
-  getPendingParametersComputes: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ParametersComputePending'][]
-        }
-      }
-      default: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-    }
-  }
-  postParametersComputeResponse: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description A signed cMPT parameter computation response. */
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Internal_ParametersComputePrepared']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Invalid value for: body */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'text/plain': string
-        }
-      }
-      default: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_ErrorMessage']
-        }
-      }
-    }
-  }
-  getUsers: {
-    parameters: {
-      query?: {
-        /** @description Return entities matching given alias. */
-        alias?: string
-        /** @description Return entities matching given public key. */
-        publicKey?: string
-        /** @description Return entities matching given loginId. */
-        loginId?: string
-        /** @description Return entities matching given loginProviderId. */
-        loginProviderId?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Internal_TrustedUsersCollection']
-        }
-      }
-      /** @description Invalid request (InvalidRequestError) */
-      400: {
         headers: {
           [name: string]: unknown
         }
