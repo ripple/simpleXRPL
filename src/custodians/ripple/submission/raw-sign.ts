@@ -21,15 +21,14 @@ function base64ToUpperHex(base64: string): string {
  * in what gets signed, not just in the final blob.
  *
  * @param tx - The fully autofilled transaction (Sequence/Fee/LastLedgerSequence set).
- * @param signingPubKeyBase64 - The account's XRPL public key, base64 (Custody's encoding).
+ * @param signingPubKey - The account's XRPL public key, uppercase hex.
  * @returns The transaction with `SigningPubKey` stamped, and the base64 preimage
  * to send Custody as `Core_ManifestContent_Unsafe.value`.
  */
 export function buildSigningPreimage(
   tx: Transaction,
-  signingPubKeyBase64: string,
+  signingPubKey: string,
 ): { preparedTx: Transaction; preimageBase64: string } {
-  const signingPubKey = base64ToUpperHex(signingPubKeyBase64)
   const preparedTx: Transaction = { ...tx, SigningPubKey: signingPubKey }
   const preimageHex = encodeForSigning(preparedTx)
   return {

@@ -7,6 +7,7 @@ import {
 
 import { p256 } from '@noble/curves/p256'
 import { secp256k1 } from '@noble/curves/secp256k1'
+import { deriveAddress } from 'xrpl'
 import type { AccountSet } from 'xrpl'
 
 import { KeypairService } from '../../src/custodians/ripple/auth/keypair.service.js'
@@ -548,6 +549,23 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
           env,
         })
         expect(withoutDomain.domainId).toBe(state.domainId)
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.getPublicKey returns the key the primary address derives from',
+      async () => {
+        const { ledgerId } = requirePrimary(await custody.listAccounts())
+
+        const publicKey = await custody.api.getPublicKey(SANDBOX_PRIMARY, {
+          ledgerId,
+        })
+
+        // An XRPL address is derived from its public key, so the right key
+        // reproduces the address exactly.
+        expect(publicKey).toMatch(/^0[23][0-9A-F]{64}$/u)
+        expect(deriveAddress(publicKey)).toBe(SANDBOX_PRIMARY)
       },
       LIVE_TIMEOUT_MS,
     )

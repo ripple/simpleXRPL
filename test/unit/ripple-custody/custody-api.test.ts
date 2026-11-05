@@ -1,3 +1,6 @@
+import { generateKeyPairSync } from 'node:crypto'
+
+import { secp256k1 } from '@noble/curves/secp256k1'
 import type { Payment } from 'xrpl'
 
 import { CustodyApi } from '../../../src/custodians/ripple/api.js'
@@ -888,5 +891,115 @@ describe('CustodyApi.dryRunTransaction', () => {
       }),
     ).rejects.toBeInstanceOf(UnsupportedInVersionError)
     expect(http.requests).toHaveLength(0)
+  })
+})
+
+describe('CustodyApi.getPublicKey', () => {
+  const { publicKey } = generateKeyPairSync('ec', { namedCurve: 'secp256k1' })
+  const spki = publicKey.export({ type: 'spki', format: 'der' })
+  // Independently computed: the compressed form of the SPKI's point.
+  const xrplKey = secp256k1.ProjectivePoint.fromHex(
+    spki.subarray(spki.length - 65),
+  )
+    .toHex(true)
+    .toUpperCase()
+
+  /**
+   * The account `addressRef()` points at, with its XRPL key in `keys[]`.
+   *
+   * @param keys - The account's vault keys.
+   * @returns The account body.
+   */
+  function vaultAccount(keys: unknown[]): Record<string, unknown> {
+    return {
+      data: {
+        id: 'account-1',
+        domainId: DOMAIN,
+        alias: '',
+        providerDetails: {
+          vaultId: 'vault-1',
+          keyStrategy: 'VaultHard',
+          keyInformation: { type: 'VaultDerived', derivationPath: 'm/0' },
+          keys,
+          type: 'Vault',
+        },
+        lock: 'Unlocked',
+        metadata: {},
+      },
+      signature: '',
+      signingKey: '',
+    }
+  }
+
+  it('finds the account by address and returns its compressed XRPL key', async () => {
+    const { api, http } = apiOn(
+      routed([
+        ['GET', '/v1/addresses', { items: [addressRef()], count: 1 }],
+        [
+          'GET',
+          '/accounts/account-1',
+          vaultAccount([
+            {
+              id: 'SECP256K1_CUSTODY_1',
+              type: 'VaultDerived',
+              derivationPath: 'm/0',
+              publicKey: {
+                type: 'ExtendedPublicKey',
+                value: spki.toString('base64'),
+                chainCode: 'Yw==',
+              },
+            },
+          ]),
+        ],
+      ]),
+    )
+
+    await expect(api.getPublicKey('rHolder')).resolves.toBe(xrplKey)
+    expect(http.requests.map((request) => request.url)).toEqual([
+      `${GATEWAY}/v1/addresses?address=rHolder`,
+      `${GATEWAY}/v1/domains/${DOMAIN}/accounts/account-1`,
+    ])
+  })
+
+  it('throws AccountNotFoundError when no account holds the address', async () => {
+    const { api } = apiOn(
+      routed([['GET', '/v1/addresses', { items: [], count: 0 }]]),
+    )
+
+    await expect(api.getPublicKey('rHolder')).rejects.toBeInstanceOf(
+      AccountNotFoundError,
+    )
+  })
+
+  it('throws when the account has no XRPL key on file yet', async () => {
+    const { api } = apiOn(
+      routed([
+        ['GET', '/v1/addresses', { items: [addressRef()], count: 1 }],
+        ['GET', '/accounts/account-1', vaultAccount([])],
+      ]),
+    )
+
+    await expect(api.getPublicKey('rHolder')).rejects.toThrow(
+      'Custody account account-1 has no XRPL public key on file yet',
+    )
+  })
+
+  it('asks for ledgerId when the address is on several ledgers', async () => {
+    const { api } = apiOn(
+      routed([
+        [
+          'GET',
+          '/v1/addresses',
+          {
+            items: [addressRef(), addressRef({ id: 'm', ledgerId: 'xrpl' })],
+            count: 2,
+          },
+        ],
+      ]),
+    )
+
+    await expect(api.getPublicKey('rHolder')).rejects.toThrow(
+      /pass ledgerId to pick one/u,
+    )
   })
 })

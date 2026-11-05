@@ -43,6 +43,7 @@ import type {
   CustodyPageItem,
   CustodyPaginatedOperationId,
 } from './pagination.js'
+import { requireXrplPublicKey } from './submission/account-key.js'
 import { postDryRun } from './submission/dry-run.js'
 import { waitForIntentOutcome } from './submission/intent-polling.js'
 import type { CustodyHttpClient } from './transport/custody-http-client.js'
@@ -322,6 +323,45 @@ export class CustodyApi {
       throw new SimpleXRPLError(ambiguousAddressMessage(address, matches))
     }
     return matches[0]
+  }
+
+  /**
+   * Read the XRPL public key of the Custody account that holds an address, in
+   * the form XRPL uses (`SigningPubKey`): compressed secp256k1, uppercase hex.
+   * Useful wherever the key itself is needed, e.g. to set up a regular key or a
+   * multisig signer list.
+   *
+   * @param address - The account's XRPL address.
+   * @param options - Narrow the lookup when the address is on several ledgers
+   *   or in several domains, as for {@link findByAddress}.
+   * @param options.ledgerId - Only match on this ledger.
+   * @param options.domainId - Only match in this domain.
+   * @returns The public key, e.g. `02218AB4…`.
+   * @throws {@link AccountNotFoundError} if no Custody account holds the address.
+   * @throws {@link SimpleXRPLError} if more than one account matches, or the
+   *   account has no XRPL key on file yet (e.g. still provisioning).
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version can't look the account up.
+   */
+  public async getPublicKey(
+    address: string,
+    options: CustodyFindByAddressOptions = {},
+  ): Promise<string> {
+    const reference = await this.findByAddress(address, options)
+    if (reference === undefined) {
+      throw new AccountNotFoundError(address)
+    }
+    const route = CUSTODY_ROUTES.getAccount
+    this.versionGuard.assertEndpoint(
+      route.method,
+      route.path,
+      'api.getPublicKey',
+    )
+    return requireXrplPublicKey(
+      this.client,
+      reference.domainId,
+      reference.accountId,
+    )
   }
 
   /**
