@@ -5,6 +5,7 @@ import {
   CustodyAuthError,
   CustodyPermissionError,
   CustodySignatureError,
+  CustodyTimeoutError,
   SimpleXRPLError,
 } from '../../../src/errors.js'
 import {
@@ -349,6 +350,74 @@ describe('CustodyHttpClient', () => {
       await client.post('/v1/orders', {})
 
       expect(http.requests[0]?.timeoutMs).toBe(5000)
+    })
+  })
+
+  describe('reports a request that timed out as a CustodyTimeoutError', () => {
+    /**
+     * What `AbortSignal.timeout` rejects a fetch with.
+     *
+     * @throws The timeout's DOMException, always.
+     */
+    const timedOut = (): never => {
+      throw new DOMException(
+        'The operation was aborted due to timeout',
+        'TimeoutError',
+      )
+    }
+
+    it('naming the request, and that its outcome is unknown', async () => {
+      const { auth } = makeAuth()
+      const http = new FakeHttpPort(timedOut)
+      const client = new CustodyHttpClient({
+        gatewayUrl: GATEWAY,
+        http,
+        auth,
+        timeoutMs: 5000,
+      })
+
+      const error = await failureOf(client.get('/v1/thing', { limit: 1 }))
+
+      expect(error).toBeInstanceOf(CustodyTimeoutError)
+      expect(error).toBeInstanceOf(SimpleXRPLError)
+      expect(error).toMatchObject({
+        method: 'GET',
+        path: '/v1/thing',
+        timeoutMs: 5000,
+        intentId: undefined,
+        message:
+          'Custody GET /v1/thing got no response within 5000 ms; it may still have been processed.',
+      })
+      expect((error as Error).cause).toBeInstanceOf(DOMException)
+    })
+
+    it('carrying the id of an intent proposal, so it is not re-proposed blindly', async () => {
+      const { auth } = makeAuth()
+      const http = new FakeHttpPort(timedOut)
+      const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
+
+      const error = await failureOf(
+        client.post('/v1/intents', {
+          request: { type: 'Propose', id: 'intent-7' },
+          signature: 's',
+        }),
+      )
+
+      expect(error).toMatchObject({ intentId: 'intent-7' })
+      expect((error as Error).message).toContain(
+        'The intent was proposed as intent-7',
+      )
+    })
+
+    it('but passes other transport errors through unchanged', async () => {
+      const { auth } = makeAuth()
+      const failure = new Error('ECONNRESET')
+      const http = new FakeHttpPort(() => {
+        throw failure
+      })
+      const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
+
+      await expect(client.get('/v1/thing')).rejects.toBe(failure)
     })
   })
 

@@ -279,6 +279,61 @@ export class CustodySignatureError extends CustodyAuthError {}
  */
 export class CustodyPermissionError extends CustodyAuthError {}
 
+/**
+ * A Ripple Custody request got no response within its timeout
+ * (`requestTimeoutMs`, 30 s by default). Its outcome is **unknown**: Custody
+ * may still have processed it. For an intent proposal, `intentId` is the id it
+ * was proposed under — check it with `api.waitForIntent`, or re-submit with the
+ * same idempotency key (an intent already accepted under that id isn't
+ * created twice).
+ */
+export class CustodyTimeoutError extends SimpleXRPLError {
+  /** The HTTP method. */
+  public readonly method: string
+  /** The request path, e.g. `/v1/intents`. */
+  public readonly path: string
+  /** How long the request ran before it was abandoned. */
+  public readonly timeoutMs: number
+  /** For an intent proposal, the id it was proposed under. */
+  public readonly intentId?: string
+
+  /**
+   * Construct a CustodyTimeoutError.
+   *
+   * @param request - The request that timed out.
+   * @param request.method - The HTTP method.
+   * @param request.path - The request path.
+   * @param request.timeoutMs - The timeout that elapsed.
+   * @param request.intentId - For an intent proposal, its id.
+   * @param options - Optional settings.
+   * @param options.cause - The transport's abort error.
+   */
+  public constructor(
+    request: {
+      method: string
+      path: string
+      timeoutMs: number
+      intentId?: string
+    },
+    options?: { cause?: unknown },
+  ) {
+    const intent =
+      request.intentId === undefined
+        ? ''
+        : ` The intent was proposed as ${request.intentId}: check it with ` +
+          'api.waitForIntent, or re-submit with that idempotency key.'
+    super(
+      `Custody ${request.method} ${request.path} got no response within ` +
+        `${request.timeoutMs} ms; it may still have been processed.${intent}`,
+      options,
+    )
+    this.method = request.method
+    this.path = request.path
+    this.timeoutMs = request.timeoutMs
+    this.intentId = request.intentId
+  }
+}
+
 /** Labels for each capability kind, as they read in an error message. */
 const CAPABILITY_LABELS = {
   endpoint: 'endpoint',

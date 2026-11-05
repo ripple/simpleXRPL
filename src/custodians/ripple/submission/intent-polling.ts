@@ -1,5 +1,6 @@
 import {
   CustodyApiError,
+  CustodyTimeoutError,
   IntentPendingError,
   IntentValidationError,
 } from '../../../errors.js'
@@ -145,11 +146,12 @@ function describeUnfinished(
 }
 
 /**
- * Read the intent once, treating a 404 as "not readable yet".
+ * Read the intent once, treating a 404 as "not readable yet" and a timed-out
+ * read as "no answer this time".
  *
  * @param readIntent - Reads the intent.
- * @returns The intent, or `undefined` on a 404.
- * @throws Whatever reading the intent throws, other than a 404.
+ * @returns The intent, or `undefined` on a 404 or a timeout.
+ * @throws Whatever reading the intent throws, other than a 404 or a timeout.
  */
 async function readIfVisible(
   readIntent: () => Promise<TrustedIntent>,
@@ -157,7 +159,11 @@ async function readIfVisible(
   try {
     return await readIntent()
   } catch (error) {
-    if (error instanceof CustodyApiError && error.status === HTTP_NOT_FOUND) {
+    // A read that timed out says nothing about the intent: try again.
+    if (
+      (error instanceof CustodyApiError && error.status === HTTP_NOT_FOUND) ||
+      error instanceof CustodyTimeoutError
+    ) {
       return undefined
     }
     throw error
@@ -199,7 +205,9 @@ function terminalOutcome(
  * A 404 means "not readable yet", not "does not exist": Custody accepts an
  * intent with 202 and materializes it in the read model a moment later, so a
  * wait that starts right after proposing can race it. It is retried within the
- * same budget; a genuinely absent intent is reported as never readable.
+ * same budget, as is a read that timed out; a genuinely absent intent is
+ * reported as never readable. The last read lands on the deadline, so the
+ * whole budget is used.
  *
  * @param options - How to read the intent, its id, the budget, and an
  *   optional per-read callback.
@@ -214,16 +222,17 @@ export async function waitForIntentOutcome(
   let last: TrustedIntent | undefined
   for (let attempt = 0; ; attempt += 1) {
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
-    last = (await readIfVisible(options.readIntent)) ?? last
-    if (last !== undefined) {
-      options.onStatusCheck?.(last.data.state.status, attempt + 1)
-      const outcome = terminalOutcome(intentId, last)
+    const read = await readIfVisible(options.readIntent)
+    if (read !== undefined) {
+      last = read
+      options.onStatusCheck?.(read.data.state.status, attempt + 1)
+      const outcome = terminalOutcome(intentId, read)
       if (outcome !== undefined) {
         return outcome
       }
     }
-    const delay = pollDelayMs(attempt, POLL_SCHEDULE)
-    if (Date.now() + delay >= deadline) {
+    const remaining = deadline - Date.now()
+    if (remaining <= 0) {
       const status = last?.data.state.status
       return {
         intentId,
@@ -234,8 +243,10 @@ export async function waitForIntentOutcome(
         intent: last,
       }
     }
+    // Never sleep past the deadline, so the last read lands on it — the whole
+    // budget is used, and the reported wait is the real one.
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for a terminal state.
-    await sleep(delay)
+    await sleep(Math.min(pollDelayMs(attempt, POLL_SCHEDULE), remaining))
   }
 }
 

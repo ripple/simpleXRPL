@@ -30,10 +30,6 @@ export const CUSTODY_INTERNAL_ROUTES = {
     path: '/internal/v1/me/domains/{domainId}/session/{sessionId}',
   },
   getExampleContextV0: { method: 'GET', path: '/internal/v1/scripting' },
-  getLarPhase1MigrationSanityCheck: {
-    method: 'GET',
-    path: '/internal/v1/migrations/lar-phase1-migration-sanity-check',
-  },
   getPendingAccounts: { method: 'GET', path: '/internal/v1/accounts/pending' },
   getPendingBackups: { method: 'GET', path: '/internal/v1/backups/pending' },
   getPendingDecryptCbs: {
@@ -101,10 +97,6 @@ export const CUSTODY_INTERNAL_ROUTES = {
     method: 'POST',
     path: '/api/notifications/secured-register-mobile',
   },
-  'NotificationController.securedUnregisterMobile': {
-    method: 'POST',
-    path: '/api/notifications/secured-unregister-mobile',
-  },
   'NotificationController.sendSignatureToWeb': {
     method: 'POST',
     path: '/api/notifications/signature',
@@ -156,9 +148,5 @@ export const CUSTODY_INTERNAL_ROUTES = {
   postTransactionInterruption: {
     method: 'POST',
     path: '/internal/v1/transactions/interrupt',
-  },
-  queryAccountsBalances: {
-    method: 'POST',
-    path: '/internal/v1/domains/{domainId}/account-balances/query',
   },
 } as const satisfies Record<string, CustodyRoute>

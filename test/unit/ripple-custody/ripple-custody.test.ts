@@ -217,7 +217,8 @@ function buildRoutes(routes: Routes): Route[] {
             ok(
               apiAccountBody(
                 ACCOUNT_ID,
-                Buffer.from('EDPUBKEY').toString('base64'),
+                // A key already in XRPL's compressed form.
+                Buffer.from(`02${'11'.repeat(32)}`, 'hex').toString('base64'),
               ),
             ))
         )(),

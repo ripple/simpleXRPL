@@ -9,7 +9,7 @@ rather than a silent drift.
 | File / folder | Upstream source | Version |
 | --- | --- | --- |
 | `custody/official/public.json` | Custody product docs: `products/custody/@<version>/reference/api/openapi.json` | the file's `info.x-app-version` |
-| `custody/official/internal.json` | A live official instance (`npm run fetch:custody-instance-spec`) | the file's `info.x-app-version` |
+| `custody/official/internal.json` | Not vendored at present (optional). Fetch it from a live official instance (`npm run fetch:custody-instance-spec`) only when an SDK feature needs an official internal endpoint | the file's `info.x-app-version` |
 | `custody/devbox/<build>/{public,internal}.json` | A live devbox instance (`npm run fetch:custody-instance-spec`) | the files' `info.x-app-version` |
 | `custody/capabilities.json` | Derived from every spec the Custody docs publish (1.15 onward) | one entry per minor version |
 | `palisade-api.yaml` | `ripplenet-docs/products/wallet/api-docs/palisade-api/palisade-api.yaml` | Palisade v2.0 |
@@ -68,7 +68,8 @@ which serves both documents without authentication:
 ```sh
 # a devbox build: writes custody/devbox/<build>/public.json and internal.json
 npm run fetch:custody-instance-spec -- --gateway https://<devbox-gateway> --channel devbox --build cmpt
-# an official instance's internal API: writes custody/official/internal.json
+# an official instance's internal API, only when a feature needs it:
+# writes custody/official/internal.json
 npm run fetch:custody-instance-spec -- --gateway https://<gateway> --channel official
 npm run typegen && npm run typecheck
 ```

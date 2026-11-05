@@ -4,6 +4,7 @@ import {
 } from '../../../src/custodians/ripple/submission/intent-polling.js'
 import {
   CustodyApiError,
+  CustodyTimeoutError,
   IntentPendingError,
   IntentValidationError,
 } from '../../../src/errors.js'
@@ -381,5 +382,83 @@ describe('waitForIntentOutcome', () => {
         timeoutMs: 5000,
       }),
     ).rejects.toBe(failure)
+  })
+})
+
+describe('waitForIntentOutcome — the time budget', () => {
+  it('uses the whole budget, with a last read at the deadline', async () => {
+    jest.useFakeTimers()
+    try {
+      const reads: number[] = []
+      const start = Date.now()
+      const readIntent = async (): Promise<
+        components['schemas']['Core_TrustedIntent']
+      > => {
+        reads.push(Date.now() - start)
+        return intentBody(
+          'intent-1',
+          'Open',
+        ) as unknown as components['schemas']['Core_TrustedIntent']
+      }
+
+      let settled = false
+      const promise = waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 6500,
+      }).finally(() => {
+        settled = true
+      })
+
+      await jest.advanceTimersByTimeAsync(6400)
+      expect(settled).toBe(false)
+      await jest.advanceTimersByTimeAsync(200)
+
+      // Backoff of 1 s then 2 s, then a short sleep to land on the deadline.
+      expect(reads).toEqual([0, 1000, 3000, 6500])
+      await expect(promise).resolves.toMatchObject({
+        status: 'Open',
+        reason: expect.stringContaining('still Open after 6500 ms') as unknown,
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('treats a read that timed out as no answer, and keeps waiting', async () => {
+    jest.useFakeTimers()
+    try {
+      let calls = 0
+      const readIntent = async (): Promise<
+        components['schemas']['Core_TrustedIntent']
+      > => {
+        calls += 1
+        if (calls === 1) {
+          throw new CustodyTimeoutError({
+            method: 'GET',
+            path: '/v1/domains/d/intents/intent-1',
+            timeoutMs: 30_000,
+          })
+        }
+        return intentBody(
+          'intent-1',
+          'Executed',
+        ) as unknown as components['schemas']['Core_TrustedIntent']
+      }
+
+      const promise = waitForIntentOutcome({
+        readIntent,
+        intentId: 'intent-1',
+        timeoutMs: 10_000,
+      })
+      await jest.advanceTimersByTimeAsync(2000)
+
+      await expect(promise).resolves.toMatchObject({
+        status: 'Executed',
+        isSuccess: true,
+      })
+    } finally {
+      jest.useRealTimers()
+    }
   })
 })
