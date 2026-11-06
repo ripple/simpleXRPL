@@ -17,6 +17,7 @@ import { pinnedCapabilities } from '../../../src/custodians/ripple/versioning/ca
 import { VersionGuard } from '../../../src/custodians/ripple/versioning/version-guard.js'
 import {
   AccountNotFoundError,
+  DryRunFailedError,
   SimpleXRPLError,
   UnsupportedInVersionError,
 } from '../../../src/errors.js'
@@ -1001,5 +1002,193 @@ describe('CustodyApi.getPublicKey', () => {
     await expect(api.getPublicKey('rHolder')).rejects.toThrow(
       /pass ledgerId to pick one/u,
     )
+  })
+})
+
+describe('CustodyApi.proposeTransactionOrder', () => {
+  /** An MPT payment to a Custody Endpoint — a destination no vertical takes. */
+  const ENDPOINT_PAYMENT: components['schemas']['Core_XrplOperation'] = {
+    type: 'Payment',
+    destination: { type: 'Endpoint', endpointId: 'endpoint-1' },
+    amount: '1000',
+    currency: { type: 'MultiPurposeToken', issuanceId: 'ISSUANCE' },
+  }
+
+  /**
+   * The request bodies POSTed to `path`, parsed.
+   *
+   * @param http - The recording transport.
+   * @param path - The request path.
+   * @returns The parsed bodies, in order.
+   */
+  function posted(http: FakeHttpPort, path: string): unknown[] {
+    const bodies: unknown[] = []
+    for (const request of http.requests) {
+      if (request.method === 'POST' && new URL(request.url).pathname === path) {
+        bodies.push(JSON.parse(request.body ?? '{}'))
+      }
+    }
+    return bodies
+  }
+
+  /**
+   * The routes a proposal needs: the address lookup, and the propose POST.
+   *
+   * @param dryRun - The dry-run verdict to answer with, if dry-run is called.
+   * @returns A request handler.
+   */
+  function custodyRoutes(
+    dryRun: unknown = { success: true, type: 'v0_CreateTransactionOrder' },
+  ): (request: HttpRequest) => HttpResponse {
+    return routed([
+      ['GET', '/v1/addresses', { items: [addressRef()], count: 1 }],
+      ['POST', '/v1/intents/dry-run', dryRun],
+      ['POST', '/v1/intents', { requestId: 'req-1' }],
+    ])
+  }
+
+  it('looks up the sender and proposes Custody’s operation as-is, with defaults', async () => {
+    const { api, http } = apiOn(custodyRoutes())
+
+    const response = await api.proposeTransactionOrder({
+      account: 'rHolder',
+      operation: ENDPOINT_PAYMENT,
+    })
+
+    const [body] = posted(http, '/v1/intents') as Array<
+      components['schemas']['Core_UserSigned']
+    >
+    expect(http.requests[0]?.url).toBe(
+      `${GATEWAY}/v1/addresses?address=rHolder`,
+    )
+    expect(body.signature).toBeTruthy()
+    expect(body.request.payload).toEqual({
+      type: 'v0_CreateTransactionOrder',
+      id: body.request.id,
+      accountId: 'account-1',
+      ledgerId: 'xrpl-testnet',
+      parameters: {
+        type: 'XRPL',
+        feeStrategy: { type: 'Priority', priority: 'Low' },
+        memos: [],
+        operation: ENDPOINT_PAYMENT,
+      },
+      customProperties: {},
+    })
+    // One id for the intent and the order, returned straight away.
+    expect(response).toEqual({ requestId: 'req-1', intentId: body.request.id })
+  })
+
+  it('passes order fields and envelope options through; id is both intent and order id', async () => {
+    const { api, http } = apiOn(custodyRoutes())
+
+    const response = await api.proposeTransactionOrder(
+      {
+        account: 'rHolder',
+        operation: ENDPOINT_PAYMENT,
+        feeStrategy: { type: 'Priority', priority: 'High' },
+        maximumFee: '100',
+        memos: [{ type: 'text/plain', data: 'invoice 42' }] as never,
+        sourceTag: 7,
+        customProperties: { ref: 'po-9' },
+      },
+      { id: 'order-1', description: 'pay the endpoint' },
+    )
+
+    const [body] = posted(http, '/v1/intents') as Array<
+      components['schemas']['Core_UserSigned']
+    >
+    expect(body.request).toMatchObject({
+      id: 'order-1',
+      description: 'pay the endpoint',
+      payload: {
+        id: 'order-1',
+        parameters: {
+          feeStrategy: { type: 'Priority', priority: 'High' },
+          maximumFee: '100',
+          sourceTag: 7,
+        },
+        customProperties: { ref: 'po-9' },
+      },
+    })
+    expect(response.intentId).toBe('order-1')
+  })
+
+  it('dry-runs the same order first when asked', async () => {
+    const { api, http } = apiOn(custodyRoutes())
+
+    await api.proposeTransactionOrder(
+      { account: 'rHolder', operation: ENDPOINT_PAYMENT },
+      { dryRun: true, id: 'order-2' },
+    )
+
+    const [dryRun] = posted(http, '/v1/intents/dry-run') as Array<{
+      id: string
+      payload: unknown
+    }>
+    const [proposal] = posted(http, '/v1/intents') as Array<
+      components['schemas']['Core_UserSigned']
+    >
+    expect(dryRun.id).toBe('order-2')
+    expect(dryRun.payload).toEqual(proposal.request.payload)
+  })
+
+  it('throws DryRunFailedError and proposes nothing when the dry run fails', async () => {
+    const verdict = {
+      success: false,
+      errors: ['destination endpoint is locked'],
+      type: 'v0_CreateTransactionOrder',
+    }
+    const { api, http } = apiOn(custodyRoutes(verdict))
+
+    const proposing = api.proposeTransactionOrder(
+      { account: 'rHolder', operation: ENDPOINT_PAYMENT },
+      { dryRun: true },
+    )
+
+    await expect(proposing).rejects.toBeInstanceOf(DryRunFailedError)
+    await expect(proposing).rejects.toMatchObject({ response: verdict })
+    await expect(proposing).rejects.toThrow(/destination endpoint is locked/u)
+    expect(posted(http, '/v1/intents')).toHaveLength(0)
+  })
+
+  it('throws AccountNotFoundError when no account in the domain holds the sender', async () => {
+    const { api, http } = apiOn(
+      routed([['GET', '/v1/addresses', { items: [], count: 0 }]]),
+    )
+
+    await expect(
+      api.proposeTransactionOrder({
+        account: 'rUnknown',
+        operation: ENDPOINT_PAYMENT,
+      }),
+    ).rejects.toBeInstanceOf(AccountNotFoundError)
+    expect(posted(http, '/v1/intents')).toHaveLength(0)
+  })
+
+  it('is checked against the Custody version before proposing', async () => {
+    // Native MPT operations need official 1.32 or later.
+    const { api, http } = apiOn(
+      custodyRoutes(),
+      new VersionGuard(pinnedCapabilities('1.30')),
+    )
+
+    await expect(
+      api.proposeTransactionOrder({
+        account: 'rHolder',
+        operation: {
+          type: 'MPTokenAuthorize',
+          tokenIdentifier: {
+            type: 'MPTokenIssuanceId',
+            issuanceId: 'ISSUANCE',
+          },
+          flags: [],
+        },
+      }),
+    ).rejects.toMatchObject({
+      constructor: UnsupportedInVersionError,
+      sdkMethod: 'api.propose',
+    })
+    expect(posted(http, '/v1/intents')).toHaveLength(0)
   })
 })

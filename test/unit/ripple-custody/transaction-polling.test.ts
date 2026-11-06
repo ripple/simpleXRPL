@@ -1,5 +1,8 @@
 import { pollTransactionOnChain } from '../../../src/custodians/ripple/submission/transaction-polling.js'
-import { IntentValidationError } from '../../../src/errors.js'
+import {
+  CustodyTimeoutError,
+  IntentValidationError,
+} from '../../../src/errors.js'
 
 import { DOMAIN_ID, makeClient, ok } from './test-utils.js'
 
@@ -203,7 +206,7 @@ describe('pollTransactionOnChain', () => {
     expect(result).toBeUndefined()
   })
 
-  it.each(['Expired', 'Replaced'])(
+  it.each(['Expired'])(
     'throws IntentValidationError at once when the transaction is %s (terminal)',
     async (ledgerStatus) => {
       const { client, http } = makeClient(() =>
@@ -260,5 +263,234 @@ describe('pollTransactionOnChain', () => {
     await expect(
       pollTransactionOnChain({ client, ...options, timeoutMs: 60_000 }),
     ).rejects.toThrow(IntentValidationError)
+  })
+
+  it.each([
+    [
+      'Failed',
+      { status: 'Failed', hint: 'InvalidUserPayload' },
+      /Custody failed it before the ledger: InvalidUserPayload/u,
+    ],
+    [
+      'Interrupted',
+      { status: 'Interrupted', cause: 'Expiry', reason: 'order expired' },
+      /Custody interrupted it \(Expiry\): order expired/u,
+    ],
+  ])(
+    'throws at once when Custody %s the transaction before the ledger',
+    async (_status, processing, message) => {
+      const { client, http } = makeClient(() =>
+        ok({
+          count: 1,
+          items: [
+            {
+              id: 'tx-1',
+              registeredAt: '2026-11-06T10:00:00Z',
+              processing,
+              ledgerTransactionData: null,
+            },
+          ],
+        }),
+      )
+
+      const polling = pollTransactionOnChain({
+        client,
+        ...options,
+        timeoutMs: 60_000,
+      })
+
+      await expect(polling).rejects.toThrow(IntentValidationError)
+      await expect(polling).rejects.toThrow(message)
+      expect(http.requests).toHaveLength(1)
+    },
+  )
+})
+
+describe('pollTransactionOnChain — an order with a replaced attempt', () => {
+  const options = { domainId: DOMAIN_ID, intentId: INTENT_ID, timeoutMs: 5000 }
+
+  /**
+   * One attempt at the order's transaction.
+   *
+   * @param id - The transaction id.
+   * @param fields - When Custody registered it, its ledger status, and hash.
+   * @param fields.at - When Custody registered it.
+   * @param fields.status - Its ledger status.
+   * @param fields.hash - Its XRPL hash.
+   * @returns The transaction.
+   */
+  function attempt(
+    id: string,
+    fields: { at: string; status: string; hash?: string },
+  ): Record<string, unknown> {
+    return {
+      id,
+      registeredAt: fields.at,
+      orderReference: { id: INTENT_ID, domainId: DOMAIN_ID },
+      ledgerTransactionData: {
+        ledgerStatus: fields.status,
+        ledgerTransactionId: fields.hash ?? '',
+        ledgerData: null,
+      },
+    }
+  }
+
+  it('ignores the replaced attempt and follows the one that replaced it', async () => {
+    // A fee-bumped resubmission: Custody lists the replaced attempt first.
+    const { client } = makeClient(() =>
+      ok({
+        count: 2,
+        items: [
+          attempt('tx-old', {
+            at: '2026-11-06T10:00:00Z',
+            status: 'Replaced',
+            hash: 'OLD',
+          }),
+          attempt('tx-new', {
+            at: '2026-11-06T10:05:00Z',
+            status: 'Confirmed',
+            hash: 'NEW',
+          }),
+        ],
+      }),
+    )
+
+    await expect(
+      pollTransactionOnChain({ client, ...options }),
+    ).resolves.toEqual({ txHash: 'NEW' })
+  })
+
+  it('takes the newest surviving attempt, whatever the listing order', async () => {
+    const { client } = makeClient(() =>
+      ok({
+        count: 2,
+        items: [
+          attempt('tx-a', {
+            at: '2026-11-06T10:00:00Z',
+            status: 'Confirmed',
+            hash: 'OLDER',
+          }),
+          attempt('tx-b', {
+            at: '2026-11-06T10:05:00Z',
+            status: 'Confirmed',
+            hash: 'NEWER',
+          }),
+        ].reverse(),
+      }),
+    )
+
+    await expect(
+      pollTransactionOnChain({ client, ...options }),
+    ).resolves.toEqual({ txHash: 'NEWER' })
+  })
+
+  it('keeps waiting while only the replaced attempt is listed', async () => {
+    jest.useFakeTimers()
+    try {
+      let calls = 0
+      const { client } = makeClient(() => {
+        calls += 1
+        const items = [
+          attempt('tx-old', {
+            at: '2026-11-06T10:00:00Z',
+            status: 'Replaced',
+            hash: 'OLD',
+          }),
+        ]
+        if (calls > 1) {
+          items.push(
+            attempt('tx-new', {
+              at: '2026-11-06T10:05:00Z',
+              status: 'Confirmed',
+              hash: 'NEW',
+            }),
+          )
+        }
+        return ok({ count: items.length, items })
+      })
+
+      const polling = pollTransactionOnChain({
+        client,
+        ...options,
+        timeoutMs: 60_000,
+      })
+      await jest.advanceTimersByTimeAsync(6000)
+
+      // Previously a lone replaced attempt was reported as dead at once.
+      await expect(polling).resolves.toEqual({ txHash: 'NEW' })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+})
+
+describe('pollTransactionOnChain — the time budget', () => {
+  it('uses the whole budget, with a last read at the deadline', async () => {
+    jest.useFakeTimers()
+    try {
+      const reads: number[] = []
+      const start = Date.now()
+      const { client } = makeClient(() => {
+        reads.push(Date.now() - start)
+        return ok(txCollection(null))
+      })
+
+      let settled = false
+      const polling = pollTransactionOnChain({
+        client,
+        domainId: DOMAIN_ID,
+        intentId: INTENT_ID,
+        timeoutMs: 12_000,
+      }).finally(() => {
+        settled = true
+      })
+
+      await jest.advanceTimersByTimeAsync(11_900)
+      expect(settled).toBe(false)
+      await jest.advanceTimersByTimeAsync(200)
+
+      // A 5 s first backoff, then a 7 s sleep that lands on the deadline (the
+      // next backoff, 10 s, would have overshot it).
+      expect(reads).toEqual([0, 5000, 12_000])
+      await expect(polling).resolves.toBeUndefined()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('treats a read that timed out as no answer, and keeps waiting', async () => {
+    jest.useFakeTimers()
+    try {
+      let calls = 0
+      const { client } = makeClient(() => {
+        calls += 1
+        if (calls === 1) {
+          throw new CustodyTimeoutError({
+            method: 'GET',
+            path: `/v1/domains/${DOMAIN_ID}/transactions`,
+            timeoutMs: 30_000,
+          })
+        }
+        return ok(
+          txCollection({
+            ledgerStatus: 'Confirmed',
+            ledgerTransactionId: 'HASH8',
+            ledgerData: null,
+          }),
+        )
+      })
+
+      const polling = pollTransactionOnChain({
+        client,
+        domainId: DOMAIN_ID,
+        intentId: INTENT_ID,
+        timeoutMs: 60_000,
+      })
+      await jest.advanceTimersByTimeAsync(6000)
+
+      await expect(polling).resolves.toEqual({ txHash: 'HASH8' })
+    } finally {
+      jest.useRealTimers()
+    }
   })
 })

@@ -7,6 +7,7 @@ the bundled spec.
 
 - [Setting up](#setting-up)
 - [Calling the Custody API](#calling-the-custody-api)
+- [XRPL transaction orders](#xrpl-transaction-orders)
 - [Waiting on intents](#waiting-on-intents)
 - [Dry runs](#dry-runs)
 - [Lists, lookups, and account keys](#lists-lookups-and-account-keys)
@@ -64,6 +65,36 @@ await custody.api.reject(intentId, { reason: 'unexpected destination' })
 
 `approve` and `reject` fetch the intent and sign the decision for you; the API
 user must be allowed to decide on that intent under its policy.
+
+## XRPL transaction orders
+
+The verticals build an XRPL transaction for you. To send Custody's own XRPL
+operation exactly as Custody defines it — for example a `Payment` to a Custody
+`Endpoint`, or an `MPTokenIssuanceCreate` with your own flags — use
+`api.proposeTransactionOrder`. It looks up the Custody account that holds the
+sending address, fills in what Custody requires (`Priority: Low` fee and no
+memos, unless you set them), and signs and proposes the order:
+
+```ts
+const { intentId } = await custody.api.proposeTransactionOrder(
+  {
+    account: 'r...', // the sending address
+    operation: {
+      type: 'Payment',
+      destination: { type: 'Endpoint', endpointId },
+      amount: '1000',
+      currency: { type: 'MultiPurposeToken', issuanceId },
+    },
+  },
+  { dryRun: true }, // check with Custody first
+)
+```
+
+With `dryRun: true`, Custody checks the order first; if it would fail, a
+`DryRunFailedError` is thrown and nothing is proposed. The other options are the
+same as `api.propose`'s. `id` is the idempotency key, and the returned
+`intentId` is also the order id, which the on-chain transaction is filed under
+(`client.intent.awaitOnChain(intentId)`).
 
 ## Waiting on intents
 
