@@ -24,6 +24,7 @@ import type { Account } from '../../src/domain/index.js'
 import {
   CustodyApiError,
   CustodySignatureError,
+  DryRunFailedError,
   IntentValidationError,
 } from '../../src/errors.js'
 import type { components } from '../../src/generated/custody.js'
@@ -566,6 +567,38 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         // reproduces the address exactly.
         expect(publicKey).toMatch(/^0[23][0-9A-F]{64}$/u)
         expect(deriveAddress(publicKey)).toBe(SANDBOX_PRIMARY)
+      },
+      LIVE_TIMEOUT_MS,
+    )
+
+    it(
+      'api.proposeTransactionOrder dry-runs first and proposes nothing on failure',
+      async () => {
+        const { ledgerId } = requirePrimary(await custody.listAccounts())
+        // An MPT payment to a Custody Endpoint that doesn't exist: Custody
+        // parses the order (Endpoint destination included) and fails the dry
+        // run, so nothing is proposed. Non-mutating.
+        const endpointId = randomUUID()
+
+        const proposing = custody.api.proposeTransactionOrder(
+          {
+            account: SANDBOX_PRIMARY,
+            ledgerId,
+            operation: {
+              type: 'Payment',
+              destination: { type: 'Endpoint', endpointId },
+              amount: '1',
+              currency: {
+                type: 'MultiPurposeToken',
+                issuanceId: `00000001${'AB'.repeat(20)}`,
+              },
+            },
+          },
+          { dryRun: true },
+        )
+
+        await expect(proposing).rejects.toBeInstanceOf(DryRunFailedError)
+        await expect(proposing).rejects.toThrow(endpointId)
       },
       LIVE_TIMEOUT_MS,
     )

@@ -1,7 +1,7 @@
 import { decode, decodeAccountID } from 'xrpl'
 
 import type { OnChainResult } from '../../../domain/index.js'
-import { IntentValidationError } from '../../../errors.js'
+import { CustodyTimeoutError, IntentValidationError } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
 import type { PollSchedule } from '../../poll-schedule.js'
 import { pollDelayMs } from '../../poll-schedule.js'
@@ -10,9 +10,6 @@ import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 type ApiTransaction = components['schemas']['Core_ApiTransaction']
 type TransactionsCollection =
   components['schemas']['Core_TransactionsCollection']
-type LedgerTransactionData = components['schemas']['Core_LedgerTransactionData']
-type LedgerTransactionStatus =
-  components['schemas']['Core_LedgerTransactionStatus']
 
 /** Poll cadence for ledger confirmation, backing off. See {@link pollDelayMs}. */
 const POLL_SCHEDULE: PollSchedule = { initialMs: 5000, maxMs: 30_000 }
@@ -22,18 +19,6 @@ const HEX_RADIX = 16
 
 /** Hex-digit width of the 4-byte big-endian sequence prefix of an issuance id. */
 const SEQUENCE_HEX_WIDTH = 8
-
-/**
- * Ledger statuses a transaction can never leave for `Confirmed`: it aged out of
- * every ledger it could have applied in (`Expired`), or another transaction on
- * the same account sequence superseded it (`Replaced`). Either way it is dead —
- * polling on would only burn the full timeout waiting for a confirmation that
- * can no longer come.
- */
-const TERMINAL_DEAD_STATUSES: ReadonlySet<LedgerTransactionStatus> = new Set([
-  'Expired',
-  'Replaced',
-])
 
 /**
  * Wait for `ms` milliseconds.
@@ -92,27 +77,88 @@ function mptIssuanceIdFromRaw(
 }
 
 /**
- * Classify a transaction's ledger state as provably dead, if it is. A dead
- * transaction has been permanently rejected by the ledger — it recorded an
- * on-chain `failure` (`FailedOnChain`, or `PartiallyFailedOnChain`, which is
- * not the clean success the caller asked for either), or it reached a terminal
- * `Expired`/`Replaced` status — so it can never become `Confirmed` no matter
- * how long we keep polling.
+ * Pick the transaction an order is currently represented by. A fee-bumped
+ * resubmission leaves the superseded attempt behind under the same
+ * `orderReference.Id`, marked `Replaced` on the ledger; only the surviving
+ * attempt says whether the order lands. So `Replaced` attempts are dropped and
+ * the newest of the rest is taken — sorted here, so the choice doesn't depend
+ * on the endpoint's ordering.
  *
- * @param ledgerData - The transaction's `ledgerTransactionData`.
- * @returns A short reason string when dead, else `undefined` (still in flight).
+ * @param items - The order's transactions.
+ * @returns The current attempt, or `undefined` while none survives (e.g. only
+ *   the replaced attempt is registered so far).
  */
-function deadReason(ledgerData: LedgerTransactionData): string | undefined {
+function currentTransaction(
+  items: readonly ApiTransaction[],
+): ApiTransaction | undefined {
+  return (
+    items
+      .filter((item) => item.ledgerTransactionData?.ledgerStatus !== 'Replaced')
+      // `registeredAt` is ISO-8601, so it sorts as text.
+      .sort((left, right) =>
+        right.registeredAt.localeCompare(left.registeredAt),
+      )[0]
+  )
+}
+
+/**
+ * Why a transaction will never confirm, if it won't. It is dead when the ledger
+ * recorded a `failure` (`FailedOnChain`, or `PartiallyFailedOnChain`, which
+ * isn't the clean success the caller asked for either), when it `Expired` out
+ * of every ledger it could have applied in, or when Custody gave up on it
+ * before the ledger (`Failed` / `Interrupted` processing).
+ *
+ * @param tx - The transaction.
+ * @returns A short reason, or `undefined` while it is still in flight.
+ */
+function deadReason(tx: ApiTransaction): string | undefined {
+  const ledgerData = tx.ledgerTransactionData
   // `failure` is typed as the failure enum but comes back as `null` while the
-  // transaction is still in flight, so test truthiness — only a real failure
-  // string (both values are non-empty) marks the transaction dead.
-  if (ledgerData.failure) {
-    return ledgerData.failure
+  // transaction is still in flight, so test truthiness: only a real failure
+  // string marks the transaction dead.
+  if (ledgerData?.failure) {
+    return `rejected by the ledger: ${ledgerData.failure}`
   }
-  if (TERMINAL_DEAD_STATUSES.has(ledgerData.ledgerStatus)) {
-    return ledgerData.ledgerStatus
+  if (ledgerData?.ledgerStatus === 'Expired') {
+    return 'Expired'
+  }
+  // Custody gave up preparing or broadcasting it, so it never reached the ledger.
+  const { processing } = tx
+  if (processing?.status === 'Failed') {
+    return `Custody failed it before the ledger: ${processing.hint}`
+  }
+  if (processing?.status === 'Interrupted') {
+    return `Custody interrupted it (${processing.cause}): ${processing.reason}`
   }
   return undefined
+}
+
+/**
+ * List an order's transactions, treating a timed-out read as "no answer this
+ * time" rather than a failure.
+ *
+ * @param client - The authenticated Custody client.
+ * @param domainId - The Custody domain.
+ * @param orderId - The intent/order id.
+ * @returns The order's transactions; empty on a timed-out read.
+ */
+async function listOrderTransactions(
+  client: CustodyHttpClient,
+  domainId: string,
+  orderId: string,
+): Promise<readonly ApiTransaction[]> {
+  try {
+    const collection = await client.get<TransactionsCollection>(
+      `/v1/domains/${domainId}/transactions`,
+      { 'orderReference.Id': orderId },
+    )
+    return collection.items
+  } catch (error) {
+    if (error instanceof CustodyTimeoutError) {
+      return []
+    }
+    throw error
+  }
 }
 
 /**
@@ -156,13 +202,18 @@ export interface PollTransactionOptions {
  * for ledger confirmation and reads the result directly from the Custody API —
  * no separate XRPL ledger query needed.
  *
+ * An order can map to several transactions when Custody resubmits one with a
+ * higher fee; the superseded attempt stays listed as `Replaced`. Only the
+ * newest surviving attempt is considered, so a replaced attempt is never
+ * mistaken for the order's outcome.
+ *
  * The wait has three outcomes, mirroring the on-ledger reality:
  * - **Confirmed** — the transaction is on the ledger; its hash is returned.
  * - **Provably dead** — the transaction reached a terminal non-confirmed state
- *   (`Expired`, `Replaced`, or an on-chain `failure`). Polling on would only
- *   waste the timeout, so this throws {@link IntentValidationError} at once. It
- *   will never apply, so a retry is a genuinely new attempt and must use a
- *   fresh idempotency key.
+ *   (`Expired`, an on-chain `failure`, or Custody `Failed`/`Interrupted` it
+ *   before the ledger). Polling on would only waste the timeout, so this throws
+ *   {@link IntentValidationError} at once. It will never apply, so a retry is a
+ *   genuinely new attempt and must use a fresh idempotency key.
  * - **Indeterminate** — still in flight when the timeout elapses; returns
  *   `undefined`. The transaction may yet confirm, so a retry must re-drive the
  *   *same* idempotency key rather than start a new attempt.
@@ -181,22 +232,13 @@ export async function pollTransactionOnChain(
 
   for (let attempt = 0; ; attempt += 1) {
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for ledger confirmation.
-    const collection = await client.get<TransactionsCollection>(
-      `/v1/domains/${domainId}/transactions`,
-      { 'orderReference.Id': intentId },
-    )
-
-    if (collection.count > 0) {
-      const tx = collection.items[0]
-      const ledgerData = tx.ledgerTransactionData
+    const items = await listOrderTransactions(client, domainId, intentId)
+    const tx = currentTransaction(items)
+    if (tx !== undefined) {
       // Check for a dead outcome *before* honoring `Confirmed`: Custody can mark
       // a transaction `Confirmed` (it reached the ledger) while also recording a
-      // `failure` on it — not the clean success the caller asked for. A recorded
-      // failure wins.
-      // `ledgerTransactionData` is typed optional but comes back as `null` from
-      // Custody while the transaction is still in flight, so a truthiness guard
-      // covers both — keep polling rather than dereferencing a null.
-      const dead = ledgerData ? deadReason(ledgerData) : undefined
+      // `failure` on it. A recorded failure wins.
+      const dead = deadReason(tx)
       if (dead !== undefined) {
         throw new IntentValidationError(
           `Custody transaction for intent ${intentId} will not confirm ` +
@@ -204,16 +246,18 @@ export async function pollTransactionOnChain(
             `idempotency key.`,
         )
       }
-      if (ledgerData?.ledgerStatus === 'Confirmed') {
+      if (tx.ledgerTransactionData?.ledgerStatus === 'Confirmed') {
         return toOnChainResult(tx)
       }
     }
 
-    const delay = pollDelayMs(attempt, POLL_SCHEDULE)
-    if (Date.now() + delay >= deadline) {
+    const remaining = deadline - Date.now()
+    if (!(remaining > 0)) {
       return undefined
     }
+    // Never sleep past the deadline, so the last read lands on it and the whole
+    // budget is used.
     // eslint-disable-next-line no-await-in-loop -- Sequential polling is inherent to waiting for ledger confirmation.
-    await sleep(delay)
+    await sleep(Math.min(pollDelayMs(attempt, POLL_SCHEDULE), remaining))
   }
 }

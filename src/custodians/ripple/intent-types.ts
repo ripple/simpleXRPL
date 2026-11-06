@@ -1,6 +1,7 @@
 import type { FeeIntent } from '../../domain/index.js'
 import type { components } from '../../generated/custody.js'
 
+import type { ProposeEnvelopeOverrides } from './mapping/propose-envelope.js'
 import type { IntentOutcome } from './submission/intent-polling.js'
 
 /*
@@ -62,4 +63,41 @@ export interface CustodyDryRunTransactionOptions {
   readonly ledgerId?: string
   /** Fee override; defaults to `Priority: Low`, as a submission would. */
   readonly fee?: FeeIntent
+}
+
+/**
+ * A native XRPL transaction order, for
+ * {@link CustodyApi.proposeTransactionOrder}: Custody's own operation (e.g. a
+ * `Payment` to an `Endpoint`, an `MPTokenIssuanceCreate`, an
+ * `MPTokenAuthorize`), sent from an XRPL address.
+ */
+export interface CustodyTransactionOrder {
+  /** The sending account's XRPL address. Its Custody account is looked up. */
+  readonly account: string
+  /** The operation, exactly as Custody's API defines it. */
+  readonly operation: components['schemas']['Core_XrplOperation']
+  /**
+   * The ledger the sending account is on, e.g. `xrpl`. Needed when the account
+   * holds its address on several ledgers.
+   */
+  readonly ledgerId?: string
+  /** The fee strategy; defaults to `Priority: Low`. */
+  readonly feeStrategy?: components['schemas']['Core_XrplFeeStrategy']
+  /** The most the fee may be, in drops. */
+  readonly maximumFee?: string
+  /** Memos; none by default. */
+  readonly memos?: ReadonlyArray<components['schemas']['Core_XrplMemo']>
+  /** The XRPL `SourceTag`. */
+  readonly sourceTag?: number
+  /** The order's own custom properties (envelope ones go in the options). */
+  readonly customProperties?: components['schemas']['Core_StringsMap']
+}
+
+/** Options for {@link CustodyApi.proposeTransactionOrder}. */
+export type CustodyTransactionOrderOptions = ProposeEnvelopeOverrides & {
+  /**
+   * Dry-run the order first. If Custody says it would fail, throw a
+   * `DryRunFailedError` (carrying the verdict) and propose nothing.
+   */
+  readonly dryRun?: boolean
 }

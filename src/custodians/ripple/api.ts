@@ -1,16 +1,27 @@
 import type { Transaction } from 'xrpl'
 
-import { AccountNotFoundError, SimpleXRPLError } from '../../errors.js'
+import {
+  AccountNotFoundError,
+  DryRunFailedError,
+  SimpleXRPLError,
+} from '../../errors.js'
 import { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
-import type { components, operations, paths } from '../../generated/custody.js'
+import type { components, operations } from '../../generated/custody.js'
+import { uuidV7 } from '../../ids/index.js'
 
 import { fillPath } from './api-call.js'
+import type { ResponseBody } from './api-call.js'
 import type {
-  CallArgs,
-  OperationArgs,
-  OperationResponse,
-  ResponseBody,
-} from './api-call.js'
+  CustodyCallArgs,
+  CustodyHttpMethod,
+  CustodyOperationId,
+  CustodyProposeOptions,
+  CustodyProposePayload,
+  CustodyProposeResponse,
+  CustodyRequestArgs,
+  CustodyRequestPath,
+  CustodyRequestResponse,
+} from './api-types.js'
 import type { IntentSigner } from './auth/intent-signer.js'
 import {
   ambiguousAddressMessage,
@@ -26,16 +37,20 @@ import type {
   CustodyIntentOutcome,
   CustodyProposeAndWaitResult,
   CustodyTransactionDryRun,
+  CustodyTransactionOrder,
+  CustodyTransactionOrderOptions,
   CustodyWaitOptions,
 } from './intent-types.js'
 import { buildDecisionEnvelope } from './mapping/decision-envelope.js'
 import type { IntentDecision } from './mapping/decision-envelope.js'
-import { buildTransactionOrderPayload } from './mapping/envelope.js'
+import {
+  buildTransactionOrderPayload,
+  transactionOrderPayload,
+} from './mapping/envelope.js'
 import {
   buildEnvelopeRequest,
   buildProposeEnvelope,
   type ProposeEnvelopeContext,
-  type ProposeEnvelopeOverrides,
 } from './mapping/propose-envelope.js'
 import { paginate } from './pagination.js'
 import type {
@@ -44,64 +59,10 @@ import type {
   CustodyPaginatedOperationId,
 } from './pagination.js'
 import { requireXrplPublicKey } from './submission/account-key.js'
-import { postDryRun } from './submission/dry-run.js'
+import { describeDryRunFailure, postDryRun } from './submission/dry-run.js'
 import { waitForIntentOutcome } from './submission/intent-polling.js'
 import type { CustodyHttpClient } from './transport/custody-http-client.js'
 import { VersionGuard } from './versioning/version-guard.js'
-
-/** Every Custody operationId that has both a route and typed schema. */
-export type CustodyOperationId = keyof typeof CUSTODY_ROUTES & keyof operations
-
-/** A governed-intent payload to propose (any `v0_*` variant Custody accepts). */
-export type CustodyProposePayload =
-  components['schemas']['Core_ProposeUserIntentPayload']
-/** Per-call envelope overrides for {@link CustodyApi.propose}. */
-export type CustodyProposeOptions = ProposeEnvelopeOverrides
-
-/**
- * What {@link CustodyApi.propose} returns: Custody's acknowledgement plus the
- * `intentId` the proposal was signed under — the handle for reading, awaiting,
- * approving, or rejecting the intent.
- */
-export type CustodyProposeResponse =
-  components['schemas']['Core_IntentResponse'] & {
-    /** The proposed intent's id (the signed envelope's `request.id`). */
-    readonly intentId: string
-  }
-
-/** The typed arguments for one operation: path params, query, and/or body. */
-export type CustodyCallArgs<Op extends CustodyOperationId> = CallArgs<
-  operations,
-  Op
->
-
-/** The HTTP methods {@link CustodyApi.request} sends. */
-export type CustodyHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-
-/** The operation `path` serves for `method` (`never` if it serves none). */
-type PathOperation<
-  Path extends keyof paths,
-  Method extends CustodyHttpMethod,
-> = NonNullable<paths[Path][Lowercase<Method>]>
-
-/** Every Custody path template that serves `Method`. */
-export type CustodyRequestPath<Method extends CustodyHttpMethod> = {
-  [Path in keyof paths]: [PathOperation<Path, Method>] extends [never]
-    ? never
-    : Path
-}[keyof paths]
-
-/** The typed arguments for one `request`: path params, query, and/or body. */
-export type CustodyRequestArgs<
-  Method extends CustodyHttpMethod,
-  Path extends CustodyRequestPath<Method>,
-> = OperationArgs<PathOperation<Path, Method>>
-
-/** The typed response of one `request`. */
-export type CustodyRequestResponse<
-  Method extends CustodyHttpMethod,
-  Path extends CustodyRequestPath<Method>,
-> = OperationResponse<PathOperation<Path, Method>>
 
 /** How long {@link CustodyApi.waitForIntent} waits, unless configured. */
 const DEFAULT_WAIT_TIMEOUT_MS = 60_000
@@ -428,7 +389,7 @@ export class CustodyApi {
     payload: CustodyProposePayload,
     options?: CustodyProposeOptions,
   ): Promise<CustodyProposeResponse> {
-    this.assertPayload(payload, 'api.propose')
+    this.versionGuard.assertPayload(payload, 'api.propose')
     const body = await buildProposeEnvelope(this.intentSigner, {
       ...this.proposeContext,
       payload,
@@ -516,7 +477,7 @@ export class CustodyApi {
     payload: Payload,
     options?: CustodyProposeOptions,
   ): Promise<CustodyDryRunResponse<Payload['type']>> {
-    this.assertPayload(payload, 'api.dryRun')
+    this.versionGuard.assertPayload(payload, 'api.dryRun')
     const route = CUSTODY_ROUTES.intentDryRun
     this.versionGuard.assertEndpoint(route.method, route.path, 'api.dryRun')
     const response = await postDryRun(
@@ -554,13 +515,10 @@ export class CustodyApi {
     options: CustodyDryRunTransactionOptions = {},
   ): Promise<CustodyTransactionDryRun> {
     this.versionGuard.assertNativeTransaction(transaction.TransactionType)
-    const reference = await this.findByAddress(transaction.Account, {
-      ledgerId: options.ledgerId,
-      domainId: this.proposeContext.domainId,
-    })
-    if (reference === undefined) {
-      throw new AccountNotFoundError(transaction.Account)
-    }
+    const reference = await this.resolveSender(
+      transaction.Account,
+      options.ledgerId,
+    )
     const { payload } = buildTransactionOrderPayload({
       accountId: reference.accountId,
       ledgerId: reference.ledgerId,
@@ -571,28 +529,85 @@ export class CustodyApi {
   }
 
   /**
-   * Check the instance's Custody version accepts a payload: its intent type
-   * and, for an XRPL transaction order, its operation.
+   * Propose a native XRPL transaction order from an XRPL address: the sending
+   * account is looked up, Custody's operation is wrapped in a
+   * `v0_CreateTransactionOrder` with the defaults Custody requires
+   * (`Priority: Low` fee, no memos), and the order is signed and proposed.
+   * Unlike the verticals, it takes Custody's operation as-is, so every
+   * operation and option Custody offers is available, such as a `Payment` to a
+   * Custody `Endpoint`:
    *
-   * @param payload - The intent payload.
-   * @param sdkMethod - The SDK call, for the error.
-   * @throws {@link UnsupportedInVersionError} if either isn't supported.
+   * ```ts
+   * const { intentId } = await custody.api.proposeTransactionOrder(
+   *   {
+   *     account: 'r...',
+   *     operation: {
+   *       type: 'Payment',
+   *       destination: { type: 'Endpoint', endpointId },
+   *       amount: '1000',
+   *       currency: { type: 'MultiPurposeToken', issuanceId },
+   *     },
+   *   },
+   *   { dryRun: true },
+   * )
+   * ```
+   *
+   * @param order - The sending address, the operation, and optional order
+   *   fields (ledger, fee, memos, source tag, custom properties).
+   * @param options - Envelope overrides, as for {@link propose} (`id` is the
+   *   idempotency key, used as both the intent id and the order id), and
+   *   `dryRun` to check with Custody first.
+   * @returns Custody's `{ requestId }` and the `intentId`, which is also the
+   *   order id the on-chain transaction is filed under.
+   * @throws {@link AccountNotFoundError} if no Custody account in the domain
+   *   holds `order.account`.
+   * @throws {@link DryRunFailedError} if `dryRun` is set and Custody says the
+   *   order would fail; nothing is proposed.
+   * @throws {@link UnsupportedInVersionError} if the instance's Custody
+   *   version doesn't accept the operation.
+   * @throws A `CustodyApiError` if the API rejects the intent.
    */
-  private assertPayload(
-    payload: CustodyProposePayload,
-    sdkMethod: string,
-  ): void {
-    this.versionGuard.assertIntentType(payload.type, sdkMethod)
-    if (
-      payload.type === 'v0_CreateTransactionOrder' &&
-      payload.parameters.type === 'XRPL' &&
-      payload.parameters.operation !== undefined
-    ) {
-      this.versionGuard.assertXrplOperation(
-        payload.parameters.operation.type,
-        sdkMethod,
-      )
+  public async proposeTransactionOrder(
+    order: CustodyTransactionOrder,
+    options: CustodyTransactionOrderOptions = {},
+  ): Promise<CustodyProposeResponse> {
+    const { dryRun, ...overrides } = options
+    const reference = await this.resolveSender(order.account, order.ledgerId)
+    const payload = transactionOrderPayload({
+      ...order,
+      accountId: reference.accountId,
+      ledgerId: reference.ledgerId,
+      id: overrides.id ?? uuidV7(),
+    })
+    if (dryRun ?? false) {
+      const verdict = await this.dryRun(payload, overrides)
+      if (!verdict.success) {
+        throw new DryRunFailedError(describeDryRunFailure(verdict), verdict)
+      }
     }
+    return this.propose(payload, overrides)
+  }
+
+  /**
+   * The Custody account in this domain that holds a sending address.
+   *
+   * @param address - The sending XRPL address.
+   * @param ledgerId - The ledger, when the address is on several.
+   * @returns The account address reference.
+   * @throws {@link AccountNotFoundError} if no account in the domain holds it.
+   */
+  private async resolveSender(
+    address: string,
+    ledgerId: string | undefined,
+  ): Promise<CustodyAddressReference> {
+    const reference = await this.findByAddress(address, {
+      ledgerId,
+      domainId: this.proposeContext.domainId,
+    })
+    if (reference === undefined) {
+      throw new AccountNotFoundError(address)
+    }
+    return reference
   }
 
   /**

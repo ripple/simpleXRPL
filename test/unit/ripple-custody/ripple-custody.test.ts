@@ -7,7 +7,7 @@ import canonicalizeImport from 'canonicalize'
 import { Wallet } from 'xrpl'
 import type { OfferCancel, Payment, TxResponse } from 'xrpl'
 
-import type { CustodyProposePayload } from '../../../src/custodians/ripple/api.js'
+import type { CustodyProposePayload } from '../../../src/custodians/ripple/api-types.js'
 import type {
   CustodySignContext,
   CustodySignerPort,

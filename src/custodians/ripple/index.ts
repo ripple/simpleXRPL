@@ -15,7 +15,7 @@ export type {
   CustodyRequestArgs,
   CustodyRequestPath,
   CustodyRequestResponse,
-} from './api.js'
+} from './api-types.js'
 export type {
   CustodyAddressReference,
   CustodyFindByAddressOptions,
@@ -30,6 +30,8 @@ export type {
   CustodyIntentOutcome,
   CustodyProposeAndWaitResult,
   CustodyTransactionDryRun,
+  CustodyTransactionOrder,
+  CustodyTransactionOrderOptions,
   CustodyWaitOptions,
 } from './intent-types.js'
 export { CUSTODY_ROUTES } from '../../generated/custody-routes.js'

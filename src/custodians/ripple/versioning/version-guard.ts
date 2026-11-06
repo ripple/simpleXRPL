@@ -1,6 +1,7 @@
 import { UnsupportedInVersionError } from '../../../errors.js'
 import { CUSTODY_AVAILABILITY } from '../../../generated/custody-availability.js'
 import type { CustodyAvailability } from '../../../generated/custody-availability.js'
+import type { components } from '../../../generated/custody.js'
 
 import { endpointKey } from './capabilities.js'
 import type { CustodyCapabilities } from './capabilities.js'
@@ -142,6 +143,28 @@ export class VersionGuard {
       availability: CUSTODY_AVAILABILITY.intentTypes[intentType],
       isSupported: (caps) => caps.intentTypes.has(intentType),
     })
+  }
+
+  /**
+   * Assert the version accepts a governed-intent payload: its intent type and,
+   * for an XRPL transaction order, its operation.
+   *
+   * @param payload - The intent payload.
+   * @param sdkMethod - The SDK call that needs it, for the error.
+   * @throws {@link UnsupportedInVersionError} if either isn't supported.
+   */
+  public assertPayload(
+    payload: components['schemas']['Core_ProposeUserIntentPayload'],
+    sdkMethod: string,
+  ): void {
+    this.assertIntentType(payload.type, sdkMethod)
+    if (
+      payload.type === 'v0_CreateTransactionOrder' &&
+      payload.parameters.type === 'XRPL' &&
+      payload.parameters.operation !== undefined
+    ) {
+      this.assertXrplOperation(payload.parameters.operation.type, sdkMethod)
+    }
   }
 
   /**
