@@ -1,15 +1,24 @@
 import { createHash } from 'node:crypto'
 
-import { encode, encodeForSigning, hashes } from 'xrpl'
+import {
+  decode,
+  deriveAddress,
+  encode,
+  encodeForSigning,
+  hashes,
+  verifySignature,
+} from 'xrpl'
 import type { Transaction } from 'xrpl'
 
 import type { SignedEnvelope } from '../../domain/index.js'
+import { SignedTransactionMismatchError } from '../../errors.js'
 
 import type {
   EcdsaSignature,
   Ed25519SignerPort,
   ExternalSignerPort,
   Secp256k1SignerPort,
+  TransactionSignerPort,
 } from './external-signer-port.js'
 
 /** The order of the secp256k1 curve. */
@@ -152,4 +161,125 @@ export async function signTransactionExternally(
       : await secp256k1Signature(signingDataHex, port)
   const txBlob = encode({ ...toSign, TxnSignature: txnSignature })
   return { txBlob, hash: hashes.hashSignedTx(txBlob) }
+}
+
+/**
+ * Decode a signed blob and pull out its signature fields.
+ *
+ * @param txBlob - The signed blob from the signer.
+ * @returns The `TxnSignature` and `SigningPubKey`.
+ * @throws {@link SignedTransactionMismatchError} if the blob does not decode or
+ *   either field is missing.
+ */
+function readSignatureFields(txBlob: string): {
+  txnSignature: string
+  signingPubKey: string
+} {
+  let returned: Record<string, unknown>
+  try {
+    returned = decode(txBlob)
+  } catch (cause) {
+    throw new SignedTransactionMismatchError(
+      'Signer returned a blob that is not a valid XRPL transaction.',
+      { cause },
+    )
+  }
+  const { TxnSignature: txnSignature, SigningPubKey: signingPubKey } = returned
+  if (typeof txnSignature !== 'string' || txnSignature.length === 0) {
+    throw new SignedTransactionMismatchError(
+      'Signer returned a transaction without a TxnSignature.',
+    )
+  }
+  if (typeof signingPubKey !== 'string' || signingPubKey.length === 0) {
+    throw new SignedTransactionMismatchError(
+      'Signer returned a transaction without a SigningPubKey.',
+    )
+  }
+  return { txnSignature, signingPubKey }
+}
+
+/**
+ * Check the key that signed is the one we expect: the pinned key when known,
+ * otherwise the sending account's master key.
+ *
+ * @param signingPubKey - The `SigningPubKey` from the returned blob.
+ * @param knownKey - The pinned public key, if any.
+ * @param account - The sending account.
+ * @throws {@link SignedTransactionMismatchError} on a different key.
+ */
+function assertExpectedKey(
+  signingPubKey: string,
+  knownKey: string | undefined,
+  account: string,
+): void {
+  if (knownKey !== undefined) {
+    if (signingPubKey.toUpperCase() !== knownKey.toUpperCase()) {
+      throw new SignedTransactionMismatchError(
+        'Signer returned a transaction signed by a different key.',
+      )
+    }
+    return
+  }
+  if (deriveAddress(signingPubKey) !== account) {
+    throw new SignedTransactionMismatchError(
+      "Signer's key is not the sending account's master key. For a regular " +
+        'key, give the port a publicKey().',
+    )
+  }
+}
+
+/**
+ * Sign a transaction with a whole-transaction signer (hardware wallet or
+ * browser-wallet relay): hand over the full transaction, then verify what comes
+ * back before it can be submitted.
+ *
+ * Checks on the returned blob:
+ * - it must byte-match the transaction that was sent plus the returned
+ *   `SigningPubKey` and `TxnSignature`, so a wallet cannot alter the
+ *   destination, amount, fee or expiry;
+ * - when the key is known, `SigningPubKey` must be that key; when it is not yet
+ *   known, the returned key must be the sending account's master key;
+ * - the signature must verify against `SigningPubKey`.
+ *
+ * @param tx - The autofilled transaction to sign.
+ * @param publicKeyHex - The signer's XRPL-format public key, or `undefined` if
+ *   it is learned from this signature.
+ * @param port - The whole-transaction signer.
+ * @returns The signed envelope and the public key that signed it.
+ * @throws {@link SignedTransactionMismatchError} if the blob differs from the
+ *   request, is unsigned, is signed by the wrong key, or carries an invalid
+ *   signature.
+ */
+export async function signWholeTransaction(
+  tx: Transaction,
+  publicKeyHex: string | undefined,
+  port: TransactionSignerPort,
+): Promise<{ envelope: SignedEnvelope; publicKeyHex: string }> {
+  const toSign: Transaction =
+    publicKeyHex === undefined ? tx : { ...tx, SigningPubKey: publicKeyHex }
+  const { txBlob } = await port.signTransaction(toSign)
+
+  const { txnSignature, signingPubKey } = readSignatureFields(txBlob)
+  assertExpectedKey(signingPubKey, publicKeyHex, tx.Account)
+  // Rebuild the blob we expect — the request plus the returned key and
+  // signature — and require a byte-exact match, so nothing was added or altered.
+  const expected = encode({
+    ...toSign,
+    SigningPubKey: signingPubKey,
+    TxnSignature: txnSignature,
+  })
+  if (expected.toUpperCase() !== txBlob.toUpperCase()) {
+    throw new SignedTransactionMismatchError(
+      'Signer returned a different transaction from the one it was asked to sign.',
+    )
+  }
+  if (!verifySignature(txBlob, signingPubKey)) {
+    throw new SignedTransactionMismatchError(
+      "Signer's TxnSignature does not verify against its public key.",
+    )
+  }
+  return {
+    envelope: { txBlob, hash: hashes.hashSignedTx(txBlob) },
+    publicKeyHex: signingPubKey,
+  }
 }

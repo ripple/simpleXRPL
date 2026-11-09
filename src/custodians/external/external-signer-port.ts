@@ -1,3 +1,5 @@
+import type { Transaction } from 'xrpl'
+
 /**
  * The external-signer seam: a key held outside the process — in a KMS
  * (AWS/GCP) or an HSM (PKCS#11, CloudHSM) — that signs on request without ever
@@ -9,6 +11,11 @@
  * signature schemes need different inputs and outputs:
  * - **secp256k1** signs a 32-byte digest and yields raw `{ r, s }` scalars;
  * - **ed25519** signs the message bytes directly and yields a 64-byte signature.
+ *
+ * A third, separate seam — {@link TransactionSignerPort} — covers signers that
+ * refuse to sign an opaque digest and instead take the whole transaction so they
+ * can parse and display it before approval (hardware wallets such as Ledger, or
+ * a relay to a browser wallet).
  */
 
 /** A secp256k1 signature as its raw curve scalars. */
@@ -76,3 +83,64 @@ export interface Ed25519SignerPort {
  * (one XRPL account).
  */
 export type ExternalSignerPort = Secp256k1SignerPort | Ed25519SignerPort
+
+/** The signed transaction a {@link TransactionSignerPort} hands back. */
+export interface SignedTransactionBlob {
+  /**
+   * The fully signed, serialized transaction (hex). The SDK decodes it and
+   * checks that it is exactly the transaction it asked to have signed, plus a
+   * valid `TxnSignature` for the port's public key.
+   */
+  readonly txBlob: string
+}
+
+/**
+ * A whole-transaction signer: the device or wallet receives the complete,
+ * autofilled transaction (not a digest), so it can show the user what they are
+ * approving. Use this for hardware wallets (e.g. Ledger's XRP app, which parses
+ * and displays every field and does not blind-sign hashes) or for a relay that
+ * forwards the transaction to a browser wallet and waits for the signed blob.
+ *
+ * The SDK does not trust what comes back: it rejects a blob whose fields differ
+ * from the request in any way, or whose signature does not verify against
+ * {@link TransactionSignerPort.publicKey}.
+ */
+export interface TransactionSignerPort {
+  /**
+   * The signer's public key as an XRPL-format hex string (secp256k1 compressed,
+   * or `ED`-prefixed ed25519), when it is known before the first signature.
+   *
+   * Optional, because some wallets only reveal the key when they sign (the
+   * Ledger Button's XRP provider exposes the address on connect, the key only
+   * after a signature). When omitted, pass `address` to
+   * {@link ExternalSigner.create}: the first signed blob must carry that
+   * account's master key, and the SDK pins it for every later signature.
+   * Provide it for a regular-key account.
+   *
+   * @returns The public key hex.
+   */
+  readonly publicKey?: () => Promise<string>
+
+  /**
+   * Sign the whole transaction. It arrives autofilled (`Sequence`, `Fee`,
+   * `LastLedgerSequence`) with `Account` set, and with `SigningPubKey` set
+   * once the key is known. The signer adds `SigningPubKey` (if absent) and
+   * `TxnSignature` and must not change any other field.
+   *
+   * @param tx - The autofilled, unsigned transaction.
+   * @returns The signed blob.
+   */
+  readonly signTransaction: (tx: Transaction) => Promise<SignedTransactionBlob>
+}
+
+/**
+ * Narrow an external signer to the whole-transaction seam.
+ *
+ * @param port - A digest port or a whole-transaction port.
+ * @returns Whether `port` is a {@link TransactionSignerPort}.
+ */
+export function isTransactionSignerPort(
+  port: ExternalSignerPort | TransactionSignerPort,
+): port is TransactionSignerPort {
+  return 'signTransaction' in port
+}
