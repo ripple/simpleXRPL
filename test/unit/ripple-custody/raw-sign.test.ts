@@ -33,7 +33,7 @@ describe('buildSigningPreimage / assembleSignedTransaction', () => {
 
     const { preparedTx, preimageBase64 } = buildSigningPreimage(
       tx,
-      hexToBase64(wallet.publicKey),
+      wallet.publicKey,
     )
 
     expect(preparedTx.SigningPubKey).toBe(wallet.publicKey)

@@ -13,7 +13,11 @@ import { IntentValidationError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
 import { submitTransaction, withIntent } from '../pipeline/index.js'
 
-import { buildIssuance, extractMptIssuanceId } from './token.helpers.js'
+import {
+  buildIssuance,
+  extractMptIssuanceId,
+  mptIssuanceIdFromLedger,
+} from './token.helpers.js'
 import { listTokens, retrieveToken } from './token.reads.js'
 import type {
   TokenAuthorizeParams,
@@ -119,6 +123,7 @@ export class Token {
       transaction: buildIssuance(account.address, params),
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
 
@@ -132,6 +137,15 @@ export class Token {
       pollIssuanceId !== undefined
     ) {
       mptIssuanceId = await pollIssuanceId(result.intentId)
+    }
+    // Last resort: the custodian confirmed the tx but returned no issuance id
+    // (Ripple Custody omits it for MPT creates) — read it from the on-chain tx
+    // metadata by hash, the authoritative source.
+    if (mptIssuanceId === '' && result.txHash !== undefined) {
+      mptIssuanceId = await mptIssuanceIdFromLedger(
+        this.host.ledger,
+        result.txHash,
+      )
     }
     return withIntent(result, { mptIssuanceId })
   }
@@ -258,6 +272,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
@@ -291,6 +306,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { to: params.to, amount: params.amount.value })
@@ -331,6 +347,7 @@ export class Token {
       transaction,
       account: issuer,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
@@ -370,6 +387,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { mptIssuanceId: params.mptIssuanceId })
@@ -406,6 +424,7 @@ export class Token {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {

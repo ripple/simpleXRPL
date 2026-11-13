@@ -39,6 +39,13 @@ export interface XrpTransferOptions {
    * `idempotencyKey`. Auto-generated when omitted.
    */
   readonly idempotencyKey?: string
+  /**
+   * Pre-flight the write through Ripple Custody's dry-run before submitting
+   * it; a failed pre-flight throws `DryRunFailedError` and nothing is
+   * submitted. Overrides the custodian's `defaultDryRun`. Ripple Custody
+   * accounts only: other signers reject `dryRun: true`.
+   */
+  readonly dryRun?: boolean
 }
 
 /** Output attached to an {@link XRP.transfer} result. */
@@ -68,6 +75,13 @@ export interface XrpWriteOptions {
    * `idempotencyKey`. Auto-generated when omitted.
    */
   readonly idempotencyKey?: string
+  /**
+   * Pre-flight the write through Ripple Custody's dry-run before submitting
+   * it; a failed pre-flight throws `DryRunFailedError` and nothing is
+   * submitted. Overrides the custodian's `defaultDryRun`. Ripple Custody
+   * accounts only: other signers reject `dryRun: true`.
+   */
+  readonly dryRun?: boolean
 }
 
 /**
@@ -156,6 +170,7 @@ export class XRP {
       transaction,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { to: params.to, amount: params.amount })
@@ -216,6 +231,7 @@ export class XRP {
       transaction,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
@@ -253,6 +269,7 @@ export class XRP {
       transaction,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)

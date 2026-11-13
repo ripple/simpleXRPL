@@ -11,9 +11,7 @@ import { toMemos } from './memos.js'
 import { buildProposeEnvelope } from './propose-envelope.js'
 import { txToOperation } from './xrpl-operations.js'
 
-type ProposeIntentBody = components['schemas']['Core_ProposeIntentBody']
-type TransactionOrderParametersXrpl =
-  components['schemas']['Core_TransactionOrderParameters_XRPL']
+type ProposeIntentBody = components['schemas']['Core_UserSigned']
 
 /** Inputs for building one signed `v0_CreateTransactionOrder` intent envelope. */
 export interface BuildEnvelopeOptions {
@@ -41,11 +39,110 @@ export interface BuildEnvelopeOptions {
   readonly idempotencyKey?: string
 }
 
+/** An unsigned `v0_CreateTransactionOrder` payload, and the id it carries. */
+export interface TransactionOrderPayload {
+  /** The payload, ready to propose or dry-run. */
+  readonly payload: Extract<
+    components['schemas']['Core_ProposeUserIntentPayload'],
+    { type: 'v0_CreateTransactionOrder' }
+  >
+  /** The intent id: the payload's own id, which the envelope must match. */
+  readonly intentId: string
+  /** The human-readable summary the intent carries. */
+  readonly customProperties: components['schemas']['Core_StringsMap']
+}
+
+/** The fields of one native XRPL transaction order, in Custody's terms. */
+export interface TransactionOrderFields {
+  /** The Custody account that owns and signs the transaction. */
+  readonly accountId: string
+  /** The XRPL ledger backing the account (see {@link BuildEnvelopeOptions}). */
+  readonly ledgerId?: string
+  /** The order's id: the idempotency key, and the intent's id. */
+  readonly id: string
+  /** The operation, as Custody's API defines it. */
+  readonly operation: components['schemas']['Core_XrplOperation']
+  /** The fee strategy; defaults to `Priority: Low`. */
+  readonly feeStrategy?: components['schemas']['Core_XrplFeeStrategy']
+  /** The most the fee may be, in drops. */
+  readonly maximumFee?: string
+  /** Memos; none by default. */
+  readonly memos?: ReadonlyArray<components['schemas']['Core_XrplMemo']>
+  /** The XRPL `SourceTag`. */
+  readonly sourceTag?: number
+  /** The order's own custom properties; none by default. */
+  readonly customProperties?: components['schemas']['Core_StringsMap']
+}
+
+/**
+ * Assemble an unsigned `v0_CreateTransactionOrder` payload from an order's
+ * fields, filling the defaults Custody requires: a `Priority: Low` fee
+ * strategy, no memos, and no custom properties.
+ *
+ * @param fields - The account, id, operation, and optional order fields.
+ * @returns The payload, ready to propose or dry-run.
+ */
+export function transactionOrderPayload(
+  fields: TransactionOrderFields,
+): TransactionOrderPayload['payload'] {
+  return {
+    id: fields.id,
+    accountId: fields.accountId,
+    ledgerId: fields.ledgerId,
+    parameters: {
+      feeStrategy: fields.feeStrategy ?? toFeeStrategy(undefined).feeStrategy,
+      maximumFee: fields.maximumFee,
+      memos: Array.from(fields.memos ?? []),
+      sourceTag: fields.sourceTag,
+      operation: fields.operation,
+      type: 'XRPL',
+    },
+    customProperties: fields.customProperties ?? {},
+    type: 'v0_CreateTransactionOrder',
+  }
+}
+
+/**
+ * Map a transaction to an unsigned `v0_CreateTransactionOrder` payload: the
+ * native operation, the fee strategy, memos, and a human-readable
+ * `customProperties` summary.
+ *
+ * @param options - The account, transaction, fee, and idempotency key.
+ * @returns The payload, its intent id, and its custom properties.
+ * @throws {@link SignerCapabilityError} if the transactor (or one of its
+ * fields) has no native Custody representation.
+ */
+export function buildTransactionOrderPayload(
+  options: Omit<BuildEnvelopeOptions, 'domainId' | 'authorUserId'>,
+): TransactionOrderPayload {
+  const { feeStrategy, maximumFee } = toFeeStrategy(options.fee)
+  const customProperties = buildCustomProperties(options.transaction)
+  // The payload carries its own id, which must match the envelope id — the
+  // caller's idempotency key resolves a retry to the same intent. Resolve it
+  // once here (falling back to a fresh id) so both stay in sync.
+  const intentId = options.idempotencyKey ?? uuidV7()
+  return {
+    payload: transactionOrderPayload({
+      accountId: options.accountId,
+      ledgerId: options.ledgerId,
+      id: intentId,
+      operation: txToOperation(options.transaction),
+      feeStrategy,
+      maximumFee,
+      memos: toMemos(options.transaction),
+      sourceTag: options.transaction.SourceTag,
+      customProperties,
+    }),
+    intentId,
+    customProperties,
+  }
+}
+
 /**
  * Build and sign a `v0_CreateTransactionOrder` intent envelope: map the
- * transaction to Custody's native operation, attach the fee strategy and a
- * human-readable `customProperties` summary, then sign the canonicalized
- * request with the intent-author key.
+ * transaction to Custody's native operation (see
+ * {@link buildTransactionOrderPayload}), then sign the canonicalized request
+ * with the intent-author key.
  *
  * @param intentSigner - Signs the canonicalized request.
  * @param options - The domain, author, account, transaction, and fee.
@@ -54,40 +151,16 @@ export interface BuildEnvelopeOptions {
  * @throws {@link SignerCapabilityError} if the transactor (or one of its
  * fields) has no native Custody representation.
  */
-export function buildProposeIntentBody(
+export async function buildProposeIntentBody(
   intentSigner: IntentSigner,
   options: BuildEnvelopeOptions,
-): ProposeIntentBody {
-  const operation = txToOperation(options.transaction)
-  const { feeStrategy, maximumFee } = toFeeStrategy(options.fee)
-  const customProperties = buildCustomProperties(options.transaction)
-
-  const parameters: TransactionOrderParametersXrpl = {
-    feeStrategy,
-    maximumFee,
-    memos: toMemos(options.transaction),
-    sourceTag: options.transaction.SourceTag,
-    operation,
-    type: 'XRPL',
-  }
-
-  // The payload carries its own id, which must match the envelope id — the
-  // caller's idempotency key resolves a retry to the same intent. Resolve it
-  // once here (falling back to a fresh id) so both stay in sync, since
-  // `buildProposeEnvelope` would otherwise generate the envelope id on its own.
-  const intentId = options.idempotencyKey ?? uuidV7()
-
+): Promise<ProposeIntentBody> {
+  const { payload, intentId, customProperties } =
+    buildTransactionOrderPayload(options)
   return buildProposeEnvelope(intentSigner, {
     domainId: options.domainId,
     authorUserId: options.authorUserId,
-    payload: {
-      id: intentId,
-      accountId: options.accountId,
-      ledgerId: options.ledgerId,
-      parameters,
-      customProperties,
-      type: 'v0_CreateTransactionOrder',
-    },
+    payload,
     overrides: { id: intentId, customProperties },
   })
 }

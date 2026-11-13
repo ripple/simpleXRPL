@@ -53,6 +53,23 @@ describe('HttpCustodyAuthPort', () => {
     expect(form.get('client_id')).toBe('my-custom-client')
   })
 
+  it('bounds the token request with a timeout (30 s by default)', async () => {
+    const http = new FakeHttpPort(() => ok({ access_token: 'jwt-123' }))
+
+    await new HttpCustodyAuthPort({ tokenUrl: TOKEN_URL, http }).fetchToken(
+      CHALLENGE,
+    )
+    await new HttpCustodyAuthPort({
+      tokenUrl: TOKEN_URL,
+      http,
+      timeoutMs: 5000,
+    }).fetchToken(CHALLENGE)
+
+    expect(http.requests.map((request) => request.timeoutMs)).toEqual([
+      30_000, 5000,
+    ])
+  })
+
   it('throws CustodyAuthError on a non-2xx response', async () => {
     const http = new FakeHttpPort(() => status(401, { error: 'bad' }))
     const port = new HttpCustodyAuthPort({ tokenUrl: TOKEN_URL, http })

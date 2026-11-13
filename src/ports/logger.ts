@@ -36,14 +36,26 @@ export const REDACTED_FIELDS: readonly string[] = [
   'privateKeyPem',
   'private_key',
   'seed',
+  'encryptedSeed',
   'mnemonic',
   // API credentials.
   'apiKey',
   'clientSecret',
   'client_secret',
-  // Bearer tokens.
+  'secret',
+  'password',
+  'passphrase',
+  // A signed login challenge: the SDK picks the challenge, so the pair is
+  // exchangeable for a token. (Masks intent-envelope signatures too, which
+  // are harmless either way.)
+  'challenge',
+  'signature',
+  // Bearer tokens, and the header that carries them.
   'accessToken',
   'access_token',
   'refreshToken',
   'refresh_token',
+  'idToken',
+  'id_token',
+  'authorization',
 ]

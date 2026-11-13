@@ -105,10 +105,15 @@ export class IOU {
     const { issuer, holder } = this.resolveIssuancePair(params, options)
     const currency = encodeCurrencyCode(params.ticker)
     const steps: SubmitRequest[] = [
-      { transaction: buildAccountSet(issuer.address), account: issuer },
+      {
+        transaction: buildAccountSet(issuer.address),
+        account: issuer,
+        dryRun: options?.dryRun,
+      },
       {
         transaction: buildMaxTrustSet(holder.address, currency, issuer.address),
         account: holder,
+        dryRun: options?.dryRun,
       },
     ]
     if (params.amount !== undefined) {
@@ -122,6 +127,7 @@ export class IOU {
           value: iouValue(params.amount, 'amount'),
         }),
         account: issuer,
+        dryRun: options?.dryRun,
       })
     }
     const results = await runMultiStep(this.host, steps)
@@ -201,6 +207,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { holder: params.holder })
@@ -283,6 +290,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { holder: params.holder, amount: params.amount })
@@ -312,6 +320,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, {
@@ -375,6 +384,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, { offerSequence: params.offerSequence })
@@ -404,6 +414,7 @@ export class IOU {
         }),
         account: issuer,
         fee: options?.fee,
+        dryRun: options?.dryRun,
       })),
     )
     return withIntent(results[results.length - 1], { holder: params.holder })
@@ -444,6 +455,7 @@ export class IOU {
       transaction,
       account: issuer,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)

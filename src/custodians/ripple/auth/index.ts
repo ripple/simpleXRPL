@@ -8,6 +8,17 @@ export { KeypairService } from './keypair.service.js'
 export { CustodyAuthService } from './custody-auth.service.js'
 export type { CustodyAuthServiceOptions } from './custody-auth.service.js'
 export { IntentSigner } from './intent-signer.js'
+export {
+  LocalKeySigner,
+  PortKeySigner,
+  resolveKeySigner,
+} from './key-signer.js'
+export type { CustodyKeySigner } from './key-signer.js'
+export type {
+  CustodyKeyAlgorithm,
+  CustodySignContext,
+  CustodySignerPort,
+} from './signer-port.js'
 export type {
   CustodyAuthPort,
   SignedChallenge,

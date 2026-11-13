@@ -49,6 +49,31 @@ function derEncodeInteger(halfHex: string): string {
 }
 
 /**
+ * Wrap a raw 64-byte Ed25519 signature the way Custody verifies it: the two
+ * 32-byte halves DER-encoded as an ECDSA-style `SEQUENCE { INTEGER r,
+ * INTEGER s }`. See {@link Ed25519Service} for why. Shared by the in-process
+ * signer and the external-signer path so both produce identical bytes.
+ *
+ * @param rawSignature - The raw 64-byte Ed25519 signature.
+ * @returns The base64-encoded, DER-wrapped signature.
+ */
+export function encodeEd25519Signature(rawSignature: Uint8Array): string {
+  const hexSignature = Buffer.from(rawSignature).toString('hex')
+  const rHex = hexSignature.substring(0, HALF_SIGNATURE_HEX_LEN)
+  const sHex = hexSignature.substring(
+    HALF_SIGNATURE_HEX_LEN,
+    FULL_SIGNATURE_HEX_LEN,
+  )
+  const rDer = derEncodeInteger(rHex)
+  const sDer = derEncodeInteger(sHex)
+  const sequenceLengthHex = ((rDer.length + sDer.length) / 2)
+    .toString(HEX_RADIX)
+    .padStart(2, '0')
+  const derHex = `30${sequenceLengthHex}${rDer}${sDer}`
+  return Buffer.from(derHex, 'hex').toString('base64')
+}
+
+/**
  * Ed25519 signer.
  *
  * This reproduces Ripple Custody's documented OpenSSL flow EXACTLY, including a
@@ -94,22 +119,8 @@ export class Ed25519Service implements KeypairStrategy {
       ? createHash('sha256').update(message).digest()
       : Buffer.from(message)
 
-    // Step 2: raw 64-byte Ed25519 signature.
-    const hexSignature = sign(null, messageHash, privateKeyPem).toString('hex')
-
-    // Step 3: re-wrap the two halves as DER (see class doc — required by Custody).
-    const rHex = hexSignature.substring(0, HALF_SIGNATURE_HEX_LEN)
-    const sHex = hexSignature.substring(
-      HALF_SIGNATURE_HEX_LEN,
-      FULL_SIGNATURE_HEX_LEN,
-    )
-    const rDer = derEncodeInteger(rHex)
-    const sDer = derEncodeInteger(sHex)
-    const sequenceLengthHex = ((rDer.length + sDer.length) / 2)
-      .toString(HEX_RADIX)
-      .padStart(2, '0')
-    const derHex = `30${sequenceLengthHex}${rDer}${sDer}`
-
-    return Buffer.from(derHex, 'hex').toString('base64')
+    // Steps 2–3: raw 64-byte Ed25519 signature, re-wrapped as DER (see class
+    // doc — required by Custody).
+    return encodeEd25519Signature(sign(null, messageHash, privateKeyPem))
   }
 }

@@ -1,15 +1,14 @@
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
-import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import { buildSignManifestIntentBody } from '../../../src/custodians/ripple/mapping/manifest-envelope.js'
 import type { components } from '../../../src/generated/custody.js'
 import { generateTestKey } from '../custody-auth/test-utils.js'
 
 function makeSigner(): IntentSigner {
   const pem = generateTestKey('ed25519')
-  return new IntentSigner(KeypairService.fromPrivateKey(pem), pem)
+  return IntentSigner.fromPrivateKey(pem)
 }
 
-type ProposeIntentBody = ReturnType<typeof buildSignManifestIntentBody>
+type ProposeIntentBody = Awaited<ReturnType<typeof buildSignManifestIntentBody>>
 
 /**
  * Narrow the payload to the `v0_SignManifest` variant this envelope always builds.
@@ -30,8 +29,8 @@ function manifestPayload(
 }
 
 describe('buildSignManifestIntentBody', () => {
-  it('builds a signed v0_SignManifest envelope carrying the Unsafe preimage', () => {
-    const body = buildSignManifestIntentBody(
+  it('builds a signed v0_SignManifest envelope carrying the Unsafe preimage', async () => {
+    const body = await buildSignManifestIntentBody(
       makeSigner(),
       { note: 'raw payment' },
       {
@@ -54,8 +53,8 @@ describe('buildSignManifestIntentBody', () => {
     expect(payload.customProperties).toEqual({ note: 'raw payment' })
   })
 
-  it('uses the given idempotencyKey as both the request id and the payload id', () => {
-    const body = buildSignManifestIntentBody(
+  it('uses the given idempotencyKey as both the request id and the payload id', async () => {
+    const body = await buildSignManifestIntentBody(
       makeSigner(),
       {},
       {
@@ -71,8 +70,8 @@ describe('buildSignManifestIntentBody', () => {
     expect(manifestPayload(body).id).toBe('retry-key-1')
   })
 
-  it('generates a fresh id when no idempotencyKey is given, and keeps request/payload ids in sync', () => {
-    const body = buildSignManifestIntentBody(
+  it('generates a fresh id when no idempotencyKey is given, and keeps request/payload ids in sync', async () => {
+    const body = await buildSignManifestIntentBody(
       makeSigner(),
       {},
       {
@@ -87,8 +86,8 @@ describe('buildSignManifestIntentBody', () => {
     expect(body.request.id).toBe(manifestPayload(body).id)
   })
 
-  it('omits payload.ledgerId when none is given (legacy single-ledger accounts)', () => {
-    const body = buildSignManifestIntentBody(
+  it('omits payload.ledgerId when none is given (legacy single-ledger accounts)', async () => {
+    const body = await buildSignManifestIntentBody(
       makeSigner(),
       {},
       {
@@ -102,8 +101,8 @@ describe('buildSignManifestIntentBody', () => {
     expect(manifestPayload(body).ledgerId).toBeUndefined()
   })
 
-  it('stamps payload.ledgerId when given (multi-ledger Vault accounts)', () => {
-    const body = buildSignManifestIntentBody(
+  it('stamps payload.ledgerId when given (multi-ledger Vault accounts)', async () => {
+    const body = await buildSignManifestIntentBody(
       makeSigner(),
       {},
       {

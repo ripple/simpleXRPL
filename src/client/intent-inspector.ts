@@ -1,5 +1,9 @@
 import { RippleCustody } from '../custodians/ripple/index.js'
 import type {
+  CustodyIntentOutcome,
+  CustodyWaitOptions,
+} from '../custodians/ripple/index.js'
+import type {
   Custodian,
   IntentObserver,
   OnChainResult,
@@ -76,6 +80,31 @@ export class IntentInspector {
     timeoutMs?: number,
   ): Promise<SubmissionResult> {
     return this.handleFor(intentId).wait(timeoutMs)
+  }
+
+  /**
+   * Wait for an intent to finish and report how it ended, without throwing:
+   * the reporting counterpart to {@link await}. Rejected, expired, and failed
+   * intents, and a wait that runs out of time, come back as outcomes — read
+   * `isSuccess` / `isTerminal`, and `reason` for why it didn't succeed.
+   *
+   * Only available when a Ripple Custody signer is configured.
+   *
+   * @param intentId - The intent id returned at submission.
+   * @param options - The budget and a per-read callback.
+   * @returns How the intent ended, or where it stood when the wait ran out.
+   * @throws {@link SimpleXRPLError} if no Ripple Custody signer is configured.
+   */
+  public async outcome(
+    intentId: string,
+    options?: CustodyWaitOptions,
+  ): Promise<CustodyIntentOutcome> {
+    if (this.custodyObserver === undefined) {
+      throw new SimpleXRPLError(
+        'outcome requires a RippleCustody signer; add one to the client to use client.intent.outcome.',
+      )
+    }
+    return this.custodyObserver.api.waitForIntent(intentId, options)
   }
 
   /**

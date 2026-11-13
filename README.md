@@ -84,6 +84,58 @@ Which transactors are native differs per backend — see
 matrix, and note that a transactor can be native while a specific _field_ on it
 is not, in which case that call also takes the raw path.
 
+## Ripple Custody
+
+`RippleCustody` signs and submits through Ripple Custody. Configure it from the
+environment and add it to the client's signers:
+
+```ts
+import { RippleCustody, SimpleXRPL } from 'simplexrpl'
+
+const custody = await RippleCustody.fromEnv({ primary: 'r...' })
+const client = await SimpleXRPL.init({
+  xrpldUrl: 'wss://s.altnet.rippletest.net:51233',
+  signers: [custody],
+})
+```
+
+Beyond the verticals, it exposes the whole Custody API, typed from the bundled
+spec. The [Ripple Custody guide](./docs/ripple-custody.md) covers:
+
+- [setting up](./docs/ripple-custody.md#setting-up) (environment variables,
+  timeouts);
+- [calling any Custody endpoint](./docs/ripple-custody.md#calling-the-custody-api),
+  and proposing, approving, and rejecting intents;
+- [waiting on intents](./docs/ripple-custody.md#waiting-on-intents) and
+  [dry runs](./docs/ripple-custody.md#dry-runs);
+- [pagination, address lookups, and account keys](./docs/ripple-custody.md#lists-lookups-and-account-keys);
+- [creating an API key](./docs/ripple-custody.md#creating-an-api-key), or
+  [keeping it in an HSM or KMS](./docs/ripple-custody.md#api-key-in-an-hsm-or-kms);
+- [Custody versions](./docs/ripple-custody.md#custody-versions) and
+  [errors](./docs/ripple-custody.md#errors).
+
+## Debug logging
+
+To see a custodian's HTTP traffic, pass `debug` to `RippleCustody.create()` /
+`fromEnv()` or `PalisadeCustody.create()`. Each request is logged at debug
+level with its method, URL, status and duration, plus the request headers and
+bodies:
+
+```
+Ripple Custody GET https://…/v1/me → 200 (328 ms)
+```
+
+`debug: true` logs to `console.debug`. To use your own logger, pass any object
+with a `debug(message, fields)` method, such as pino or winston. The `fields`
+object carries the details.
+
+```ts
+await RippleCustody.fromEnv({ primary: 'r...', debug: logger })
+```
+
+Credentials are masked before anything is logged: the `Authorization` header,
+access/ID/refresh tokens, and client secrets. Bodies longer than 8 KB are cut.
+
 ## Development
 
 Install dependencies with `npm install`.

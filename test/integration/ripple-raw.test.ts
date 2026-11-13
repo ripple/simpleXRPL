@@ -1,6 +1,7 @@
 import { decode } from 'xrpl'
 import type { Payment, Transaction, TxResponse } from 'xrpl'
 
+import { toXrplPublicKey } from '../../src/custodians/ripple/submission/account-key.js'
 import {
   assembleSignedTransaction,
   buildSigningPreimage,
@@ -53,14 +54,16 @@ describe('RippleRaw signing (live testnet)', () => {
         // custodian signs an externally constructed blob.
         const autofilled: Transaction = await client.ledger.autofill(payment)
 
-        // Custody carries the account's XRPL public key base64-encoded; the
-        // primitive re-hexes it back onto the preimage's SigningPubKey.
-        const publicKeyBase64 = Buffer.from(source.publicKey, 'hex').toString(
-          'base64',
+        // Custody carries the account's public key base64-encoded; the SDK
+        // converts it to XRPL's form before stamping the preimage's
+        // SigningPubKey, as the raw path does with the key it reads.
+        const signingPubKey = toXrplPublicKey(
+          Buffer.from(source.publicKey, 'hex').toString('base64'),
         )
+        expect(signingPubKey).toBe(source.publicKey)
         const { preparedTx, preimageBase64 } = buildSigningPreimage(
           autofilled,
-          publicKeyBase64,
+          signingPubKey,
         )
 
         // Stand in for the Custody vault: the funded wallet signs the same

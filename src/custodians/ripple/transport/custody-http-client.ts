@@ -1,11 +1,16 @@
 import {
   CustodyApiError,
   CustodyAuthError,
+  CustodyPermissionError,
+  CustodySignatureError,
+  CustodyTimeoutError,
   SimpleXRPLError,
 } from '../../../errors.js'
 import type { CustodyAuthService } from '../auth/custody-auth.service.js'
 
+import { DEFAULT_REQUEST_TIMEOUT_MS } from './http-port.js'
 import type { CustodyHttpPort, HttpResponse } from './http-port.js'
+import { knownIssueHint, type FailedRequest } from './known-issues.js'
 
 const HTTP_UNAUTHORIZED = 401
 const HTTP_ERROR_THRESHOLD = 400
@@ -18,6 +23,8 @@ export interface CustodyHttpClientOptions {
   http: CustodyHttpPort
   /** Supplies and refreshes the bearer token. */
   auth: CustodyAuthService
+  /** Abort each request after this many milliseconds. Defaults to 30 000. */
+  timeoutMs?: number
 }
 
 /** A query value; `undefined`/`null`/non-scalar entries are dropped. */
@@ -58,54 +65,93 @@ function parseJsonBody<T>(body: string): T {
 }
 
 /**
- * Pull Custody's `processing.hint` out of an error body, if present.
- *
- * @param body - The raw error response text.
- * @returns The hint string, or `undefined` if absent/unparseable.
+ * The {@link CustodyAuthError} subclass for each `401` reason a token refresh
+ * can't recover. Any other reason (e.g. `InvalidJwtError`) stays a plain
+ * {@link CustodyAuthError}.
  */
-function extractHint(body: string): string | undefined {
-  try {
-    const parsed: unknown = JSON.parse(body)
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'processing' in parsed &&
-      typeof parsed.processing === 'object' &&
-      parsed.processing !== null &&
-      'hint' in parsed.processing &&
-      typeof parsed.processing.hint === 'string'
-    ) {
-      return parsed.processing.hint
-    }
-    return undefined
-  } catch {
-    return undefined
-  }
+const UNAUTHORIZED_ERRORS: Readonly<
+  Record<
+    string,
+    new (message: string, options: { cause: unknown }) => CustodyAuthError
+  >
+> = {
+  InvalidSignatureError: CustodySignatureError,
+  PermissionDeniedError: CustodyPermissionError,
 }
 
 /**
- * Map a non-2xx response to the right typed error.
+ * Map a non-2xx response to the right typed error, with a hint when the
+ * failure matches a known Custody server bug.
  *
+ * @param request - The request that failed.
  * @param response - The failed HTTP response.
- * @returns A {@link CustodyAuthError} for 401, else a {@link CustodyApiError}.
+ * @returns A {@link CustodyAuthError} (or the subclass naming Custody's
+ *   reason) for 401, else a {@link CustodyApiError}.
  */
-function toError(response: HttpResponse): SimpleXRPLError {
-  const apiError = new CustodyApiError(
-    response.status,
-    response.body,
-    extractHint(response.body),
-  )
+function toError(
+  request: FailedRequest,
+  response: HttpResponse,
+): SimpleXRPLError {
+  const plain = new CustodyApiError(response.status, response.body)
+  const hint = knownIssueHint(request, plain)
+  const apiError =
+    hint === undefined
+      ? plain
+      : new CustodyApiError(response.status, response.body, hint)
   if (response.status === HTTP_UNAUTHORIZED) {
-    // A 401 on `/v1/intents` is one of InvalidJwtError, InvalidSignatureError,
-    // or PermissionDeniedError — the refresh-and-replay only recovers the
-    // first. Preserve the response body as the cause so the actual error type
-    // isn't swallowed by the generic "after token refresh" message.
-    return new CustodyAuthError(
-      'Custody API authentication failed after token refresh',
-      { cause: apiError },
-    )
+    // The refresh-and-replay only recovers an expired JWT; report whatever
+    // Custody still refused by its own reason, with the response as the cause.
+    const ErrorClass =
+      (apiError.reason === undefined
+        ? undefined
+        : UNAUTHORIZED_ERRORS[apiError.reason]) ?? CustodyAuthError
+    return new ErrorClass(apiError.message, { cause: apiError })
   }
   return apiError
+}
+
+/**
+ * Whether a transport error is the request timing out (`AbortSignal.timeout`
+ * rejects with a `TimeoutError`; an aborted fetch with an `AbortError`).
+ *
+ * @param error - The transport's error.
+ * @returns `true` for a timeout or abort.
+ */
+function isTimeout(error: unknown): boolean {
+  // Matched by name, not class: the DOMException can come from another realm
+  // (e.g. a Jest sandbox), where `instanceof Error` is false.
+  const name: unknown =
+    typeof error === 'object' && error !== null
+      ? Reflect.get(error, 'name')
+      : undefined
+  return name === 'TimeoutError' || name === 'AbortError'
+}
+
+/**
+ * The intent id a request proposes, if it is an intent proposal.
+ *
+ * @param body - The serialized request body.
+ * @returns The proposed intent's id, or `undefined`.
+ */
+function proposedIntentId(body: string | undefined): string | undefined {
+  try {
+    const parsed: unknown = JSON.parse(body ?? '')
+    const request: unknown =
+      typeof parsed === 'object' && parsed !== null
+        ? Reflect.get(parsed, 'request')
+        : undefined
+    if (
+      typeof request === 'object' &&
+      request !== null &&
+      Reflect.get(request, 'type') === 'Propose'
+    ) {
+      const id: unknown = Reflect.get(request, 'id')
+      return typeof id === 'string' ? id : undefined
+    }
+  } catch {
+    // Not JSON: not a proposal.
+  }
+  return undefined
 }
 
 /**
@@ -113,13 +159,14 @@ function toError(response: HttpResponse): SimpleXRPLError {
  *
  * Injects the JWT from {@link CustodyAuthService} on every call and implements
  * the one-shot 401 recovery: a `401` triggers a single forced token refresh and
- * one replay; a second `401` surfaces as {@link CustodyAuthError}. (This is the
- * 401-retry deferred from the auth work, which had no HTTP client yet.)
+ * one replay; a second `401` surfaces as {@link CustodyAuthError}, or the
+ * subclass naming Custody's reason for it.
  */
 export class CustodyHttpClient {
   private readonly gatewayUrl: string
   private readonly http: CustodyHttpPort
   private readonly auth: CustodyAuthService
+  private readonly timeoutMs: number
 
   /**
    * Construct a CustodyHttpClient.
@@ -136,6 +183,7 @@ export class CustodyHttpClient {
     this.gatewayUrl = options.gatewayUrl.replace(/\/+$/u, '')
     this.http = options.http
     this.auth = options.auth
+    this.timeoutMs = options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
   }
 
   /**
@@ -200,33 +248,74 @@ export class CustodyHttpClient {
    * @param body - Optional serialized request body.
    * @returns The successful HTTP response.
    * @throws {@link CustodyAuthError} or {@link CustodyApiError} on failure.
+   * @throws {@link CustodyTimeoutError} if no response came within the timeout.
    */
   private async send(
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     url: string,
     body?: string,
   ): Promise<HttpResponse> {
-    const attempt = async (forceRefresh: boolean): Promise<HttpResponse> => {
-      const token = await this.auth.getToken(forceRefresh)
-      const headers: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      }
-      if (body !== undefined) {
-        headers['Content-Type'] = 'application/json'
-      }
-      return this.http.send({ method, url, headers, body })
-    }
-
-    let response = await attempt(false)
+    let response = await this.sendOnce({ method, url, body }, false)
     if (response.status === HTTP_UNAUTHORIZED) {
       // One refresh-and-retry with a fresh challenge-signed token.
-      response = await attempt(true)
+      response = await this.sendOnce({ method, url, body }, true)
     }
     if (response.status >= HTTP_ERROR_THRESHOLD) {
-      throw toError(response)
+      throw toError({ url, body }, response)
     }
     return response
+  }
+
+  /**
+   * Send once with a bearer token, turning a timeout into a typed error.
+   *
+   * @param request - The request.
+   * @param request.method - The HTTP method.
+   * @param request.url - The absolute request URL.
+   * @param request.body - Optional serialized request body.
+   * @param forceRefresh - Fetch a fresh token first.
+   * @returns The HTTP response, whatever its status.
+   * @throws {@link CustodyTimeoutError} if no response came within the timeout.
+   */
+  private async sendOnce(
+    request: {
+      method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+      url: string
+      body: string | undefined
+    },
+    forceRefresh: boolean,
+  ): Promise<HttpResponse> {
+    const { method, url, body } = request
+    const token = await this.auth.getToken(forceRefresh)
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    }
+    if (body !== undefined) {
+      headers['Content-Type'] = 'application/json'
+    }
+    try {
+      return await this.http.send({
+        method,
+        url,
+        headers,
+        body,
+        timeoutMs: this.timeoutMs,
+      })
+    } catch (error) {
+      if (!isTimeout(error)) {
+        throw error
+      }
+      throw new CustodyTimeoutError(
+        {
+          method,
+          path: new URL(url).pathname,
+          timeoutMs: this.timeoutMs,
+          intentId: proposedIntentId(body),
+        },
+        { cause: error },
+      )
+    }
   }
 
   /**

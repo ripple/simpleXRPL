@@ -1,4 +1,5 @@
 import type { PalisadeScope } from '../../generated/palisade-routes.js'
+import type { HttpDebugOption } from '../http-logging.js'
 
 import type { PalisadeHttpPort } from './transport/http-port.js'
 
@@ -66,6 +67,12 @@ export interface PalisadeCustodyConfig {
   readonly defaultTimeoutMs?: number
   /** Injectable transport (defaults to the production fetch port). */
   readonly http?: PalisadeHttpPort
+  /**
+   * Log every Palisade HTTP request — method, URL, status, duration, and the
+   * bodies with credentials masked: `true` to `console.debug`, or to a logger
+   * with a `debug(message, fields)` method.
+   */
+  readonly debug?: HttpDebugOption
   /** Injectable clock for the auth service (defaults to `Date.now`). */
   readonly now?: () => number
 }

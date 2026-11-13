@@ -17,6 +17,10 @@ export class FetchHttpPort implements CustodyHttpPort {
       method: request.method,
       headers: request.headers,
       body: request.body,
+      signal:
+        request.timeoutMs === undefined
+          ? undefined
+          : AbortSignal.timeout(request.timeoutMs),
     })
     return { status: response.status, body: await response.text() }
   }

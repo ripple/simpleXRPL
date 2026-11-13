@@ -1,7 +1,6 @@
 import type { Payment, Transaction } from 'xrpl'
 
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
-import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import { buildCustomProperties } from '../../../src/custodians/ripple/mapping/custom-properties.js'
 import { buildProposeIntentBody } from '../../../src/custodians/ripple/mapping/envelope.js'
 import { buildSignManifestIntentBody } from '../../../src/custodians/ripple/mapping/manifest-envelope.js'
@@ -119,16 +118,16 @@ const NATIVE_TRANSACTIONS: ReadonlyArray<{ name: string; tx: Transaction }> = [
 
 function makeSigner(): IntentSigner {
   const pem = generateTestKey('ed25519')
-  return new IntentSigner(KeypairService.fromPrivateKey(pem), pem)
+  return IntentSigner.fromPrivateKey(pem)
 }
 
 describe('Custody request-body spec conformance (offline)', () => {
   const signer = makeSigner()
 
   it.each(NATIVE_TRANSACTIONS)(
-    'builds a $name propose body that conforms to Core_ProposeIntentBody',
-    ({ tx }) => {
-      const body = buildProposeIntentBody(signer, {
+    'builds a $name propose body that conforms to Core_UserSigned',
+    async ({ tx }) => {
+      const body = await buildProposeIntentBody(signer, {
         domainId: DOMAIN_ID,
         authorUserId: AUTHOR_ID,
         accountId: ACCOUNT_ID,
@@ -136,23 +135,20 @@ describe('Custody request-body spec conformance (offline)', () => {
         idempotencyKey: IDEMPOTENCY_KEY,
       })
 
-      const { valid, errors } = validateAgainstSpec(
-        'Core_ProposeIntentBody',
-        body,
-      )
+      const { valid, errors } = validateAgainstSpec('Core_UserSigned', body)
       expect(errors).toEqual([])
       expect(valid).toBe(true)
     },
   )
 
-  it('builds a v0_SignManifest propose body that conforms to Core_ProposeIntentBody', () => {
+  it('builds a v0_SignManifest propose body that conforms to Core_UserSigned', async () => {
     const tx: Payment = {
       TransactionType: 'Payment',
       Account: ISSUER,
       Destination: DEST,
       Amount: '1000000',
     }
-    const body = buildSignManifestIntentBody(
+    const body = await buildSignManifestIntentBody(
       signer,
       buildCustomProperties(tx),
       {
@@ -164,16 +160,13 @@ describe('Custody request-body spec conformance (offline)', () => {
       },
     )
 
-    const { valid, errors } = validateAgainstSpec(
-      'Core_ProposeIntentBody',
-      body,
-    )
+    const { valid, errors } = validateAgainstSpec('Core_UserSigned', body)
     expect(errors).toEqual([])
     expect(valid).toBe(true)
   })
 
-  it('rejects a body whose operation type is not in the spec (negative control)', () => {
-    const body = buildProposeIntentBody(signer, {
+  it('rejects a body whose operation type is not in the spec (negative control)', async () => {
+    const body = await buildProposeIntentBody(signer, {
       domainId: DOMAIN_ID,
       authorUserId: AUTHOR_ID,
       accountId: ACCOUNT_ID,
@@ -188,8 +181,6 @@ describe('Custody request-body spec conformance (offline)', () => {
       type: 'NotARealOperation',
     }
 
-    expect(validateAgainstSpec('Core_ProposeIntentBody', corrupted).valid).toBe(
-      false,
-    )
+    expect(validateAgainstSpec('Core_UserSigned', corrupted).valid).toBe(false)
   })
 })

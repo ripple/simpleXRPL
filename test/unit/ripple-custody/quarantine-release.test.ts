@@ -3,7 +3,6 @@ import type { Payment } from 'xrpl'
 import { CustodyApi } from '../../../src/custodians/ripple/api.js'
 import { CustodyAuthService } from '../../../src/custodians/ripple/auth/custody-auth.service.js'
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
-import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import type { RippleCustodyState } from '../../../src/custodians/ripple/construction.js'
 import {
   autoReleaseQuarantined,
@@ -81,7 +80,7 @@ function harness(
     privateKey: KEY,
   })
   const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
-  const intentSigner = new IntentSigner(KeypairService.fromPrivateKey(KEY), KEY)
+  const intentSigner = IntentSigner.fromPrivateKey(KEY)
   const api = new CustodyApi(client, {
     intentSigner,
     domainId: DOMAIN,
@@ -352,10 +351,7 @@ describe('runAutoRelease gating', () => {
       privateKey: KEY,
     })
     const client = new CustodyHttpClient({ gatewayUrl: GATEWAY, http, auth })
-    const intentSigner = new IntentSigner(
-      KeypairService.fromPrivateKey(KEY),
-      KEY,
-    )
+    const intentSigner = IntentSigner.fromPrivateKey(KEY)
     const api = new CustodyApi(client, {
       intentSigner,
       domainId: DOMAIN,

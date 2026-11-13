@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto'
 
 import { CustodyAuthError } from '../../../errors.js'
 
-import { KeypairService } from './keypair.service.js'
+import { LocalKeySigner } from './key-signer.js'
+import type { CustodyKeySigner } from './key-signer.js'
 import type { CustodyAuthPort, SignedChallenge } from './ports.js'
 
 const MS_PER_SECOND = 1000
@@ -52,19 +53,28 @@ function extractExpFromJwt(token: string): number | null {
 }
 
 /** Construction options for {@link CustodyAuthService}. */
-export interface CustodyAuthServiceOptions {
+export type CustodyAuthServiceOptions = {
   /** Token endpoint port (HTTP in production, in-memory fake in tests). */
   authPort: CustodyAuthPort
-  /**
-   * Intent-author private key (PEM). Never logged or persisted: the service
-   * stores it in a real JS private field, so it is absent from `console.log`
-   * and `JSON.stringify` output. Note this option object itself is a plain
-   * object — logging the options you pass in will still print the key.
-   */
-  privateKey: string
   /** Injectable clock for deterministic tests. Defaults to `Date.now`. */
   now?: () => number
-}
+} & (
+  | {
+      /**
+       * Intent-author private key (PEM). Never logged or persisted: it is
+       * held in a real JS private field, so it is absent from `console.log`
+       * and `JSON.stringify` output. Note this option object itself is a
+       * plain object — logging the options you pass in will still print it.
+       */
+      privateKey: string
+      keySigner?: never
+    }
+  | {
+      /** The API user key, however it is held (in process, HSM or KMS). */
+      keySigner: CustodyKeySigner
+      privateKey?: never
+    }
+)
 
 /**
  * Owns the Custody JWT lifecycle:
@@ -82,8 +92,7 @@ export interface CustodyAuthServiceOptions {
  */
 export class CustodyAuthService {
   private readonly authPort: CustodyAuthPort
-  private readonly keypair: KeypairService
-  private readonly publicKey: string
+  private readonly keySigner: CustodyKeySigner
   private readonly now: () => number
 
   private tokenExpirationMs: number | null = null
@@ -91,32 +100,28 @@ export class CustodyAuthService {
   private refreshPromise: Promise<string> | null = null
 
   /**
-   * The Custody signing key. A real JS private field, not a TypeScript
-   * `private`: the latter is erased at compile time, leaving an ordinary
-   * enumerable property that `console.log`, `util.inspect`, and
-   * `JSON.stringify` all print in the clear. `#`-fields are unreachable at
-   * runtime and skipped by every one of those.
+   * Cached bearer token. A real JS private field, not a TypeScript `private`:
+   * the latter is erased at compile time, leaving an ordinary enumerable
+   * property that `console.log`, `util.inspect`, and `JSON.stringify` all
+   * print in the clear. `#`-fields are unreachable at runtime and skipped by
+   * every one of those.
    */
-  readonly #privateKey: string
-
-  /** Cached bearer token — `#`-private for the same reason as {@link #privateKey}. */
   #accessToken: string | null = null
 
   /**
    * Construct a CustodyAuthService.
    *
-   * @param options - The auth port, private key, and optional clock.
+   * @param options - The auth port, the key (PEM or key signer), and an
+   *   optional clock.
    */
   public constructor(options: CustodyAuthServiceOptions) {
     this.authPort = options.authPort
-    this.#privateKey = options.privateKey
     this.now = options.now ?? Date.now
-    this.keypair = KeypairService.fromPrivateKey(this.#privateKey)
-    // The public key is always derived from the private key, never supplied:
-    // an independently-provided public key can only drift out of sync with the
-    // private key (a rotation updating one but not the other), so deriving it
-    // removes that failure mode entirely.
-    this.publicKey = KeypairService.derivePublicKeyBase64(this.#privateKey)
+    // With a PEM key the public key is derived from it, never supplied, so a
+    // rotation can't update one half and not the other. An HSM/KMS signer's
+    // public key is checked against every signature it returns instead.
+    this.keySigner =
+      options.keySigner ?? LocalKeySigner.fromPrivateKey(options.privateKey)
   }
 
   /**
@@ -180,7 +185,7 @@ export class CustodyAuthService {
    * @returns The newly issued JWT.
    */
   private async refresh(): Promise<string> {
-    const signed = this.signFreshChallenge()
+    const signed = await this.signFreshChallenge()
     let response: { access_token: string }
     try {
       response = await this.authPort.fetchToken(signed)
@@ -212,9 +217,13 @@ export class CustodyAuthService {
    *
    * @returns The signed challenge form to send to the token endpoint.
    */
-  private signFreshChallenge(): SignedChallenge {
+  private async signFreshChallenge(): Promise<SignedChallenge> {
     const challenge = randomUUID()
-    const signature = this.keypair.sign(this.#privateKey, challenge)
-    return { challenge, publicKey: this.publicKey, signature }
+    const signature = await this.keySigner.sign(challenge, 'auth-challenge')
+    return {
+      challenge,
+      publicKey: this.keySigner.publicKeyBase64,
+      signature,
+    }
   }
 }

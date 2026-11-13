@@ -173,6 +173,45 @@ describe('PalisadeCustody.create', () => {
     expect(caps.nativeOps.has('Payment')).toBe(true)
   })
 
+  it('logs its HTTP traffic with credentials masked when debug is set', async () => {
+    const entries: Array<{
+      message: string
+      fields?: Record<string, unknown>
+    }> = []
+
+    await PalisadeCustody.create({
+      baseUrl: BASE_URL,
+      credentials: CREDENTIALS,
+      primary: PRIMARY,
+      http: fakePort({}),
+      debug: {
+        debug(message, fields): void {
+          entries.push({ message, fields })
+        },
+      },
+    })
+
+    const exchange = entries.find((entry) =>
+      entry.message.startsWith(
+        `Palisade POST ${BASE_URL}/v2/credentials/oauth/token → 200`,
+      ),
+    )
+    expect(exchange?.fields).toMatchObject({
+      custodian: 'palisade-custody',
+      requestBody: JSON.stringify({
+        clientId: 'wallets-id',
+        clientSecret: '[REDACTED]',
+      }),
+      responseBody: JSON.stringify({
+        accessToken: '[REDACTED]',
+        expiresIn: 3600,
+      }),
+    })
+    expect(entries.length).toBeGreaterThan(1)
+    expect(JSON.stringify(entries)).not.toContain('wallets-secret')
+    expect(JSON.stringify(entries)).not.toContain('Bearer tok')
+  })
+
   it('defaults allowRaw to false', async () => {
     const custody = await makeCustody(fakePort({}))
     expect(custody.capabilities().allowRaw).toBe(false)

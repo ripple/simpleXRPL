@@ -57,6 +57,9 @@ export * from './errors.js'
 // Injected I/O ports (HTTP, ledger, clock, logger) — advanced / testing seams.
 export * from './ports/index.js'
 
+// The custodians' `debug` option (HTTP traffic logging).
+export type { HttpDebugOption } from './custodians/http-logging.js'
+
 // Re-exported `xrpl` types that appear in this SDK's public API (LedgerPort,
 // SubmitRequest, SubmissionResult, Custodian) so callers can build on those
 // seams without depending on `xrpl` directly.

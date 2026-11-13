@@ -137,7 +137,11 @@ export class AccountVertical {
     await this.host.ledger.fundViaFaucet(params.destination)
     return this.set(
       { defaultRipple: true },
-      { from: params.destination, fee: options?.fee },
+      {
+        from: params.destination,
+        fee: options?.fee,
+        dryRun: options?.dryRun,
+      },
     )
   }
 
@@ -176,11 +180,16 @@ export class AccountVertical {
       transaction: payment,
       account: operator,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return this.set(
       { defaultRipple: true },
-      { from: params.destination, fee: options?.fee },
+      {
+        from: params.destination,
+        fee: options?.fee,
+        dryRun: options?.dryRun,
+      },
     )
   }
 
@@ -199,7 +208,8 @@ export class AccountVertical {
     params: AccountSetParams,
     options?: AccountWriteOptions,
   ): Promise<SubmissionResult<undefined>> {
-    const account = this.host.resolveAccount(options?.from)
+    const { from, fee, dryRun, idempotencyKey } = options ?? {}
+    const account = this.host.resolveAccount(from)
     const { setFlag, clearFlag } = resolveFlags(params)
     const tx: AccountSet = {
       TransactionType: 'AccountSet',
@@ -227,8 +237,9 @@ export class AccountVertical {
     const result = await submitTransaction(this.host, {
       transaction: tx,
       account,
-      fee: options?.fee,
-      idempotencyKey: options?.idempotencyKey,
+      fee,
+      dryRun,
+      idempotencyKey,
     })
     return withIntent(result, undefined)
   }
@@ -256,6 +267,7 @@ export class AccountVertical {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)
@@ -287,6 +299,7 @@ export class AccountVertical {
       transaction: tx,
       account,
       fee: options?.fee,
+      dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
     })
     return withIntent(result, undefined)

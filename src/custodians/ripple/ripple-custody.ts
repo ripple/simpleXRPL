@@ -97,6 +97,27 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
+   * The Custody domain this custodian operates in: the configured `domainId`,
+   * or the one found to hold the primary address.
+   *
+   * @returns The domain id.
+   */
+  public get domainId(): string {
+    return this.state.domainId
+  }
+
+  /**
+   * The Ripple Custody version calls are checked against: the instance's own
+   * version when detected (e.g. `'1.43.4'`), the pinned `apiVersion`, or
+   * `undefined` when neither is available and nothing is blocked.
+   *
+   * @returns The resolved version, if any.
+   */
+  public get backendVersion(): string | undefined {
+    return this.state.versionGuard.appVersion
+  }
+
+  /**
    * The primary account this custodian owns.
    *
    * @returns The primary account reference.
@@ -393,7 +414,8 @@ export class RippleCustody implements Custodian, IntentObserver {
     ctx: SubmissionContext,
   ): Promise<string> {
     const accountId = this.requireAccountId(ctx.account)
-    const body = buildProposeIntentBody(this.state.intentSigner, {
+    this.state.versionGuard.assertNativeTransaction(tx.TransactionType)
+    const body = await buildProposeIntentBody(this.state.intentSigner, {
       domainId: this.state.domainId,
       authorUserId: this.state.authorUserId,
       accountId,

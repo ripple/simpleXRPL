@@ -6,12 +6,22 @@
  * 401-retry state machine — is exercised offline with an in-memory fake.
  */
 
+/**
+ * How long a Custody API or token request may run before it is aborted, unless
+ * the caller configures `requestTimeoutMs`. Generous for a single HTTP call,
+ * so only a genuinely hung connection is cut — without it, a stuck gateway
+ * holds the caller until the runtime's own socket timeouts, minutes later.
+ */
+export const DEFAULT_REQUEST_TIMEOUT_MS = 30_000
+
 /** A raw HTTP request. `body` is already serialized (JSON or form-encoded). */
 export interface HttpRequest {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   url: string
   headers: Record<string, string>
   body?: string
+  /** Abort the request after this many milliseconds; unbounded when omitted. */
+  timeoutMs?: number
 }
 
 /** A raw HTTP response; `body` is the undecoded response text. */

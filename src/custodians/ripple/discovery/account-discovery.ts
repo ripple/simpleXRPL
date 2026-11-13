@@ -1,5 +1,6 @@
 import type { Account, Custodian } from '../../../domain/index.js'
 import type { components, operations } from '../../../generated/custody.js'
+import { collectPages } from '../pagination.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 /** Custody's max page size for collection endpoints. */
@@ -16,38 +17,6 @@ type SuccessJson<
 type LedgersResponse = SuccessJson<operations['getLedgers']>
 type AccountsResponse = SuccessJson<operations['getAccounts']>
 type AddressesResponse = SuccessJson<operations['getAddresses']>
-
-/**
- * A Custody collection page: a list of items plus an optional next cursor.
- * Custody's API returns a literal `null` for `nextStartingAfter` on the last
- * page (not an omitted field), so the cursor must be treated as absent for
- * both `null` and `undefined`.
- */
-interface Page<T> {
-  items: T[]
-  nextStartingAfter?: string | null
-}
-
-/**
- * Walk every page of a cursor-paginated Custody collection.
- *
- * @param fetchPage - Fetches one page given an optional `startingAfter` cursor.
- * @returns All items across all pages.
- */
-async function collectPages<T>(
-  fetchPage: (startingAfter?: string) => Promise<Page<T>>,
-): Promise<T[]> {
-  const all: T[] = []
-  let cursor: string | undefined
-  do {
-    // Sequential by design: each page's cursor depends on the previous response.
-    // eslint-disable-next-line no-await-in-loop -- Cursor pagination is inherently sequential.
-    const page = await fetchPage(cursor)
-    all.push(...page.items)
-    cursor = page.nextStartingAfter ?? undefined
-  } while (cursor !== undefined && cursor !== '')
-  return all
-}
 
 /**
  * Resolve the XRPL ledgers in this Custody environment, mapping each ledger id

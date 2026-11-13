@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import type { components } from '../../../generated/custody.js'
 import type { IntentSigner } from '../auth/intent-signer.js'
 
-type ProposeIntentBody = components['schemas']['Core_ProposeIntentBody']
+type ProposeIntentBody = components['schemas']['Core_UserSigned']
 
 const MS_PER_SECOND = 1000
 const SECONDS_PER_MINUTE = 60
@@ -48,11 +48,11 @@ export interface BuildManifestEnvelopeOptions {
  * @param options - The domain, author, account, and preimage to sign.
  * @returns The signed `{ request, signature }` body ready to POST to `/v1/intents`.
  */
-export function buildSignManifestIntentBody(
+export async function buildSignManifestIntentBody(
   intentSigner: IntentSigner,
   customProperties: components['schemas']['Core_StringsMap'],
   options: BuildManifestEnvelopeOptions,
-): ProposeIntentBody {
+): Promise<ProposeIntentBody> {
   const manifestId = options.idempotencyKey ?? randomUUID()
   const request = {
     author: { id: options.authorUserId, domainId: options.domainId },

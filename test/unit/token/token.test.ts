@@ -25,7 +25,11 @@ import {
   validateTokenMetadata,
   XRP_ASSET,
 } from '../../../src/index.js'
-import type { LedgerPort, SimpleXRPLClient } from '../../../src/index.js'
+import type {
+  LedgerPort,
+  LedgerRequest,
+  SimpleXRPLClient,
+} from '../../../src/index.js'
 
 /** A syntactically valid MPT issuance id (Hash192 = 48 hex chars). */
 const MPT_ID = '00000001ABCDEF0123456789ABCDEF0123456789ABCDEF01'
@@ -101,6 +105,68 @@ describe('Token vertical', () => {
       expect(tx.TransferFee).toBe(500)
       expect(tx.MPTokenMetadata).toBe(encodeMPTokenMetadata(VALID_METADATA))
       expect(tx.Flags).toBe(DEFAULT_FLAGS)
+    })
+
+    it('recovers the issuance id from the ledger tx when the result omits it', async () => {
+      // Mirrors Ripple Custody confirming the tx (hash present) without the id
+      // in its own response: the submit meta lacks it, so the id must come from
+      // the on-chain tx metadata read back by hash.
+      const requests: LedgerRequest[] = []
+      const ledger: LedgerPort = {
+        autofill: async (tx: Transaction): Promise<Transaction> => ({
+          ...tx,
+          Sequence: 1,
+          Fee: '12',
+          LastLedgerSequence: 100,
+        }),
+        submit: async (): Promise<SubmitResponse> =>
+          ({ result: {} }) as unknown as SubmitResponse,
+        submitAndWait: async (): Promise<TxResponse> =>
+          ({ result: { hash: 'TXHASH', meta: {} } }) as unknown as TxResponse,
+        async request<T>(req: LedgerRequest): Promise<T> {
+          requests.push(req)
+          return {
+            result: { meta: { mpt_issuance_id: 'MPT-FROM-LEDGER' } },
+          } as T
+        },
+      }
+      const client = await SimpleXRPL.init({
+        xrpldUrl: 'wss://x.invalid',
+        signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
+        ledger,
+      })
+
+      const result = await client.token.issue({ metadata: VALID_METADATA })
+
+      expect(result.intent.mptIssuanceId).toBe('MPT-FROM-LEDGER')
+      expect(requests).toContainEqual({ command: 'tx', transaction: 'TXHASH' })
+    })
+
+    it('leaves the issuance id empty (does not throw) when the ledger lookup fails', async () => {
+      const ledger: LedgerPort = {
+        autofill: async (tx: Transaction): Promise<Transaction> => ({
+          ...tx,
+          Sequence: 1,
+          Fee: '12',
+          LastLedgerSequence: 100,
+        }),
+        submit: async (): Promise<SubmitResponse> =>
+          ({ result: {} }) as unknown as SubmitResponse,
+        submitAndWait: async (): Promise<TxResponse> =>
+          ({ result: { hash: 'TXHASH', meta: {} } }) as unknown as TxResponse,
+        async request<T>(): Promise<T> {
+          throw new Error('tx not found')
+        },
+      }
+      const client = await SimpleXRPL.init({
+        xrpldUrl: 'wss://x.invalid',
+        signers: [LocalSigner.fromSeed(Wallet.generate().seed as string)],
+        ledger,
+      })
+
+      const result = await client.token.issue({ metadata: VALID_METADATA })
+
+      expect(result.intent.mptIssuanceId).toBe('')
     })
 
     it('honors explicit assetScale and flag overrides', async () => {

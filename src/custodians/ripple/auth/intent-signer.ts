@@ -2,7 +2,8 @@ import canonicalizeImport from 'canonicalize'
 
 import { CustodyAuthError } from '../../../errors.js'
 
-import { KeypairService } from './keypair.service.js'
+import { LocalKeySigner } from './key-signer.js'
+import type { CustodyKeySigner } from './key-signer.js'
 
 // `canonicalize` ships as CJS `module.exports = fn`. A default import resolves
 // to that function at runtime in both the ESM and CJS builds, but its bundled
@@ -24,30 +25,28 @@ const canonicalize = canonicalizeImport as unknown as (
  * built the envelope; it does not construct the envelope itself.
  */
 export class IntentSigner {
-  private readonly keypair: KeypairService
-  /**
-   * The intent-signing key. A real JS private field so it cannot be reached or
-   * serialized at runtime; a TypeScript `private` is only a compile-time label.
-   */
-  readonly #privateKey: string
+  private readonly keySigner: CustodyKeySigner
 
   /**
    * Construct an IntentSigner.
    *
-   * @param keypair - The algorithm-bound signer for the intent-author key.
-   * @param privateKey - The PEM-encoded intent-author private key.
-   * @throws {@link CustodyAuthError} if `privateKey`'s algorithm doesn't match
-   * the one `keypair` is bound to.
+   * @param keySigner - The API user key, however it is held (in process, HSM
+   *   or KMS).
    */
-  public constructor(keypair: KeypairService, privateKey: string) {
-    const detected = KeypairService.detectKeyType(privateKey)
-    if (detected !== 'unknown' && detected !== keypair.algorithm) {
-      throw new CustodyAuthError(
-        `Keypair is bound to ${keypair.algorithm}, but the supplied private key is a ${detected} key`,
-      )
-    }
-    this.keypair = keypair
-    this.#privateKey = privateKey
+  public constructor(keySigner: CustodyKeySigner) {
+    this.keySigner = keySigner
+  }
+
+  /**
+   * Build an IntentSigner over an in-process PEM key.
+   *
+   * @param privateKeyPem - The PEM-encoded intent-author private key.
+   * @returns The signer.
+   * @throws {@link CustodyAuthError} if the key can't be parsed or uses an
+   *   unsupported algorithm.
+   */
+  public static fromPrivateKey(privateKeyPem: string): IntentSigner {
+    return new IntentSigner(LocalKeySigner.fromPrivateKey(privateKeyPem))
   }
 
   /**
@@ -56,16 +55,17 @@ export class IntentSigner {
    *
    * @param request - The intent request object to sign.
    * @returns The base64-encoded signature over the canonicalized request.
-   * @throws {@link CustodyAuthError} if the request cannot be canonicalized.
+   * @throws {@link CustodyAuthError} if the request cannot be canonicalized,
+   *   or an HSM/KMS signer fails.
    */
-  public signRequest(request: unknown): string {
+  public async signRequest(request: unknown): Promise<string> {
     const canonical = canonicalize(request)
     if (canonical === undefined) {
       throw new CustodyAuthError(
         'Failed to canonicalize Custody intent request body',
       )
     }
-    return this.keypair.sign(this.#privateKey, canonical)
+    return this.keySigner.sign(canonical, 'intent')
   }
 
   /**
@@ -75,13 +75,13 @@ export class IntentSigner {
    * @param envelope - An envelope carrying a `request` and optional `signature`.
    * @returns The envelope with a guaranteed `signature`.
    */
-  public signEnvelope<T extends { request: unknown; signature?: string }>(
+  public async signEnvelope<T extends { request: unknown; signature?: string }>(
     envelope: T,
-  ): T & { signature: string } {
+  ): Promise<T & { signature: string }> {
     const signature =
       envelope.signature !== undefined && envelope.signature !== ''
         ? envelope.signature
-        : this.signRequest(envelope.request)
+        : await this.signRequest(envelope.request)
     return { ...envelope, signature }
   }
 }

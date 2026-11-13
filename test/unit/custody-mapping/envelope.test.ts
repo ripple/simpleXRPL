@@ -1,7 +1,6 @@
 import type { OfferCancel, Payment } from 'xrpl'
 
 import { IntentSigner } from '../../../src/custodians/ripple/auth/intent-signer.js'
-import { KeypairService } from '../../../src/custodians/ripple/auth/keypair.service.js'
 import { buildProposeIntentBody } from '../../../src/custodians/ripple/mapping/envelope.js'
 import { SignerCapabilityError } from '../../../src/errors.js'
 import type { components } from '../../../src/generated/custody.js'
@@ -19,7 +18,7 @@ const EXPIRY_TOLERANCE_MS = 5000
 
 function makeSigner(): IntentSigner {
   const pem = generateTestKey('ed25519')
-  return new IntentSigner(KeypairService.fromPrivateKey(pem), pem)
+  return IntentSigner.fromPrivateKey(pem)
 }
 
 const PAYMENT_TX: Payment = {
@@ -29,7 +28,7 @@ const PAYMENT_TX: Payment = {
   Amount: '1000000',
 }
 
-type ProposeIntentBody = ReturnType<typeof buildProposeIntentBody>
+type ProposeIntentBody = Awaited<ReturnType<typeof buildProposeIntentBody>>
 
 /**
  * Narrow the payload to the `v0_CreateTransactionOrder` variant this envelope
@@ -69,8 +68,8 @@ function xrplParameters(
 }
 
 describe('buildProposeIntentBody', () => {
-  it('builds a signed envelope with the author, domain, account, and mapped operation', () => {
-    const body = buildProposeIntentBody(makeSigner(), {
+  it('builds a signed envelope with the author, domain, account, and mapped operation', async () => {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -96,8 +95,8 @@ describe('buildProposeIntentBody', () => {
     })
   })
 
-  it('stamps matching customProperties on both the request and the payload', () => {
-    const body = buildProposeIntentBody(makeSigner(), {
+  it('stamps matching customProperties on both the request and the payload', async () => {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -114,8 +113,8 @@ describe('buildProposeIntentBody', () => {
     expect(transactionOrderPayload(body).customProperties).toEqual(expected)
   })
 
-  it('uses the given idempotencyKey as both the request id and the payload id', () => {
-    const body = buildProposeIntentBody(makeSigner(), {
+  it('uses the given idempotencyKey as both the request id and the payload id', async () => {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -127,8 +126,8 @@ describe('buildProposeIntentBody', () => {
     expect(transactionOrderPayload(body).id).toBe('retry-key-1')
   })
 
-  it('generates a fresh id when no idempotencyKey is given, and keeps request/payload ids in sync', () => {
-    const body = buildProposeIntentBody(makeSigner(), {
+  it('generates a fresh id when no idempotencyKey is given, and keeps request/payload ids in sync', async () => {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -139,9 +138,9 @@ describe('buildProposeIntentBody', () => {
     expect(body.request.id).toBe(transactionOrderPayload(body).id)
   })
 
-  it('defaults expiryAt to ~1 day out', () => {
+  it('defaults expiryAt to ~1 day out', async () => {
     const before = Date.now()
-    const body = buildProposeIntentBody(makeSigner(), {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -156,8 +155,8 @@ describe('buildProposeIntentBody', () => {
     )
   })
 
-  it('carries a fee override into the fee strategy', () => {
-    const body = buildProposeIntentBody(makeSigner(), {
+  it('carries a fee override into the fee strategy', async () => {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -170,8 +169,8 @@ describe('buildProposeIntentBody', () => {
     })
   })
 
-  it('omits payload.ledgerId when none is given (legacy single-ledger accounts)', () => {
-    const body = buildProposeIntentBody(makeSigner(), {
+  it('omits payload.ledgerId when none is given (legacy single-ledger accounts)', async () => {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -181,8 +180,8 @@ describe('buildProposeIntentBody', () => {
     expect(transactionOrderPayload(body).ledgerId).toBeUndefined()
   })
 
-  it('stamps payload.ledgerId when given (multi-ledger Vault accounts)', () => {
-    const body = buildProposeIntentBody(makeSigner(), {
+  it('stamps payload.ledgerId when given (multi-ledger Vault accounts)', async () => {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -193,13 +192,13 @@ describe('buildProposeIntentBody', () => {
     expect(transactionOrderPayload(body).ledgerId).toBe('xrpl')
   })
 
-  it('maps memos and sourceTag onto the XRPL parameters rather than dropping them', () => {
+  it('maps memos and sourceTag onto the XRPL parameters rather than dropping them', async () => {
     const tx: Payment = {
       ...PAYMENT_TX,
       SourceTag: 12345,
       Memos: [{ Memo: { MemoData: '48656C6C6F' } }],
     }
-    const body = buildProposeIntentBody(makeSigner(), {
+    const body = await buildProposeIntentBody(makeSigner(), {
       domainId: 'domain-1',
       authorUserId: 'user-1',
       accountId: 'account-1',
@@ -213,19 +212,19 @@ describe('buildProposeIntentBody', () => {
     })
   })
 
-  it('propagates SignerCapabilityError for a transactor with no native mapping', () => {
+  it('propagates SignerCapabilityError for a transactor with no native mapping', async () => {
     const tx: OfferCancel = {
       TransactionType: 'OfferCancel',
       Account: 'rFrom',
       OfferSequence: 1,
     }
-    expect(() =>
+    await expect(
       buildProposeIntentBody(makeSigner(), {
         domainId: 'domain-1',
         authorUserId: 'user-1',
         accountId: 'account-1',
         transaction: tx,
       }),
-    ).toThrow(SignerCapabilityError)
+    ).rejects.toThrow(SignerCapabilityError)
   })
 })

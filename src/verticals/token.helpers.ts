@@ -8,6 +8,7 @@ import type { MPTokenIssuanceCreate, MPTokenMetadata } from 'xrpl'
 import type { SubmissionResult } from '../domain/index.js'
 import { IntentValidationError } from '../errors.js'
 import type { SubmissionHost } from '../pipeline/index.js'
+import type { LedgerPort } from '../ports/ledger.js'
 
 import { percentToTransferFee } from './fee.js'
 import type { TokenIssueParams, TokenIssueFlags } from './token.types.js'
@@ -255,18 +256,61 @@ export async function findNewIssuanceId(
  * @param result - The submission result.
  * @returns The issuance id, or an empty string when unavailable.
  */
-export function extractMptIssuanceId(result: SubmissionResult): string {
-  if (result.source !== 'xrpld') {
-    return ''
-  }
-  const { meta } = result.response.result
+/**
+ * Read `mpt_issuance_id` from a transaction's metadata, if present. rippled
+ * computes this field into the metadata of an `MPTokenIssuanceCreate` on both
+ * submit and `tx` responses.
+ *
+ * @param meta - The transaction metadata (any response shape).
+ * @returns The issuance id, or an empty string when absent.
+ */
+function readMptIssuanceIdFromMeta(meta: unknown): string {
   if (
-    meta !== undefined &&
-    typeof meta !== 'string' &&
+    typeof meta === 'object' &&
+    meta !== null &&
     'mpt_issuance_id' in meta &&
     typeof meta.mpt_issuance_id === 'string'
   ) {
     return meta.mpt_issuance_id
   }
   return ''
+}
+
+/**
+ * Read the new MPT issuance id from a xrpld submission result's metadata.
+ *
+ * @param result - The submission result.
+ * @returns The issuance id, or an empty string when unavailable.
+ */
+export function extractMptIssuanceId(result: SubmissionResult): string {
+  if (result.source !== 'xrpld') {
+    return ''
+  }
+  return readMptIssuanceIdFromMeta(result.response.result.meta)
+}
+
+/**
+ * Read an MPT issuance id straight from the ledger, by the confirmed tx hash.
+ * The fallback for custodians that confirm the transaction but don't return the
+ * issuance id in their own response (Ripple Custody omits `ledgerData` and
+ * `rawTransaction` for MPT creates) — the id is always in the on-chain metadata.
+ * Best-effort: resolves to `''` if the tx or field can't be read.
+ *
+ * @param ledger - The ledger connection.
+ * @param txHash - The confirmed on-chain transaction hash.
+ * @returns The issuance id, or an empty string when unavailable.
+ */
+export async function mptIssuanceIdFromLedger(
+  ledger: LedgerPort,
+  txHash: string,
+): Promise<string> {
+  try {
+    const response = await ledger.request<{ result?: { meta?: unknown } }>({
+      command: 'tx',
+      transaction: txHash,
+    })
+    return readMptIssuanceIdFromMeta(response.result?.meta)
+  } catch {
+    return ''
+  }
 }
