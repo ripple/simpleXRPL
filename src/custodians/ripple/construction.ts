@@ -21,6 +21,7 @@ import type { CustodyVersionOptions } from './versioning/detect.js'
 import type { VersionGuard } from './versioning/version-guard.js'
 
 const DEFAULT_TIMEOUT_MS = 60_000
+const DEFAULT_QUARANTINE_POLL_TIMEOUT_MS = 60_000
 
 /**
  * Auth construction options. The Custody API user's key — which signs the
@@ -86,6 +87,17 @@ export interface RippleCustodyOptions extends CustodyVersionOptions {
   readonly defaultDryRun?: boolean
   /** How long `submitAndWait` polls before throwing `IntentPendingError`. */
   readonly defaultTimeoutMs?: number
+  /**
+   * After a token-movement transaction confirms, auto-propose release of any
+   * transfers compliance quarantined. Proposes only — release still runs the
+   * account's approval policy. Defaults to `false`.
+   */
+  readonly defaultAutoReleaseQuarantine?: boolean
+  /**
+   * How long to wait for compliance to decide a transaction's transfers before
+   * giving up on auto-release. Only used when auto-release is enabled.
+   */
+  readonly quarantinePollTimeoutMs?: number
   /** Injectable transport; defaults to `FetchHttpPort`. */
   readonly http?: CustodyHttpPort
   /**
@@ -136,6 +148,17 @@ export interface RippleCustodyFromEnvOptions extends CustodyVersionOptions {
   readonly defaultDryRun?: boolean
   /** How long `submitAndWait` polls before throwing `IntentPendingError`. */
   readonly defaultTimeoutMs?: number
+  /**
+   * After a token-movement transaction confirms, auto-propose release of any
+   * transfers compliance quarantined. Proposes only — release still runs the
+   * account's approval policy. Defaults to `false`.
+   */
+  readonly defaultAutoReleaseQuarantine?: boolean
+  /**
+   * How long to wait for compliance to decide a transaction's transfers before
+   * giving up on auto-release. Only used when auto-release is enabled.
+   */
+  readonly quarantinePollTimeoutMs?: number
   /** Environment source to scan. Defaults to `process.env`. */
   readonly env?: Readonly<Record<string, string | undefined>>
   /** Injectable transport; defaults to `FetchHttpPort`. */
@@ -166,6 +189,8 @@ export interface RippleCustodyState {
   readonly defaultFee: FeeIntent | undefined
   readonly defaultDryRun: boolean
   readonly defaultTimeoutMs: number
+  readonly autoReleaseQuarantine: boolean
+  readonly quarantinePollTimeoutMs: number
   readonly primaryAddress: string
   /** Blocks calls the instance's Custody version can't serve. */
   readonly versionGuard: VersionGuard
@@ -266,6 +291,9 @@ export async function buildRippleCustodyState(
     defaultFee: options.defaultFee,
     defaultDryRun: options.defaultDryRun ?? false,
     defaultTimeoutMs: options.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS,
+    autoReleaseQuarantine: options.defaultAutoReleaseQuarantine ?? false,
+    quarantinePollTimeoutMs:
+      options.quarantinePollTimeoutMs ?? DEFAULT_QUARANTINE_POLL_TIMEOUT_MS,
     primaryAddress: options.primary,
     versionGuard,
   }
@@ -312,6 +340,8 @@ export async function resolveFromEnvOptions(
     defaultFee: options.defaultFee,
     defaultDryRun: options.defaultDryRun,
     defaultTimeoutMs: options.defaultTimeoutMs,
+    defaultAutoReleaseQuarantine: options.defaultAutoReleaseQuarantine,
+    quarantinePollTimeoutMs: options.quarantinePollTimeoutMs,
     http: options.http,
     debug: options.debug,
     requestTimeoutMs: options.requestTimeoutMs,

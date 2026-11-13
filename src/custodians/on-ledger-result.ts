@@ -4,7 +4,7 @@ import { IntentPendingError, XrpldSubmitError } from '../errors.js'
 import type { LedgerPort } from '../ports/index.js'
 
 import type { PollSchedule } from './poll-schedule.js'
-import { pollDelayMs } from './poll-schedule.js'
+import { pollDelayMs, sleep } from './poll-schedule.js'
 
 /** The one XRPL engine result that means the transaction achieved its intent. */
 const TES_SUCCESS = 'tesSUCCESS'
@@ -19,17 +19,6 @@ const CONFIRM_SCHEDULE: PollSchedule = { initialMs: 1000, maxMs: 5000 }
 
 /** How long to keep re-reading before declaring the result indeterminate. */
 const CONFIRM_TIMEOUT_MS = 30_000
-
-/**
- * Wait for `ms` milliseconds.
- *
- * @param ms - How long to wait.
- */
-async function sleep(ms: number): Promise<void> {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
 
 /**
  * Read the XRPL engine result from a transaction response, if present.

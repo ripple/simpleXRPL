@@ -20,6 +20,7 @@ import type { RippleCustodyState } from '../../src/custodians/ripple/constructio
 import { buildDecisionEnvelope } from '../../src/custodians/ripple/mapping/decision-envelope.js'
 import { buildProposeIntentBody } from '../../src/custodians/ripple/mapping/envelope.js'
 import { runDryRun } from '../../src/custodians/ripple/submission/dry-run.js'
+import { autoReleaseQuarantined } from '../../src/custodians/ripple/submission/quarantine-release.js'
 import type { Account } from '../../src/domain/index.js'
 import {
   CustodyApiError,
@@ -725,6 +726,27 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         // transferId we sent, not an API/transport error.
         expect(caught).toBeInstanceOf(IntentValidationError)
         expect((caught as Error).message).toContain(transferId)
+      },
+      LIVE_TIMEOUT_MS,
+    )
+  })
+
+  describe('quarantine auto-release', () => {
+    it(
+      'reads transfers by transaction id and proposes nothing when none are quarantined',
+      async () => {
+        // A synthetic transaction id resolves no transfers, so detection times
+        // out to an empty result — proving the getTransfers query wire shape and
+        // the poll loop against the live API, without mutating anything.
+        const released = await autoReleaseQuarantined({
+          client: state.client,
+          api: custody.api,
+          domainId: state.domainId,
+          transactionId: randomUUID(),
+          timeoutMs: 1500,
+        })
+
+        expect(released).toEqual([])
       },
       LIVE_TIMEOUT_MS,
     )
