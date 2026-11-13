@@ -29,6 +29,7 @@ export type {
   CustodyDryRunTransactionOptions,
   CustodyIntentOutcome,
   CustodyProposeAndWaitResult,
+  CustodyReleaseQuarantineParams,
   CustodyTransactionDryRun,
   CustodyTransactionOrder,
   CustodyTransactionOrderOptions,

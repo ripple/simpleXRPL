@@ -39,3 +39,14 @@ export function pollDelayMs(attempt: number, schedule: PollSchedule): number {
   // yields maxMs, so the clamp holds without a separate guard.
   return Math.min(maxMs, grown)
 }
+
+/**
+ * Wait for `ms` milliseconds.
+ *
+ * @param ms - How long to wait.
+ */
+export async function sleep(ms: number): Promise<void> {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}

@@ -6,7 +6,7 @@ import {
 } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
 import type { PollSchedule } from '../../poll-schedule.js'
-import { pollDelayMs } from '../../poll-schedule.js'
+import { pollDelayMs, sleep } from '../../poll-schedule.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 type TrustedIntent = components['schemas']['Core_TrustedIntent']
@@ -35,17 +35,6 @@ const TERMINAL_FAILURE_STATUSES: ReadonlySet<IntentStatus> = new Set([
   'Expired',
   'Failed',
 ])
-
-/**
- * Wait for `ms` milliseconds.
- *
- * @param ms - How long to wait.
- */
-async function sleep(ms: number): Promise<void> {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
 
 /**
  * Describe an intent's terminal failure for the thrown error message.

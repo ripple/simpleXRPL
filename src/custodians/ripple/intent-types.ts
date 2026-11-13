@@ -6,7 +6,7 @@ import type { IntentOutcome } from './submission/intent-polling.js'
 
 /*
  * Public types for waiting on intents and dry-running them through
- * `CustodyApi`.
+ * `CustodyApi`, and for proposing quarantine releases through `RippleCustody`.
  */
 
 /**
@@ -100,4 +100,12 @@ export type CustodyTransactionOrderOptions = ProposeEnvelopeOverrides & {
    * `DryRunFailedError` (carrying the verdict) and propose nothing.
    */
   readonly dryRun?: boolean
+}
+
+/** Parameters for {@link RippleCustody.releaseQuarantinedTransfers}. */
+export interface CustodyReleaseQuarantineParams {
+  /** The custodied account holding the quarantined transfers. */
+  readonly accountId: string
+  /** The transfer ids to release. */
+  readonly transferIds: readonly string[]
 }

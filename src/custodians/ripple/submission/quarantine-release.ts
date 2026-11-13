@@ -4,9 +4,10 @@ import type { SubmissionContext } from '../../../domain/index.js'
 import type { components } from '../../../generated/custody.js'
 import { uuidV7 } from '../../../ids/index.js'
 import type { PollSchedule } from '../../poll-schedule.js'
-import { pollDelayMs } from '../../poll-schedule.js'
+import { pollDelayMs, sleep } from '../../poll-schedule.js'
 import type { CustodyApi } from '../api.js'
 import type { RippleCustodyState } from '../construction.js'
+import type { CustodyReleaseQuarantineParams } from '../intent-types.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 type ApiTransfer = components['schemas']['Core_ApiTransfer']
@@ -20,14 +21,6 @@ type TransfersCollection = components['schemas']['Core_TransfersCollection']
 export const TOKEN_MOVEMENT_TRANSACTORS: ReadonlySet<string> = new Set([
   'Payment',
 ])
-
-/** Parameters for a manual quarantine release. */
-export interface ReleaseQuarantineParams {
-  /** The custodied account holding the quarantined transfers. */
-  readonly accountId: string
-  /** The transfer ids to release. */
-  readonly transferIds: readonly string[]
-}
 
 /**
  * Poll cadence while waiting for compliance to decide a transaction's transfers.
@@ -48,17 +41,6 @@ export interface AutoReleaseOptions {
   readonly transactionId: string
   /** How long to wait for compliance to decide before giving up. */
   readonly timeoutMs: number
-}
-
-/**
- * Wait for `ms` milliseconds.
- *
- * @param ms - How long to wait.
- */
-async function sleep(ms: number): Promise<void> {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, ms)
-  })
 }
 
 /**
@@ -268,7 +250,7 @@ export async function runAutoRelease(
  */
 export async function proposeQuarantineRelease(
   api: CustodyApi,
-  params: ReleaseQuarantineParams,
+  params: CustodyReleaseQuarantineParams,
 ): Promise<string> {
   const intentId = uuidV7()
   await api.propose(

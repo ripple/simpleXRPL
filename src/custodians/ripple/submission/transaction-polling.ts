@@ -4,7 +4,7 @@ import type { OnChainResult } from '../../../domain/index.js'
 import { CustodyTimeoutError, IntentValidationError } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
 import type { PollSchedule } from '../../poll-schedule.js'
-import { pollDelayMs } from '../../poll-schedule.js'
+import { pollDelayMs, sleep } from '../../poll-schedule.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 type ApiTransaction = components['schemas']['Core_ApiTransaction']
@@ -19,17 +19,6 @@ const HEX_RADIX = 16
 
 /** Hex-digit width of the 4-byte big-endian sequence prefix of an issuance id. */
 const SEQUENCE_HEX_WIDTH = 8
-
-/**
- * Wait for `ms` milliseconds.
- *
- * @param ms - How long to wait.
- */
-async function sleep(ms: number): Promise<void> {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
 
 /**
  * Recover an `MPTokenIssuanceID` from a signed `MPTokenIssuanceCreate` blob.

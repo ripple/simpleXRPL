@@ -34,6 +34,7 @@ import type {
 } from './construction.js'
 import { AccountContext } from './discovery/account-context.js'
 import { discoverXrplAccounts } from './discovery/account-discovery.js'
+import type { CustodyReleaseQuarantineParams } from './intent-types.js'
 import { buildProposeIntentBody } from './mapping/envelope.js'
 import { NATIVE_XRPL_TRANSACTORS } from './mapping/xrpl-operations.js'
 import { maybeDryRun } from './submission/dry-run.js'
@@ -42,7 +43,6 @@ import { pollIntentUntilExecuted } from './submission/intent-polling.js'
 import {
   proposeQuarantineRelease,
   runAutoRelease,
-  type ReleaseQuarantineParams,
 } from './submission/quarantine-release.js'
 import { signRawTransaction } from './submission/raw-flow.js'
 import { pollTransactionOnChain as pollTxOnChain } from './submission/transaction-polling.js'
@@ -333,7 +333,7 @@ export class RippleCustody implements Custodian, IntentObserver {
    * @returns The release intent id, for tracking to execution.
    */
   public async releaseQuarantinedTransfers(
-    params: ReleaseQuarantineParams,
+    params: CustodyReleaseQuarantineParams,
   ): Promise<string> {
     return proposeQuarantineRelease(this.api, params)
   }
