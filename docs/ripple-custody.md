@@ -10,6 +10,7 @@ the bundled spec.
 - [XRPL transaction orders](#xrpl-transaction-orders)
 - [Waiting on intents](#waiting-on-intents)
 - [Dry runs](#dry-runs)
+- [Quarantined transfers](#quarantined-transfers)
 - [Lists, lookups, and account keys](#lists-lookups-and-account-keys)
 - [Creating an API key](#creating-an-api-key)
 - [API key in an HSM or KMS](#api-key-in-an-hsm-or-kms)
@@ -131,6 +132,64 @@ To pre-flight a single vertical write, pass `dryRun: true`, e.g.
 write throws a `DryRunFailedError` (carrying Custody's full response) and
 nothing is submitted. This works for Ripple Custody accounts; other signers
 reject the option.
+
+## Quarantined transfers
+
+Custody can hold an incoming transfer in quarantine. Until it is released, the
+funds count as unavailable: spending them fails with not enough available
+funds, although the balance is on the ledger.
+
+`listQuarantinedTransfers` returns the held transfers an account can release,
+and `releaseQuarantinedTransfers` proposes their release:
+
+```ts
+const held = await custody.listQuarantinedTransfers({ account: 'r...' })
+
+const intentId = await custody.releaseQuarantinedTransfers({
+  account: 'r...',
+  transferIds: held.map((transfer) => transfer.id),
+})
+const outcome = await custody.api.waitForIntent(intentId)
+```
+
+Name the account one way: `account` (its XRPL address, looked up in the
+custodian's domain) or `accountId` (its Custody account id). Looking an address
+up needs Custody 1.21 or later; `accountId` works on every version.
+
+A release is a governed intent, so it runs the account's approval policy like
+any other. Custody releases a transfer under the account that received it, so
+a transfer sent to another custodied account is listed under that account, not
+the sender.
+
+### Releasing automatically after a transfer
+
+Auto-release is off by default. `defaultAutoReleaseQuarantine: true` on
+`RippleCustody.create()` / `fromEnv()` turns it on for every transfer the
+custodian submits. The `autoReleaseQuarantine` option on `client.xrp.transfer`,
+`client.token.transfer`, and `client.iou.transfer` sets it for one call:
+
+```ts
+const result = await client.token.transfer(
+  { to: 'r...', amount },
+  { autoReleaseQuarantine: true },
+)
+// → result.quarantineReleaseIntentIds: one release intent per receiving account
+```
+
+Once the payment confirms, the SDK waits for Custody to decide on its
+transfers, then proposes a release for the ones it quarantined:
+
+- The call takes longer: the wait lasts up to `quarantinePollTimeoutMs` (60 s
+  unless set).
+- It only proposes. Each release still needs its approvals, so keep the intent
+  ids and check them with `api.waitForIntent`.
+- It never fails a confirmed payment. If the check or the proposal fails,
+  `quarantineReleaseIntentIds` is left out; release by hand instead.
+- It covers payments the custodian submits and waits on. For an async
+  submission or a raw-signed transaction, release by hand.
+
+A release lifts a hold that Custody's compliance check placed on the funds, so
+turn auto-release on only where that is intended.
 
 ## Lists, lookups, and account keys
 
@@ -270,7 +329,7 @@ underlying `CustodyApiError`.
 
 When a failure matches a known Custody server bug, `hint` says how to work
 around it. For example, a `quarantineStatus` filter can return a 500 on the
-transfers endpoint.
+transfers endpoint (`listQuarantinedTransfers` works around that one itself).
 
 A request that gets no response within its timeout throws a
 `CustodyTimeoutError`. Its outcome is unknown: Custody may still have processed

@@ -27,6 +27,19 @@ export interface TokenWriteOptions {
   readonly dryRun?: boolean
 }
 
+/** Per-call options for {@link Token.transfer}. */
+export interface TokenTransferOptions extends TokenWriteOptions {
+  /**
+   * After the transfer confirms, propose releasing any of its transfers that
+   * Ripple Custody quarantined; the release intent ids come back on the
+   * result as `quarantineReleaseIntentIds`. Proposes only — each release
+   * still runs the account's approval policy. Overrides the custodian's
+   * `defaultAutoReleaseQuarantine`. Ripple Custody accounts only: other
+   * signers ignore it.
+   */
+  readonly autoReleaseQuarantine?: boolean
+}
+
 /**
  * Capability flags for an MPT issuance. Every flag is optional; any flag left
  * unset takes the SDK default below (a fully capable, transferable token).

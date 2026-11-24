@@ -1,17 +1,27 @@
 import type { Transaction } from 'xrpl'
 
 import type { SubmissionContext } from '../../../domain/index.js'
+import {
+  AccountNotFoundError,
+  CustodyApiError,
+  SimpleXRPLError,
+} from '../../../errors.js'
+import { CUSTODY_ROUTES } from '../../../generated/custody-routes.js'
 import type { components } from '../../../generated/custody.js'
 import { uuidV7 } from '../../../ids/index.js'
 import type { PollSchedule } from '../../poll-schedule.js'
 import { pollDelayMs, sleep } from '../../poll-schedule.js'
 import type { CustodyApi } from '../api.js'
 import type { RippleCustodyState } from '../construction.js'
-import type { CustodyReleaseQuarantineParams } from '../intent-types.js'
+import { findAddressReferences } from '../discovery/address-lookup.js'
+import type { CustodyQuarantineAccount } from '../intent-types.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
 
 type ApiTransfer = components['schemas']['Core_ApiTransfer']
 type TransfersCollection = components['schemas']['Core_TransfersCollection']
+
+/** HTTP status some Custody versions answer a `quarantineStatus` filter with. */
+const HTTP_INTERNAL_SERVER_ERROR = 500
 
 /**
  * Transactors that move tokens and can therefore produce a quarantinable
@@ -240,17 +250,171 @@ export async function runAutoRelease(
 }
 
 /**
+ * Resolve the Custody account id a quarantine call names, looking an XRPL
+ * address up in the custodian's own domain.
+ *
+ * One account commonly holds the same address on several ledgers (e.g. testnet
+ * and mainnet); that is still one account, so no ledger has to be picked.
+ *
+ * @param state - The custodian state (client, domain, version guard).
+ * @param selector - The account, by XRPL address or Custody account id.
+ * @param sdkMethod - The SDK call resolving it, for a version error.
+ * @returns The Custody account id.
+ * @throws {@link SimpleXRPLError} unless exactly one of `account` and
+ *   `accountId` is given, or if several accounts in the domain hold the
+ *   address.
+ * @throws {@link AccountNotFoundError} if no account in the domain holds the
+ *   address.
+ * @throws {@link UnsupportedInVersionError} if the instance's Custody version
+ *   can't look an address up.
+ */
+export async function resolveQuarantineAccountId(
+  state: Pick<RippleCustodyState, 'client' | 'domainId' | 'versionGuard'>,
+  selector: CustodyQuarantineAccount,
+  sdkMethod: string,
+): Promise<string> {
+  const { account, accountId } = selector
+  if ((account === undefined) === (accountId === undefined)) {
+    throw new SimpleXRPLError(
+      'Name the account exactly one way: `account` (its XRPL address) or `accountId` (its Custody account id)',
+    )
+  }
+  if (accountId !== undefined) {
+    return accountId
+  }
+  const route = CUSTODY_ROUTES.getAllDomainsAddresses
+  state.versionGuard.assertEndpoint(route.method, route.path, sdkMethod)
+  const references = await findAddressReferences(state.client, account)
+  const accountIds = Array.from(
+    new Set(
+      references
+        .filter((reference) => reference.domainId === state.domainId)
+        .map((reference) => reference.accountId),
+    ),
+  )
+  if (accountIds.length === 0) {
+    throw new AccountNotFoundError(account)
+  }
+  if (accountIds.length > 1) {
+    throw new SimpleXRPLError(
+      `${accountIds.length} Custody accounts in domain ${state.domainId} hold ` +
+        `${account} (${accountIds.join(', ')}); name one by accountId`,
+    )
+  }
+  return accountIds[0]
+}
+
+/**
+ * Whether a transfer is quarantined. Read from `quarantineStatus` when Custody
+ * sends one, else from the deprecated `quarantined` boolean, which is `true`
+ * for exactly the `Quarantined` status.
+ *
+ * @param transfer - The transfer to inspect.
+ * @returns `true` if the transfer is held in quarantine.
+ */
+function isQuarantined(transfer: ApiTransfer): boolean {
+  // Custody sends a literal `null` where a transfer has no quarantine status
+  // (the generated type says the field is just absent), so test for a value.
+  return typeof transfer.quarantineStatus === 'string'
+    ? transfer.quarantineStatus === 'Quarantined'
+    : transfer.quarantined
+}
+
+/** The account and quarantine filter of a transfers read. */
+interface QuarantinedTransfersQuery {
+  /** The Custody account id; matches transfers it sent or received. */
+  readonly accountId: string
+  /** The status filter, which some Custody versions fail on. */
+  readonly quarantineStatus?: 'Quarantined'
+  /** The deprecated filter those versions still serve. */
+  readonly quarantined?: true
+}
+
+/**
+ * Read every transfer of an account that matches a quarantine filter.
+ *
+ * @param api - The Custody API surface.
+ * @param domainId - The custodian's domain.
+ * @param query - The account and the quarantine filter to send.
+ * @returns The matching transfers, across all pages.
+ */
+async function collectTransfers(
+  api: CustodyApi,
+  domainId: string,
+  query: QuarantinedTransfersQuery,
+): Promise<ApiTransfer[]> {
+  const transfers: ApiTransfer[] = []
+  for await (const transfer of api.paginate('getTransfers', {
+    path: { domainId },
+    query,
+  })) {
+    transfers.push(transfer)
+  }
+  return transfers
+}
+
+/**
+ * List the quarantined transfers an account can release — the ones
+ * {@link custodiedAccountId} places under it, which in practice are the ones it
+ * received (Custody releases a transfer under its recipient account).
+ *
+ * Some Custody versions answer a `quarantineStatus` filter with a 500. The
+ * deprecated `quarantined: true` filter selects the same rows — it only falls
+ * short for the other statuses, which this never asks for — so a 500 is
+ * retried with it.
+ *
+ * @param api - The Custody API surface.
+ * @param domainId - The custodian's domain.
+ * @param accountId - The Custody account id.
+ * @returns The account's quarantined transfers, across all pages.
+ * @throws A `CustodyApiError` if Custody rejects the read.
+ */
+export async function listQuarantinedTransfers(
+  api: CustodyApi,
+  domainId: string,
+  accountId: string,
+): Promise<ApiTransfer[]> {
+  let transfers: ApiTransfer[]
+  try {
+    transfers = await collectTransfers(api, domainId, {
+      accountId,
+      quarantineStatus: 'Quarantined',
+    })
+  } catch (error) {
+    if (
+      !(error instanceof CustodyApiError) ||
+      error.status !== HTTP_INTERNAL_SERVER_ERROR
+    ) {
+      throw error
+    }
+    transfers = await collectTransfers(api, domainId, {
+      accountId,
+      quarantined: true,
+    })
+  }
+  // The `accountId` filter also matches transfers the account sent, which are
+  // released under whoever received them.
+  return transfers.filter(
+    (transfer) =>
+      isQuarantined(transfer) && custodiedAccountId(transfer) === accountId,
+  )
+}
+
+/**
  * Propose a release for a caller-supplied set of quarantined transfers. Backs
  * the public `releaseQuarantinedTransfers` — for manual release or the async
  * submission path, which the inline hook doesn't cover.
  *
  * @param api - The propose surface.
  * @param params - The account and transfer ids to release.
+ * @param params.accountId - The Custody account id the transfers are released
+ *   under.
+ * @param params.transferIds - The transfer ids to release.
  * @returns The generated release intent id, for tracking.
  */
 export async function proposeQuarantineRelease(
   api: CustodyApi,
-  params: CustodyReleaseQuarantineParams,
+  params: { accountId: string; transferIds: readonly string[] },
 ): Promise<string> {
   const intentId = uuidV7()
   await api.propose(

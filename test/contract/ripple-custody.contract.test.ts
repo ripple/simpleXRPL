@@ -751,4 +751,38 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
       LIVE_TIMEOUT_MS,
     )
   })
+
+  describe('listing quarantined transfers', () => {
+    it(
+      'lists the same releasable transfers by address and by account id',
+      async () => {
+        const { accountId } = requirePrimary(await custody.listAccounts())
+
+        // Non-mutating reads: this proves the address lookup, the transfers
+        // query (with its quarantine filter), and the response shape against
+        // the live API, whether or not the sandbox holds anything quarantined.
+        const byAddress = await custody.listQuarantinedTransfers({
+          account: SANDBOX_PRIMARY,
+        })
+        const byAccountId = await custody.listQuarantinedTransfers({
+          accountId,
+        })
+
+        expect(byAddress.map((transfer) => transfer.id)).toEqual(
+          byAccountId.map((transfer) => transfer.id),
+        )
+        // Every row is one this account can release: held in quarantine, and
+        // received by it (Custody releases a transfer under its recipient).
+        expect(
+          byAddress.filter(
+            (transfer) =>
+              transfer.quarantineStatus !== 'Quarantined' ||
+              transfer.recipient?.type !== 'Account' ||
+              transfer.recipient.accountId !== accountId,
+          ),
+        ).toEqual([])
+      },
+      LIVE_TIMEOUT_MS,
+    )
+  })
 })

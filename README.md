@@ -108,6 +108,7 @@ spec. The [Ripple Custody guide](./docs/ripple-custody.md) covers:
   and proposing, approving, and rejecting intents;
 - [waiting on intents](./docs/ripple-custody.md#waiting-on-intents) and
   [dry runs](./docs/ripple-custody.md#dry-runs);
+- [listing and releasing quarantined transfers](./docs/ripple-custody.md#quarantined-transfers);
 - [pagination, address lookups, and account keys](./docs/ripple-custody.md#lists-lookups-and-account-keys);
 - [creating an API key](./docs/ripple-custody.md#creating-an-api-key), or
   [keeping it in an HSM or KMS](./docs/ripple-custody.md#api-key-in-an-hsm-or-kms);

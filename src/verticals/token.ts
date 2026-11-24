@@ -31,6 +31,7 @@ import type {
   TokenListResult,
   TokenRetrieveParams,
   TokenRetrieveResult,
+  TokenTransferOptions,
   TokenTransferParams,
   TokenWriteOptions,
 } from './token.types.js'
@@ -282,13 +283,14 @@ export class Token {
    * Send an MPT amount to another account.
    *
    * @param params - Destination and MPT amount.
-   * @param options - Source account and fee override.
+   * @param options - Source account, fee override, and quarantine auto-release
+   * (see {@link TokenTransferOptions}).
    * @returns The result, echoing the transfer as its intent output.
    * @throws {@link IntentValidationError} if the amount's asset is not an MPT.
    */
   public async transfer(
     params: TokenTransferParams,
-    options?: TokenWriteOptions,
+    options?: TokenTransferOptions,
   ): Promise<SubmissionResult<{ to: string; amount: string }>> {
     if (params.amount.asset.kind !== 'mpt') {
       throw new IntentValidationError(
@@ -308,6 +310,7 @@ export class Token {
       fee: options?.fee,
       dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
+      autoReleaseQuarantine: options?.autoReleaseQuarantine,
     })
     return withIntent(result, { to: params.to, amount: params.amount.value })
   }

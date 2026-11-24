@@ -30,6 +30,7 @@ export type {
   IOURetrieveResult,
   IOURole,
   IOUTransferIntent,
+  IOUTransferOptions,
   IOUTransferParams,
   IOUTrustLine,
   IOUWriteOptions,
@@ -52,6 +53,7 @@ export type {
   TokenListResult,
   TokenRetrieveParams,
   TokenRetrieveResult,
+  TokenTransferOptions,
   TokenTransferParams,
   TokenWriteOptions,
 } from './token.types.js'

@@ -47,6 +47,7 @@ import type {
   IOURetrieveParams,
   IOURetrieveResult,
   IOUTransferIntent,
+  IOUTransferOptions,
   IOUTransferParams,
   IOUWriteOptions,
 } from './iou.types.js'
@@ -300,14 +301,14 @@ export class IOU {
    * Send a specified amount of this IOU to a destination account.
    *
    * @param params - The IOU, destination, and amount.
-   * @param options - Issuer account, fee override, and idempotency key (see
-   * {@link IOUWriteOptions}).
+   * @param options - Issuer account, fee override, idempotency key, and
+   * quarantine auto-release (see {@link IOUTransferOptions}).
    * @returns The submission result, with `{ to, amount }` as the
    * intent output.
    */
   public async transfer(
     params: IOUTransferParams,
-    options?: IOUWriteOptions,
+    options?: IOUTransferOptions,
   ): Promise<SubmissionResult<IOUTransferIntent>> {
     const issuer = this.host.resolveAccount(options?.from)
     const amount: IssuedCurrencyAmount = {
@@ -322,6 +323,7 @@ export class IOU {
       fee: options?.fee,
       dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
+      autoReleaseQuarantine: options?.autoReleaseQuarantine,
     })
     return withIntent(result, {
       to: params.to,

@@ -6,7 +6,8 @@ import type { IntentOutcome } from './submission/intent-polling.js'
 
 /*
  * Public types for waiting on intents and dry-running them through
- * `CustodyApi`, and for proposing quarantine releases through `RippleCustody`.
+ * `CustodyApi`, and for listing and releasing quarantined transfers through
+ * `RippleCustody`.
  */
 
 /**
@@ -102,10 +103,30 @@ export type CustodyTransactionOrderOptions = ProposeEnvelopeOverrides & {
   readonly dryRun?: boolean
 }
 
+/**
+ * The custodied account a quarantine call acts on, named exactly one way:
+ * `account` (its XRPL address) or `accountId` (its Custody account id).
+ */
+export type CustodyQuarantineAccount =
+  | {
+      /** The account's XRPL address, looked up in the custodian's domain. */
+      readonly account: string
+      readonly accountId?: never
+    }
+  | {
+      /** The Custody account id. */
+      readonly accountId: string
+      readonly account?: never
+    }
+
+/** A transfer as Custody reports it. */
+export type CustodyTransfer = components['schemas']['Core_ApiTransfer']
+
+/** Parameters for {@link RippleCustody.listQuarantinedTransfers}. */
+export type CustodyListQuarantinedParams = CustodyQuarantineAccount
+
 /** Parameters for {@link RippleCustody.releaseQuarantinedTransfers}. */
-export interface CustodyReleaseQuarantineParams {
-  /** The custodied account holding the quarantined transfers. */
-  readonly accountId: string
+export type CustodyReleaseQuarantineParams = CustodyQuarantineAccount & {
   /** The transfer ids to release. */
   readonly transferIds: readonly string[]
 }

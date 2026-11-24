@@ -42,6 +42,13 @@ export interface SubmitRequest {
 
   /** Return a handle as soon as the intent is accepted, instead of blocking. */
   readonly async?: boolean
+
+  /**
+   * Auto-propose release of transfers this transaction produces that the
+   * backend quarantined (Ripple Custody only); falls back to the custodian's
+   * default.
+   */
+  readonly autoReleaseQuarantine?: boolean
 }
 
 /**
@@ -128,6 +135,7 @@ async function prepareSubmission(
     idempotencyKey,
     timeoutMs: request.timeoutMs,
     async: request.async,
+    autoReleaseQuarantine: request.autoReleaseQuarantine,
   }
   return { account, resolved, context }
 }

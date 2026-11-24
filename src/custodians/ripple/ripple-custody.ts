@@ -34,14 +34,20 @@ import type {
 } from './construction.js'
 import { AccountContext } from './discovery/account-context.js'
 import { discoverXrplAccounts } from './discovery/account-discovery.js'
-import type { CustodyReleaseQuarantineParams } from './intent-types.js'
+import type {
+  CustodyListQuarantinedParams,
+  CustodyReleaseQuarantineParams,
+  CustodyTransfer,
+} from './intent-types.js'
 import { buildProposeIntentBody } from './mapping/envelope.js'
 import { NATIVE_XRPL_TRANSACTORS } from './mapping/xrpl-operations.js'
 import { maybeDryRun } from './submission/dry-run.js'
 import { createCustodyIntentHandle } from './submission/intent-handle.js'
 import { pollIntentUntilExecuted } from './submission/intent-polling.js'
 import {
+  listQuarantinedTransfers,
   proposeQuarantineRelease,
+  resolveQuarantineAccountId,
   runAutoRelease,
 } from './submission/quarantine-release.js'
 import { signRawTransaction } from './submission/raw-flow.js'
@@ -325,17 +331,56 @@ export class RippleCustody implements Custodian, IntentObserver {
   }
 
   /**
+   * List the quarantined transfers an account can release — funds it received
+   * that Custody holds as unavailable until a release executes. Pass their ids
+   * to {@link releaseQuarantinedTransfers}.
+   *
+   * @param params - The custodied account, by XRPL address (`account`) or
+   *   Custody account id (`accountId`).
+   * @returns The account's quarantined transfers.
+   * @throws {@link AccountNotFoundError} if no account in this domain holds
+   *   the address.
+   * @throws {@link SimpleXRPLError} unless exactly one of `account` and
+   *   `accountId` is given, or if several accounts in this domain hold the
+   *   address.
+   */
+  public async listQuarantinedTransfers(
+    params: CustodyListQuarantinedParams,
+  ): Promise<CustodyTransfer[]> {
+    const accountId = await resolveQuarantineAccountId(
+      this.state,
+      params,
+      'listQuarantinedTransfers',
+    )
+    return listQuarantinedTransfers(this.api, this.state.domainId, accountId)
+  }
+
+  /**
    * Propose releasing quarantined transfers — the manual counterpart to
    * auto-release, and the way to release for the async submission path. The
    * release is a governed intent still subject to the account's approval policy.
    *
-   * @param params - The custodied account and the transfer ids to release.
+   * @param params - The custodied account — by XRPL address (`account`) or
+   *   Custody account id (`accountId`) — and the transfer ids to release.
    * @returns The release intent id, for tracking to execution.
+   * @throws {@link AccountNotFoundError} if no account in this domain holds
+   *   the address.
+   * @throws {@link SimpleXRPLError} unless exactly one of `account` and
+   *   `accountId` is given, or if several accounts in this domain hold the
+   *   address.
    */
   public async releaseQuarantinedTransfers(
     params: CustodyReleaseQuarantineParams,
   ): Promise<string> {
-    return proposeQuarantineRelease(this.api, params)
+    const accountId = await resolveQuarantineAccountId(
+      this.state,
+      params,
+      'releaseQuarantinedTransfers',
+    )
+    return proposeQuarantineRelease(this.api, {
+      accountId,
+      transferIds: params.transferIds,
+    })
   }
 
   /**

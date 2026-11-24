@@ -28,11 +28,14 @@ export type {
   CustodyDryRunResponse,
   CustodyDryRunTransactionOptions,
   CustodyIntentOutcome,
+  CustodyListQuarantinedParams,
   CustodyProposeAndWaitResult,
+  CustodyQuarantineAccount,
   CustodyReleaseQuarantineParams,
   CustodyTransactionDryRun,
   CustodyTransactionOrder,
   CustodyTransactionOrderOptions,
+  CustodyTransfer,
   CustodyWaitOptions,
 } from './intent-types.js'
 export { CUSTODY_ROUTES } from '../../generated/custody-routes.js'
