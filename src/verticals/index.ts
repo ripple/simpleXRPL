@@ -16,6 +16,7 @@ export type {
   IOUClawbackIntent,
   IOUClawbackParams,
   IOUIssueIntent,
+  IOUIssueOptions,
   IOUIssueParams,
   IOUListOffersParams,
   IOUListParams,
@@ -30,6 +31,7 @@ export type {
   IOURetrieveResult,
   IOURole,
   IOUTransferIntent,
+  IOUTransferOptions,
   IOUTransferParams,
   IOUTrustLine,
   IOUWriteOptions,
@@ -52,6 +54,7 @@ export type {
   TokenListResult,
   TokenRetrieveParams,
   TokenRetrieveResult,
+  TokenTransferOptions,
   TokenTransferParams,
   TokenWriteOptions,
 } from './token.types.js'
@@ -85,6 +88,7 @@ export type {
 } from './domain.types.js'
 export { AccountVertical } from './account.js'
 export type {
+  AccountActivateOptions,
   AccountActivateParams,
   AccountCredentials,
   AccountData,

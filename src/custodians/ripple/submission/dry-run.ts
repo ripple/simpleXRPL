@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto'
 
+import type { SubmissionContext } from '../../../domain/index.js'
 import { DryRunFailedError } from '../../../errors.js'
 import type { components } from '../../../generated/custody.js'
+import type { RippleCustodyState } from '../construction.js'
 import { buildEnvelopeRequest } from '../mapping/propose-envelope.js'
 import type { EnvelopeRequest } from '../mapping/propose-envelope.js'
 import type { CustodyHttpClient } from '../transport/custody-http-client.js'
@@ -115,4 +117,36 @@ export async function runDryRun(
   if (!response.success) {
     throw new DryRunFailedError(describeDryRunFailure(response), response)
   }
+}
+
+/** Inputs for {@link maybeDryRun}. */
+export interface MaybeDryRunOptions {
+  /** The custodian state (client, domain, author, dry-run default). */
+  readonly state: RippleCustodyState
+  /** The submission context (carries the per-call `dryRun` override). */
+  readonly ctx: SubmissionContext
+  /** The intent payload about to be submitted. */
+  readonly payload: RunDryRunOptions['payload']
+  /** The summary the real intent will carry. */
+  readonly customProperties: components['schemas']['Core_StringsMap']
+}
+
+/**
+ * Pre-flight an intent payload through {@link runDryRun} when the submission
+ * asks for it (per-call `dryRun`, else the custodian default). A no-op when
+ * dry-run is off.
+ *
+ * @param options - The state, context, payload, and custom properties.
+ */
+export async function maybeDryRun(options: MaybeDryRunOptions): Promise<void> {
+  const { state, ctx, payload, customProperties } = options
+  if (!(ctx.dryRun ?? state.defaultDryRun)) {
+    return
+  }
+  await runDryRun(state.client, {
+    domainId: state.domainId,
+    authorUserId: state.authorUserId,
+    payload,
+    customProperties,
+  })
 }

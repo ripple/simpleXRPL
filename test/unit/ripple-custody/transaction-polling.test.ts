@@ -69,7 +69,11 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH1', mptIssuanceId: 'STRUCTURED' })
+    expect(result).toEqual({
+      txHash: 'HASH1',
+      transactionId: 'tx-1',
+      mptIssuanceId: 'STRUCTURED',
+    })
   })
 
   it('reconstructs the issuance id from rawTransaction when ledgerData is null', async () => {
@@ -88,7 +92,11 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH2', mptIssuanceId: MPT_CREATE_ID })
+    expect(result).toEqual({
+      txHash: 'HASH2',
+      transactionId: 'tx-1',
+      mptIssuanceId: MPT_CREATE_ID,
+    })
   })
 
   it('prefers structured tokenData over the raw blob when both are present', async () => {
@@ -122,7 +130,7 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH4' })
+    expect(result).toEqual({ txHash: 'HASH4', transactionId: 'tx-1' })
   })
 
   it('omits the issuance id when neither structured data nor a raw blob is present', async () => {
@@ -138,7 +146,7 @@ describe('pollTransactionOnChain', () => {
 
     const result = await pollTransactionOnChain({ client, ...options })
 
-    expect(result).toEqual({ txHash: 'HASH5' })
+    expect(result).toEqual({ txHash: 'HASH5', transactionId: 'tx-1' })
   })
 
   it('returns undefined when confirmation never arrives before the timeout', async () => {
@@ -357,7 +365,7 @@ describe('pollTransactionOnChain — an order with a replaced attempt', () => {
 
     await expect(
       pollTransactionOnChain({ client, ...options }),
-    ).resolves.toEqual({ txHash: 'NEW' })
+    ).resolves.toEqual({ txHash: 'NEW', transactionId: 'tx-new' })
   })
 
   it('takes the newest surviving attempt, whatever the listing order', async () => {
@@ -381,7 +389,10 @@ describe('pollTransactionOnChain — an order with a replaced attempt', () => {
 
     await expect(
       pollTransactionOnChain({ client, ...options }),
-    ).resolves.toEqual({ txHash: 'NEWER' })
+    ).resolves.toEqual({
+      txHash: 'NEWER',
+      transactionId: 'tx-b',
+    })
   })
 
   it('keeps waiting while only the replaced attempt is listed', async () => {
@@ -417,7 +428,10 @@ describe('pollTransactionOnChain — an order with a replaced attempt', () => {
       await jest.advanceTimersByTimeAsync(6000)
 
       // Previously a lone replaced attempt was reported as dead at once.
-      await expect(polling).resolves.toEqual({ txHash: 'NEW' })
+      await expect(polling).resolves.toEqual({
+        txHash: 'NEW',
+        transactionId: 'tx-new',
+      })
     } finally {
       jest.useRealTimers()
     }
@@ -488,7 +502,10 @@ describe('pollTransactionOnChain — the time budget', () => {
       })
       await jest.advanceTimersByTimeAsync(6000)
 
-      await expect(polling).resolves.toEqual({ txHash: 'HASH8' })
+      await expect(polling).resolves.toEqual({
+        txHash: 'HASH8',
+        transactionId: 'tx-1',
+      })
     } finally {
       jest.useRealTimers()
     }

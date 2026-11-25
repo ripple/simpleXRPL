@@ -46,6 +46,15 @@ export interface XrpTransferOptions {
    * accounts only: other signers reject `dryRun: true`.
    */
   readonly dryRun?: boolean
+  /**
+   * After the transfer confirms, propose releasing any of its transfers that
+   * Ripple Custody quarantined; the release intent ids come back on the
+   * result as `quarantineReleaseIntentIds`. Proposes only — each release
+   * still runs the account's approval policy. Overrides the custodian's
+   * `defaultAutoReleaseQuarantine`. Ripple Custody accounts only: other
+   * signers ignore it.
+   */
+  readonly autoReleaseQuarantine?: boolean
 }
 
 /** Output attached to an {@link XRP.transfer} result. */
@@ -152,7 +161,8 @@ export class XRP {
    * Send XRP from one account to another (a `Payment`).
    *
    * @param params - Destination and amount (XRP).
-   * @param options - Source account and fee override.
+   * @param options - Source account, fee override, and quarantine auto-release
+   * (see {@link XrpTransferOptions}).
    * @returns The submission result, with `{ to, amount }` as the intent output.
    */
   public async transfer(
@@ -172,6 +182,7 @@ export class XRP {
       fee: options?.fee,
       dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
+      autoReleaseQuarantine: options?.autoReleaseQuarantine,
     })
     return withIntent(result, { to: params.to, amount: params.amount })
   }
