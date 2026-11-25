@@ -145,12 +145,18 @@ and `releaseQuarantinedTransfers` proposes their release:
 ```ts
 const held = await custody.listQuarantinedTransfers({ account: 'r...' })
 
-const intentId = await custody.releaseQuarantinedTransfers({
-  account: 'r...',
-  transferIds: held.map((transfer) => transfer.id),
-})
-const outcome = await custody.api.waitForIntent(intentId)
+if (held.length > 0) {
+  const intentId = await custody.releaseQuarantinedTransfers({
+    account: 'r...',
+    transferIds: held.map((transfer) => transfer.id),
+  })
+  const outcome = await custody.api.waitForIntent(intentId)
+}
 ```
+
+`releaseQuarantinedTransfers` needs at least one transfer id: Custody would
+accept an empty release as a valid intent that releases nothing, so the SDK
+throws an `IntentValidationError` instead of proposing it.
 
 Name the account one way: `account` (its XRPL address, looked up in the
 custodian's domain) or `accountId` (its Custody account id). Looking an address
@@ -164,9 +170,14 @@ the sender.
 ### Releasing automatically after a transfer
 
 Auto-release is off by default. `defaultAutoReleaseQuarantine: true` on
-`RippleCustody.create()` / `fromEnv()` turns it on for every transfer the
-custodian submits. The `autoReleaseQuarantine` option on `client.xrp.transfer`,
-`client.token.transfer`, and `client.iou.transfer` sets it for one call:
+`RippleCustody.create()` / `fromEnv()` turns it on for every `Payment` the
+custodian submits. That is each `transfer` verb, and also the payment inside
+two multi-step calls: the distribution in `client.iou.issue` and the funding in
+`client.account.activate`.
+
+The `autoReleaseQuarantine` option sets it for one call, on any of those:
+`client.xrp.transfer`, `client.token.transfer`, `client.iou.transfer`,
+`client.iou.issue`, and `client.account.activate`.
 
 ```ts
 const result = await client.token.transfer(
@@ -176,8 +187,8 @@ const result = await client.token.transfer(
 // → result.quarantineReleaseIntentIds: one release intent per receiving account
 ```
 
-Once the payment confirms, the SDK waits for Custody to decide on its
-transfers, then proposes a release for the ones it quarantined:
+Once the payment confirms, the SDK waits for Custody to record its transfers,
+then proposes a release for the ones it quarantined:
 
 - The call takes longer: the wait lasts up to `quarantinePollTimeoutMs` (60 s
   unless set).

@@ -249,9 +249,40 @@ describe('autoReleaseQuarantined', () => {
     expect(releasePayloads(http)).toHaveLength(0)
   })
 
+  it('does not wait on a transfer Custody gave a null status', async () => {
+    // Custody sends `quarantineStatus: null` for a transfer quarantine doesn't
+    // apply to, such as the transaction's fee, and never changes it. Were that
+    // read as "still pending", every auto-release would poll to its timeout —
+    // here, long enough to fail the test.
+    const { api, client, http } = harness([
+      toAccount('tr1', 'acc-A'),
+      {
+        id: 'fee',
+        quarantineStatus: null,
+        senders: [{ type: 'Account', accountId: 'acc-sender' }],
+      },
+    ])
+
+    const ids = await autoReleaseQuarantined({
+      client,
+      api,
+      domainId: DOMAIN,
+      transactionId: 'tx-1',
+      timeoutMs: 60_000,
+    })
+
+    expect(ids).toHaveLength(1)
+    expect(
+      http.requests.filter((request) => request.method === 'GET'),
+    ).toHaveLength(1)
+    expect(releasePayloads(http)).toEqual([
+      { accountId: 'acc-A', transferIds: ['tr1'] },
+    ])
+  })
+
   it('on timeout, releases only what is already quarantined', async () => {
-    // One decided (Quarantined) + one still pending → not all decided, so the
-    // short timeout returns the quarantined one best-effort.
+    // One decided (Quarantined) + one with no status at all → not all decided,
+    // so the short timeout returns the quarantined one best-effort.
     const { api, client, http } = harness([
       toAccount('tr1', 'acc-A'),
       { id: 'tr2', recipient: { type: 'Account', accountId: 'acc-A' } },

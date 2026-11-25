@@ -127,6 +127,6 @@ export type CustodyListQuarantinedParams = CustodyQuarantineAccount
 
 /** Parameters for {@link RippleCustody.releaseQuarantinedTransfers}. */
 export type CustodyReleaseQuarantineParams = CustodyQuarantineAccount & {
-  /** The transfer ids to release. */
+  /** The transfer ids to release; at least one. */
   readonly transferIds: readonly string[]
 }

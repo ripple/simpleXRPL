@@ -16,6 +16,7 @@ export type {
   IOUClawbackIntent,
   IOUClawbackParams,
   IOUIssueIntent,
+  IOUIssueOptions,
   IOUIssueParams,
   IOUListOffersParams,
   IOUListParams,
@@ -87,6 +88,7 @@ export type {
 } from './domain.types.js'
 export { AccountVertical } from './account.js'
 export type {
+  AccountActivateOptions,
   AccountActivateParams,
   AccountCredentials,
   AccountData,

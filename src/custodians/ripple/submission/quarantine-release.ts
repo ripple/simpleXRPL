@@ -24,17 +24,17 @@ type TransfersCollection = components['schemas']['Core_TransfersCollection']
 const HTTP_INTERNAL_SERVER_ERROR = 500
 
 /**
- * Transactors that move tokens and can therefore produce a quarantinable
- * transfer. Auto-release only runs for these, so non-movement transactors (e.g.
- * AccountSet, TrustSet) don't pay the detection poll.
+ * Transactors that can produce a quarantinable transfer. Auto-release only runs
+ * for these, so the others (e.g. AccountSet, TrustSet) don't pay the detection
+ * poll.
  */
 export const TOKEN_MOVEMENT_TRANSACTORS: ReadonlySet<string> = new Set([
   'Payment',
 ])
 
 /**
- * Poll cadence while waiting for compliance to decide a transaction's transfers.
- * Starts responsive (a verdict is often quick) and backs off. See
+ * Poll cadence while waiting for Custody to record a transaction's transfers.
+ * Starts responsive (they usually show up quickly) and backs off. See
  * {@link pollDelayMs}.
  */
 const POLL_SCHEDULE: PollSchedule = { initialMs: 2000, maxMs: 15_000 }
@@ -49,7 +49,7 @@ export interface AutoReleaseOptions {
   readonly domainId: string
   /** The Custody transaction whose transfers to inspect. */
   readonly transactionId: string
-  /** How long to wait for compliance to decide before giving up. */
+  /** How long to wait for Custody to record the transfers before giving up. */
   readonly timeoutMs: number
 }
 
@@ -100,11 +100,17 @@ async function listTransfersForTransaction(
 }
 
 /**
- * Whether compliance has ruled on every transfer: at least one transfer exists
- * and all carry a resolved `quarantineStatus` (Quarantined/Released/Skipped).
+ * Whether Custody has recorded the transaction's transfers along with their
+ * quarantine outcome: at least one transfer exists and none is missing its
+ * `quarantineStatus`.
+ *
+ * A `null` status counts as decided. Custody sends it for a transfer that
+ * quarantine doesn't apply to — the transaction's fee, or a transfer to an
+ * address outside Custody — and it never changes, so waiting on it would run
+ * every auto-release to its timeout.
  *
  * @param transfers - The transaction's transfers.
- * @returns `true` once every transfer's status is decided.
+ * @returns `true` once every transfer's outcome is known.
  */
 function allDecided(transfers: ApiTransfer[]): boolean {
   return (
@@ -114,14 +120,14 @@ function allDecided(transfers: ApiTransfer[]): boolean {
 }
 
 /**
- * Poll a transaction's transfers until compliance has decided them all, or the
- * timeout elapses, then return only those it quarantined. Since quarantine is
- * applied asynchronously after settlement, this is the wait that bridges the gap
- * — non-movement transactions simply never surface a transfer and time out to an
- * empty result.
+ * Poll a transaction's transfers until Custody has recorded them with their
+ * quarantine outcome, or the timeout elapses, then return only the quarantined
+ * ones. Custody records a transfer on its own schedule, which can trail the
+ * on-ledger confirmation the caller just waited for; this wait bridges that
+ * gap. A transaction that produces no transfer times out to an empty result.
  *
  * @param options - The client, domain, transaction id, and timeout.
- * @returns The transfers compliance quarantined (possibly empty).
+ * @returns The quarantined transfers (possibly empty).
  */
 async function pollQuarantinedTransfers(
   options: AutoReleaseOptions,
@@ -182,7 +188,7 @@ async function proposeReleases(
 }
 
 /**
- * Detect the transfers a confirmed transaction produced that compliance
+ * Detect the transfers a confirmed transaction produced that Custody
  * quarantined, and auto-propose their release (grouped by custodied account).
  * Proposes only — each release still runs the account's approval policy.
  *
@@ -216,7 +222,8 @@ export interface RunAutoReleaseInput {
 
 /**
  * The `submitAndWait` hook: run auto-release for a just-confirmed transaction
- * when it's enabled, moves tokens, and yielded a Custody transaction id.
+ * when it's enabled, is a {@link TOKEN_MOVEMENT_TRANSACTORS | transactor that
+ * can be quarantined}, and yielded a Custody transaction id.
  * Best-effort — the transaction already confirmed on-chain, so a detection or
  * propose failure is swallowed rather than surfaced as a failed submission.
  *

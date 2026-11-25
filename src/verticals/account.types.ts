@@ -59,6 +59,20 @@ export interface AccountWriteOptions {
   readonly dryRun?: boolean
 }
 
+/** Per-call options for `Account.activate`. */
+export interface AccountActivateOptions extends AccountWriteOptions {
+  /**
+   * After the funding payment confirms, propose releasing it if Ripple Custody
+   * quarantined it (as it can when the activated account is custodied too);
+   * the release intent ids come back on the result as
+   * `quarantineReleaseIntentIds`. Proposes only — each release still runs the
+   * account's approval policy. Overrides the custodian's
+   * `defaultAutoReleaseQuarantine`. Ripple Custody accounts only: other
+   * signers ignore it.
+   */
+  readonly autoReleaseQuarantine?: boolean
+}
+
 /**
  * Parameters for `Account.set`. Each flag is a named boolean (`true` enables,
  * `false` disables); combine with the non-flag fields freely. At least one

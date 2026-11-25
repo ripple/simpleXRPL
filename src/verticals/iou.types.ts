@@ -55,6 +55,20 @@ export interface IOUTransferOptions extends IOUWriteOptions {
   readonly autoReleaseQuarantine?: boolean
 }
 
+/** Per-call options for {@link IOU.issue}. */
+export interface IOUIssueOptions extends IOUWriteOptions {
+  /**
+   * After the distribution payment confirms, propose releasing it if Ripple
+   * Custody quarantined it (as it can when the holder is custodied too); the
+   * release intent ids come back on the result as
+   * `quarantineReleaseIntentIds`. Proposes only — each release still runs the
+   * account's approval policy. Overrides the custodian's
+   * `defaultAutoReleaseQuarantine`. Only applies when `amount` is given, and
+   * to Ripple Custody accounts: other signers ignore it.
+   */
+  readonly autoReleaseQuarantine?: boolean
+}
+
 /** Parameters for {@link IOU.issue}. */
 export interface IOUIssueParams {
   /**

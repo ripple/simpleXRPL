@@ -17,6 +17,7 @@ import {
   AccountNotFoundError,
   CustodyApiError,
   IntentPendingError,
+  IntentValidationError,
   SimpleXRPLError,
   XrpldSubmitError,
 } from '../../errors.js'
@@ -363,6 +364,8 @@ export class RippleCustody implements Custodian, IntentObserver {
    * @param params - The custodied account — by XRPL address (`account`) or
    *   Custody account id (`accountId`) — and the transfer ids to release.
    * @returns The release intent id, for tracking to execution.
+   * @throws {@link IntentValidationError} if `transferIds` is empty — Custody
+   *   would accept it as a release of nothing.
    * @throws {@link AccountNotFoundError} if no account in this domain holds
    *   the address.
    * @throws {@link SimpleXRPLError} unless exactly one of `account` and
@@ -372,6 +375,11 @@ export class RippleCustody implements Custodian, IntentObserver {
   public async releaseQuarantinedTransfers(
     params: CustodyReleaseQuarantineParams,
   ): Promise<string> {
+    if (params.transferIds.length === 0) {
+      throw new IntentValidationError(
+        'releaseQuarantinedTransfers needs at least one transfer id; nothing to release',
+      )
+    }
     const accountId = await resolveQuarantineAccountId(
       this.state,
       params,

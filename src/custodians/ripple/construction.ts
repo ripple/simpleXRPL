@@ -88,13 +88,16 @@ export interface RippleCustodyOptions extends CustodyVersionOptions {
   /** How long `submitAndWait` polls before throwing `IntentPendingError`. */
   readonly defaultTimeoutMs?: number
   /**
-   * After a token-movement transaction confirms, auto-propose release of any
-   * transfers compliance quarantined. Proposes only — release still runs the
-   * account's approval policy. Defaults to `false`.
+   * After a `Payment` this custodian submitted confirms, auto-propose release
+   * of any of its transfers Custody quarantined. That covers every vertical
+   * that sends one — the `transfer` verbs, `iou.issue`'s distribution, and
+   * `account.activate`'s funding — each of which can override it per call.
+   * Proposes only — release still runs the account's approval policy. Defaults
+   * to `false`.
    */
   readonly defaultAutoReleaseQuarantine?: boolean
   /**
-   * How long to wait for compliance to decide a transaction's transfers before
+   * How long to wait for Custody to record a transaction's transfers before
    * giving up on auto-release. Only used when auto-release is enabled.
    */
   readonly quarantinePollTimeoutMs?: number
@@ -149,13 +152,16 @@ export interface RippleCustodyFromEnvOptions extends CustodyVersionOptions {
   /** How long `submitAndWait` polls before throwing `IntentPendingError`. */
   readonly defaultTimeoutMs?: number
   /**
-   * After a token-movement transaction confirms, auto-propose release of any
-   * transfers compliance quarantined. Proposes only — release still runs the
-   * account's approval policy. Defaults to `false`.
+   * After a `Payment` this custodian submitted confirms, auto-propose release
+   * of any of its transfers Custody quarantined. That covers every vertical
+   * that sends one — the `transfer` verbs, `iou.issue`'s distribution, and
+   * `account.activate`'s funding — each of which can override it per call.
+   * Proposes only — release still runs the account's approval policy. Defaults
+   * to `false`.
    */
   readonly defaultAutoReleaseQuarantine?: boolean
   /**
-   * How long to wait for compliance to decide a transaction's transfers before
+   * How long to wait for Custody to record a transaction's transfers before
    * giving up on auto-release. Only used when auto-release is enabled.
    */
   readonly quarantinePollTimeoutMs?: number

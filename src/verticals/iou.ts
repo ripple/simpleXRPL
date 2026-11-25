@@ -37,6 +37,7 @@ import type {
   IOUClawbackIntent,
   IOUClawbackParams,
   IOUIssueIntent,
+  IOUIssueOptions,
   IOUIssueParams,
   IOUListOffersParams,
   IOUListParams,
@@ -89,7 +90,8 @@ export class IOU {
    *
    * @param params - The ticker to issue, optionally the holder account and the
    * amount to distribute to it.
-   * @param options - Issuer source (`from`, default primary) and fee override.
+   * @param options - Issuer source (`from`, default primary), fee override, and
+   * quarantine auto-release for the distribution (see {@link IOUIssueOptions}).
    * @returns The result, with `{ iouID }` plus the distributed `amount` (when
    * one was requested) as its intent output.
    * @throws {@link IntentValidationError} if the env-seed flow is used and the
@@ -101,7 +103,7 @@ export class IOU {
    */
   public async issue(
     params: IOUIssueParams,
-    options?: IOUWriteOptions,
+    options?: IOUIssueOptions,
   ): Promise<SubmissionResult<IOUIssueIntent>> {
     const { issuer, holder } = this.resolveIssuancePair(params, options)
     const currency = encodeCurrencyCode(params.ticker)
@@ -129,6 +131,7 @@ export class IOU {
         }),
         account: issuer,
         dryRun: options?.dryRun,
+        autoReleaseQuarantine: options?.autoReleaseQuarantine,
       })
     }
     const results = await runMultiStep(this.host, steps)

@@ -13,6 +13,7 @@ import { readAccountAddress } from '../reads/read-helpers.js'
 
 import { retrieveAccount } from './account.reads.js'
 import type {
+  AccountActivateOptions,
   AccountActivateParams,
   AccountCredentials,
   AccountFundParams,
@@ -151,12 +152,14 @@ export class AccountVertical {
    * the account must be signable by this client (e.g. from {@link create}).
    *
    * @param params - The destination and optional XRP amount (default: base reserve).
-   * @param options - Fee override for the transactions.
-   * @returns The result of the `defaultRipple` settings change.
+   * @param options - Fee override for the transactions, and quarantine
+   * auto-release for the funding payment (see {@link AccountActivateOptions}).
+   * @returns The result of the `defaultRipple` settings change, carrying any
+   * `quarantineReleaseIntentIds` proposed for the funding payment.
    */
   public async activate(
     params: AccountActivateParams,
-    options?: AccountWriteOptions,
+    options?: AccountActivateOptions,
   ): Promise<SubmissionResult<undefined>> {
     const operator = this.host.resolveAccount()
     // Default to the base reserve plus a buffer so the new account can afford
@@ -176,14 +179,15 @@ export class AccountVertical {
       Destination: params.destination,
       Amount: toDrops(amountXrp),
     }
-    await submitTransaction(this.host, {
+    const funded = await submitTransaction(this.host, {
       transaction: payment,
       account: operator,
       fee: options?.fee,
       dryRun: options?.dryRun,
       idempotencyKey: options?.idempotencyKey,
+      autoReleaseQuarantine: options?.autoReleaseQuarantine,
     })
-    return this.set(
+    const result = await this.set(
       { defaultRipple: true },
       {
         from: params.destination,
@@ -191,6 +195,12 @@ export class AccountVertical {
         dryRun: options?.dryRun,
       },
     )
+    // The settings change is the result, but the release intents belong to the
+    // funding payment: hand them back so the caller can track them.
+    return {
+      ...result,
+      quarantineReleaseIntentIds: funded.quarantineReleaseIntentIds,
+    }
   }
 
   /**

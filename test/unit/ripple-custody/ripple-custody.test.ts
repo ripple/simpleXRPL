@@ -600,6 +600,27 @@ describe('RippleCustody.submitAndWait', () => {
   })
 })
 
+describe('RippleCustody.releaseQuarantinedTransfers', () => {
+  it.each([
+    ['an account id', { accountId: ACCOUNT_ID }],
+    ['an address', { account: PRIMARY_ADDRESS }],
+  ])(
+    'rejects an empty transfer id list for %s without calling Custody',
+    async (_name, account) => {
+      // Custody accepts a release of nothing as a valid intent, so the SDK has
+      // to be the one to refuse it — before the address lookup, too.
+      const { custody, http } = await makeCustody()
+      const before = http.requests.length
+
+      await expect(
+        custody.releaseQuarantinedTransfers({ ...account, transferIds: [] }),
+      ).rejects.toThrow(IntentValidationError)
+
+      expect(http.requests).toHaveLength(before)
+    },
+  )
+})
+
 describe('RippleCustody.submitAsync', () => {
   it('posts a native intent and returns a handle without blocking on the outcome', async () => {
     const { custody, http } = await makeCustody({
