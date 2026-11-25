@@ -30,6 +30,7 @@ import {
 } from '../../src/errors.js'
 import type { components } from '../../src/generated/custody.js'
 import { RippleCustody, SimpleXRPL } from '../../src/index.js'
+import type { CustodyTransfer, SubmissionResult } from '../../src/index.js'
 import { TESTNET_FAUCET, TESTNET_WS, ensureFunded } from '../helpers/testnet.js'
 
 import { SANDBOX_PRIMARY, describeContract } from './helpers/custody-sandbox.js'
@@ -108,6 +109,136 @@ function portAround(pem: string): CustodySignerPort {
       return curve.sign(data, privateKey).toDERRawBytes()
     },
   }
+}
+
+/**
+ * A payment through Custody to on-chain confirmation, plus the release that
+ * follows, runs well past the read tests' budget.
+ */
+const QUARANTINE_TIMEOUT_MS = 180_000
+const QUARANTINE_TEST_TIMEOUT_MS = 300_000
+
+/** How long to wait for a release to show on the transfer it released. */
+const RELEASE_SETTLE_MS = 60_000
+const RELEASE_POLL_MS = 1000
+
+/** The XRP each quarantine test moves between the two custodied accounts. */
+const QUARANTINE_PAYMENT_XRP = '0.01'
+
+/**
+ * Pick a second custodied account to receive a payment from the primary: a
+ * transfer between two custodied accounts is the one Custody quarantines.
+ *
+ * @param accounts - The discovered accounts.
+ * @returns The recipient's r-address and Custody account id.
+ * @throws {@link Error} if the sandbox domain holds only the primary.
+ */
+function requireRecipient(accounts: Account[]): {
+  address: string
+  accountId: string
+} {
+  for (const account of accounts) {
+    if (
+      account.address !== SANDBOX_PRIMARY &&
+      typeof account.custodianRef === 'string'
+    ) {
+      return { address: account.address, accountId: account.custodianRef }
+    }
+  }
+  throw new Error(
+    'the quarantine tests need a second custodied XRPL account in the sandbox domain',
+  )
+}
+
+/**
+ * Re-read a value until it satisfies `done` or the wait runs out. The last
+ * value read is returned either way, so a timeout fails the caller's own
+ * assertion with the state that was actually seen.
+ *
+ * @param read - Reads the current value.
+ * @param done - Whether the value is the one being waited for.
+ * @returns The last value read.
+ */
+async function readUntil<Value>(
+  read: () => Promise<Value>,
+  done: (value: Value) => boolean,
+): Promise<Value> {
+  const deadline = Date.now() + RELEASE_SETTLE_MS
+  let value = await read()
+  /* eslint-disable no-await-in-loop -- polling is sequential by nature */
+  while (!done(value) && Date.now() < deadline) {
+    await new Promise((resolve) => {
+      setTimeout(resolve, RELEASE_POLL_MS)
+    })
+    value = await read()
+  }
+  /* eslint-enable no-await-in-loop */
+  return value
+}
+
+/**
+ * Send {@link QUARANTINE_PAYMENT_XRP} XRP from the sandbox primary to another
+ * custodied account, through the client verb, and wait for it on-chain.
+ *
+ * @param to - The recipient's r-address.
+ * @param autoReleaseQuarantine - The per-call auto-release option.
+ * @returns The custodian that sent it, the submission result, and the Custody
+ *   transaction id its transfers are recorded under.
+ * @throws {@link Error} if Custody reports no transaction for the payment.
+ */
+async function payCustodiedAccount(
+  to: string,
+  autoReleaseQuarantine: boolean,
+): Promise<{
+  sender: RippleCustody
+  result: SubmissionResult
+  transactionId: string
+}> {
+  await ensureFunded(SANDBOX_PRIMARY)
+  await ensureFunded(to)
+  const sender = await RippleCustody.fromEnv({
+    primary: SANDBOX_PRIMARY,
+    defaultTimeoutMs: QUARANTINE_TIMEOUT_MS,
+  })
+  const client = await SimpleXRPL.init({
+    xrpldUrl: TESTNET_WS,
+    signers: [sender],
+  })
+  await client.connect()
+  try {
+    const result = await client.xrp.transfer(
+      { to, amount: QUARANTINE_PAYMENT_XRP },
+      { autoReleaseQuarantine },
+    )
+    const onChain = await sender.pollTransactionOnChain(result.intentId ?? '')
+    if (onChain?.transactionId === undefined) {
+      throw new Error('Custody reported no transaction for the payment')
+    }
+    return { sender, result, transactionId: onChain.transactionId }
+  } finally {
+    await client.disconnect()
+  }
+}
+
+/**
+ * Read every transfer Custody recorded for a transaction.
+ *
+ * @param custody - The custodian to read through.
+ * @param transactionId - The Custody transaction id.
+ * @returns The transaction's transfers (the payment and its fee).
+ */
+async function transfersOf(
+  custody: RippleCustody,
+  transactionId: string,
+): Promise<CustodyTransfer[]> {
+  const transfers: CustodyTransfer[] = []
+  for await (const transfer of custody.api.paginate('getTransfers', {
+    path: { domainId: custody.domainId },
+    query: { transactionId },
+  })) {
+    transfers.push(transfer)
+  }
+  return transfers
 }
 
 describeContract('RippleCustody (live Custody sandbox)', () => {
@@ -783,6 +914,106 @@ describeContract('RippleCustody (live Custody sandbox)', () => {
         ).toEqual([])
       },
       LIVE_TIMEOUT_MS,
+    )
+  })
+
+  // These two move real (testnet) XRP and execute real release intents: the
+  // only way to see a transfer Custody actually quarantined. They rely on the
+  // sandbox quarantining a transfer between its own accounts and approving a
+  // release without a human; a change to either shows up here as a failure.
+  describe('releasing a quarantined transfer end to end', () => {
+    it(
+      'auto-release proposes a release for the payment, and Custody executes it',
+      async () => {
+        const recipient = requireRecipient(await custody.listAccounts())
+
+        const { sender, result, transactionId } = await payCustodiedAccount(
+          recipient.address,
+          true,
+        )
+
+        // One release, proposed under the account that received the payment.
+        const releaseIds = result.quarantineReleaseIntentIds ?? []
+        expect(releaseIds).toHaveLength(1)
+        const outcome = await sender.api.waitForIntent(releaseIds[0], {
+          timeoutMs: RELEASE_SETTLE_MS,
+        })
+        expect(outcome.reason).toBeUndefined()
+        expect(outcome.isSuccess).toBe(true)
+
+        const transfers = await readUntil(
+          async () => transfersOf(sender, transactionId),
+          (rows) => rows.some((row) => row.quarantineStatus === 'Released'),
+        )
+        const payments = transfers.filter((row) => row.kind === 'Transfer')
+        const fees = transfers.filter((row) => row.kind === 'Fee')
+        expect(payments).toHaveLength(1)
+        expect(payments[0].quarantineStatus).toBe('Released')
+        expect(outcome.intent?.data.details.payload).toEqual({
+          type: 'v0_ReleaseQuarantinedTransfers',
+          accountId: recipient.accountId,
+          transferIds: [payments[0].id],
+        })
+        // Auto-release reads a `null` status as final rather than pending, so
+        // it returns as soon as the transfers exist. That holds only while
+        // Custody keeps sending `null` (the spec types the field as absent)
+        // for the rows quarantine doesn't apply to — here, the fee.
+        expect(fees).toHaveLength(1)
+        expect(fees[0].quarantineStatus).toBeNull()
+      },
+      QUARANTINE_TEST_TIMEOUT_MS,
+    )
+
+    it(
+      'lists a quarantined payment under its recipient and releases it by hand',
+      async () => {
+        const recipient = requireRecipient(await custody.listAccounts())
+        const idsOf = (transfers: CustodyTransfer[]): string[] =>
+          transfers.map((transfer) => transfer.id)
+
+        const { sender, result, transactionId } = await payCustodiedAccount(
+          recipient.address,
+          false,
+        )
+        expect(result.quarantineReleaseIntentIds).toBeUndefined()
+
+        // Held under the account that received it, and only there.
+        const held = await readUntil(
+          async () =>
+            sender.listQuarantinedTransfers({ account: recipient.address }),
+          (rows) => rows.some((row) => row.transactionId === transactionId),
+        )
+        const mine = held.filter((row) => row.transactionId === transactionId)
+        expect(mine).toHaveLength(1)
+        expect(mine[0].quarantineStatus).toBe('Quarantined')
+        expect(
+          idsOf(
+            await sender.listQuarantinedTransfers({ account: SANDBOX_PRIMARY }),
+          ),
+        ).not.toContain(mine[0].id)
+
+        const intentId = await sender.releaseQuarantinedTransfers({
+          account: recipient.address,
+          transferIds: [mine[0].id],
+        })
+        const outcome = await sender.api.waitForIntent(intentId, {
+          timeoutMs: RELEASE_SETTLE_MS,
+        })
+        expect(outcome.reason).toBeUndefined()
+        expect(outcome.isSuccess).toBe(true)
+
+        const after = await readUntil(
+          async () =>
+            sender.listQuarantinedTransfers({ account: recipient.address }),
+          (rows) => !idsOf(rows).includes(mine[0].id),
+        )
+        expect(idsOf(after)).not.toContain(mine[0].id)
+        const released = await transfersOf(sender, transactionId)
+        expect(
+          released.find((row) => row.id === mine[0].id)?.quarantineStatus,
+        ).toBe('Released')
+      },
+      QUARANTINE_TEST_TIMEOUT_MS,
     )
   })
 })
