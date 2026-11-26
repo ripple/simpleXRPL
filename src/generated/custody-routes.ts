@@ -225,6 +225,10 @@ export const CUSTODY_ROUTES = {
     method: 'GET',
     path: '/v1/domains/{domainId}/omnibus/{omnibusId}/hierarchy',
   },
+  getOmnibusTransfers: {
+    method: 'GET',
+    path: '/v1/domains/{domainId}/omnibus/{omnibusId}/transfers',
+  },
   getOrder: {
     method: 'GET',
     path: '/v1/domains/{domainId}/transactions/orders/{transactionOrderId}',
