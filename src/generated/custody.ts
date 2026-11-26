@@ -4,6 +4,550 @@
  */
 
 export interface paths {
+  '/v1/exports/position': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Generate a Position Report (balance snapshot) */
+    post: operations['PositionReportController_generatePositionReport']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/exports/movement': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Generate a Movement Report (transaction history) */
+    post: operations['MovementReportController_generateMovementReport']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/exports/position/omnibus': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Generate an Omnibus Position Report (a domain's omnibus pool and its breakdown) */
+    post: operations['OmnibusPositionReportController_generateOmnibusPositionReport']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/users/invitations': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description List user invitations */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number
+          startingAfter?: string
+          sortOrder?: components['schemas']['CoreExtensions_SortOrder']
+          sortBy?: components['schemas']['CoreExtensions_SortBy']
+          status?: components['schemas']['CoreExtensions_InvitationStatusQuery'][]
+          alias?: string
+          'roles[]'?: string[]
+        }
+        header?: never
+        path: {
+          domainId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_InvitationPaginationResult']
+            'text/json': components['schemas']['CoreExtensions_InvitationPaginationResult']
+          }
+        }
+      }
+    }
+    put?: never
+    /** @description Create a user invitation */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          domainId: string
+        }
+        cookie?: never
+      }
+      requestBody?: {
+        content: {
+          'application/json': components['schemas']['CoreExtensions_InvitationIn']
+          'text/json': components['schemas']['CoreExtensions_InvitationIn']
+          'application/*+json': components['schemas']['CoreExtensions_InvitationIn']
+        }
+      }
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_InvitationOut']
+            'text/json': components['schemas']['CoreExtensions_InvitationOut']
+          }
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/users/invitations/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description Get user invitation details */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          domainId: string
+          id: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_InvitationOut']
+            'text/json': components['schemas']['CoreExtensions_InvitationOut']
+          }
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/users/invitations/{id}/cancel': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description Cancel a user invitation */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          domainId: string
+          id: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_InvitationOut']
+            'text/json': components['schemas']['CoreExtensions_InvitationOut']
+          }
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/users/invitations/{id}/renew': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description Renew a user invitation */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          domainId: string
+          id: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_InvitationOut']
+            'text/json': components['schemas']['CoreExtensions_InvitationOut']
+          }
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/users/invitations/{id}/complete': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description Complete a user invitation */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          domainId: string
+          id: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_InvitationOut']
+            'text/json': components['schemas']['CoreExtensions_InvitationOut']
+          }
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/users/invitations/{idOrCode}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description Get public data of user invitation */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          idOrCode: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_PublicInvitationOut']
+            'text/json': components['schemas']['CoreExtensions_PublicInvitationOut']
+          }
+        }
+      }
+    }
+    put?: never
+    /** @description Fill a user invitation */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          idOrCode: string
+        }
+        cookie?: never
+      }
+      requestBody?: {
+        content: {
+          'application/json': components['schemas']['CoreExtensions_InvitationAnswerIn']
+          'text/json': components['schemas']['CoreExtensions_InvitationAnswerIn']
+          'application/*+json': components['schemas']['CoreExtensions_InvitationAnswerIn']
+        }
+      }
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/vaults/{vaultId}/operations/prepared': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description Export prepared operations */
+    get: {
+      parameters: {
+        query?: never
+        header?: never
+        path: {
+          vaultId: string
+        }
+        cookie?: never
+      }
+      requestBody?: never
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/octet-stream': string
+          }
+        }
+      }
+    }
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/vaults/operations/signed': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description Import signed operations */
+    post: {
+      parameters: {
+        query?: never
+        header?: never
+        path?: never
+        cookie?: never
+      }
+      requestBody?: {
+        content: {
+          'multipart/form-data': {
+            files: string[]
+          }
+        }
+      }
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown
+          }
+          content?: never
+        }
+        /** @description Bad Request */
+        400: {
+          headers: {
+            [name: string]: unknown
+          }
+          content: {
+            'application/json': components['schemas']['CoreExtensions_ErrorMessages']
+          }
+        }
+      }
+    }
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/channels': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get all channels */
+    get: operations['getAllChannels']
+    put?: never
+    /** Create a channel */
+    post: operations['createChannel']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/channels/{channelId}/test': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Test a channel */
+    post: operations['testChannel']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/channels/{channelId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get channel details */
+    get: operations['getChannel']
+    put?: never
+    post?: never
+    /** Delete a channel */
+    delete: operations['deleteChannel']
+    options?: never
+    head?: never
+    /** Update a channel */
+    patch: operations['updateChannel']
+    trace?: never
+  }
+  '/v1/domains/{domainId}/channels/{channelId}/events': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get all events for a channel */
+    get: operations['getAllChannelEvents']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/channels/{channelId}/events/{eventId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get channel event details */
+    get: operations['getEvent']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/v1/domains/{domainId}/channels/events': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get all events */
+    get: operations['getAllEvents']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/v1/backups/{backupId}': {
     parameters: {
       query?: never
@@ -1055,394 +1599,6 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/v1/domains/{domainId}/users/invitations': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description List user invitations */
-    get: {
-      parameters: {
-        query?: {
-          limit?: number
-          startingAfter?: string
-          sortOrder?: components['schemas']['CoreExtensions_SortOrder']
-          sortBy?: components['schemas']['CoreExtensions_SortBy']
-          status?: components['schemas']['CoreExtensions_InvitationStatusQuery'][]
-          alias?: string
-          'roles[]'?: string[]
-        }
-        header?: never
-        path: {
-          domainId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_InvitationPaginationResult']
-            'text/json': components['schemas']['CoreExtensions_InvitationPaginationResult']
-          }
-        }
-      }
-    }
-    put?: never
-    /** @description Create a user invitation */
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          domainId: string
-        }
-        cookie?: never
-      }
-      requestBody?: {
-        content: {
-          'application/json': components['schemas']['CoreExtensions_InvitationIn']
-          'text/json': components['schemas']['CoreExtensions_InvitationIn']
-          'application/*+json': components['schemas']['CoreExtensions_InvitationIn']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_InvitationOut']
-            'text/json': components['schemas']['CoreExtensions_InvitationOut']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/users/invitations/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description Get user invitation details */
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          domainId: string
-          id: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_InvitationOut']
-            'text/json': components['schemas']['CoreExtensions_InvitationOut']
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/users/invitations/{id}/cancel': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** @description Cancel a user invitation */
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          domainId: string
-          id: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_InvitationOut']
-            'text/json': components['schemas']['CoreExtensions_InvitationOut']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/users/invitations/{id}/renew': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** @description Renew a user invitation */
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          domainId: string
-          id: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_InvitationOut']
-            'text/json': components['schemas']['CoreExtensions_InvitationOut']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/users/invitations/{id}/complete': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** @description Complete a user invitation */
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          domainId: string
-          id: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_InvitationOut']
-            'text/json': components['schemas']['CoreExtensions_InvitationOut']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/users/invitations/{idOrCode}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description Get public data of user invitation */
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          idOrCode: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_PublicInvitationOut']
-            'text/json': components['schemas']['CoreExtensions_PublicInvitationOut']
-          }
-        }
-      }
-    }
-    put?: never
-    /** @description Fill a user invitation */
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          idOrCode: string
-        }
-        cookie?: never
-      }
-      requestBody?: {
-        content: {
-          'application/json': components['schemas']['CoreExtensions_InvitationAnswerIn']
-          'text/json': components['schemas']['CoreExtensions_InvitationAnswerIn']
-          'application/*+json': components['schemas']['CoreExtensions_InvitationAnswerIn']
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/vaults/{vaultId}/operations/prepared': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** @description Export prepared operations */
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          vaultId: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/octet-stream': string
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/vaults/operations/signed': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** @description Import signed operations */
-    post: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: {
-        content: {
-          'multipart/form-data': {
-            files: string[]
-          }
-        }
-      }
-      responses: {
-        /** @description OK */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content?: never
-        }
-        /** @description Bad Request */
-        400: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': components['schemas']['CoreExtensions_ErrorMessages']
-          }
-        }
-      }
-    }
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
   '/v1/domains/{domainId}/compliance/providers': {
     parameters: {
       query?: never
@@ -1796,111 +1952,6 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/v1/domains/{domainId}/channels': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get all channels */
-    get: operations['getAllChannels']
-    put?: never
-    /** Create a channel */
-    post: operations['createChannel']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/channels/{channelId}/test': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Test a channel */
-    post: operations['testChannel']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/channels/{channelId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get channel details */
-    get: operations['getChannel']
-    put?: never
-    post?: never
-    /** Delete a channel */
-    delete: operations['deleteChannel']
-    options?: never
-    head?: never
-    /** Update a channel */
-    patch: operations['updateChannel']
-    trace?: never
-  }
-  '/v1/domains/{domainId}/channels/{channelId}/events': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get all events for a channel */
-    get: operations['getAllChannelEvents']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/channels/{channelId}/events/{eventId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get channel event details */
-    get: operations['getEvent']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/domains/{domainId}/channels/events': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get all events */
-    get: operations['getAllEvents']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
   '/v1/domains/{domainId}/sweep-thresholds': {
     parameters: {
       query?: never
@@ -2089,6 +2140,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/v1/domains/{domainId}/omnibus/{omnibusId}/transfers': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List every transfer leg of an omnibus structure created in a time window (paginated, totals always populated)
+     * @description Read-only listing of the omnibus transfer table for bulk/reconciliation consumers (e.g. Portfolio Data Export). Returns every persisted ONCHAIN and OFFCHAIN leg whose source or destination tenant belongs to the structure, regardless of status, with the operation header left-joined (null on deposit legs, which carry no operation since deposits stopped creating one) and the source / destination tenant refs left-joined (null where the leg has no tenant on that side). The window is on createdAt (omnibus server time), half-open [createdAfter, createdBefore), required on both ends and at most 31 days wide. Results are sorted by (createdAt, id) ascending with no sort parameter, and totalElements/totalPages are populated on every page so a consumer can detect a partial read by comparing them across pages. A page walk is stable when no status filter is given and createdBefore is at least 60 seconds in the past: a leg becomes visible only once committed, so a bound inside the last minute (commit latency, replica clock skew) can admit a late row into a page already read. With transferStatuses or operationStatuses a leg changing state between two page reads shifts the rows after it, which the totals may not reveal; treat such a walk as a snapshot and restart it when totalElements changes. The response reflects committed state at request time; nothing is derived server-side. No balances and no addresses other than destAddress are returned.
+     */
+    get: operations['getOmnibusTransfers']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/v1/domains/{domainId}/omnibus/{omnibusId}/internal-transfers': {
     parameters: {
       query?: never
@@ -2157,57 +2228,6 @@ export interface paths {
     get: operations['listDepositWallets']
     put?: never
     post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/exports/position': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Generate a Position Report (balance snapshot) */
-    post: operations['PositionReportController_generatePositionReport']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/exports/movement': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Generate a Movement Report (transaction history) */
-    post: operations['MovementReportController_generateMovementReport']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/exports/position/omnibus': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Generate an Omnibus Position Report (a domain's omnibus pool and its breakdown) */
-    post: operations['OmnibusPositionReportController_generateOmnibusPositionReport']
     delete?: never
     options?: never
     head?: never
@@ -3244,16 +3264,1011 @@ export interface paths {
 export type webhooks = Record<string, never>
 export interface components {
   schemas: {
+    Export_ExportErrorDto: {
+      /** @description HTTP status code. */
+      statusCode: number
+      /** @description Client-safe error message. Validation errors (400) return an array of messages. */
+      message: string | string[]
+      /** @description HTTP error name. */
+      error?: string
+    }
+    Export_ExportControlTotalsDto: {
+      /**
+       * @description Sum of all totalBalance values (Position Report only). BigNumber-formatted string.
+       * @example 429.04029589
+       */
+      balanceTotalAmount?: string
+      /**
+       * @description Sum of all reservedBalance values (Position Report only). BigNumber-formatted string.
+       * @example 2.0033804
+       */
+      balanceReservedAmount?: string
+      /**
+       * @description Sum of all quarantineBalance values (Position Report only). BigNumber-formatted string.
+       * @example 122.2
+       */
+      balanceQuarantinedAmount?: string
+      /**
+       * @description Sum of all enrichedTransactionValue values (Movement Report only). BigNumber-formatted string.
+       * @example 154.54
+       */
+      valueSum?: string
+    }
+    Export_ExportMetadataDto: {
+      /**
+       * @description Unique identifier of this export. Also returned in the X-Export-Id header.
+       * @example cef02796-daca-425f-91ed-f670eb8ec99f
+       */
+      exportId: string
+      /**
+       * @description Identity that requested the export.
+       * @example harmonize:hmz@metaco.com
+       */
+      requestAuthor: string
+      /**
+       * @description Generation timestamp (ISO-8601).
+       * @example 2026-08-27T09:15:00Z
+       */
+      generatedAt: string
+      /**
+       * @description Echo of the request filter parameters.
+       * @example {
+       *       "domainId": "5cd224fe-193e-8bce-c94c-c6c05245e2d1",
+       *       "asOfTimestamp": "2026-08-21T16:32:03.9740000+00:00",
+       *       "includeZeroBalances": true
+       *     }
+       */
+      filters: Record<string, never>
+      /**
+       * @description Echoed from the request — Position Report only (ISO-8601).
+       * @example 2026-08-27T00:00:00Z
+       */
+      asOfTimestamp?: string
+      /**
+       * @description Echoed from the request — Movement Report only (ISO-8601).
+       * @example 2026-07-25T00:00:00Z
+       */
+      dateRangeStart?: string
+      /**
+       * @description Echoed from the request — Movement Report only (ISO-8601).
+       * @example 2026-08-27T00:00:00Z
+       */
+      dateRangeEnd?: string
+      /**
+       * @description Number of data rows. Position: one row per (account, ticker). Movement: one row per transfer.
+       * @example 22
+       */
+      recordCount: number
+      /** @description Reconciliation control totals across all rows. */
+      controlTotals: components['schemas']['Export_ExportControlTotalsDto']
+    }
+    Export_PositionReportRowDto: {
+      /** @description Domain UUID owning the account. */
+      domainId: string
+      /**
+       * @description Domain display name.
+       * @example My root domain
+       */
+      domainName: string
+      /**
+       * @description Vault backing type passed through from the core system, such as 'MPC' or 'HSM'. Empty for accounts without a vault (external).
+       * @example HSM
+       */
+      vaultType: string
+      /** @description Vault UUID. Empty for accounts without a vault (external). */
+      vaultId: string
+      /** @description Vault display name. Empty for accounts without a vault (external). */
+      vaultName: string
+      /** @description Account UUID. */
+      accountId: string
+      /**
+       * @description Account display name.
+       * @example omnibus
+       */
+      accountName: string
+      /**
+       * @description One of 'vault', 'gas station', 'external', 'omnibus', 'deposit wallet'. 'external' identifies an account held at a subcustodian Provider — its vault columns are empty. 'omnibus' (a domain's omnibus wallet) and 'deposit wallet' (an omnibus tenant's deposit wallet) are emitted only when omnibus support is enabled for the environment.
+       * @example omnibus
+       */
+      accountType: string
+      /**
+       * @description Blockchain network name as configured by the operator.
+       * @example XRPL Testnet August 2024
+       */
+      ledgerName: string
+      /** @description On-chain address of the account on this ledger. */
+      addressOnLedger: string
+      /** @description Asset UUID. */
+      tickerId: string
+      /**
+       * @description Asset kind.
+       * @example Native
+       */
+      tickerKind: string
+      /**
+       * @description Asset display name.
+       * @example XRP Testnet August 2024
+       */
+      tickerName: string
+      /**
+       * @description Asset symbol.
+       * @example tXRP
+       */
+      tickerSymbol: string
+      /**
+       * @description Reserved balance. BigNumber-formatted string in display units.
+       * @example 0.000000
+       */
+      reservedBalance: string
+      /**
+       * @description Quarantined balance. BigNumber-formatted string in display units.
+       * @example 0.000000
+       */
+      quarantineBalance: string
+      /**
+       * @description Total balance. BigNumber-formatted string in display units.
+       * @example 51.994800
+       */
+      totalBalance: string
+      /**
+       * @description DB write time of the latest contributing accounting entry (ISO-8601) — not on-chain block time.
+       * @example 2026-08-21T14:27:15.03518Z
+       */
+      ledgerBalanceTimestamp: string
+    }
+    Export_PositionReportResponseDto: {
+      /** @description File-level metadata and reconciliation control totals. */
+      metadata: components['schemas']['Export_ExportMetadataDto']
+      /** @description One row per (account, ticker). With omnibus support enabled, contains on-chain custody accounts only — virtual (tenant) balances are excluded and control totals represent on-chain holdings. */
+      data: components['schemas']['Export_PositionReportRowDto'][]
+    }
+    Export_PositionExportDto: {
+      /** @description Domain UUID to export position data for */
+      domainId: string
+      /** @description Point-in-time timestamp for balance snapshot (ISO-8601) */
+      asOfTimestamp: string
+      /** @description Include data from child domains */
+      includeChildDomains?: boolean
+      /** @description Filter by vault UUIDs */
+      vaultIds?: string[]
+      /** @description Filter by ticker UUIDs */
+      tickerIds?: string[]
+      /** @description Filter by account UUIDs */
+      accountIds?: string[]
+      /** @description Include accounts with zero balances */
+      includeZeroBalances?: boolean
+      /**
+       * @description Output format
+       * @enum {string}
+       */
+      format: 'CSV' | 'JSON'
+    }
+    Export_MovementReportRowDto: {
+      /** @description Domain UUID the report row belongs to. */
+      domainId: string
+      /**
+       * @description Domain display name.
+       * @example My root domain
+       */
+      domainName: string
+      /** @description Transfer registration time (ISO-8601). */
+      registeredAt: string
+      /** @description Transaction UUID. Repeats across rows of the same transaction. */
+      transactionId: string
+      /** @description On-ledger transaction identifier (hash). */
+      onLedgerTransactionId: string
+      /** @description Transfer UUID — one row per transfer. */
+      transferId: string
+      /**
+       * @description Transfer kind.
+       * @example Transfer
+       */
+      transferKind: string
+      /**
+       * @description Transfer value in display units. BigNumber-formatted string.
+       * @example 3.999800
+       */
+      enrichedTransactionValue: string
+      /**
+       * @description Transfer value in raw base units.
+       * @example 3999800
+       */
+      rawTransactionValue: string
+      /**
+       * @description Blockchain network name as configured by the operator.
+       * @example XRPL Testnet August 2024
+       */
+      ledgerName: string
+      /** @description Asset UUID. */
+      tickerId: string
+      /**
+       * @description Asset display name.
+       * @example XRP Testnet August 2024
+       */
+      tickerName: string
+      /**
+       * @description Asset symbol.
+       * @example tXRP
+       */
+      tickerSymbol: string
+      /** @description Whether the transfer is currently quarantined. */
+      quarantined: boolean
+      /**
+       * @description Custody-side status. One of 'Broadcasting', 'Completed', 'Failed', 'Interrupted', 'Pending', 'Prepared', 'Preparing', 'Reserved'.
+       * @example Completed
+       */
+      custodyStatus: string
+      /**
+       * @description Ledger-side status. One of 'Detected', 'Confirmed', 'Expired', 'Replaced'.
+       * @example Confirmed
+       */
+      ledgerStatus: string
+      /** @description Ledger status last-updated time (ISO-8601). */
+      ledgerTimestamp: string
+      /** @description On-chain block time (ISO-8601). Empty until on-chain confirmation. */
+      blockTime: string
+      /** @description Sender address. Pipe-separated when a transfer has multiple sender addresses (e.g. UTXO multi-input). */
+      senderAddress: string
+      /** @description Sender account domain UUID. Empty for off-platform senders. */
+      senderDomainId: string
+      /** @description Sender memo/destination tag. Empty when not applicable. */
+      senderMemoTag: string
+      /** @description True if the sender is within the platform — including senders whose identity columns are redacted because their domain is outside the requester's access. */
+      senderInternal: boolean
+      /** @description Sender account display name. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
+      senderName: string
+      /** @description Sender account UUID. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
+      senderId: string
+      /**
+       * @description One of 'vault', 'gas station', 'external', 'omnibus', 'deposit wallet'. 'external' identifies an account held at a subcustodian Provider — its vault columns are empty. 'omnibus' (a domain's omnibus wallet) and 'deposit wallet' (an omnibus tenant's deposit wallet) are emitted only when omnibus support is enabled for the environment. Empty for off-platform senders and when the sender's domain is outside the requester's access; pipe-separated for multi-sender transfers.
+       * @example deposit wallet
+       */
+      senderAccountType: string
+      /** @description Sender vault backing type ('MPC', 'HSM', …), or 'external' when the sender is off-platform. Empty when the sender's domain is outside the requester's access. */
+      senderVaultType: string
+      /** @description Sender vault UUID. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
+      senderVaultId: string
+      /** @description Sender vault display name. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
+      senderVaultName: string
+      /** @description Recipient address. */
+      recipientAddress: string
+      /** @description Recipient account domain UUID. Empty for off-platform recipients. */
+      recipientDomainId: string
+      /** @description Memo type for Stellar/Hedera ('Text', 'Id', 'Hash', 'Return'). Empty for XRPL and when no memo. */
+      recipientMemoType: string
+      /** @description Recipient memo/destination tag. Empty when not applicable. */
+      recipientMemoTag: string
+      /** @description True if the recipient is within the platform — including recipients whose identity columns are redacted because their domain is outside the requester's access. */
+      recipientInternal: boolean
+      /** @description Recipient account display name. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
+      recipientName: string
+      /** @description Recipient account UUID. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
+      recipientId: string
+      /**
+       * @description One of 'vault', 'gas station', 'external', 'omnibus', 'deposit wallet'. 'external' identifies an account held at a subcustodian Provider — its vault columns are empty. 'omnibus' (a domain's omnibus wallet) and 'deposit wallet' (an omnibus tenant's deposit wallet) are emitted only when omnibus support is enabled for the environment. Empty for off-platform recipients and when the recipient's domain is outside the requester's access.
+       * @example omnibus
+       */
+      recipientAccountType: string
+      /** @description Recipient vault backing type ('MPC', 'HSM', …), or 'external' when the recipient is off-platform. Empty when the recipient's domain is outside the requester's access. */
+      recipientVaultType: string
+      /** @description Recipient vault UUID. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
+      recipientVaultId: string
+      /** @description Recipient vault display name. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
+      recipientVaultName: string
+    }
+    Export_MovementReportResponseDto: {
+      /** @description File-level metadata and reconciliation control totals. */
+      metadata: components['schemas']['Export_ExportMetadataDto']
+      /** @description One row per transfer within the requested date range. Virtual (tenant-to-tenant) omnibus movements settle off-chain and never appear here. */
+      data: components['schemas']['Export_MovementReportRowDto'][]
+    }
+    Export_DateRangeDto: {
+      /** @description Start of date range (ISO-8601) */
+      start: string
+      /** @description End of date range (ISO-8601) */
+      end: string
+    }
+    Export_MovementExportDto: {
+      /** @description Domain UUID to export movement data for */
+      domainId: string
+      /** @description Date range for transaction history */
+      dateRange: components['schemas']['Export_DateRangeDto']
+      /** @description Include data from child domains */
+      includeChildDomains?: boolean
+      /** @description Filter by vault UUIDs */
+      vaultIds?: string[]
+      /** @description Filter by ticker UUIDs */
+      tickerIds?: string[]
+      /** @description Filter by account UUIDs */
+      accountIds?: string[]
+      /**
+       * @description Filter by custody status. Defaults to ["Completed"] (settled only) for reconciliation. Pass all values for full visibility.
+       * @default [
+       *       "Completed"
+       *     ]
+       */
+      custodyStatus: (
+        | 'Broadcasting'
+        | 'Completed'
+        | 'Failed'
+        | 'Interrupted'
+        | 'Pending'
+        | 'Prepared'
+        | 'Preparing'
+        | 'Reserved'
+      )[]
+      /**
+       * @description Filter by ledger status. Defaults to ["Confirmed"] (settled only) for reconciliation. Pass all values for full visibility.
+       * @default [
+       *       "Confirmed"
+       *     ]
+       */
+      ledgerStatus: ('Detected' | 'Confirmed' | 'Expired' | 'Replaced')[]
+      /**
+       * @description Output format
+       * @enum {string}
+       */
+      format: 'CSV' | 'JSON'
+    }
+    Export_OmnibusAccountTypeTotalsDto: {
+      /**
+       * @description Number of rows of this accountType.
+       * @example 2
+       */
+      recordCount: number
+      /**
+       * @description Signed BigNumber sum across all tickers.
+       * @example 18.9998
+       */
+      availableBalance: string
+      /**
+       * @description Signed BigNumber sum across all tickers.
+       * @example 0
+       */
+      reservedBalance: string
+      /**
+       * @description Signed BigNumber sum across all tickers.
+       * @example 0
+       */
+      quarantineBalance: string
+      /**
+       * @description Signed BigNumber sum across all tickers.
+       * @example 1.0002
+       */
+      feeBalance: string
+      /**
+       * @description Signed BigNumber sum across all tickers.
+       * @example 0
+       */
+      confiscationBalance: string
+      /**
+       * @description Signed BigNumber sum across all tickers.
+       * @example 18.9998
+       */
+      totalBalance: string
+    }
+    Export_OmnibusControlTotalsDto: {
+      /** @description Totals over the 'omnibus' (pool wallet) rows. */
+      omnibus: components['schemas']['Export_OmnibusAccountTypeTotalsDto']
+      /** @description Totals over the 'deposit wallet' rows. */
+      depositWallet: components['schemas']['Export_OmnibusAccountTypeTotalsDto']
+      /** @description Totals over the 'virtual account' (tenant) rows. */
+      virtualAccount: components['schemas']['Export_OmnibusAccountTypeTotalsDto']
+    }
+    Export_OmnibusExportMetadataDto: {
+      /**
+       * @description Unique identifier of this export. Also returned in the X-Export-Id header.
+       * @example ecca7eb1-a2f3-4351-bf46-e4f9e8f55272
+       */
+      exportId: string
+      /**
+       * @description Identity that requested the export.
+       * @example harmonize:hmz@metaco.com
+       */
+      requestAuthor: string
+      /**
+       * @description Generation timestamp (ISO-8601).
+       * @example 2026-08-31T08:28:26.767Z
+       */
+      generatedAt: string
+      /**
+       * @description Echo of the request filter parameters.
+       * @example {
+       *       "domainId": "c73e9e5e-e803-4dc0-93c5-be71c3396ae9",
+       *       "asOfTimestamp": "2026-08-31T08:27:21.2980000+00:00",
+       *       "includeZeroBalances": true
+       *     }
+       */
+      filters: Record<string, never>
+      /** @description Echoed from the request (ISO-8601). */
+      asOfTimestamp: string
+      /**
+       * @description Number of data rows — one per (account, ticker).
+       * @example 4
+       */
+      recordCount: number
+      /** @description Reconciliation control totals, strictly per accountType — never summed across types (the omnibus wallet's balance IS the pool backing the virtual rows; a grand total would double-count by construction). Sums span all tickers, so they are integrity checksums rather than balances; per-ticker reconciliation is done from the rows. */
+      controlTotals: components['schemas']['Export_OmnibusControlTotalsDto']
+    }
+    Export_OmnibusPositionReportRowDto: {
+      /** @description Domain UUID owning the omnibus structure. */
+      domainId: string
+      /**
+       * @description Domain display name.
+       * @example TEST_SG_SUB_DOMAIN
+       */
+      domainName: string
+      /**
+       * @description Row kind: 'omnibus' (the pool wallet), 'deposit wallet' (a tenant's on-chain deposit wallet), or 'virtual account' (a tenant's off-chain claim on the pool).
+       * @example virtual account
+       */
+      accountType: string
+      /** @description Unified row identity together with accountType: the custody accountId on 'omnibus' and 'deposit wallet' rows, the tenantId on 'virtual account' rows — identical to the Accounting Service account identity. Joining to custody data requires filtering accountType IN ('omnibus','deposit wallet'); virtual-row ids resolve only in the Accounting/Omnibus services. */
+      accountId: string
+      /**
+       * @description Custody account alias on on-chain rows; tenant alias on virtual rows.
+       * @example SG_OMNIBUS-host
+       */
+      accountName: string
+      /** @description Owning tenantId — populated on 'deposit wallet' rows only (the deposit-wallet → virtual-account ownership edge). Empty on omnibus and virtual rows. */
+      mappedVirtualAccountId: string
+      /** @description True on the host tenant row — the catch-all tenant absorbing untagged direct deposits and pool-side costs; its balance may be negative (fee debt) and is never filtered. */
+      isHost: boolean
+      /** @description Omnibus wallet custody accountId; empty on the 'omnibus' row itself. */
+      parentOmnibusAccountId: string
+      /** @description Asset UUID. */
+      tickerId: string
+      /**
+       * @description Asset kind.
+       * @example Native
+       */
+      tickerKind: string
+      /**
+       * @description Asset display name.
+       * @example XRP Testnet August 2024
+       */
+      tickerName: string
+      /**
+       * @description Asset symbol.
+       * @example tXRP
+       */
+      tickerSymbol: string
+      /**
+       * @description Blockchain network name as configured by the operator.
+       * @example XRPL Testnet August 2024
+       */
+      ledgerName: string
+      /**
+       * @description Available balance — the headline number for virtual rows. Signed BigNumber string in display units, passed through from Accounting unmodified.
+       * @example -1.000200
+       */
+      availableBalance: string
+      /**
+       * @description Reserved balance (in-flight outbound on custody rows). Passed through from Accounting; 0 in practice on virtual rows (Accounting carries no tenant holds).
+       * @example 0.000000
+       */
+      reservedBalance: string
+      /**
+       * @description Quarantined balance (compliance holds on custody rows). Passed through from Accounting; 0 in practice on virtual rows.
+       * @example 0.000000
+       */
+      quarantineBalance: string
+      /**
+       * @description Cumulative fees bucket (informational — not a component of totalBalance). Itemizes the host tenant's absorbed network fees and reserves.
+       * @example 1.000200
+       */
+      feeBalance: string
+      /**
+       * @description Cumulative confiscation bucket (informational — not a component of totalBalance).
+       * @example 0.000000
+       */
+      confiscationBalance: string
+      /**
+       * @description Total balance = available + reserved + quarantine. Signed; the host tenant may be negative.
+       * @example -1.000200
+       */
+      totalBalance: string
+      /**
+       * @description DB write time of the latest contributing accounting entry (ISO-8601) — not on-chain block time.
+       * @example 2026-08-25T10:57:46.932669Z
+       */
+      ledgerBalanceTimestamp: string
+    }
+    Export_OmnibusPositionReportResponseDto: {
+      /** @description File-level metadata and per-accountType control totals. */
+      metadata: components['schemas']['Export_OmnibusExportMetadataDto']
+      /** @description One row per (account, ticker) across the three row kinds. Rows are Accounting-driven: never-funded tenants produce no rows; funded-then-drained tenants appear with total 0 under includeZeroBalances. Per-ticker reconciliation: Σ virtual-account availableBalance equals the omnibus wallet row's totalBalance (net of in-flight sweeps). */
+      data: components['schemas']['Export_OmnibusPositionReportRowDto'][]
+    }
+    Export_OmnibusPositionExportDto: {
+      /** @description Domain UUID whose omnibus structure to export */
+      domainId: string
+      /** @description Point-in-time timestamp for balance snapshot (ISO-8601) */
+      asOfTimestamp: string
+      /** @description Filter by virtual account (tenant) UUIDs. Filters virtual-account rows and their deposit wallets; the omnibus wallet row is always kept. */
+      tenantIds?: string[]
+      /** @description Filter by ticker UUIDs */
+      tickerIds?: string[]
+      /** @description Include accounts with zero balances */
+      includeZeroBalances?: boolean
+      /**
+       * @description Output format
+       * @enum {string}
+       */
+      format: 'CSV' | 'JSON'
+    }
+    GasStation_AlertLimitDto: {
+      /** @description Ticker/token UUID */
+      tickerId: string
+      /** @description Alert threshold amount */
+      amount: string
+    }
+    GasStation_BalanceStatusDto: {
+      /** @description Ticker UUID */
+      tickerId: string
+      /** @description Ticker symbol for display (e.g., SOL, ETH, XRP) */
+      tickerSymbol: string
+      /** @description Configured alert threshold amount */
+      threshold: string
+      /** @description Current balance from Core */
+      currentBalance: string
+      /**
+       * @description Balance status: critical if currentBalance <= threshold
+       * @enum {string}
+       */
+      status: 'healthy' | 'critical'
+    }
+    GasStation_SponsorResponseDto: {
+      type: string
+      accountIds: string[]
+      includeSubDomains: boolean
+      alertLimit: components['schemas']['GasStation_AlertLimitDto'][]
+      /** @description Balance status per configured alert. Omitted if balance fetch fails. */
+      balanceStatus?: components['schemas']['GasStation_BalanceStatusDto'][]
+      /** @description Number of tickers in critical status. Omitted if balance fetch fails. */
+      criticalCount?: number
+    }
+    GasStation_CreateSponsorDto: {
+      /**
+       * @description Type of sponsorship
+       * @enum {string}
+       */
+      type: 'domain' | 'account' | 'none'
+      /** @description Array of account UUIDs to sponsor */
+      accountIds?: string[]
+      /**
+       * @description Include subdomains in sponsorship
+       * @default false
+       */
+      includeSubDomains: boolean
+      /** @description Alert thresholds per ticker */
+      alertLimit: components['schemas']['GasStation_AlertLimitDto'][]
+      /** @description UUID of the user performing the action; recorded on the audit trail. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
+      userId?: string
+    }
+    GasStation_SponsorCreatedResponseDto: {
+      id: string
+      status: string
+      createdAt: string
+    }
+    GasStation_UpdateSponsorDto: {
+      /**
+       * @description Type of sponsorship
+       * @enum {string}
+       */
+      type: 'domain' | 'account' | 'none'
+      /** @description Array of account UUIDs to sponsor */
+      accountIds?: string[]
+      /**
+       * @description Include subdomains in sponsorship
+       * @default false
+       */
+      includeSubDomains: boolean
+      /** @description Alert thresholds per ticker */
+      alertLimit: components['schemas']['GasStation_AlertLimitDto'][]
+      /** @description UUID of the user performing the action; recorded on the audit trail. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
+      userId?: string
+    }
+    GasStation_SponsorsListResponseDto: {
+      /** @description List of gas station account IDs in the domain */
+      items: string[]
+    }
+    GasStation_AccountSponsorResponseDto: {
+      /** @description Whether the account is sponsored by a gas station */
+      isSponsored: boolean
+      /** @description Gas station account ID that is sponsoring */
+      sponsorAccountId?: string
+      /** @enum {string} */
+      type?: 'domain' | 'account' | 'none'
+      accountIds?: string[]
+      includeSubDomains?: boolean
+      alertLimit?: components['schemas']['GasStation_AlertLimitDto'][]
+      /** @description Balance status per configured alert. Omitted if balance fetch fails. */
+      balanceStatus?: components['schemas']['GasStation_BalanceStatusDto'][]
+      /** @description Number of tickers in critical status. Omitted if balance fetch fails. */
+      criticalCount?: number
+    }
+    GasStation_ValidSponsorItemDto: {
+      /** @description Gas station account ID that can be chosen as sponsor */
+      accountId: string
+      /** @description Alias of the gas station account, if known */
+      accountAlias?: string
+      /** @description Domain ID the gas station belongs to */
+      domainId: string
+      /** @description Alias of the domain the gas station belongs to, if known */
+      domainAlias?: string
+    }
+    GasStation_ValidSponsorsResponseDto: {
+      /** @description Whether the account is already effectively sponsored */
+      isSponsored: boolean
+      /** @description The existing sponsor when the account is already sponsored */
+      sponsor?: components['schemas']['GasStation_AccountSponsorResponseDto']
+      /** @description Gas stations that could be chosen as sponsor. Empty when the account is already sponsored, unless includeAll=true was requested, in which case the lineage candidates are still listed (the current sponsor may appear among them). */
+      items: components['schemas']['GasStation_ValidSponsorItemDto'][]
+    }
+    GasStation_DomainSponsorResponseDto: {
+      /** @description Whether the domain is sponsored domain-wide by a gas station */
+      isSponsored: boolean
+      /** @description Gas station account ID that is sponsoring */
+      sponsorAccountId?: string
+      /** @enum {string} */
+      type?: 'domain'
+      /** @description Whether the resolving sponsor extends to sub-domains */
+      includeSubDomains?: boolean
+    }
+    GasStation_SponsoredEntityDto: {
+      /**
+       * Format: uuid
+       * @description Entity ID (Account or Domain UUID)
+       */
+      id: string
+      /** @description Entity display name/alias */
+      alias: string
+      /** @description Whether the entity is sponsored by a Gas Station */
+      isSponsored: boolean
+      /** @description Domain hierarchy from root to entity (for Lineage column) */
+      path: string[]
+    }
+    GasStation_SponsoredEntitiesResponseDto: {
+      /** @description List of sponsored entities */
+      items: components['schemas']['GasStation_SponsoredEntityDto'][]
+      /** @description Total count of items in current page */
+      count: number
+      /** @description Current pagination cursor */
+      currentStartingAfter?: string
+      /** @description Next pagination cursor for fetching more items */
+      nextStartingAfter?: string
+    }
+    GasStation_LedgerDto: {
+      id: string
+      alias: string
+    }
+    GasStation_SponsorshipDetailsDto: {
+      /** @description The sponsoring gas station account ID */
+      sponsorAccountId: string
+      /** @description The sponsoring gas station account name */
+      sponsorAccountName: string
+      /**
+       * @description How this was sponsored
+       * @enum {string}
+       */
+      sponsorType: 'account' | 'domain'
+      /** @description If sponsored via domain, the domain ID */
+      sponsoredDomainId?: string
+      /** @description If sponsored via domain, the domain name */
+      sponsoredDomainName?: string
+    }
+    GasStation_SponsorableDomainDto: {
+      /** @description Domain UUID */
+      domainId: string
+      /** @description Domain name */
+      name: string
+      ledgers: components['schemas']['GasStation_LedgerDto'][]
+      /** @enum {string} */
+      sponsorshipStatus: 'sponsored' | 'not_sponsored' | 'sponsored_by_other'
+      /** @description Only present if sponsored by another gas station */
+      sponsorshipDetails?: components['schemas']['GasStation_SponsorshipDetailsDto']
+      /** @description Account IDs within this domain */
+      accountIds: string[]
+      /** @description Parent domain UUID, null only for absolute root (typically filtered out) */
+      parentId?: Record<string, never>
+      /** @description Nesting depth relative to sponsor domain (0 = direct child of sponsor domain) */
+      depth: number
+      /** @description Whether any accounts in this domain are individually sponsored by another gas station */
+      hasAccountsSponsoredByOther: boolean
+      /** @description Nested subdomains (hierarchical) */
+      children: components['schemas']['GasStation_SponsorableDomainDto'][]
+    }
+    GasStation_SponsorableDomainsResponseDto: {
+      items: components['schemas']['GasStation_SponsorableDomainDto'][]
+      total: number
+      /** @description Current page number (0-indexed) */
+      page: number
+      /** @description Page size */
+      pageSize: number
+      /** @description All available ledgers for filter dropdown */
+      availableLedgers: components['schemas']['GasStation_LedgerDto'][]
+    }
+    GasStation_DomainIdentifierDto: {
+      /** @description Domain ID to sponsor */
+      domainId: string
+    }
+    GasStation_AddSponsoredDomainsDto: {
+      domains: components['schemas']['GasStation_DomainIdentifierDto'][]
+      /** @description UUID of the user performing the action. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
+      userId?: string
+    }
+    GasStation_ConflictEntityDto: {
+      /** @description Account ID that conflicted (for account conflicts) */
+      accountId?: string
+      /** @description Domain ID of the conflicting entity */
+      domainId: string
+      /**
+       * @description Reason for the conflict
+       * @example ALREADY_SPONSORED
+       * @enum {string}
+       */
+      reason: 'ALREADY_SPONSORED'
+      /** @description Account ID of the existing sponsor */
+      existingSponsorAccountId: string
+    }
+    GasStation_SponsoredModificationResponseDto: {
+      /** @description Whether the operation completed (true even for partial success) */
+      success: boolean
+      /** @description Number of entities successfully added */
+      count: number
+      /** @description Entities that could not be added due to conflicts */
+      conflicts?: components['schemas']['GasStation_ConflictEntityDto'][]
+    }
+    GasStation_LineageDto: {
+      /** @description Parent domain ID */
+      domainId: string
+      /** @description Parent domain name */
+      domain: string
+      /** @description Subdomain ID */
+      subdomainId: string
+      /** @description Subdomain name */
+      subdomain: string
+    }
+    GasStation_SponsorableAccountDto: {
+      /** @description Account UUID */
+      accountId: string
+      /** @description Account name */
+      name: string
+      /** @description Domain lineage (parent domain and subdomain) */
+      lineage: components['schemas']['GasStation_LineageDto']
+      ledgers: components['schemas']['GasStation_LedgerDto'][]
+      /** @enum {string} */
+      sponsorshipStatus: 'sponsored' | 'not_sponsored' | 'sponsored_by_other'
+      /** @description Only present if sponsored by another gas station */
+      sponsorshipDetails?: components['schemas']['GasStation_SponsorshipDetailsDto']
+    }
+    GasStation_SponsorableAccountsResponseDto: {
+      items: components['schemas']['GasStation_SponsorableAccountDto'][]
+      total: number
+      /** @description Current page number (0-indexed) */
+      page: number
+      /** @description Page size */
+      pageSize: number
+      /** @description All available ledgers for filter dropdown */
+      availableLedgers: components['schemas']['GasStation_LedgerDto'][]
+    }
+    GasStation_AccountIdentifierDto: {
+      /** @description Account ID to sponsor */
+      accountId: string
+      /** @description Domain ID of the account */
+      domainId: string
+    }
+    GasStation_AddSponsoredAccountsDto: {
+      accounts: components['schemas']['GasStation_AccountIdentifierDto'][]
+      /** @description UUID of the user performing the action. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
+      userId?: string
+    }
+    GasStation_AuditEventDto: {
+      id: string
+      /** @enum {string} */
+      eventType: 'CREATE' | 'UPDATE' | 'DELETE'
+      accountId: string
+      domainId: string
+      /** @description Sponsor configuration snapshot at the time of the event */
+      payload: Record<string, never>
+      timestamp: string
+    }
+    GasStation_EventsResponseDto: {
+      items: components['schemas']['GasStation_AuditEventDto'][]
+      count: number
+      currentStartingAfter?: string
+      nextStartingAfter?: string
+    }
+    CoreExtensions_ErrorMessage: {
+      reason: string
+      message: string
+    }
+    CoreExtensions_ErrorMessages: {
+      reason: string
+      message: string
+      additionalDetails: components['schemas']['CoreExtensions_ErrorMessage'][]
+    }
+    /** @enum {string} */
+    CoreExtensions_IntentLockStatus: 'Unlocked' | 'Locked'
+    CoreExtensions_InvitationAnswerIn: {
+      publicKey: string
+    }
+    CoreExtensions_InvitationIn: {
+      user: components['schemas']['CoreExtensions_UserEditIn']
+      /** Format: int32 */
+      numberSecondsOfValidity: number
+    }
+    CoreExtensions_InvitationOut: {
+      /** Format: uuid */
+      id: string
+      code: string
+      status: components['schemas']['CoreExtensions_InvitationStatus']
+      /** Format: date-time */
+      validUntil: string
+      user: components['schemas']['CoreExtensions_UserEditOut']
+      metadata: components['schemas']['CoreExtensions_Metadata']
+    }
+    CoreExtensions_InvitationPaginationResult: {
+      items: components['schemas']['CoreExtensions_InvitationOut'][]
+      /** Format: int32 */
+      count: number
+      /** Format: uuid */
+      currentStartingAfter?: string | null
+      /** Format: uuid */
+      nextStartingAfter?: string | null
+    }
+    /** @enum {string} */
+    CoreExtensions_InvitationStatus:
+      'Pending' | 'DeviceRegistered' | 'Expired' | 'Cancelled' | 'Completed'
+    /** @enum {string} */
+    CoreExtensions_InvitationStatusQuery:
+      | 'Pending'
+      | 'DeviceRegistered'
+      | 'Expired'
+      | 'Cancelled'
+      | 'Completed'
+      | 'Active'
+    CoreExtensions_Metadata: {
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      lastModifiedAt: string
+      createdBy: components['schemas']['CoreExtensions_UserReference']
+    }
+    CoreExtensions_PublicInvitationOut: {
+      user: components['schemas']['CoreExtensions_PublicUserInvitationOut']
+      status: components['schemas']['CoreExtensions_InvitationStatus']
+    }
+    CoreExtensions_PublicUserInvitationOut: {
+      alias: string
+    }
+    /** @enum {string} */
+    CoreExtensions_SortBy:
+      'Code' | 'ValidUntil' | 'CreatedAt' | 'LastModifiedAt' | 'Alias'
+    /** @enum {string} */
+    CoreExtensions_SortOrder: 'ASC' | 'DESC'
+    CoreExtensions_UserEditIn: {
+      alias: string
+      customProperties: {
+        [key: string]: string
+      }
+      description?: string | null
+      /** Format: uuid */
+      id: string
+      lock: components['schemas']['CoreExtensions_IntentLockStatus']
+      roles: string[]
+    }
+    CoreExtensions_UserEditOut: {
+      alias: string
+      customProperties: {
+        [key: string]: string
+      }
+      description?: string | null
+      /** Format: uuid */
+      id: string
+      /** Format: uuid */
+      domainId: string
+      lock: components['schemas']['CoreExtensions_IntentLockStatus']
+      roles: string[]
+      publicKey?: string | null
+    }
+    CoreExtensions_UserReference: {
+      /** Format: uuid */
+      id: string
+      /** Format: uuid */
+      domainId: string
+    }
+    EDS_ChannelCreate: {
+      /** Format: uuid */
+      id: string
+      name: string
+      supportedEventTypes: string[]
+      /** @enum {string} */
+      status?: 'ACTIVE' | 'DISABLED'
+      /** Format: int32 */
+      maxRetries?: number
+      /** Format: uuid */
+      createdBy: string
+      type: string
+    }
+    EDS_WebhookChannelCreate: {
+      type: 'EDS_WebhookChannelCreate'
+    } & (Omit<
+      WithRequired<
+        components['schemas']['EDS_ChannelCreate'],
+        'createdBy' | 'id' | 'name' | 'supportedEventTypes'
+      >,
+      'type'
+    > & {
+      url: string
+      /** @enum {string} */
+      type?: 'WEBHOOK'
+    })
+    EDS_Channel: {
+      /** Format: uuid */
+      id?: string
+      /** Format: uuid */
+      domainId?: string
+      name?: string
+      supportedEventTypes?: string[]
+      /** @enum {string} */
+      type?: 'WEBHOOK'
+      /** @enum {string} */
+      status?: 'ACTIVE' | 'DISABLED'
+      /** Format: int32 */
+      maxRetries?: number
+      url?: string
+      /** Format: uuid */
+      createdBy?: string
+      /** Format: uuid */
+      lastUpdatedBy?: string
+      /** Format: date-time */
+      createdAt?: string
+      /** Format: date-time */
+      lastUpdatedAt?: string
+      /** Format: double */
+      errorRate?: number
+    }
+    EDS_ChannelUpdate: {
+      name?: string
+      supportedEventTypes?: string[]
+      /** @enum {string} */
+      status?: 'ACTIVE' | 'DISABLED'
+      /** Format: int32 */
+      maxRetries?: number
+      /** Format: uuid */
+      lastUpdatedBy?: string
+    }
+    EDS_Event: {
+      /** Format: uuid */
+      id?: string
+      /** Format: uuid */
+      channelId?: string
+      channelName?: string
+      type?: string
+      /** @enum {string} */
+      status?: 'PENDING' | 'SUCCESS' | 'FAILED'
+      /** Format: date-time */
+      createdAt?: string
+      /** Format: date-time */
+      lastUpdatedAt?: string
+      /** Format: int32 */
+      retriedCount?: number
+      payload?: string
+    }
     Core_Account: {
       /** Format: uuid */
       id: string
       /** Format: uuid */
       domainId: string
       alias: string
+      /** @deprecated */
       ledgerId?: string
       providerDetails: components['schemas']['Core_AccountProviderInformation']
       lock: components['schemas']['Core_LockStatus']
       metadata: components['schemas']['Core_EntityMetadata']
+      ledgerIds?: string[]
     }
     Core_AccountAdditionalDetails: {
       processing: components['schemas']['Core_AccountProcessingDetails']
@@ -4452,7 +5467,7 @@ export interface components {
       lock: components['schemas']['Core_IntentLockStatus']
       description?: string
       customProperties: components['schemas']['Core_StringsMap']
-      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. */
+      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. Required when proposing or dry-running the intent; absent only on intents created before login ids existed. */
       loginIds?: components['schemas']['Core_LoginId'][]
     }
     Core_CreateDomainsPayload: {
@@ -6188,6 +7203,7 @@ export interface components {
       instrumentId?: string
       /** Format: date-time */
       executeBefore?: string
+      memo?: string
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -8153,6 +9169,7 @@ export interface components {
       type: 'Bitcoin'
     }
     Core_TransferMetadata_Canton: {
+      memo?: string
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -9527,7 +10544,7 @@ export interface components {
       lock: components['schemas']['Core_IntentLockStatus']
       description?: string
       customProperties: components['schemas']['Core_StringsMap']
-      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. */
+      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. Required when proposing or dry-running the intent; absent only on intents created before login ids existed. */
       loginIds?: components['schemas']['Core_LoginId'][]
       /**
        * @description discriminator enum property added by openapi-typescript
@@ -9857,7 +10874,7 @@ export interface components {
       roles: string[]
       description?: string
       customProperties: components['schemas']['Core_StringsMap']
-      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. */
+      /** @description Domain-unique `loginId`-`loginProviderId` pairs. Must be specified for login and match pre-configured values. Required when proposing or dry-running the intent; absent only on intents created before login ids existed. */
       loginIds?: components['schemas']['Core_LoginId'][]
       /**
        * @description discriminator enum property added by openapi-typescript
@@ -9884,105 +10901,6 @@ export interface components {
        * @enum {string}
        */
       type: 'v0_ValidateTickers'
-    }
-    CoreExtensions_ErrorMessage: {
-      reason: string
-      message: string
-    }
-    CoreExtensions_ErrorMessages: {
-      reason: string
-      message: string
-      additionalDetails: components['schemas']['CoreExtensions_ErrorMessage'][]
-    }
-    /** @enum {string} */
-    CoreExtensions_IntentLockStatus: 'Unlocked' | 'Locked'
-    CoreExtensions_InvitationAnswerIn: {
-      publicKey: string
-    }
-    CoreExtensions_InvitationIn: {
-      user: components['schemas']['CoreExtensions_UserEditIn']
-      /** Format: int32 */
-      numberSecondsOfValidity: number
-    }
-    CoreExtensions_InvitationOut: {
-      /** Format: uuid */
-      id: string
-      code: string
-      status: components['schemas']['CoreExtensions_InvitationStatus']
-      /** Format: date-time */
-      validUntil: string
-      user: components['schemas']['CoreExtensions_UserEditOut']
-      metadata: components['schemas']['CoreExtensions_Metadata']
-    }
-    CoreExtensions_InvitationPaginationResult: {
-      items: components['schemas']['CoreExtensions_InvitationOut'][]
-      /** Format: int32 */
-      count: number
-      /** Format: uuid */
-      currentStartingAfter?: string | null
-      /** Format: uuid */
-      nextStartingAfter?: string | null
-    }
-    /** @enum {string} */
-    CoreExtensions_InvitationStatus:
-      'Pending' | 'DeviceRegistered' | 'Expired' | 'Cancelled' | 'Completed'
-    /** @enum {string} */
-    CoreExtensions_InvitationStatusQuery:
-      | 'Pending'
-      | 'DeviceRegistered'
-      | 'Expired'
-      | 'Cancelled'
-      | 'Completed'
-      | 'Active'
-    CoreExtensions_Metadata: {
-      /** Format: date-time */
-      createdAt: string
-      /** Format: date-time */
-      lastModifiedAt: string
-      createdBy: components['schemas']['CoreExtensions_UserReference']
-    }
-    CoreExtensions_PublicInvitationOut: {
-      user: components['schemas']['CoreExtensions_PublicUserInvitationOut']
-      status: components['schemas']['CoreExtensions_InvitationStatus']
-    }
-    CoreExtensions_PublicUserInvitationOut: {
-      alias: string
-    }
-    /** @enum {string} */
-    CoreExtensions_SortBy:
-      'Code' | 'ValidUntil' | 'CreatedAt' | 'LastModifiedAt' | 'Alias'
-    /** @enum {string} */
-    CoreExtensions_SortOrder: 'ASC' | 'DESC'
-    CoreExtensions_UserEditIn: {
-      alias: string
-      customProperties: {
-        [key: string]: string
-      }
-      description?: string | null
-      /** Format: uuid */
-      id: string
-      lock: components['schemas']['CoreExtensions_IntentLockStatus']
-      roles: string[]
-    }
-    CoreExtensions_UserEditOut: {
-      alias: string
-      customProperties: {
-        [key: string]: string
-      }
-      description?: string | null
-      /** Format: uuid */
-      id: string
-      /** Format: uuid */
-      domainId: string
-      lock: components['schemas']['CoreExtensions_IntentLockStatus']
-      roles: string[]
-      publicKey?: string | null
-    }
-    CoreExtensions_UserReference: {
-      /** Format: uuid */
-      id: string
-      /** Format: uuid */
-      domainId: string
     }
     Compliance_ErrorResponse: {
       reason: string
@@ -10099,6 +11017,8 @@ export interface components {
       severeRisk?: components['schemas']['Compliance_RiskLevelAction_Chainalysis']
       unknownRisk?: components['schemas']['Compliance_RiskLevelAction_Chainalysis']
       unknownCategory?: components['schemas']['Compliance_RiskLevelAction_Chainalysis']
+      /** @description Action for incoming transfers the provider could not screen. INCOMING only; rejected on OUTGOING. Optional: when omitted, the stored rule is left unchanged. A stored rule cannot be deleted; set it to REQUIRE_EXPLICIT_DECISION, which behaves the same as having no rule. */
+      notScreenable?: components['schemas']['Compliance_RiskLevelAction_Chainalysis']
     }
     Compliance_PolicyPayloadRequest: {
       /** @enum {string} */
@@ -10204,7 +11124,7 @@ export interface components {
           analysisType: 'WALLET' | 'TRANSACTION'
           screeningStatus: string
           /** @enum {string} */
-          riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN'
+          riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN' | 'NOT_SCREENABLE'
           screeningDetail?: components['schemas']['Compliance_ScreeningDetail_Elliptic']
         }
       | {
@@ -10238,6 +11158,7 @@ export interface components {
             | 'MEDIUM'
             | 'LOW'
             | 'NO_RISK_DETECTED'
+            | 'NOT_SCREENABLE'
           screeningDetail?: components['schemas']['Compliance_ScreeningDetail_Chainalysis']
         }
     Compliance_ComplianceAnalysisResponse: {
@@ -10248,6 +11169,10 @@ export interface components {
           /** @enum {string} */
           provider: 'ELLIPTIC'
           walletAddress: string
+          /** @description Ripple Custody ledger id of the wallet */
+          ledger: string
+          /** @description Ripple Custody ticker id of the asset; when omitted the Elliptic asset pre-check is skipped and the wallet is screened on its address only */
+          tickerId?: string
         }
       | {
           /** @enum {string} */
@@ -10278,6 +11203,7 @@ export interface components {
             | 'MEDIUM'
             | 'LOW'
             | 'NO_RISK_DETECTED'
+            | 'NOT_SCREENABLE'
           screeningDetail?: components['schemas']['Compliance_ScreeningDetail_Chainalysis']
         }
       | {
@@ -10293,7 +11219,7 @@ export interface components {
           errorDetails?: string
           warningDetails?: string
           /** @enum {string} */
-          riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN'
+          riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN' | 'NOT_SCREENABLE'
           screeningDetail?: components['schemas']['Compliance_ScreeningDetail_Elliptic']
         }
     Compliance_ScreeningDetail_Elliptic: {
@@ -10762,367 +11688,6 @@ export interface components {
        */
       timestamp?: string
     }
-    EDS_ChannelCreate: {
-      /** Format: uuid */
-      id: string
-      name: string
-      supportedEventTypes: string[]
-      /** @enum {string} */
-      status?: 'ACTIVE' | 'DISABLED'
-      /** Format: int32 */
-      maxRetries?: number
-      /** Format: uuid */
-      createdBy: string
-      type: string
-    }
-    EDS_WebhookChannelCreate: {
-      type: 'EDS_WebhookChannelCreate'
-    } & (Omit<
-      WithRequired<
-        components['schemas']['EDS_ChannelCreate'],
-        'createdBy' | 'id' | 'name' | 'supportedEventTypes'
-      >,
-      'type'
-    > & {
-      url: string
-      /** @enum {string} */
-      type?: 'WEBHOOK'
-    })
-    EDS_Channel: {
-      /** Format: uuid */
-      id?: string
-      /** Format: uuid */
-      domainId?: string
-      name?: string
-      supportedEventTypes?: string[]
-      /** @enum {string} */
-      type?: 'WEBHOOK'
-      /** @enum {string} */
-      status?: 'ACTIVE' | 'DISABLED'
-      /** Format: int32 */
-      maxRetries?: number
-      url?: string
-      /** Format: uuid */
-      createdBy?: string
-      /** Format: uuid */
-      lastUpdatedBy?: string
-      /** Format: date-time */
-      createdAt?: string
-      /** Format: date-time */
-      lastUpdatedAt?: string
-      /** Format: double */
-      errorRate?: number
-    }
-    EDS_ChannelUpdate: {
-      name?: string
-      supportedEventTypes?: string[]
-      /** @enum {string} */
-      status?: 'ACTIVE' | 'DISABLED'
-      /** Format: int32 */
-      maxRetries?: number
-      /** Format: uuid */
-      lastUpdatedBy?: string
-    }
-    EDS_Event: {
-      /** Format: uuid */
-      id?: string
-      /** Format: uuid */
-      channelId?: string
-      channelName?: string
-      type?: string
-      /** @enum {string} */
-      status?: 'PENDING' | 'SUCCESS' | 'FAILED'
-      /** Format: date-time */
-      createdAt?: string
-      /** Format: date-time */
-      lastUpdatedAt?: string
-      /** Format: int32 */
-      retriedCount?: number
-      payload?: string
-    }
-    GasStation_AlertLimitDto: {
-      /** @description Ticker/token UUID */
-      tickerId: string
-      /** @description Alert threshold amount */
-      amount: string
-    }
-    GasStation_BalanceStatusDto: {
-      /** @description Ticker UUID */
-      tickerId: string
-      /** @description Ticker symbol for display (e.g., SOL, ETH, XRP) */
-      tickerSymbol: string
-      /** @description Configured alert threshold amount */
-      threshold: string
-      /** @description Current balance from Core */
-      currentBalance: string
-      /**
-       * @description Balance status: critical if currentBalance <= threshold
-       * @enum {string}
-       */
-      status: 'healthy' | 'critical'
-    }
-    GasStation_SponsorResponseDto: {
-      type: string
-      accountIds: string[]
-      includeSubDomains: boolean
-      alertLimit: components['schemas']['GasStation_AlertLimitDto'][]
-      /** @description Balance status per configured alert. Omitted if balance fetch fails. */
-      balanceStatus?: components['schemas']['GasStation_BalanceStatusDto'][]
-      /** @description Number of tickers in critical status. Omitted if balance fetch fails. */
-      criticalCount?: number
-    }
-    GasStation_CreateSponsorDto: {
-      /**
-       * @description Type of sponsorship
-       * @enum {string}
-       */
-      type: 'domain' | 'account' | 'none'
-      /** @description Array of account UUIDs to sponsor */
-      accountIds?: string[]
-      /**
-       * @description Include subdomains in sponsorship
-       * @default false
-       */
-      includeSubDomains: boolean
-      /** @description Alert thresholds per ticker */
-      alertLimit: components['schemas']['GasStation_AlertLimitDto'][]
-      /** @description UUID of the user performing the action; recorded on the audit trail. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
-      userId?: string
-    }
-    GasStation_SponsorCreatedResponseDto: {
-      id: string
-      status: string
-      createdAt: string
-    }
-    GasStation_UpdateSponsorDto: {
-      /**
-       * @description Type of sponsorship
-       * @enum {string}
-       */
-      type: 'domain' | 'account' | 'none'
-      /** @description Array of account UUIDs to sponsor */
-      accountIds?: string[]
-      /**
-       * @description Include subdomains in sponsorship
-       * @default false
-       */
-      includeSubDomains: boolean
-      /** @description Alert thresholds per ticker */
-      alertLimit: components['schemas']['GasStation_AlertLimitDto'][]
-      /** @description UUID of the user performing the action; recorded on the audit trail. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
-      userId?: string
-    }
-    GasStation_SponsorsListResponseDto: {
-      /** @description List of gas station account IDs in the domain */
-      items: string[]
-    }
-    GasStation_AccountSponsorResponseDto: {
-      /** @description Whether the account is sponsored by a gas station */
-      isSponsored: boolean
-      /** @description Gas station account ID that is sponsoring */
-      sponsorAccountId?: string
-      /** @enum {string} */
-      type?: 'domain' | 'account' | 'none'
-      accountIds?: string[]
-      includeSubDomains?: boolean
-      alertLimit?: components['schemas']['GasStation_AlertLimitDto'][]
-      /** @description Balance status per configured alert. Omitted if balance fetch fails. */
-      balanceStatus?: components['schemas']['GasStation_BalanceStatusDto'][]
-      /** @description Number of tickers in critical status. Omitted if balance fetch fails. */
-      criticalCount?: number
-    }
-    GasStation_ValidSponsorItemDto: {
-      /** @description Gas station account ID that can be chosen as sponsor */
-      accountId: string
-      /** @description Alias of the gas station account, if known */
-      accountAlias?: string
-      /** @description Domain ID the gas station belongs to */
-      domainId: string
-      /** @description Alias of the domain the gas station belongs to, if known */
-      domainAlias?: string
-    }
-    GasStation_ValidSponsorsResponseDto: {
-      /** @description Whether the account is already effectively sponsored */
-      isSponsored: boolean
-      /** @description The existing sponsor when the account is already sponsored */
-      sponsor?: components['schemas']['GasStation_AccountSponsorResponseDto']
-      /** @description Gas stations that could be chosen as sponsor. Empty when the account is already sponsored, unless includeAll=true was requested, in which case the lineage candidates are still listed (the current sponsor may appear among them). */
-      items: components['schemas']['GasStation_ValidSponsorItemDto'][]
-    }
-    GasStation_DomainSponsorResponseDto: {
-      /** @description Whether the domain is sponsored domain-wide by a gas station */
-      isSponsored: boolean
-      /** @description Gas station account ID that is sponsoring */
-      sponsorAccountId?: string
-      /** @enum {string} */
-      type?: 'domain'
-      /** @description Whether the resolving sponsor extends to sub-domains */
-      includeSubDomains?: boolean
-    }
-    GasStation_SponsoredEntityDto: {
-      /**
-       * Format: uuid
-       * @description Entity ID (Account or Domain UUID)
-       */
-      id: string
-      /** @description Entity display name/alias */
-      alias: string
-      /** @description Whether the entity is sponsored by a Gas Station */
-      isSponsored: boolean
-      /** @description Domain hierarchy from root to entity (for Lineage column) */
-      path: string[]
-    }
-    GasStation_SponsoredEntitiesResponseDto: {
-      /** @description List of sponsored entities */
-      items: components['schemas']['GasStation_SponsoredEntityDto'][]
-      /** @description Total count of items in current page */
-      count: number
-      /** @description Current pagination cursor */
-      currentStartingAfter?: string
-      /** @description Next pagination cursor for fetching more items */
-      nextStartingAfter?: string
-    }
-    GasStation_LedgerDto: {
-      id: string
-      alias: string
-    }
-    GasStation_SponsorshipDetailsDto: {
-      /** @description The sponsoring gas station account ID */
-      sponsorAccountId: string
-      /** @description The sponsoring gas station account name */
-      sponsorAccountName: string
-      /**
-       * @description How this was sponsored
-       * @enum {string}
-       */
-      sponsorType: 'account' | 'domain'
-      /** @description If sponsored via domain, the domain ID */
-      sponsoredDomainId?: string
-      /** @description If sponsored via domain, the domain name */
-      sponsoredDomainName?: string
-    }
-    GasStation_SponsorableDomainDto: {
-      /** @description Domain UUID */
-      domainId: string
-      /** @description Domain name */
-      name: string
-      ledgers: components['schemas']['GasStation_LedgerDto'][]
-      /** @enum {string} */
-      sponsorshipStatus: 'sponsored' | 'not_sponsored' | 'sponsored_by_other'
-      /** @description Only present if sponsored by another gas station */
-      sponsorshipDetails?: components['schemas']['GasStation_SponsorshipDetailsDto']
-      /** @description Account IDs within this domain */
-      accountIds: string[]
-      /** @description Parent domain UUID, null only for absolute root (typically filtered out) */
-      parentId?: Record<string, never>
-      /** @description Nesting depth relative to sponsor domain (0 = direct child of sponsor domain) */
-      depth: number
-      /** @description Whether any accounts in this domain are individually sponsored by another gas station */
-      hasAccountsSponsoredByOther: boolean
-      /** @description Nested subdomains (hierarchical) */
-      children: components['schemas']['GasStation_SponsorableDomainDto'][]
-    }
-    GasStation_SponsorableDomainsResponseDto: {
-      items: components['schemas']['GasStation_SponsorableDomainDto'][]
-      total: number
-      /** @description Current page number (0-indexed) */
-      page: number
-      /** @description Page size */
-      pageSize: number
-      /** @description All available ledgers for filter dropdown */
-      availableLedgers: components['schemas']['GasStation_LedgerDto'][]
-    }
-    GasStation_DomainIdentifierDto: {
-      /** @description Domain ID to sponsor */
-      domainId: string
-    }
-    GasStation_AddSponsoredDomainsDto: {
-      domains: components['schemas']['GasStation_DomainIdentifierDto'][]
-      /** @description UUID of the user performing the action. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
-      userId?: string
-    }
-    GasStation_ConflictEntityDto: {
-      /** @description Account ID that conflicted (for account conflicts) */
-      accountId?: string
-      /** @description Domain ID of the conflicting entity */
-      domainId: string
-      /**
-       * @description Reason for the conflict
-       * @example ALREADY_SPONSORED
-       * @enum {string}
-       */
-      reason: 'ALREADY_SPONSORED'
-      /** @description Account ID of the existing sponsor */
-      existingSponsorAccountId: string
-    }
-    GasStation_SponsoredModificationResponseDto: {
-      /** @description Whether the operation completed (true even for partial success) */
-      success: boolean
-      /** @description Number of entities successfully added */
-      count: number
-      /** @description Entities that could not be added due to conflicts */
-      conflicts?: components['schemas']['GasStation_ConflictEntityDto'][]
-    }
-    GasStation_LineageDto: {
-      /** @description Parent domain ID */
-      domainId: string
-      /** @description Parent domain name */
-      domain: string
-      /** @description Subdomain ID */
-      subdomainId: string
-      /** @description Subdomain name */
-      subdomain: string
-    }
-    GasStation_SponsorableAccountDto: {
-      /** @description Account UUID */
-      accountId: string
-      /** @description Account name */
-      name: string
-      /** @description Domain lineage (parent domain and subdomain) */
-      lineage: components['schemas']['GasStation_LineageDto']
-      ledgers: components['schemas']['GasStation_LedgerDto'][]
-      /** @enum {string} */
-      sponsorshipStatus: 'sponsored' | 'not_sponsored' | 'sponsored_by_other'
-      /** @description Only present if sponsored by another gas station */
-      sponsorshipDetails?: components['schemas']['GasStation_SponsorshipDetailsDto']
-    }
-    GasStation_SponsorableAccountsResponseDto: {
-      items: components['schemas']['GasStation_SponsorableAccountDto'][]
-      total: number
-      /** @description Current page number (0-indexed) */
-      page: number
-      /** @description Page size */
-      pageSize: number
-      /** @description All available ledgers for filter dropdown */
-      availableLedgers: components['schemas']['GasStation_LedgerDto'][]
-    }
-    GasStation_AccountIdentifierDto: {
-      /** @description Account ID to sponsor */
-      accountId: string
-      /** @description Domain ID of the account */
-      domainId: string
-    }
-    GasStation_AddSponsoredAccountsDto: {
-      accounts: components['schemas']['GasStation_AccountIdentifierDto'][]
-      /** @description UUID of the user performing the action. Optional — only honored when the caller is a service principal; otherwise the authenticated user from the JWT is used. */
-      userId?: string
-    }
-    GasStation_AuditEventDto: {
-      id: string
-      /** @enum {string} */
-      eventType: 'CREATE' | 'UPDATE' | 'DELETE'
-      accountId: string
-      domainId: string
-      /** @description Sponsor configuration snapshot at the time of the event */
-      payload: Record<string, never>
-      timestamp: string
-    }
-    GasStation_EventsResponseDto: {
-      items: components['schemas']['GasStation_AuditEventDto'][]
-      count: number
-      currentStartingAfter?: string
-      nextStartingAfter?: string
-    }
     Omnibus_BulkUpdateSweepThresholdsResponse: {
       /**
        * Format: int32
@@ -11574,6 +12139,70 @@ export interface components {
       content: components['schemas']['Omnibus_SweepThresholdConfig'][]
       page: components['schemas']['Omnibus_PageMetadata']
     }
+    Omnibus_JsonNullableOffsetDateTime: {
+      present?: boolean
+    }
+    Omnibus_JsonNullableOmnibusTransferOperation: {
+      present?: boolean
+    }
+    Omnibus_JsonNullableString: {
+      present?: boolean
+    }
+    Omnibus_JsonNullableTenantRef: {
+      present?: boolean
+    }
+    Omnibus_OmnibusTransferPageResponse: {
+      omnibus: components['schemas']['Omnibus_OmnibusTransferStructure']
+      content: components['schemas']['Omnibus_OmnibusTransferSummary'][]
+      page: components['schemas']['Omnibus_PageMetadata']
+    }
+    /** @description Structure header, repeated on every page. */
+    Omnibus_OmnibusTransferStructure: {
+      /** Format: uuid */
+      id: string
+      /** Format: uuid */
+      domainId: string
+      /**
+       * Format: uuid
+       * @description The omnibus wallet's custody account.
+       */
+      custodyAccountId: string
+      hostTenantId?: components['schemas']['Omnibus_JsonNullableUUID']
+    }
+    /** @description One transfer leg as persisted, with its operation header and tenant refs joined. */
+    Omnibus_OmnibusTransferSummary: {
+      /** Format: uuid */
+      transferId: string
+      /** @enum {string} */
+      transferType: 'ONCHAIN' | 'OFFCHAIN'
+      /** @enum {string} */
+      transferStatus:
+        | 'PENDING'
+        | 'READY_FOR_SWEEP'
+        | 'SWEEPING'
+        | 'CONFIRMED'
+        | 'FAILED'
+        | 'PENDING_VERIFICATION'
+      sourceTenant?: components['schemas']['Omnibus_JsonNullableTenantRef']
+      destTenant?: components['schemas']['Omnibus_JsonNullableTenantRef']
+      /** Format: uuid */
+      tickerId: string
+      ledgerId: string
+      /** @description Transfer amount in the ticker's smallest unit (non-negative integer string). */
+      amount: string
+      /** @description Network fee charged to the host tenant on this leg, in the ticker's smallest unit; "0" when none was recorded. Carried as stored, independent of the leg's status. */
+      feeAmount: string
+      destAddress?: components['schemas']['Omnibus_JsonNullableString']
+      custodyTransferId?: components['schemas']['Omnibus_JsonNullableUUID']
+      custodyTransactionId?: components['schemas']['Omnibus_JsonNullableUUID']
+      custodyTransactionOrderId?: components['schemas']['Omnibus_JsonNullableUUID']
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
+      confirmedAt?: components['schemas']['Omnibus_JsonNullableOffsetDateTime']
+      operation?: components['schemas']['Omnibus_JsonNullableOmnibusTransferOperation']
+    }
     /** @description Pagination metadata for tenant listings. Unlike the shared PageMetadata, totalElements/totalPages are optional: the alias-search path uses a cursor-style (Slice) query that does not compute totals, while the full-list path still populates them. */
     Omnibus_TenantPageMetadata: {
       /**
@@ -11728,539 +12357,6 @@ export interface components {
       /** @description Deposit wallet summaries in this page */
       content: components['schemas']['Omnibus_DepositWalletSummary'][]
       page: components['schemas']['Omnibus_PageMetadata']
-    }
-    Export_ExportErrorDto: {
-      /** @description HTTP status code. */
-      statusCode: number
-      /** @description Client-safe error message. Validation errors (400) return an array of messages. */
-      message: string | string[]
-      /** @description HTTP error name. */
-      error?: string
-    }
-    Export_ExportControlTotalsDto: {
-      /**
-       * @description Sum of all totalBalance values (Position Report only). BigNumber-formatted string.
-       * @example 429.04029589
-       */
-      balanceTotalAmount?: string
-      /**
-       * @description Sum of all reservedBalance values (Position Report only). BigNumber-formatted string.
-       * @example 2.0033804
-       */
-      balanceReservedAmount?: string
-      /**
-       * @description Sum of all quarantineBalance values (Position Report only). BigNumber-formatted string.
-       * @example 122.2
-       */
-      balanceQuarantinedAmount?: string
-      /**
-       * @description Sum of all enrichedTransactionValue values (Movement Report only). BigNumber-formatted string.
-       * @example 154.54
-       */
-      valueSum?: string
-    }
-    Export_ExportMetadataDto: {
-      /**
-       * @description Unique identifier of this export. Also returned in the X-Export-Id header.
-       * @example cef02796-daca-425f-91ed-f670eb8ec99f
-       */
-      exportId: string
-      /**
-       * @description Identity that requested the export.
-       * @example harmonize:hmz@metaco.com
-       */
-      requestAuthor: string
-      /**
-       * @description Generation timestamp (ISO-8601).
-       * @example 2026-08-27T09:15:00Z
-       */
-      generatedAt: string
-      /**
-       * @description Echo of the request filter parameters.
-       * @example {
-       *       "domainId": "5cd224fe-193e-8bce-c94c-c6c05245e2d1",
-       *       "asOfTimestamp": "2026-08-21T16:32:03.9740000+00:00",
-       *       "includeZeroBalances": true
-       *     }
-       */
-      filters: Record<string, never>
-      /**
-       * @description Echoed from the request — Position Report only (ISO-8601).
-       * @example 2026-08-27T00:00:00Z
-       */
-      asOfTimestamp?: string
-      /**
-       * @description Echoed from the request — Movement Report only (ISO-8601).
-       * @example 2026-07-25T00:00:00Z
-       */
-      dateRangeStart?: string
-      /**
-       * @description Echoed from the request — Movement Report only (ISO-8601).
-       * @example 2026-08-27T00:00:00Z
-       */
-      dateRangeEnd?: string
-      /**
-       * @description Number of data rows. Position: one row per (account, ticker). Movement: one row per transfer.
-       * @example 22
-       */
-      recordCount: number
-      /** @description Reconciliation control totals across all rows. */
-      controlTotals: components['schemas']['Export_ExportControlTotalsDto']
-    }
-    Export_PositionReportRowDto: {
-      /** @description Domain UUID owning the account. */
-      domainId: string
-      /**
-       * @description Domain display name.
-       * @example My root domain
-       */
-      domainName: string
-      /**
-       * @description Vault backing type passed through from the core system, such as 'MPC' or 'HSM'. Empty for accounts without a vault (external).
-       * @example HSM
-       */
-      vaultType: string
-      /** @description Vault UUID. Empty for accounts without a vault (external). */
-      vaultId: string
-      /** @description Vault display name. Empty for accounts without a vault (external). */
-      vaultName: string
-      /** @description Account UUID. */
-      accountId: string
-      /**
-       * @description Account display name.
-       * @example omnibus
-       */
-      accountName: string
-      /**
-       * @description One of 'vault', 'gas station', 'external', 'omnibus', 'deposit wallet'. 'external' identifies an account held at a subcustodian Provider — its vault columns are empty. 'omnibus' (a domain's omnibus wallet) and 'deposit wallet' (an omnibus tenant's deposit wallet) are emitted only when omnibus support is enabled for the environment.
-       * @example omnibus
-       */
-      accountType: string
-      /**
-       * @description Blockchain network name as configured by the operator.
-       * @example XRPL Testnet August 2024
-       */
-      ledgerName: string
-      /** @description On-chain address of the account on this ledger. */
-      addressOnLedger: string
-      /** @description Asset UUID. */
-      tickerId: string
-      /**
-       * @description Asset kind.
-       * @example Native
-       */
-      tickerKind: string
-      /**
-       * @description Asset display name.
-       * @example XRP Testnet August 2024
-       */
-      tickerName: string
-      /**
-       * @description Asset symbol.
-       * @example tXRP
-       */
-      tickerSymbol: string
-      /**
-       * @description Reserved balance. BigNumber-formatted string in display units.
-       * @example 0.000000
-       */
-      reservedBalance: string
-      /**
-       * @description Quarantined balance. BigNumber-formatted string in display units.
-       * @example 0.000000
-       */
-      quarantineBalance: string
-      /**
-       * @description Total balance. BigNumber-formatted string in display units.
-       * @example 51.994800
-       */
-      totalBalance: string
-      /**
-       * @description DB write time of the latest contributing accounting entry (ISO-8601) — not on-chain block time.
-       * @example 2026-08-21T14:27:15.03518Z
-       */
-      ledgerBalanceTimestamp: string
-    }
-    Export_PositionReportResponseDto: {
-      /** @description File-level metadata and reconciliation control totals. */
-      metadata: components['schemas']['Export_ExportMetadataDto']
-      /** @description One row per (account, ticker). With omnibus support enabled, contains on-chain custody accounts only — virtual (tenant) balances are excluded and control totals represent on-chain holdings. */
-      data: components['schemas']['Export_PositionReportRowDto'][]
-    }
-    Export_PositionExportDto: {
-      /** @description Domain UUID to export position data for */
-      domainId: string
-      /** @description Point-in-time timestamp for balance snapshot (ISO-8601) */
-      asOfTimestamp: string
-      /** @description Include data from child domains */
-      includeChildDomains?: boolean
-      /** @description Filter by vault UUIDs */
-      vaultIds?: string[]
-      /** @description Filter by ticker UUIDs */
-      tickerIds?: string[]
-      /** @description Filter by account UUIDs */
-      accountIds?: string[]
-      /** @description Include accounts with zero balances */
-      includeZeroBalances?: boolean
-      /**
-       * @description Output format
-       * @enum {string}
-       */
-      format: 'CSV' | 'JSON'
-    }
-    Export_MovementReportRowDto: {
-      /** @description Domain UUID the report row belongs to. */
-      domainId: string
-      /**
-       * @description Domain display name.
-       * @example My root domain
-       */
-      domainName: string
-      /** @description Transfer registration time (ISO-8601). */
-      registeredAt: string
-      /** @description Transaction UUID. Repeats across rows of the same transaction. */
-      transactionId: string
-      /** @description On-ledger transaction identifier (hash). */
-      onLedgerTransactionId: string
-      /** @description Transfer UUID — one row per transfer. */
-      transferId: string
-      /**
-       * @description Transfer kind.
-       * @example Transfer
-       */
-      transferKind: string
-      /**
-       * @description Transfer value in display units. BigNumber-formatted string.
-       * @example 3.999800
-       */
-      enrichedTransactionValue: string
-      /**
-       * @description Transfer value in raw base units.
-       * @example 3999800
-       */
-      rawTransactionValue: string
-      /**
-       * @description Blockchain network name as configured by the operator.
-       * @example XRPL Testnet August 2024
-       */
-      ledgerName: string
-      /** @description Asset UUID. */
-      tickerId: string
-      /**
-       * @description Asset display name.
-       * @example XRP Testnet August 2024
-       */
-      tickerName: string
-      /**
-       * @description Asset symbol.
-       * @example tXRP
-       */
-      tickerSymbol: string
-      /** @description Whether the transfer is currently quarantined. */
-      quarantined: boolean
-      /**
-       * @description Custody-side status. One of 'Broadcasting', 'Completed', 'Failed', 'Interrupted', 'Pending', 'Prepared', 'Preparing', 'Reserved'.
-       * @example Completed
-       */
-      custodyStatus: string
-      /**
-       * @description Ledger-side status. One of 'Detected', 'Confirmed', 'Expired', 'Replaced'.
-       * @example Confirmed
-       */
-      ledgerStatus: string
-      /** @description Ledger status last-updated time (ISO-8601). */
-      ledgerTimestamp: string
-      /** @description On-chain block time (ISO-8601). Empty until on-chain confirmation. */
-      blockTime: string
-      /** @description Sender address. Pipe-separated when a transfer has multiple sender addresses (e.g. UTXO multi-input). */
-      senderAddress: string
-      /** @description Sender account domain UUID. Empty for off-platform senders. */
-      senderDomainId: string
-      /** @description Sender memo/destination tag. Empty when not applicable. */
-      senderMemoTag: string
-      /** @description True if the sender is within the platform — including senders whose identity columns are redacted because their domain is outside the requester's access. */
-      senderInternal: boolean
-      /** @description Sender account display name. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
-      senderName: string
-      /** @description Sender account UUID. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
-      senderId: string
-      /**
-       * @description One of 'vault', 'gas station', 'external', 'omnibus', 'deposit wallet'. 'external' identifies an account held at a subcustodian Provider — its vault columns are empty. 'omnibus' (a domain's omnibus wallet) and 'deposit wallet' (an omnibus tenant's deposit wallet) are emitted only when omnibus support is enabled for the environment. Empty for off-platform senders and when the sender's domain is outside the requester's access; pipe-separated for multi-sender transfers.
-       * @example deposit wallet
-       */
-      senderAccountType: string
-      /** @description Sender vault backing type ('MPC', 'HSM', …), or 'external' when the sender is off-platform. Empty when the sender's domain is outside the requester's access. */
-      senderVaultType: string
-      /** @description Sender vault UUID. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
-      senderVaultId: string
-      /** @description Sender vault display name. Empty for off-platform senders and when the sender's domain is outside the requester's access. */
-      senderVaultName: string
-      /** @description Recipient address. */
-      recipientAddress: string
-      /** @description Recipient account domain UUID. Empty for off-platform recipients. */
-      recipientDomainId: string
-      /** @description Memo type for Stellar/Hedera ('Text', 'Id', 'Hash', 'Return'). Empty for XRPL and when no memo. */
-      recipientMemoType: string
-      /** @description Recipient memo/destination tag. Empty when not applicable. */
-      recipientMemoTag: string
-      /** @description True if the recipient is within the platform — including recipients whose identity columns are redacted because their domain is outside the requester's access. */
-      recipientInternal: boolean
-      /** @description Recipient account display name. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
-      recipientName: string
-      /** @description Recipient account UUID. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
-      recipientId: string
-      /**
-       * @description One of 'vault', 'gas station', 'external', 'omnibus', 'deposit wallet'. 'external' identifies an account held at a subcustodian Provider — its vault columns are empty. 'omnibus' (a domain's omnibus wallet) and 'deposit wallet' (an omnibus tenant's deposit wallet) are emitted only when omnibus support is enabled for the environment. Empty for off-platform recipients and when the recipient's domain is outside the requester's access.
-       * @example omnibus
-       */
-      recipientAccountType: string
-      /** @description Recipient vault backing type ('MPC', 'HSM', …), or 'external' when the recipient is off-platform. Empty when the recipient's domain is outside the requester's access. */
-      recipientVaultType: string
-      /** @description Recipient vault UUID. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
-      recipientVaultId: string
-      /** @description Recipient vault display name. Empty for off-platform recipients and when the recipient's domain is outside the requester's access. */
-      recipientVaultName: string
-    }
-    Export_MovementReportResponseDto: {
-      /** @description File-level metadata and reconciliation control totals. */
-      metadata: components['schemas']['Export_ExportMetadataDto']
-      /** @description One row per transfer within the requested date range. Virtual (tenant-to-tenant) omnibus movements settle off-chain and never appear here. */
-      data: components['schemas']['Export_MovementReportRowDto'][]
-    }
-    Export_DateRangeDto: {
-      /** @description Start of date range (ISO-8601) */
-      start: string
-      /** @description End of date range (ISO-8601) */
-      end: string
-    }
-    Export_MovementExportDto: {
-      /** @description Domain UUID to export movement data for */
-      domainId: string
-      /** @description Date range for transaction history */
-      dateRange: components['schemas']['Export_DateRangeDto']
-      /** @description Include data from child domains */
-      includeChildDomains?: boolean
-      /** @description Filter by vault UUIDs */
-      vaultIds?: string[]
-      /** @description Filter by ticker UUIDs */
-      tickerIds?: string[]
-      /** @description Filter by account UUIDs */
-      accountIds?: string[]
-      /**
-       * @description Filter by custody status. Defaults to ["Completed"] (settled only) for reconciliation. Pass all values for full visibility.
-       * @default [
-       *       "Completed"
-       *     ]
-       */
-      custodyStatus: (
-        | 'Broadcasting'
-        | 'Completed'
-        | 'Failed'
-        | 'Interrupted'
-        | 'Pending'
-        | 'Prepared'
-        | 'Preparing'
-        | 'Reserved'
-      )[]
-      /**
-       * @description Filter by ledger status. Defaults to ["Confirmed"] (settled only) for reconciliation. Pass all values for full visibility.
-       * @default [
-       *       "Confirmed"
-       *     ]
-       */
-      ledgerStatus: ('Detected' | 'Confirmed' | 'Expired' | 'Replaced')[]
-      /**
-       * @description Output format
-       * @enum {string}
-       */
-      format: 'CSV' | 'JSON'
-    }
-    Export_OmnibusAccountTypeTotalsDto: {
-      /**
-       * @description Number of rows of this accountType.
-       * @example 2
-       */
-      recordCount: number
-      /**
-       * @description Signed BigNumber sum across all tickers.
-       * @example 18.9998
-       */
-      availableBalance: string
-      /**
-       * @description Signed BigNumber sum across all tickers.
-       * @example 0
-       */
-      reservedBalance: string
-      /**
-       * @description Signed BigNumber sum across all tickers.
-       * @example 0
-       */
-      quarantineBalance: string
-      /**
-       * @description Signed BigNumber sum across all tickers.
-       * @example 1.0002
-       */
-      feeBalance: string
-      /**
-       * @description Signed BigNumber sum across all tickers.
-       * @example 0
-       */
-      confiscationBalance: string
-      /**
-       * @description Signed BigNumber sum across all tickers.
-       * @example 18.9998
-       */
-      totalBalance: string
-    }
-    Export_OmnibusControlTotalsDto: {
-      /** @description Totals over the 'omnibus' (pool wallet) rows. */
-      omnibus: components['schemas']['Export_OmnibusAccountTypeTotalsDto']
-      /** @description Totals over the 'deposit wallet' rows. */
-      depositWallet: components['schemas']['Export_OmnibusAccountTypeTotalsDto']
-      /** @description Totals over the 'virtual account' (tenant) rows. */
-      virtualAccount: components['schemas']['Export_OmnibusAccountTypeTotalsDto']
-    }
-    Export_OmnibusExportMetadataDto: {
-      /**
-       * @description Unique identifier of this export. Also returned in the X-Export-Id header.
-       * @example ecca7eb1-a2f3-4351-bf46-e4f9e8f55272
-       */
-      exportId: string
-      /**
-       * @description Identity that requested the export.
-       * @example harmonize:hmz@metaco.com
-       */
-      requestAuthor: string
-      /**
-       * @description Generation timestamp (ISO-8601).
-       * @example 2026-08-31T08:28:26.767Z
-       */
-      generatedAt: string
-      /**
-       * @description Echo of the request filter parameters.
-       * @example {
-       *       "domainId": "c73e9e5e-e803-4dc0-93c5-be71c3396ae9",
-       *       "asOfTimestamp": "2026-08-31T08:27:21.2980000+00:00",
-       *       "includeZeroBalances": true
-       *     }
-       */
-      filters: Record<string, never>
-      /** @description Echoed from the request (ISO-8601). */
-      asOfTimestamp: string
-      /**
-       * @description Number of data rows — one per (account, ticker).
-       * @example 4
-       */
-      recordCount: number
-      /** @description Reconciliation control totals, strictly per accountType — never summed across types (the omnibus wallet's balance IS the pool backing the virtual rows; a grand total would double-count by construction). Sums span all tickers, so they are integrity checksums rather than balances; per-ticker reconciliation is done from the rows. */
-      controlTotals: components['schemas']['Export_OmnibusControlTotalsDto']
-    }
-    Export_OmnibusPositionReportRowDto: {
-      /** @description Domain UUID owning the omnibus structure. */
-      domainId: string
-      /**
-       * @description Domain display name.
-       * @example TEST_SG_SUB_DOMAIN
-       */
-      domainName: string
-      /**
-       * @description Row kind: 'omnibus' (the pool wallet), 'deposit wallet' (a tenant's on-chain deposit wallet), or 'virtual account' (a tenant's off-chain claim on the pool).
-       * @example virtual account
-       */
-      accountType: string
-      /** @description Unified row identity together with accountType: the custody accountId on 'omnibus' and 'deposit wallet' rows, the tenantId on 'virtual account' rows — identical to the Accounting Service account identity. Joining to custody data requires filtering accountType IN ('omnibus','deposit wallet'); virtual-row ids resolve only in the Accounting/Omnibus services. */
-      accountId: string
-      /**
-       * @description Custody account alias on on-chain rows; tenant alias on virtual rows.
-       * @example SG_OMNIBUS-host
-       */
-      accountName: string
-      /** @description Owning tenantId — populated on 'deposit wallet' rows only (the deposit-wallet → virtual-account ownership edge). Empty on omnibus and virtual rows. */
-      mappedVirtualAccountId: string
-      /** @description True on the host tenant row — the catch-all tenant absorbing untagged direct deposits and pool-side costs; its balance may be negative (fee debt) and is never filtered. */
-      isHost: boolean
-      /** @description Omnibus wallet custody accountId; empty on the 'omnibus' row itself. */
-      parentOmnibusAccountId: string
-      /** @description Asset UUID. */
-      tickerId: string
-      /**
-       * @description Asset kind.
-       * @example Native
-       */
-      tickerKind: string
-      /**
-       * @description Asset display name.
-       * @example XRP Testnet August 2024
-       */
-      tickerName: string
-      /**
-       * @description Asset symbol.
-       * @example tXRP
-       */
-      tickerSymbol: string
-      /**
-       * @description Blockchain network name as configured by the operator.
-       * @example XRPL Testnet August 2024
-       */
-      ledgerName: string
-      /**
-       * @description Available balance — the headline number for virtual rows. Signed BigNumber string in display units, passed through from Accounting unmodified.
-       * @example -1.000200
-       */
-      availableBalance: string
-      /**
-       * @description Reserved balance (in-flight outbound on custody rows). Passed through from Accounting; 0 in practice on virtual rows (Accounting carries no tenant holds).
-       * @example 0.000000
-       */
-      reservedBalance: string
-      /**
-       * @description Quarantined balance (compliance holds on custody rows). Passed through from Accounting; 0 in practice on virtual rows.
-       * @example 0.000000
-       */
-      quarantineBalance: string
-      /**
-       * @description Cumulative fees bucket (informational — not a component of totalBalance). Itemizes the host tenant's absorbed network fees and reserves.
-       * @example 1.000200
-       */
-      feeBalance: string
-      /**
-       * @description Cumulative confiscation bucket (informational — not a component of totalBalance).
-       * @example 0.000000
-       */
-      confiscationBalance: string
-      /**
-       * @description Total balance = available + reserved + quarantine. Signed; the host tenant may be negative.
-       * @example -1.000200
-       */
-      totalBalance: string
-      /**
-       * @description DB write time of the latest contributing accounting entry (ISO-8601) — not on-chain block time.
-       * @example 2026-08-25T10:57:46.932669Z
-       */
-      ledgerBalanceTimestamp: string
-    }
-    Export_OmnibusPositionReportResponseDto: {
-      /** @description File-level metadata and per-accountType control totals. */
-      metadata: components['schemas']['Export_OmnibusExportMetadataDto']
-      /** @description One row per (account, ticker) across the three row kinds. Rows are Accounting-driven: never-funded tenants produce no rows; funded-then-drained tenants appear with total 0 under includeZeroBalances. Per-ticker reconciliation: Σ virtual-account availableBalance equals the omnibus wallet row's totalBalance (net of in-flight sweeps). */
-      data: components['schemas']['Export_OmnibusPositionReportRowDto'][]
-    }
-    Export_OmnibusPositionExportDto: {
-      /** @description Domain UUID whose omnibus structure to export */
-      domainId: string
-      /** @description Point-in-time timestamp for balance snapshot (ISO-8601) */
-      asOfTimestamp: string
-      /** @description Filter by virtual account (tenant) UUIDs. Filters virtual-account rows and their deposit wallets; the omnibus wallet row is always kept. */
-      tenantIds?: string[]
-      /** @description Filter by ticker UUIDs */
-      tickerIds?: string[]
-      /** @description Include accounts with zero balances */
-      includeZeroBalances?: boolean
-      /**
-       * @description Output format
-       * @enum {string}
-       */
-      format: 'CSV' | 'JSON'
     }
     Core_ApiBatchSignerSigningData: {
       account: string
@@ -13267,6 +13363,640 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
+  PositionReportController_generatePositionReport: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Export_PositionExportDto']
+      }
+    }
+    responses: {
+      /** @description Report generated. */
+      201: {
+        headers: {
+          /** @description Attachment filename. */
+          'Content-Disposition'?: string
+          /** @description Export UUID (same value as metadata.exportId). */
+          'X-Export-Id'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Export_PositionReportResponseDto']
+          /**
+           * @example # metadata: {"exportId":"cef02796-daca-425f-91ed-f670eb8ec99f","recordCount":22,...}
+           *     "domainId","domainName","vaultType","vaultId","vaultName","accountId","accountName","accountType","ledgerName","addressOnLedger","tickerId","tickerKind","tickerName","tickerSymbol","reservedBalance","quarantineBalance","totalBalance","ledgerBalanceTimestamp"
+           *     "5cd224fe-193e-8bce-c94c-c6c05245e2d1","My root domain","HSM",...
+           */
+          'text/csv': string
+        }
+      }
+      /** @description Invalid value for: domainId, asOfTimestamp (must be ISO-8601, not in the future), format, vaultIds, tickerIds, accountIds, includeChildDomains, includeZeroBalances. Or 'Invalid query parameters for balance lookup' (single string message) when the accounting service rejects the query. */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": [
+           *         "domainId must be a valid UUID"
+           *       ],
+           *       "error": "Bad Request",
+           *       "statusCode": 400
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: missing bearer token; invalid or expired JWT. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Authentication required",
+           *       "error": "Unauthorized",
+           *       "statusCode": 401
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description User has no profile in the target domain with read access to 'accounts'. With includeChildDomains, each child domain is verified individually. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Access denied",
+           *       "error": "Forbidden",
+           *       "statusCode": 403
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: 'Export spans {n} domains, exceeding the maximum of 100. Remove includeChildDomains or narrow the scope.'; 'Export exceeds maximum of 100000 balance records. Add ticker or account filters to narrow the result set.' */
+      413: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Export exceeds maximum of 100000 balance records. Add ticker or account filters to narrow the result set.",
+           *       "error": "Payload Too Large",
+           *       "statusCode": 413
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: Export already in progress (same parameters within 60s); Maximum concurrent exports reached (2 per user). */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "statusCode": 429,
+           *       "message": "Export already in progress"
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: 'Upstream accounting service is unavailable. Please retry.'; 'Gas station service is unavailable'; 'Omnibus service is unavailable' / 'Omnibus service returned inconsistent data' (when omnibus support is enabled). The export fails rather than returning rows with incorrect classification — retry once the upstream is reachable. */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Upstream accounting service is unavailable. Please retry.",
+           *       "error": "Bad Gateway",
+           *       "statusCode": 502
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+    }
+  }
+  MovementReportController_generateMovementReport: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Export_MovementExportDto']
+      }
+    }
+    responses: {
+      /** @description Report generated. */
+      201: {
+        headers: {
+          /** @description Attachment filename. */
+          'Content-Disposition'?: string
+          /** @description Export UUID (same value as metadata.exportId). */
+          'X-Export-Id'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Export_MovementReportResponseDto']
+          /**
+           * @example # metadata: {"exportId":"d394fae4-9d6b-4ab7-a3fa-c66e7a6caf56","recordCount":16,...}
+           *     "domainId","domainName","registeredAt","transactionId","onLedgerTransactionId","transferId","transferKind","enrichedTransactionValue","rawTransactionValue","ledgerName",...(39 columns)
+           *     "5cd224fe-193e-8bce-c94c-c6c05245e2d1","My root domain","2026-08-17T10:54:04.130Z",...
+           */
+          'text/csv': string
+        }
+      }
+      /** @description Invalid value for: domainId, dateRange (start/end must be ISO-8601), format, vaultIds, tickerIds, accountIds, includeChildDomains, custodyStatus, ledgerStatus. */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": [
+           *         "domainId must be a valid UUID"
+           *       ],
+           *       "error": "Bad Request",
+           *       "statusCode": 400
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: missing bearer token; invalid or expired JWT. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Authentication required",
+           *       "error": "Unauthorized",
+           *       "statusCode": 401
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description User has no profile in the target domain with read access to 'transactions'. With includeChildDomains, each child domain is verified individually. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Access denied",
+           *       "error": "Forbidden",
+           *       "statusCode": 403
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: 'Export spans {n} domains, exceeding the maximum of 100. Remove includeChildDomains or narrow the scope.'; 'Export exceeds maximum of 100000 transfers. Narrow the date range or filter by ticker, account, vault, or status.' */
+      413: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Export exceeds maximum of 100000 transfers. Narrow the date range or filter by ticker, account, vault, or status.",
+           *       "error": "Payload Too Large",
+           *       "statusCode": 413
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: Export already in progress (same parameters within 60s); Maximum concurrent exports reached (2 per user). */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "statusCode": 429,
+           *       "message": "Maximum concurrent exports reached"
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: 'Gas station service is unavailable'; 'Omnibus service is unavailable' / 'Omnibus service returned inconsistent data' (when omnibus support is enabled). The export fails rather than returning rows with incorrect classification — retry once the upstream is reachable. */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Omnibus service is unavailable",
+           *       "error": "Bad Gateway",
+           *       "statusCode": 502
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+    }
+  }
+  OmnibusPositionReportController_generateOmnibusPositionReport: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Export_OmnibusPositionExportDto']
+      }
+    }
+    responses: {
+      /** @description Report generated. */
+      201: {
+        headers: {
+          /** @description Attachment filename. */
+          'Content-Disposition'?: string
+          /** @description Export UUID (same value as metadata.exportId). */
+          'X-Export-Id'?: string
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Export_OmnibusPositionReportResponseDto']
+          /**
+           * @example # metadata: {"exportId":"916a5c78-6be0-4b99-9365-b75bf9833297","recordCount":4,...}
+           *     "domainId","domainName","accountType","accountId","accountName","mappedVirtualAccountId","isHost","parentOmnibusAccountId","tickerId","tickerKind","tickerName","tickerSymbol","ledgerName","availableBalance","reservedBalance","quarantineBalance","feeBalance","confiscationBalance","totalBalance","ledgerBalanceTimestamp"
+           *     "c73e9e5e-e803-4dc0-93c5-be71c3396ae9","TEST_SG_SUB_DOMAIN","omnibus",...
+           */
+          'text/csv': string
+        }
+      }
+      /** @description Invalid value for: domainId, asOfTimestamp (must be ISO-8601, not in the future), format, tenantIds, tickerIds, includeZeroBalances. Or 'Invalid query parameters for balance lookup' (single string message) when the accounting service rejects the query. */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": [
+           *         "domainId must be a valid UUID"
+           *       ],
+           *       "error": "Bad Request",
+           *       "statusCode": 400
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: missing bearer token; invalid or expired JWT. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Authentication required",
+           *       "error": "Unauthorized",
+           *       "statusCode": 401
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description User has no profile in the target domain with read access to 'accounts'. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Access denied",
+           *       "error": "Forbidden",
+           *       "statusCode": 403
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description Omnibus support is not enabled for this environment. */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Omnibus support is not enabled",
+           *       "error": "Not Found",
+           *       "statusCode": 404
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description Export exceeds the maximum of 100000 balance records. Add ticker or tenant filters to narrow the result set. */
+      413: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Export exceeds maximum of 100000 balance records. Add ticker or tenant filters to narrow the result set.",
+           *       "error": "Payload Too Large",
+           *       "statusCode": 413
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description The domain has no omnibus structure. An empty file is indistinguishable from all-zero balances and is never returned. */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Domain has no omnibus structure",
+           *       "error": "Unprocessable Entity",
+           *       "statusCode": 422
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: Export already in progress (same parameters within 60s); Maximum concurrent exports reached (2 per user). */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "statusCode": 429,
+           *       "message": "Export already in progress"
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+      /** @description One of: 'Omnibus service is unavailable'; 'Omnibus service returned inconsistent data'; 'Omnibus structure changed during export. Please retry.' (a tenant was created while the hierarchy was being read — retry sees the settled state); 'Upstream accounting service is unavailable. Please retry.'. The export fails rather than returning rows with incorrect classification. */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          /**
+           * @example {
+           *       "message": "Omnibus service is unavailable",
+           *       "error": "Bad Gateway",
+           *       "statusCode": 502
+           *     }
+           */
+          'application/json': components['schemas']['Export_ExportErrorDto']
+        }
+      }
+    }
+  }
+  getAllChannels: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['EDS_Channel'][]
+        }
+      }
+    }
+  }
+  createChannel: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EDS_WebhookChannelCreate']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['EDS_Channel']
+        }
+      }
+    }
+  }
+  testChannel: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+        channelId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  getChannel: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+        channelId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['EDS_Channel']
+        }
+      }
+    }
+  }
+  deleteChannel: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+        channelId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  updateChannel: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+        channelId: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EDS_ChannelUpdate']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['EDS_Channel']
+        }
+      }
+    }
+  }
+  getAllChannelEvents: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+        channelId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['EDS_Event'][]
+        }
+      }
+    }
+  }
+  getEvent: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+        channelId: string
+        eventId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['EDS_Event']
+        }
+      }
+    }
+  }
+  getAllEvents: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        domainId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['EDS_Event'][]
+        }
+      }
+    }
+  }
   getBackup: {
     parameters: {
       query?: never
@@ -18064,6 +18794,33 @@ export interface operations {
           '*/*': components['schemas']['Compliance_ErrorResponse']
         }
       }
+      /** @description Internal Server Error */
+      500: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['Compliance_ErrorResponse']
+        }
+      }
+      /** @description The provider cannot screen this network or asset (NOT_SCREENABLE): a pre-check rejected it before any provider call. The reason names the asset, ledger or network; the preview stores no screening */
+      501: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['Compliance_ErrorResponse']
+        }
+      }
+      /** @description The provider returned no analysis for the wallet after all retries (no verdict), or the Ripple Custody ticker lookup failed (SDK error or ticker without ticker data; CHAINALYSIS only, the Elliptic pre-check skips instead). The body carries the generic 5xx message (the handler sanitises the detail); the preview stores no screening, so the reason is in the server logs */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          '*/*': components['schemas']['Compliance_ErrorResponse']
+        }
+      }
     }
   }
   GetExceptionRole: {
@@ -18811,215 +19568,6 @@ export interface operations {
       }
     }
   }
-  getAllChannels: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['EDS_Channel'][]
-        }
-      }
-    }
-  }
-  createChannel: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['EDS_WebhookChannelCreate']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['EDS_Channel']
-        }
-      }
-    }
-  }
-  testChannel: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-        channelId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  getChannel: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-        channelId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['EDS_Channel']
-        }
-      }
-    }
-  }
-  deleteChannel: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-        channelId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  updateChannel: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-        channelId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['EDS_ChannelUpdate']
-      }
-    }
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['EDS_Channel']
-        }
-      }
-    }
-  }
-  getAllChannelEvents: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-        channelId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['EDS_Event'][]
-        }
-      }
-    }
-  }
-  getEvent: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-        channelId: string
-        eventId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['EDS_Event']
-        }
-      }
-    }
-  }
-  getAllEvents: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        domainId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description OK */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          '*/*': components['schemas']['EDS_Event'][]
-        }
-      }
-    }
-  }
   getSweepThresholds: {
     parameters: {
       query?: {
@@ -19701,6 +20249,90 @@ export interface operations {
       }
     }
   }
+  getOmnibusTransfers: {
+    parameters: {
+      query: {
+        /** @description Inclusive lower bound on the transfer's createdAt. */
+        createdAfter: string
+        /** @description Exclusive upper bound on the transfer's createdAt. Must be strictly after createdAfter and at most 31 days after it, else 400. For a stable page walk set it at least 60 seconds before the current time. */
+        createdBefore: string
+        /** @description Restricts results to these transfer types. Absent means both. */
+        transferTypes?: ('ONCHAIN' | 'OFFCHAIN')[]
+        /** @description Restricts results to these transfer statuses. Absent means all. */
+        transferStatuses?: (
+          | 'PENDING'
+          | 'READY_FOR_SWEEP'
+          | 'SWEEPING'
+          | 'CONFIRMED'
+          | 'FAILED'
+          | 'PENDING_VERIFICATION'
+        )[]
+        /** @description Restricts results to legs whose operation header is in one of these statuses. Absent means all. Deposit legs never match: they carry no header, or a legacy DEPOSIT header that this filter ignores, so they are excluded whenever the filter is given; use transferStatuses to select deposits by state. PENDING also matches the internal RECEIVED intake state, which this API surfaces as PENDING. */
+        operationStatuses?: (
+          | 'PENDING'
+          | 'IN_PROGRESS'
+          | 'COMPLETED'
+          | 'FAILED'
+          | 'CANCELLED'
+          | 'PENDING_VERIFICATION'
+        )[]
+        /** @description Restricts results to legs involving this tenant. */
+        tenantId?: string
+        /** @description Restricts the tenantId filter to legs where the tenant is the source or the destination. Absent means either side. Requires tenantId, else 400. */
+        role?: 'SOURCE' | 'DEST'
+        /** @description Restricts results to these tickers (OR semantics). At most 100. */
+        tickerIds?: string[]
+        page?: number
+        /** @description Page size, at most 1000. Absent means the server's configured default applies (currently 20; runtime-configurable, not a fixed contract value). */
+        size?: number
+      }
+      header?: never
+      path: {
+        domainId: string
+        omnibusId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Omnibus_OmnibusTransferPageResponse']
+        }
+      }
+      /** @description Invalid request parameters: createdAfter not before createdBefore, window wider than 31 days, role without tenantId, size above 1000, more than 100 tickerIds, or page × size beyond 2^31 - 1 */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Omnibus_OmnibusTransferPageResponse']
+        }
+      }
+      /** @description Domain or omnibus structure not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Omnibus_OmnibusTransferPageResponse']
+        }
+      }
+      /** @description The listing did not complete within the server's bounded query time (10 s by default); nothing was returned, retry later or narrow the window */
+      503: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Omnibus_OmnibusTransferPageResponse']
+        }
+      }
+    }
+  }
   getInternalTransfers: {
     parameters: {
       query?: {
@@ -19873,431 +20505,6 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['Omnibus_DepositWalletSummaryPageResponse']
-        }
-      }
-    }
-  }
-  PositionReportController_generatePositionReport: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Export_PositionExportDto']
-      }
-    }
-    responses: {
-      /** @description Report generated. */
-      201: {
-        headers: {
-          /** @description Attachment filename. */
-          'Content-Disposition'?: string
-          /** @description Export UUID (same value as metadata.exportId). */
-          'X-Export-Id'?: string
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Export_PositionReportResponseDto']
-          /**
-           * @example # metadata: {"exportId":"cef02796-daca-425f-91ed-f670eb8ec99f","recordCount":22,...}
-           *     "domainId","domainName","vaultType","vaultId","vaultName","accountId","accountName","accountType","ledgerName","addressOnLedger","tickerId","tickerKind","tickerName","tickerSymbol","reservedBalance","quarantineBalance","totalBalance","ledgerBalanceTimestamp"
-           *     "5cd224fe-193e-8bce-c94c-c6c05245e2d1","My root domain","HSM",...
-           */
-          'text/csv': string
-        }
-      }
-      /** @description Invalid value for: domainId, asOfTimestamp (must be ISO-8601, not in the future), format, vaultIds, tickerIds, accountIds, includeChildDomains, includeZeroBalances. Or 'Invalid query parameters for balance lookup' (single string message) when the accounting service rejects the query. */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": [
-           *         "domainId must be a valid UUID"
-           *       ],
-           *       "error": "Bad Request",
-           *       "statusCode": 400
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: missing bearer token; invalid or expired JWT. */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Authentication required",
-           *       "error": "Unauthorized",
-           *       "statusCode": 401
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description User has no profile in the target domain with read access to 'accounts'. With includeChildDomains, each child domain is verified individually. */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Access denied",
-           *       "error": "Forbidden",
-           *       "statusCode": 403
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: 'Export spans {n} domains, exceeding the maximum of 100. Remove includeChildDomains or narrow the scope.'; 'Export exceeds maximum of 100000 balance records. Add ticker or account filters to narrow the result set.' */
-      413: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Export exceeds maximum of 100000 balance records. Add ticker or account filters to narrow the result set.",
-           *       "error": "Payload Too Large",
-           *       "statusCode": 413
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: Export already in progress (same parameters within 60s); Maximum concurrent exports reached (2 per user). */
-      429: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "statusCode": 429,
-           *       "message": "Export already in progress"
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: 'Upstream accounting service is unavailable. Please retry.'; 'Gas station service is unavailable'; 'Omnibus service is unavailable' / 'Omnibus service returned inconsistent data' (when omnibus support is enabled). The export fails rather than returning rows with incorrect classification — retry once the upstream is reachable. */
-      502: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Upstream accounting service is unavailable. Please retry.",
-           *       "error": "Bad Gateway",
-           *       "statusCode": 502
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-    }
-  }
-  MovementReportController_generateMovementReport: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Export_MovementExportDto']
-      }
-    }
-    responses: {
-      /** @description Report generated. */
-      201: {
-        headers: {
-          /** @description Attachment filename. */
-          'Content-Disposition'?: string
-          /** @description Export UUID (same value as metadata.exportId). */
-          'X-Export-Id'?: string
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Export_MovementReportResponseDto']
-          /**
-           * @example # metadata: {"exportId":"d394fae4-9d6b-4ab7-a3fa-c66e7a6caf56","recordCount":16,...}
-           *     "domainId","domainName","registeredAt","transactionId","onLedgerTransactionId","transferId","transferKind","enrichedTransactionValue","rawTransactionValue","ledgerName",...(39 columns)
-           *     "5cd224fe-193e-8bce-c94c-c6c05245e2d1","My root domain","2026-08-17T10:54:04.130Z",...
-           */
-          'text/csv': string
-        }
-      }
-      /** @description Invalid value for: domainId, dateRange (start/end must be ISO-8601), format, vaultIds, tickerIds, accountIds, includeChildDomains, custodyStatus, ledgerStatus. */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": [
-           *         "domainId must be a valid UUID"
-           *       ],
-           *       "error": "Bad Request",
-           *       "statusCode": 400
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: missing bearer token; invalid or expired JWT. */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Authentication required",
-           *       "error": "Unauthorized",
-           *       "statusCode": 401
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description User has no profile in the target domain with read access to 'transactions'. With includeChildDomains, each child domain is verified individually. */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Access denied",
-           *       "error": "Forbidden",
-           *       "statusCode": 403
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: 'Export spans {n} domains, exceeding the maximum of 100. Remove includeChildDomains or narrow the scope.'; 'Export exceeds maximum of 100000 transfers. Narrow the date range or filter by ticker, account, vault, or status.' */
-      413: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Export exceeds maximum of 100000 transfers. Narrow the date range or filter by ticker, account, vault, or status.",
-           *       "error": "Payload Too Large",
-           *       "statusCode": 413
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: Export already in progress (same parameters within 60s); Maximum concurrent exports reached (2 per user). */
-      429: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "statusCode": 429,
-           *       "message": "Maximum concurrent exports reached"
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: 'Gas station service is unavailable'; 'Omnibus service is unavailable' / 'Omnibus service returned inconsistent data' (when omnibus support is enabled). The export fails rather than returning rows with incorrect classification — retry once the upstream is reachable. */
-      502: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Omnibus service is unavailable",
-           *       "error": "Bad Gateway",
-           *       "statusCode": 502
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-    }
-  }
-  OmnibusPositionReportController_generateOmnibusPositionReport: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['Export_OmnibusPositionExportDto']
-      }
-    }
-    responses: {
-      /** @description Report generated. */
-      201: {
-        headers: {
-          /** @description Attachment filename. */
-          'Content-Disposition'?: string
-          /** @description Export UUID (same value as metadata.exportId). */
-          'X-Export-Id'?: string
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['Export_OmnibusPositionReportResponseDto']
-          /**
-           * @example # metadata: {"exportId":"916a5c78-6be0-4b99-9365-b75bf9833297","recordCount":4,...}
-           *     "domainId","domainName","accountType","accountId","accountName","mappedVirtualAccountId","isHost","parentOmnibusAccountId","tickerId","tickerKind","tickerName","tickerSymbol","ledgerName","availableBalance","reservedBalance","quarantineBalance","feeBalance","confiscationBalance","totalBalance","ledgerBalanceTimestamp"
-           *     "c73e9e5e-e803-4dc0-93c5-be71c3396ae9","TEST_SG_SUB_DOMAIN","omnibus",...
-           */
-          'text/csv': string
-        }
-      }
-      /** @description Invalid value for: domainId, asOfTimestamp (must be ISO-8601, not in the future), format, tenantIds, tickerIds, includeZeroBalances. Or 'Invalid query parameters for balance lookup' (single string message) when the accounting service rejects the query. */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": [
-           *         "domainId must be a valid UUID"
-           *       ],
-           *       "error": "Bad Request",
-           *       "statusCode": 400
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: missing bearer token; invalid or expired JWT. */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Authentication required",
-           *       "error": "Unauthorized",
-           *       "statusCode": 401
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description User has no profile in the target domain with read access to 'accounts'. */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Access denied",
-           *       "error": "Forbidden",
-           *       "statusCode": 403
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description Omnibus support is not enabled for this environment. */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Omnibus support is not enabled",
-           *       "error": "Not Found",
-           *       "statusCode": 404
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description Export exceeds the maximum of 100000 balance records. Add ticker or tenant filters to narrow the result set. */
-      413: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Export exceeds maximum of 100000 balance records. Add ticker or tenant filters to narrow the result set.",
-           *       "error": "Payload Too Large",
-           *       "statusCode": 413
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description The domain has no omnibus structure. An empty file is indistinguishable from all-zero balances and is never returned. */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Domain has no omnibus structure",
-           *       "error": "Unprocessable Entity",
-           *       "statusCode": 422
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: Export already in progress (same parameters within 60s); Maximum concurrent exports reached (2 per user). */
-      429: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "statusCode": 429,
-           *       "message": "Export already in progress"
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
-        }
-      }
-      /** @description One of: 'Omnibus service is unavailable'; 'Omnibus service returned inconsistent data'; 'Omnibus structure changed during export. Please retry.' (a tenant was created while the hierarchy was being read — retry sees the settled state); 'Upstream accounting service is unavailable. Please retry.'. The export fails rather than returning rows with incorrect classification. */
-      502: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          /**
-           * @example {
-           *       "message": "Omnibus service is unavailable",
-           *       "error": "Bad Gateway",
-           *       "statusCode": 502
-           *     }
-           */
-          'application/json': components['schemas']['Export_ExportErrorDto']
         }
       }
     }

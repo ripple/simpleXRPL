@@ -263,6 +263,9 @@ export const CUSTODY_AVAILABILITY: {
     'GET /v1/domains/{}/omnibus/{}/tenants/{}/deposit-wallet': {
       official: '1.36+',
     },
+    'GET /v1/domains/{}/omnibus/{}/transfers': {
+      official: '1.43+',
+    },
     'GET /v1/domains/{}/policies': {
       official: '1.15+',
       devbox: ['cmpt'],

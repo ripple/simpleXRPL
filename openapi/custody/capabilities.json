@@ -4753,6 +4753,7 @@
       "GET /v1/domains/{domainId}/omnibus/{omnibusId}/tenants",
       "GET /v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}",
       "GET /v1/domains/{domainId}/omnibus/{omnibusId}/tenants/{tenantId}/deposit-wallet",
+      "GET /v1/domains/{domainId}/omnibus/{omnibusId}/transfers",
       "GET /v1/domains/{domainId}/policies",
       "GET /v1/domains/{domainId}/policies/{policyId}",
       "GET /v1/domains/{domainId}/requests",
